@@ -237,6 +237,23 @@
     cursor: pointer;
   }
 
+  .date-step {
+    font: inherit;
+    font-size: 15px;
+    line-height: 1;
+    width: 26px;
+    height: 26px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    color: var(--ink-2);
+    background: var(--card);
+    border: 1px solid var(--rule-2);
+    cursor: pointer;
+  }
+
+  .date-step:hover { border-color: var(--accent); color: var(--accent); }
+
   .date-open input {
     font: inherit;
     font-size: 12px;
@@ -330,10 +347,17 @@
     color: var(--accent);
   }
 
-  .crew {
+  .crew, .undo {
     display: flex;
     align-items: stretch;
     gap: calc(var(--step) * 2);
+  }
+
+  .tools button:disabled {
+    opacity: .4;
+    cursor: default;
+    border-color: var(--rule);
+    color: var(--ink-3);
   }
 
   .crew select {
@@ -349,14 +373,30 @@
 
   /* ── 振替の受付 ───────────────────────────── */
   .swap-bar {
+    flex-basis: 100%;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: calc(var(--step) * 2);
-    margin-bottom: calc(var(--step) * 4);
-    padding: calc(var(--step) * 2) calc(var(--step) * 3);
-    background: var(--sub);
+    margin-top: calc(var(--step) * 1);
     font-size: 12px;
+  }
+
+  /* 入力欄がプルダウンだと分かるように印を出す */
+  .swap-combo {
+    position: relative;
+    display: inline-flex;
+  }
+
+  .swap-combo::after {
+    content: "▾";
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    font-size: 12px;
+    color: var(--ink-3);
   }
 
   .swap-label {
@@ -369,7 +409,7 @@
     font: inherit;
     font-size: 13px;
     min-width: 15rem;
-    padding: 4px 8px;
+    padding: 4px 22px 4px 8px;
     color: var(--ink);
     background: var(--card);
     border: 1px solid var(--rule-2);
@@ -491,6 +531,7 @@
   .fleet {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
     gap: calc(var(--step) * 4);
   }
 
@@ -635,7 +676,7 @@
     display: flex;
     align-items: center;
     gap: calc(var(--step) * 3);
-    padding: 5px calc(var(--step) * 3);
+    padding: 4px calc(var(--step) * 3);
     background: var(--accent-soft);
     font-size: 12px;
     color: var(--ink-2);
@@ -644,8 +685,12 @@
   .car.collapsed > .car-id,
   .car.collapsed > .car-body { display: none; }
 
-  /* 隣のカードの高さに引き伸ばされないようにする */
-  .car.collapsed { align-self: start; }
+  /* 畳んだカードは末尾へ送る。開いているカードだけで左右がそろい、
+     畳んだぶんの余白も出ない */
+  .car.collapsed {
+    align-self: start;
+    order: 1;
+  }
 
   .cc-label { color: var(--accent); }
   .cc-why { color: var(--ink-3); font-size: 11px; font-weight: 400; }
@@ -1247,7 +1292,7 @@
 
     .sheet { max-width: none; padding: 0; gap: 2mm; }
 
-    .controls, .modal, .saved-note, .swap-bar { display: none !important; }
+    .controls, .modal, .saved-note, .swap-bar, .date-open { display: none !important; }
     .left-name { border: 0; padding: 0 4px; background: none; color: var(--warn); }
 
     .masthead { padding-bottom: 1.5mm; border-bottom-width: 1.2pt; gap: 1mm 5mm; }
@@ -1343,10 +1388,12 @@
         <select id="date-select" aria-label="保存済みの運行日を選ぶ"></select>
       </span>送迎表
     </h1>
-    <label class="date-open">
-      <span>別の日を開く</span>
+    <span class="date-open">
+      <span class="do-label">別の日を開く</span>
+      <button type="button" class="date-step" id="date-prev" aria-label="前の日へ" title="前の日へ">‹</button>
       <input type="date" id="date-picker" aria-label="別の運行日を開く">
-    </label>
+      <button type="button" class="date-step" id="date-next" aria-label="次の日へ" title="次の日へ">›</button>
+    </span>
     <span class="saved-note" id="saved-note"></span>
   </header>
 
@@ -1361,6 +1408,10 @@
           <option value="8" selected>8人版</option>
         </select>
         <button type="button" id="btn-dispatch">デフォルトに設置</button>
+      </span>
+      <span class="undo">
+        <button type="button" id="btn-undo" title="一つ戻る">↶ 一つ戻る</button>
+        <button type="button" id="btn-redo" title="一つ進む">↷ 一つ進む</button>
       </span>
       <button type="button" id="btn-master">マスタ編集</button>
       <button type="button" id="btn-recalc">時刻を再計算</button>
@@ -2176,7 +2227,10 @@
     addBtn.addEventListener("click", addSwap);
     input.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); addSwap(); } });
 
-    swapBar.append(el("span", "swap-label", "振替利用"), input, datalist, addBtn, chips);
+    const combo = el("span", "swap-combo");
+    combo.append(input, datalist);
+    swapBar.append(el("span", "swap-label", "振替利用"), combo, addBtn, chips);
+    head.append(swapBar);
 
     const leftover = el("p", "leftover");
     leftover.hidden = true;
@@ -2187,7 +2241,7 @@
       + "番号の色　赤＝欠席（取り消し線）／黄緑＝振替利用／橙＝新規・増回　　朱色の車両＝車椅子の方が乗るため定員1名減　　"
       + "「実績」欄は実際の到着時刻、「備考」欄は玄関先の目印や部屋番号の記入用です。");
 
-    section.append(head, swapBar, fleet, leftover, legend);
+    section.append(head, fleet, leftover, legend);
     return section;
   }
 
@@ -2615,11 +2669,51 @@
   let currentDate = isoToday();
   let saveTimer = null;
 
+  /* ページ全体の取り消し・やり直し。日付ごとに持ち直す */
+  let HIST = [];
+  let HIST_AT = -1;
+  let replaying = false;
+
+  function updateHistButtons() {
+    document.getElementById("btn-undo").disabled = HIST_AT <= 0;
+    document.getElementById("btn-redo").disabled = HIST_AT >= HIST.length - 1;
+  }
+
+  function pushHistory(snapshot) {
+    if (replaying) return;
+    const snap = JSON.stringify(snapshot);
+    if (HIST_AT >= 0 && HIST[HIST_AT] === snap) return;
+    HIST = HIST.slice(0, HIST_AT + 1);
+    HIST.push(snap);
+    if (HIST.length > 60) HIST.shift();
+    HIST_AT = HIST.length - 1;
+    updateHistButtons();
+  }
+
+  function stepHistory(delta) {
+    const next = HIST_AT + delta;
+    if (next < 0 || next >= HIST.length) return;
+    HIST_AT = next;
+    replaying = true;
+    applyDay(JSON.parse(HIST[HIST_AT]));
+    drawSwapChips();
+    LEGS.forEach((leg) => {
+      const section = document.getElementById("leg-" + leg.key);
+      computeTimes(section, leg);
+      recount(section, leg);
+    });
+    replaying = false;
+    STORE.setJSON("day." + currentDate, captureDay());
+    updateHistButtons();
+  }
+
   function save() {
     if (saveTimer) clearTimeout(saveTimer);
     saveTimer = setTimeout(() => {
-      STORE.setJSON("day." + currentDate, captureDay());
+      const snapshot = captureDay();
+      STORE.setJSON("day." + currentDate, snapshot);
       STORE.addDay(currentDate);
+      pushHistory(snapshot);
       updateDateOptions();
       updateSavedNote();
     }, 250);
@@ -2697,8 +2791,12 @@
       computeTimes(section, leg);
       recount(section, leg);
     });
-    STORE.setJSON("day." + date, captureDay());
+    const snapshot = captureDay();
+    STORE.setJSON("day." + date, snapshot);
     STORE.addDay(date);
+    HIST = [];
+    HIST_AT = -1;
+    pushHistory(snapshot);
     updateDateOptions();
     updateSavedNote();
   }
@@ -3073,6 +3171,26 @@
 
   datePicker.addEventListener("change", () => {
     if (datePicker.value && datePicker.value !== currentDate) openDay(datePicker.value);
+  });
+
+  /* 前後の日へ1日ずつ動かす */
+  function shiftDate(days) {
+    const d = new Date(currentDate + "T00:00:00");
+    d.setDate(d.getDate() + days);
+    openDay(d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"));
+  }
+
+  document.getElementById("date-prev").addEventListener("click", () => shiftDate(-1));
+  document.getElementById("date-next").addEventListener("click", () => shiftDate(1));
+
+  document.getElementById("btn-undo").addEventListener("click", () => stepHistory(-1));
+  document.getElementById("btn-redo").addEventListener("click", () => stepHistory(1));
+
+  /* Ctrl/⌘+Z、Ctrl/⌘+Shift+Z */
+  document.addEventListener("keydown", (e) => {
+    if (!(e.ctrlKey || e.metaKey) || e.key.toLowerCase() !== "z") return;
+    e.preventDefault();
+    stepHistory(e.shiftKey ? 1 : -1);
   });
 
   /* ── ツール ───────────────────────────────── */
