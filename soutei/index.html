@@ -13,13 +13,24 @@
     --ink-3: #8A96A3;
     --rule: #D9DED6;
     --rule-2: #C3CABE;
-    --ai: #2C4F7C;
+
+    /* 便ごとの色：寒色＝お迎え／暖色＝お送り */
+    --ai: #2C4F7C;        /* 藍　　午前 お迎え */
     --ai-soft: #E6EDF5;
-    --kaki: #A84B23;
+    --kaki: #A84B23;      /* 柿渋　午前 お送り */
     --kaki-soft: #F6E8E0;
+    --seiheki: #2E6B75;   /* 青碧　午後 お迎え */
+    --seiheki-soft: #E1EDEE;
+    --enji: #8E3B4E;      /* 臙脂　午後 お送り */
+    --enji-soft: #F5E5E9;
+
+    /* 記号は便によらず一定 */
+    --tag-wc: #2F5D8C;
+    --tag-help: #9C2B2B;
+    --tag-door: #8A5A1E;
+
     --warn: #9C2B2B;
-    --warn-soft: #F4E4E2;
-    --ok: #3D6F52;
+    --warn-soft: #F6E7E5;
 
     --accent: var(--ai);
     --accent-soft: var(--ai-soft);
@@ -45,9 +56,15 @@
       --ai-soft: #1D2937;
       --kaki: #D68C64;
       --kaki-soft: #31241C;
+      --seiheki: #79B4BC;
+      --seiheki-soft: #17292C;
+      --enji: #D2879A;
+      --enji-soft: #2E1C22;
+      --tag-wc: #8FB2D8;
+      --tag-help: #DE8480;
+      --tag-door: #D2A86A;
       --warn: #DE8480;
       --warn-soft: #331E1E;
-      --ok: #7FB496;
     }
   }
 
@@ -65,9 +82,15 @@
     --ai-soft: #1D2937;
     --kaki: #D68C64;
     --kaki-soft: #31241C;
+    --seiheki: #79B4BC;
+    --seiheki-soft: #17292C;
+    --enji: #D2879A;
+    --enji-soft: #2E1C22;
+    --tag-wc: #8FB2D8;
+    --tag-help: #DE8480;
+    --tag-door: #D2A86A;
     --warn: #DE8480;
     --warn-soft: #331E1E;
-    --ok: #7FB496;
   }
 
   :root[data-theme="light"] {
@@ -84,9 +107,15 @@
     --ai-soft: #E6EDF5;
     --kaki: #A84B23;
     --kaki-soft: #F6E8E0;
+    --seiheki: #2E6B75;
+    --seiheki-soft: #E1EDEE;
+    --enji: #8E3B4E;
+    --enji-soft: #F5E5E9;
+    --tag-wc: #2F5D8C;
+    --tag-help: #9C2B2B;
+    --tag-door: #8A5A1E;
     --warn: #9C2B2B;
-    --warn-soft: #F4E4E2;
-    --ok: #3D6F52;
+    --warn-soft: #F6E7E5;
   }
 
   /* ── ベース ───────────────────────────────── */
@@ -188,15 +217,30 @@
 
   .legs {
     display: flex;
+    flex-wrap: wrap;
+    gap: calc(var(--step) * 3);
+  }
+
+  .leg-group {
+    display: flex;
+    align-items: center;
     gap: 2px;
     background: var(--sub);
-    padding: 3px;
+    padding: 3px 3px 3px 10px;
+  }
+
+  .group-label {
+    font-family: var(--mincho);
+    font-size: 13px;
+    letter-spacing: .14em;
+    color: var(--ink-2);
+    margin-right: 6px;
   }
 
   .legs button {
     font: inherit;
     font-size: 14px;
-    padding: 7px 20px;
+    padding: 7px 16px;
     border: 0;
     background: transparent;
     color: var(--ink-2);
@@ -204,23 +248,11 @@
     letter-spacing: .06em;
   }
 
-  .legs button b {
-    font-weight: 600;
-  }
-
-  .legs button small {
-    font-size: 11px;
-    color: var(--ink-3);
-    margin-left: 6px;
-  }
-
   .legs button[aria-selected="true"] {
     background: var(--card);
     color: var(--ink);
-    box-shadow: inset 0 -2px 0 var(--accent);
+    box-shadow: inset 0 -2px 0 var(--tab, var(--ai));
   }
-
-  .legs button[aria-selected="true"] small { color: var(--ink-2); }
 
   .tools {
     display: flex;
@@ -249,13 +281,14 @@
     display: flex;
     flex-wrap: wrap;
     align-items: baseline;
-    gap: calc(var(--step) * 3) calc(var(--step) * 6);
+    gap: calc(var(--step) * 3) calc(var(--step) * 5);
     padding: calc(var(--step) * 3) 0;
     margin-bottom: calc(var(--step) * 4);
     border-bottom: 1px solid var(--rule);
   }
 
   .leg-title {
+    margin: 0;
     font-family: var(--mincho);
     font-size: 20px;
     font-weight: 600;
@@ -273,14 +306,15 @@
 
   .stats {
     display: flex;
-    gap: calc(var(--step) * 6);
+    flex-wrap: wrap;
+    gap: calc(var(--step) * 5);
     margin-left: auto;
   }
 
   .stat {
     display: flex;
     align-items: baseline;
-    gap: 6px;
+    gap: 5px;
     font-size: 12px;
     color: var(--ink-3);
   }
@@ -292,7 +326,8 @@
     font-variant-numeric: tabular-nums;
   }
 
-  .stat.is-over b { color: var(--warn); }
+  .stat.is-alert b { color: var(--warn); }
+  .stat.is-alert { color: var(--warn); }
 
   .print-stamp {
     display: none;
@@ -308,7 +343,7 @@
     gap: calc(var(--step) * 4);
   }
 
-  @media (max-width: 900px) {
+  @media (max-width: 980px) {
     .fleet { grid-template-columns: minmax(0, 1fr); }
   }
 
@@ -356,6 +391,7 @@
   .car-size {
     display: flex;
     flex-direction: column;
+    margin: 0;
     font-size: 11px;
     line-height: 1.4;
     letter-spacing: .06em;
@@ -363,7 +399,7 @@
     white-space: nowrap;
   }
 
-  /* 定員ピップ：■=乗車 □=空席 */
+  /* 定員ピップ：■＝乗車　□＝空席 */
   .pips {
     display: flex;
     gap: 3px;
@@ -401,10 +437,6 @@
     margin-bottom: 1px;
   }
 
-  .car-size {
-    margin: 0;
-  }
-
   .car-body { min-width: 0; }
 
   /* ── ルート順 ─────────────────────────────── */
@@ -428,12 +460,12 @@
 
   .stop {
     display: grid;
-    grid-template-columns: 19px 3.6rem minmax(4.5rem, 1.3fr) minmax(4.5rem, 1fr) auto;
+    grid-template-columns: 19px 3.6rem minmax(5rem, 1.25fr) minmax(5rem, 1fr) auto;
     align-items: center;
     gap: calc(var(--step) * 2);
     padding: 5px calc(var(--step) * 3);
     border-bottom: 1px solid var(--rule);
-    min-height: 30px;
+    min-height: 32px;
   }
 
   .stop.head {
@@ -447,6 +479,8 @@
   }
 
   .stop.head .ord { visibility: hidden; }
+
+  .stop.dup { background: var(--warn-soft); }
 
   .ord {
     position: relative;
@@ -469,25 +503,50 @@
     color: var(--card);
   }
 
+  .stop.dup .ord { border-color: var(--warn); background: var(--warn); }
+
   .t {
     font-size: 14px;
     font-variant-numeric: tabular-nums;
     letter-spacing: .02em;
   }
 
+  /* 利用者名：マスタからのプルダウン。見た目は帳票の記入欄に寄せる */
   .who {
+    font: inherit;
     font-size: 14px;
+    width: 100%;
+    min-width: 0;
+    padding: 0;
+    color: var(--ink);
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid transparent;
+    border-radius: 0;
+    appearance: none;
+    -webkit-appearance: none;
+    cursor: pointer;
+  }
+
+  .who:hover { border-bottom-color: var(--accent); }
+  .who[data-empty="true"] { border-bottom: 1px dotted var(--rule-2); }
+  .stop.dup .who { color: var(--warn); font-weight: 600; }
+
+  .area {
+    font-size: 12px;
+    color: var(--ink-2);
+    font-variant-numeric: tabular-nums;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
 
-  .area {
-    font-size: 12px;
-    color: var(--ink-2);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  /* 当日だけ迎え先を変えた場合の目印 */
+  .area.edited { color: var(--accent); }
+  .area.edited::after {
+    content: "※";
+    font-size: 10px;
+    margin-left: 2px;
   }
 
   [contenteditable] {
@@ -518,18 +577,18 @@
     display: grid;
     place-items: center;
     font-size: 10px;
+    font-family: inherit;
     border: 1px solid currentColor;
+    background: transparent;
+    color: var(--rule-2);
+    padding: 0;
     cursor: pointer;
     user-select: none;
-    color: var(--rule-2);
-    background: transparent;
-    padding: 0;
-    font-family: inherit;
   }
 
-  .tag[aria-pressed="true"] { color: var(--kaki); }
-  .tag[aria-pressed="true"].t-wc { color: var(--ai); }
-  .tag[aria-pressed="true"].t-help { color: var(--warn); }
+  .tag[aria-pressed="true"].t-wc { color: var(--tag-wc); }
+  .tag[aria-pressed="true"].t-help { color: var(--tag-help); }
+  .tag[aria-pressed="true"].t-door { color: var(--tag-door); }
 
   .car-foot {
     display: flex;
@@ -548,11 +607,23 @@
     font-variant-numeric: tabular-nums;
   }
 
-  .car-foot .count {
-    font-variant-numeric: tabular-nums;
-  }
+  .car-foot .count { font-variant-numeric: tabular-nums; }
 
   .car.is-over .car-foot .count { color: var(--warn); font-weight: 600; }
+
+  /* 未割当の利用者：便ごとに残りを出す */
+  .leftover {
+    margin: calc(var(--step) * 3) 0 0;
+    padding: calc(var(--step) * 2) calc(var(--step) * 3);
+    border: 1px solid var(--warn);
+    background: var(--warn-soft);
+    color: var(--warn);
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  .leftover[hidden] { display: none; }
+  .leftover b { font-weight: 600; }
 
   .leg-legend { display: none; }
 
@@ -582,7 +653,11 @@
     border: 1px solid currentColor;
   }
 
-  /* ── 印刷：A4横・往路と復路で1枚ずつ ───────── */
+  .legend .s-wc { color: var(--tag-wc); }
+  .legend .s-help { color: var(--tag-help); }
+  .legend .s-door { color: var(--tag-door); }
+
+  /* ── 印刷：A4横・4便で4枚 ─────────────────── */
   @page {
     size: A4 landscape;
     margin: 8mm;
@@ -603,24 +678,21 @@
       --ai-soft: #EDF1F6;
       --kaki: #7E3617;
       --kaki-soft: #F7EDE7;
+      --seiheki: #1F4F57;
+      --seiheki-soft: #E8F1F2;
+      --enji: #6B2C3B;
+      --enji-soft: #F7EBEE;
       --warn: #8A1F1F;
+      --warn-soft: #FAF0EF;
     }
 
     body { background: #fff; font-size: 9pt; line-height: 1.3; }
 
-    .sheet {
-      max-width: none;
-      padding: 0;
-      gap: 2mm;
-    }
+    .sheet { max-width: none; padding: 0; gap: 2mm; }
 
     .controls { display: none; }
 
-    .masthead {
-      padding-bottom: 1.5mm;
-      border-bottom-width: 1.2pt;
-    }
-
+    .masthead { padding-bottom: 1.5mm; border-bottom-width: 1.2pt; }
     .eyebrow { font-size: 6.5pt; }
     .masthead h1 { font-size: 13pt; margin-top: 0; }
     .mast-fields { gap: 6mm; }
@@ -641,11 +713,11 @@
     .leg:first-of-type { break-before: auto; }
 
     .print-stamp { display: block; margin-left: auto; font-size: 7pt; }
-    .stats { margin-left: 0; gap: 8mm; }
+    .stats { margin-left: 0; gap: 6mm; }
     .stat { font-size: 7pt; }
     .stat b { font-size: 10pt; }
 
-    .leg-head { padding: 1mm 0; margin-bottom: 1.5mm; gap: 1mm 6mm; }
+    .leg-head { padding: 1mm 0; margin-bottom: 1.5mm; gap: 1mm 5mm; }
     .leg-title { font-size: 11pt; }
     .leg-title small { font-size: 7.5pt; }
 
@@ -666,7 +738,7 @@
       min-height: 0;
       padding: 0.55mm 1.6mm;
       gap: 1.4mm;
-      grid-template-columns: 13px 3.2rem minmax(4rem, 1.3fr) minmax(4rem, 1fr) auto;
+      grid-template-columns: 13px 3.2rem minmax(4.4rem, 1.25fr) minmax(4.4rem, 1fr) auto;
       line-height: 1.25;
     }
 
@@ -677,10 +749,16 @@
     .area { font-size: 7pt; }
     [contenteditable]:empty::before { content: ""; }
 
+    /* 空欄の行は手書きできるよう罫線を残す */
+    .stop.empty .t, .stop.empty .area { border-bottom: 1px dotted #BBB; }
+    .who[data-empty="true"] { border-bottom: 1px dotted #BBB; }
+
     .tag { width: 12px; height: 12px; font-size: 6.5pt; }
 
     .car-foot { padding: 0.6mm 1.6mm; font-size: 7pt; }
     .car-foot .arrive { font-size: 8.5pt; }
+
+    .leftover { margin-top: 1.5mm; padding: 1mm 1.6mm; font-size: 7pt; }
 
     .legend { display: none; }
 
@@ -694,7 +772,6 @@
       color: var(--ink-2);
     }
   }
-
 </style>
 
 <div class="sheet">
@@ -721,30 +798,29 @@
   </header>
 
   <div class="controls">
-    <div class="legs" role="tablist" aria-label="便の切替">
-      <button role="tab" id="tab-out" aria-controls="leg-out" aria-selected="true"><b>往路</b><small>お迎え</small></button>
-      <button role="tab" id="tab-ret" aria-controls="leg-ret" aria-selected="false"><b>復路</b><small>お送り</small></button>
-    </div>
+    <div class="legs" role="tablist" aria-label="便の切替"></div>
     <div class="tools">
       <button type="button" id="btn-clear">記入をクリア</button>
-      <button type="button" id="btn-print">印刷（往路・復路 各1枚）</button>
+      <button type="button" id="btn-print">印刷（全4便・各1枚）</button>
     </div>
   </div>
 
-  <section class="leg" id="leg-out" role="tabpanel" aria-labelledby="tab-out"></section>
-  <section class="leg" id="leg-ret" role="tabpanel" aria-labelledby="tab-ret" hidden></section>
+  <div id="sections"></div>
 
   <div class="legend">
-    <span class="item"><span class="swatch">車</span>車椅子（リフト・スロープ使用）</span>
-    <span class="item"><span class="swatch">介</span>乗降介助が必要</span>
-    <span class="item"><span class="swatch">玄</span>玄関先まで送迎</span>
-    <span class="item"><span class="swatch" style="border-style:solid;background:currentColor;color:var(--ink-2)"></span>■＝乗車　□＝空席（定員は運転手を除く人数）</span>
-    <span class="item">氏名・時刻・地区・記号はクリックで直接書き換えできます。</span>
+    <span class="item"><span class="swatch s-wc">車</span>車椅子（リフト・スロープ使用）</span>
+    <span class="item"><span class="swatch s-help">介</span>乗降介助が必要</span>
+    <span class="item"><span class="swatch s-door">玄</span>玄関先まで送迎</span>
+    <span class="item">■＝乗車　□＝空席（定員は運転手を除く人数）</span>
+    <span class="item">利用者名はプルダウンで選択すると、住所と記号がマスタから自動で入ります。</span>
+    <span class="item">※印は住所を当日だけ書き換えた行です。</span>
   </div>
 </div>
 
 <script>
-  // 車両：5人乗り6台（乗車4名）／7人乗り2台（乗車6名）
+  /* ── 車両 ──────────────────────────────────
+     5人乗り6台（乗車定員4名）／7人乗り2台（乗車定員6名）
+     seats は車検証上の乗車人数。定員は seats - 1（運転手を除く）で計算する。 */
   const FLEET = [
     { no: 1, seats: 5, plate: "品川 500 あ 12-34", driver: "佐藤 健一" },
     { no: 2, seats: 5, plate: "品川 500 あ 12-56", driver: "佐々木 実" },
@@ -756,122 +832,296 @@
     { no: 8, seats: 7, plate: "品川 300 か 8-16", driver: "岡田 誠" }
   ];
 
-  const PLAN = {
-    out: {
-      title: "往路", sub: "お迎え", label: "自宅 → 事業所",
-      runs: {
-        1: { arrive: "09:35", stops: [
-          { t: "08:35", who: "田中 ハル", area: "中央町 3丁目", tags: ["介"] },
-          { t: "08:50", who: "鈴木 正一", area: "中央町 1丁目", tags: [] },
-          { t: "09:05", who: "高橋 キヨ", area: "本町 5丁目", tags: ["玄"] },
-          { t: "09:20", who: "小林 節子", area: "本町 2丁目", tags: [] }
-        ]},
-        2: { arrive: "09:40", stops: [
-          { t: "08:40", who: "伊藤 フミ", area: "若葉台 2丁目", tags: ["介"] },
-          { t: "08:55", who: "渡部 秀夫", area: "若葉台 4丁目", tags: [] },
-          { t: "09:10", who: "山田 トシ子", area: "緑町 1丁目", tags: ["玄"] },
-          { t: "09:25", who: "中西 幸雄", area: "緑町 3丁目", tags: [] }
-        ]},
-        3: { arrive: "09:30", stops: [
-          { t: "08:30", who: "大野 スミ", area: "桜ヶ丘 1丁目", tags: ["車"] },
-          { t: "08:50", who: "藤井 康夫", area: "桜ヶ丘 3丁目", tags: [] },
-          { t: "09:05", who: "岩本 ヨシ", area: "旭ヶ丘 2丁目", tags: ["介"] },
-          { t: "09:18", who: "森田 光子", area: "旭ヶ丘 5丁目", tags: [] }
-        ]},
-        4: { arrive: "09:45", stops: [
-          { t: "08:45", who: "村上 三郎", area: "東雲 2丁目", tags: [] },
-          { t: "09:00", who: "北川 きく", area: "東雲 6丁目", tags: ["玄"] },
-          { t: "09:22", who: "菅原 テル", area: "川井町 1丁目", tags: ["介"] }
-        ]},
-        5: { arrive: "09:38", stops: [
-          { t: "08:38", who: "堀内 昌代", area: "富士見町 4丁目", tags: [] },
-          { t: "08:52", who: "浅野 勝治", area: "富士見町 7丁目", tags: ["介"] },
-          { t: "09:08", who: "白石 ミツ", area: "南台 2丁目", tags: [] },
-          { t: "09:24", who: "野口 定雄", area: "南台 5丁目", tags: ["玄"] }
-        ]},
-        6: { arrive: "09:32", stops: [
-          { t: "08:42", who: "長沢 スエ", area: "泉町 1丁目", tags: ["介"] },
-          { t: "09:00", who: "谷口 良一", area: "泉町 4丁目", tags: [] },
-          { t: "09:16", who: "杉本 アキ", area: "宮下 2丁目", tags: [] }
-        ]},
-        7: { arrive: "09:50", stops: [
-          { t: "08:30", who: "西村 タカ", area: "上野原 1丁目", tags: ["車"] },
-          { t: "08:44", who: "石田 正治", area: "上野原 3丁目", tags: [] },
-          { t: "08:58", who: "内藤 ハナ", area: "戸倉 2丁目", tags: ["介"] },
-          { t: "09:12", who: "平野 邦彦", area: "戸倉 5丁目", tags: [] },
-          { t: "09:26", who: "小島 チヨ", area: "梅林 1丁目", tags: ["玄"] },
-          { t: "09:40", who: "福井 静江", area: "梅林 4丁目", tags: [] }
-        ]},
-        8: { arrive: "09:48", stops: [
-          { t: "08:34", who: "尾崎 たけし", area: "新町 2丁目", tags: ["車"] },
-          { t: "08:48", who: "上田 ノブ", area: "新町 5丁目", tags: ["介"] },
-          { t: "09:04", who: "河合 秀子", area: "曙 1丁目", tags: [] },
-          { t: "09:20", who: "遠藤 巌", area: "曙 4丁目", tags: [] },
-          { t: "09:34", who: "宮本 サダ", area: "花見川 2丁目", tags: ["玄"] }
-        ]}
-      }
-    },
-    ret: {
-      title: "復路", sub: "お送り", label: "事業所 → 自宅",
-      runs: {
-        1: { arrive: "16:55", stops: [
-          { t: "15:55", who: "小林 節子", area: "本町 2丁目", tags: [] },
-          { t: "16:10", who: "高橋 キヨ", area: "本町 5丁目", tags: ["玄"] },
-          { t: "16:28", who: "鈴木 正一", area: "中央町 1丁目", tags: [] },
-          { t: "16:42", who: "田中 ハル", area: "中央町 3丁目", tags: ["介"] }
-        ]},
-        2: { arrive: "17:00", stops: [
-          { t: "15:58", who: "中西 幸雄", area: "緑町 3丁目", tags: [] },
-          { t: "16:12", who: "山田 トシ子", area: "緑町 1丁目", tags: ["玄"] },
-          { t: "16:30", who: "渡部 秀夫", area: "若葉台 4丁目", tags: [] },
-          { t: "16:45", who: "伊藤 フミ", area: "若葉台 2丁目", tags: ["介"] }
-        ]},
-        3: { arrive: "16:50", stops: [
-          { t: "15:50", who: "森田 光子", area: "旭ヶ丘 5丁目", tags: [] },
-          { t: "16:04", who: "岩本 ヨシ", area: "旭ヶ丘 2丁目", tags: ["介"] },
-          { t: "16:20", who: "藤井 康夫", area: "桜ヶ丘 3丁目", tags: [] },
-          { t: "16:36", who: "大野 スミ", area: "桜ヶ丘 1丁目", tags: ["車"] }
-        ]},
-        4: { arrive: "16:48", stops: [
-          { t: "15:52", who: "菅原 テル", area: "川井町 1丁目", tags: ["介"] },
-          { t: "16:14", who: "北川 きく", area: "東雲 6丁目", tags: ["玄"] },
-          { t: "16:30", who: "村上 三郎", area: "東雲 2丁目", tags: [] }
-        ]},
-        5: { arrive: "16:58", stops: [
-          { t: "15:56", who: "野口 定雄", area: "南台 5丁目", tags: ["玄"] },
-          { t: "16:10", who: "白石 ミツ", area: "南台 2丁目", tags: [] },
-          { t: "16:28", who: "浅野 勝治", area: "富士見町 7丁目", tags: ["介"] },
-          { t: "16:44", who: "堀内 昌代", area: "富士見町 4丁目", tags: [] }
-        ]},
-        6: { arrive: "16:46", stops: [
-          { t: "15:54", who: "杉本 アキ", area: "宮下 2丁目", tags: [] },
-          { t: "16:10", who: "谷口 良一", area: "泉町 4丁目", tags: [] },
-          { t: "16:28", who: "長沢 スエ", area: "泉町 1丁目", tags: ["介"] }
-        ]},
-        7: { arrive: "17:05", stops: [
-          { t: "15:50", who: "福井 静江", area: "梅林 4丁目", tags: [] },
-          { t: "16:03", who: "小島 チヨ", area: "梅林 1丁目", tags: ["玄"] },
-          { t: "16:18", who: "平野 邦彦", area: "戸倉 5丁目", tags: [] },
-          { t: "16:32", who: "内藤 ハナ", area: "戸倉 2丁目", tags: ["介"] },
-          { t: "16:46", who: "石田 正治", area: "上野原 3丁目", tags: [] },
-          { t: "17:00", who: "西村 タカ", area: "上野原 1丁目", tags: ["車"] }
-        ]},
-        8: { arrive: "17:02", stops: [
-          { t: "15:52", who: "宮本 サダ", area: "花見川 2丁目", tags: ["玄"] },
-          { t: "16:08", who: "遠藤 巌", area: "曙 4丁目", tags: [] },
-          { t: "16:24", who: "河合 秀子", area: "曙 1丁目", tags: [] },
-          { t: "16:40", who: "上田 ノブ", area: "新町 5丁目", tags: ["介"] },
-          { t: "16:56", who: "尾崎 たけし", area: "新町 2丁目", tags: ["車"] }
-        ]}
-      }
-    }
-  };
+  /* ── 便 ────────────────────────────────────
+     午前・午後それぞれに お迎え／お送り の2便。印刷すると1便＝1ページ。 */
+  const LEGS = [
+    { key: "am-pick", part: "am", partLabel: "午前", dir: "お迎え", flow: "自宅 → 事業所", arriveLabel: "事業所 着", accent: "ai" },
+    { key: "am-drop", part: "am", partLabel: "午前", dir: "お送り", flow: "事業所 → 自宅", arriveLabel: "事業所 帰着", accent: "kaki" },
+    { key: "pm-pick", part: "pm", partLabel: "午後", dir: "お迎え", flow: "自宅 → 事業所", arriveLabel: "事業所 着", accent: "seiheki" },
+    { key: "pm-drop", part: "pm", partLabel: "午後", dir: "お送り", flow: "事業所 → 自宅", arriveLabel: "事業所 帰着", accent: "enji" }
+  ];
 
   const TAGS = [
     { key: "車", cls: "t-wc", title: "車椅子" },
     { key: "介", cls: "t-help", title: "乗降介助" },
     { key: "玄", cls: "t-door", title: "玄関先まで" }
   ];
+
+  /* ── 利用者マスタ ───────────────────────────
+     プルダウンの選択肢。住所と記号はここから行に流し込まれる。 */
+  const USERS = [
+    { id: "u01", name: "田中 ハル", kana: "たなか はる", town: "中央町", addr: "中央町3-14-2", tags: ["介"] },
+    { id: "u02", name: "鈴木 正一", kana: "すずき しょういち", town: "中央町", addr: "中央町1-8-5", tags: [] },
+    { id: "u03", name: "高橋 キヨ", kana: "たかはし きよ", town: "本町", addr: "本町5-3-11", tags: ["玄"] },
+    { id: "u04", name: "小林 節子", kana: "こばやし せつこ", town: "本町", addr: "本町2-19-4", tags: [] },
+    { id: "u05", name: "伊藤 フミ", kana: "いとう ふみ", town: "若葉台", addr: "若葉台2-6-3", tags: ["介"] },
+    { id: "u06", name: "渡部 秀夫", kana: "わたなべ ひでお", town: "若葉台", addr: "若葉台4-11-8", tags: [] },
+    { id: "u07", name: "山田 トシ子", kana: "やまだ としこ", town: "緑町", addr: "緑町1-4-16", tags: ["玄"] },
+    { id: "u08", name: "中西 幸雄", kana: "なかにし ゆきお", town: "緑町", addr: "緑町3-9-2", tags: [] },
+    { id: "u09", name: "大野 スミ", kana: "おおの すみ", town: "桜ヶ丘", addr: "桜ヶ丘1-2-7", tags: ["車"] },
+    { id: "u10", name: "藤井 康夫", kana: "ふじい やすお", town: "桜ヶ丘", addr: "桜ヶ丘3-15-1", tags: [] },
+    { id: "u11", name: "岩本 ヨシ", kana: "いわもと よし", town: "旭ヶ丘", addr: "旭ヶ丘2-7-9", tags: ["介"] },
+    { id: "u12", name: "森田 光子", kana: "もりた みつこ", town: "旭ヶ丘", addr: "旭ヶ丘5-1-12", tags: [] },
+    { id: "u13", name: "村上 三郎", kana: "むらかみ さぶろう", town: "東雲", addr: "東雲2-11-6", tags: [] },
+    { id: "u14", name: "北川 きく", kana: "きたがわ きく", town: "東雲", addr: "東雲6-3-1", tags: ["玄"] },
+    { id: "u15", name: "菅原 テル", kana: "すがわら てる", town: "川井町", addr: "川井町1-22-4", tags: ["介"] },
+    { id: "u16", name: "堀内 昌代", kana: "ほりうち まさよ", town: "富士見町", addr: "富士見町4-8-3", tags: [] },
+    { id: "u17", name: "浅野 勝治", kana: "あさの かつじ", town: "富士見町", addr: "富士見町7-2-15", tags: ["介"] },
+    { id: "u18", name: "白石 ミツ", kana: "しらいし みつ", town: "南台", addr: "南台2-5-9", tags: [] },
+    { id: "u19", name: "野口 定雄", kana: "のぐち さだお", town: "南台", addr: "南台5-13-2", tags: ["玄"] },
+    { id: "u20", name: "長沢 スエ", kana: "ながさわ すえ", town: "泉町", addr: "泉町1-9-7", tags: ["介"] },
+    { id: "u21", name: "谷口 良一", kana: "たにぐち りょういち", town: "泉町", addr: "泉町4-2-11", tags: [] },
+    { id: "u22", name: "杉本 アキ", kana: "すぎもと あき", town: "宮下", addr: "宮下2-16-5", tags: [] },
+    { id: "u23", name: "西村 タカ", kana: "にしむら たか", town: "上野原", addr: "上野原1-3-8", tags: ["車"] },
+    { id: "u24", name: "石田 正治", kana: "いしだ しょうじ", town: "上野原", addr: "上野原3-12-1", tags: [] },
+    { id: "u25", name: "内藤 ハナ", kana: "ないとう はな", town: "戸倉", addr: "戸倉2-7-14", tags: ["介"] },
+    { id: "u26", name: "平野 邦彦", kana: "ひらの くにひこ", town: "戸倉", addr: "戸倉5-1-6", tags: [] },
+    { id: "u27", name: "小島 チヨ", kana: "こじま ちよ", town: "梅林", addr: "梅林1-10-3", tags: ["玄"] },
+    { id: "u28", name: "福井 静江", kana: "ふくい しずえ", town: "梅林", addr: "梅林4-6-9", tags: [] },
+    { id: "u29", name: "尾崎 たけし", kana: "おざき たけし", town: "新町", addr: "新町2-4-17", tags: ["車"] },
+    { id: "u30", name: "上田 ノブ", kana: "うえだ のぶ", town: "新町", addr: "新町5-9-2", tags: ["介"] },
+    { id: "u31", name: "河合 秀子", kana: "かわい ひでこ", town: "曙", addr: "曙1-7-5", tags: [] },
+    { id: "u32", name: "遠藤 巌", kana: "えんどう いわお", town: "曙", addr: "曙4-2-13", tags: [] },
+    { id: "u33", name: "宮本 サダ", kana: "みやもと さだ", town: "花見川", addr: "花見川2-8-1", tags: ["玄"] },
+    { id: "u34", name: "青木 トメ", kana: "あおき とめ", town: "中央町", addr: "中央町2-5-8", tags: ["介"] },
+    { id: "u35", name: "木村 誠一", kana: "きむら せいいち", town: "中央町", addr: "中央町4-1-3", tags: [] },
+    { id: "u36", name: "佐野 ハツ", kana: "さの はつ", town: "本町", addr: "本町3-12-7", tags: ["玄"] },
+    { id: "u37", name: "早川 春夫", kana: "はやかわ はるお", town: "本町", addr: "本町7-4-2", tags: [] },
+    { id: "u38", name: "三浦 キミ", kana: "みうら きみ", town: "若葉台", addr: "若葉台1-9-11", tags: ["車"] },
+    { id: "u39", name: "秋山 三男", kana: "あきやま みつお", town: "若葉台", addr: "若葉台5-2-6", tags: [] },
+    { id: "u40", name: "大塚 ヤエ", kana: "おおつか やえ", town: "緑町", addr: "緑町2-14-1", tags: ["介"] },
+    { id: "u41", name: "荒木 敏行", kana: "あらき としゆき", town: "緑町", addr: "緑町5-6-8", tags: [] },
+    { id: "u42", name: "富田 サキ", kana: "とみた さき", town: "桜ヶ丘", addr: "桜ヶ丘2-8-4", tags: ["玄"] },
+    { id: "u43", name: "沢田 正義", kana: "さわだ まさよし", town: "桜ヶ丘", addr: "桜ヶ丘5-11-9", tags: [] },
+    { id: "u44", name: "江口 マツ", kana: "えぐち まつ", town: "旭ヶ丘", addr: "旭ヶ丘1-3-2", tags: ["介"] },
+    { id: "u45", name: "星野 幸子", kana: "ほしの さちこ", town: "東雲", addr: "東雲1-7-15", tags: [] },
+    { id: "u46", name: "横山 亀吉", kana: "よこやま かめきち", town: "東雲", addr: "東雲4-9-6", tags: ["車"] },
+    { id: "u47", name: "久保 リン", kana: "くぼ りん", town: "川井町", addr: "川井町3-2-10", tags: ["玄"] },
+    { id: "u48", name: "島田 文夫", kana: "しまだ ふみお", town: "富士見町", addr: "富士見町2-11-4", tags: [] },
+    { id: "u49", name: "岡部 ウメ", kana: "おかべ うめ", town: "富士見町", addr: "富士見町6-5-1", tags: ["介"] },
+    { id: "u50", name: "神田 光雄", kana: "かんだ みつお", town: "南台", addr: "南台1-8-12", tags: [] },
+    { id: "u51", name: "柴田 ハツエ", kana: "しばた はつえ", town: "南台", addr: "南台4-3-7", tags: ["玄"] },
+    { id: "u52", name: "藤原 修", kana: "ふじわら おさむ", town: "泉町", addr: "泉町2-6-14", tags: [] },
+    { id: "u53", name: "中山 ミヨ", kana: "なかやま みよ", town: "泉町", addr: "泉町6-1-5", tags: ["介"] },
+    { id: "u54", name: "前田 豊", kana: "まえだ ゆたか", town: "宮下", addr: "宮下1-4-9", tags: [] },
+    { id: "u55", name: "竹内 サト", kana: "たけうち さと", town: "上野原", addr: "上野原2-10-3", tags: ["玄"] },
+    { id: "u56", name: "原田 清", kana: "はらだ きよし", town: "上野原", addr: "上野原5-7-11", tags: [] },
+    { id: "u57", name: "米倉 ツネ", kana: "よねくら つね", town: "戸倉", addr: "戸倉1-2-8", tags: ["介"] },
+    { id: "u58", name: "桑原 昭夫", kana: "くわばら あきお", town: "戸倉", addr: "戸倉4-13-2", tags: [] },
+    { id: "u59", name: "志村 ハル江", kana: "しむら はるえ", town: "梅林", addr: "梅林2-5-6", tags: ["車"] },
+    { id: "u60", name: "増田 伸一", kana: "ますだ しんいち", town: "新町", addr: "新町1-11-4", tags: [] },
+    { id: "u61", name: "東 ミサヲ", kana: "あずま みさを", town: "新町", addr: "新町4-8-9", tags: ["介"] },
+    { id: "u62", name: "片山 良雄", kana: "かたやま よしお", town: "曙", addr: "曙3-1-7", tags: [] }
+  ];
+
+  /* 午前の部・午後の部それぞれの利用者。未割当の検出に使う。 */
+  const ROSTER = {
+    am: ["u01", "u02", "u03", "u04", "u05", "u06", "u07", "u08", "u09", "u10", "u11", "u12", "u13", "u14", "u15", "u16", "u17", "u18", "u19", "u20", "u21", "u22", "u23", "u24", "u25", "u26", "u27", "u28", "u29", "u30", "u31", "u32", "u33"],
+    pm: ["u34", "u35", "u36", "u37", "u38", "u39", "u40", "u41", "u42", "u43", "u44", "u45", "u46", "u47", "u48", "u49", "u50", "u51", "u52", "u53", "u54", "u55", "u56", "u57", "u58", "u59", "u60", "u61", "u62"]
+  };
+
+  /* 便ごとの運行計画。stops の並び順がそのままルート順。 */
+  const PLAN = {
+    "am-pick": { runs: {
+      1: { arrive: "09:35", stops: [
+        { t: "08:35", id: "u01" },
+        { t: "08:50", id: "u02" },
+        { t: "09:05", id: "u03" },
+        { t: "09:20", id: "u04" }
+      ] },
+      2: { arrive: "09:40", stops: [
+        { t: "08:40", id: "u05" },
+        { t: "08:55", id: "u06" },
+        { t: "09:10", id: "u07" },
+        { t: "09:25", id: "u08" }
+      ] },
+      3: { arrive: "09:30", stops: [
+        { t: "08:30", id: "u09" },
+        { t: "08:46", id: "u10" },
+        { t: "09:02", id: "u11" },
+        { t: "09:18", id: "u12" }
+      ] },
+      4: { arrive: "09:33", stops: [
+        { t: "08:45", id: "u13" },
+        { t: "09:02", id: "u14" },
+        { t: "09:19", id: "u15" }
+      ] },
+      5: { arrive: "09:34", stops: [
+        { t: "08:38", id: "u16" },
+        { t: "08:52", id: "u17" },
+        { t: "09:06", id: "u18" },
+        { t: "09:20", id: "u19" }
+      ] },
+      6: { arrive: "09:32", stops: [
+        { t: "08:42", id: "u20" },
+        { t: "08:59", id: "u21" },
+        { t: "09:16", id: "u22" }
+      ] },
+      7: { arrive: "09:50", stops: [
+        { t: "08:30", id: "u23" },
+        { t: "08:44", id: "u24" },
+        { t: "08:58", id: "u25" },
+        { t: "09:12", id: "u26" },
+        { t: "09:26", id: "u27" },
+        { t: "09:40", id: "u28" }
+      ] },
+      8: { arrive: "09:48", stops: [
+        { t: "08:34", id: "u29" },
+        { t: "08:49", id: "u30" },
+        { t: "09:04", id: "u31" },
+        { t: "09:19", id: "u32" },
+        { t: "09:34", id: "u33" }
+      ] }
+    } },
+    "am-drop": { runs: {
+      1: { arrive: "13:10", stops: [
+        { t: "12:10", id: "u04" },
+        { t: "12:25", id: "u03" },
+        { t: "12:40", id: "u02" },
+        { t: "12:55", id: "u01" }
+      ] },
+      2: { arrive: "13:15", stops: [
+        { t: "12:15", id: "u08" },
+        { t: "12:30", id: "u07" },
+        { t: "12:45", id: "u06" },
+        { t: "13:00", id: "u05" }
+      ] },
+      3: { arrive: "13:05", stops: [
+        { t: "12:05", id: "u12" },
+        { t: "12:21", id: "u11" },
+        { t: "12:37", id: "u10" },
+        { t: "12:53", id: "u09" }
+      ] },
+      4: { arrive: "13:08", stops: [
+        { t: "12:20", id: "u15" },
+        { t: "12:37", id: "u14" },
+        { t: "12:54", id: "u13" }
+      ] },
+      5: { arrive: "13:09", stops: [
+        { t: "12:13", id: "u19" },
+        { t: "12:27", id: "u18" },
+        { t: "12:41", id: "u17" },
+        { t: "12:55", id: "u16" }
+      ] },
+      6: { arrive: "13:07", stops: [
+        { t: "12:17", id: "u22" },
+        { t: "12:34", id: "u21" },
+        { t: "12:51", id: "u20" }
+      ] },
+      7: { arrive: "13:25", stops: [
+        { t: "12:05", id: "u28" },
+        { t: "12:19", id: "u27" },
+        { t: "12:33", id: "u26" },
+        { t: "12:47", id: "u25" },
+        { t: "13:01", id: "u24" },
+        { t: "13:15", id: "u23" }
+      ] },
+      8: { arrive: "13:23", stops: [
+        { t: "12:09", id: "u33" },
+        { t: "12:24", id: "u32" },
+        { t: "12:39", id: "u31" },
+        { t: "12:54", id: "u30" },
+        { t: "13:09", id: "u29" }
+      ] }
+    } },
+    "pm-pick": { runs: {
+      1: { arrive: "14:05", stops: [
+        { t: "13:05", id: "u34" },
+        { t: "13:20", id: "u35" },
+        { t: "13:35", id: "u36" },
+        { t: "13:50", id: "u37" }
+      ] },
+      2: { arrive: "14:10", stops: [
+        { t: "13:10", id: "u38" },
+        { t: "13:25", id: "u39" },
+        { t: "13:40", id: "u40" },
+        { t: "13:55", id: "u41" }
+      ] },
+      3: { arrive: "13:44", stops: [
+        { t: "13:00", id: "u42" },
+        { t: "13:16", id: "u43" },
+        { t: "13:32", id: "u44" }
+      ] },
+      4: { arrive: "14:03", stops: [
+        { t: "13:15", id: "u45" },
+        { t: "13:32", id: "u46" },
+        { t: "13:49", id: "u47" }
+      ] },
+      5: { arrive: "14:04", stops: [
+        { t: "13:08", id: "u48" },
+        { t: "13:22", id: "u49" },
+        { t: "13:36", id: "u50" },
+        { t: "13:50", id: "u51" }
+      ] },
+      6: { arrive: "14:02", stops: [
+        { t: "13:12", id: "u52" },
+        { t: "13:29", id: "u53" },
+        { t: "13:46", id: "u54" }
+      ] },
+      7: { arrive: "14:06", stops: [
+        { t: "13:00", id: "u55" },
+        { t: "13:14", id: "u56" },
+        { t: "13:28", id: "u57" },
+        { t: "13:42", id: "u58" },
+        { t: "13:56", id: "u59" }
+      ] },
+      8: { arrive: "13:48", stops: [
+        { t: "13:04", id: "u60" },
+        { t: "13:19", id: "u61" },
+        { t: "13:34", id: "u62" }
+      ] }
+    } },
+    "pm-drop": { runs: {
+      1: { arrive: "17:40", stops: [
+        { t: "16:40", id: "u37" },
+        { t: "16:55", id: "u36" },
+        { t: "17:10", id: "u35" },
+        { t: "17:25", id: "u34" }
+      ] },
+      2: { arrive: "17:45", stops: [
+        { t: "16:45", id: "u41" },
+        { t: "17:00", id: "u40" },
+        { t: "17:15", id: "u39" },
+        { t: "17:30", id: "u38" }
+      ] },
+      3: { arrive: "17:19", stops: [
+        { t: "16:35", id: "u44" },
+        { t: "16:51", id: "u43" },
+        { t: "17:07", id: "u42" }
+      ] },
+      4: { arrive: "17:38", stops: [
+        { t: "16:50", id: "u47" },
+        { t: "17:07", id: "u46" },
+        { t: "17:24", id: "u45" }
+      ] },
+      5: { arrive: "17:39", stops: [
+        { t: "16:43", id: "u51" },
+        { t: "16:57", id: "u50" },
+        { t: "17:11", id: "u49" },
+        { t: "17:25", id: "u48" }
+      ] },
+      6: { arrive: "17:37", stops: [
+        { t: "16:47", id: "u54" },
+        { t: "17:04", id: "u53" },
+        { t: "17:21", id: "u52" }
+      ] },
+      7: { arrive: "17:41", stops: [
+        { t: "16:35", id: "u59" },
+        { t: "16:49", id: "u58" },
+        { t: "17:03", id: "u57" },
+        { t: "17:17", id: "u56" },
+        { t: "17:31", id: "u55" }
+      ] },
+      8: { arrive: "17:23", stops: [
+        { t: "16:39", id: "u62" },
+        { t: "16:54", id: "u61" },
+        { t: "17:09", id: "u60" }
+      ] }
+    } }
+  };
+
+
+  const USER_BY_ID = new Map(USERS.map((u) => [u.id, u]));
 
   const el = (tag, cls, text) => {
     const n = document.createElement(tag);
@@ -880,23 +1130,61 @@
     return n;
   };
 
-  function buildStop(index, data) {
+  /* 利用者マスタを町名でまとめたプルダウン */
+  function buildUserSelect() {
+    const sel = el("select", "who");
+    sel.append(new Option("", ""));
+
+    const towns = [];
+    USERS.forEach((u) => { if (!towns.includes(u.town)) towns.push(u.town); });
+
+    towns.forEach((town) => {
+      const group = document.createElement("optgroup");
+      group.label = town;
+      USERS.filter((u) => u.town === town).forEach((u) => {
+        const opt = new Option(u.name, u.id);
+        opt.title = u.addr;
+        group.append(opt);
+      });
+      sel.append(group);
+    });
+
+    return sel;
+  }
+
+  /* 選択された利用者の住所と記号を行に流し込む */
+  function applyUser(stop, userId) {
+    const user = USER_BY_ID.get(userId);
+    const area = stop.querySelector(".area");
+    const sel = stop.querySelector(".who");
+
+    sel.dataset.empty = userId ? "false" : "true";
+    sel.title = user ? user.kana : "";
+    area.textContent = user ? user.addr : "";
+    area.classList.remove("edited");
+    area.dataset.master = user ? user.addr : "";
+
+    stop.querySelectorAll(".tag").forEach((tag) => {
+      const on = !!user && user.tags.includes(tag.textContent);
+      tag.setAttribute("aria-pressed", String(on));
+    });
+  }
+
+  function buildStop(index, entry) {
     const li = el("li", "stop");
     li.append(el("span", "ord", String(index)));
 
-    const t = el("time", "t", data ? data.t : "");
+    const t = el("time", "t", entry ? entry.t : "");
     t.contentEditable = "true";
     t.dataset.ph = "--:--";
     li.append(t);
 
-    const who = el("span", "who", data ? data.who : "");
-    who.contentEditable = "true";
-    who.dataset.ph = "利用者名";
-    li.append(who);
+    const sel = buildUserSelect();
+    li.append(sel);
 
-    const area = el("span", "area", data ? data.area : "");
+    const area = el("span", "area");
     area.contentEditable = "true";
-    area.dataset.ph = "地区・住所";
+    area.dataset.ph = "住所（自動）";
     li.append(area);
 
     const tags = el("span", "tags");
@@ -904,7 +1192,7 @@
       const b = el("button", "tag " + cls, key);
       b.type = "button";
       b.title = title;
-      b.setAttribute("aria-pressed", data && data.tags.includes(key) ? "true" : "false");
+      b.setAttribute("aria-pressed", "false");
       b.addEventListener("click", () => {
         b.setAttribute("aria-pressed", b.getAttribute("aria-pressed") === "true" ? "false" : "true");
       });
@@ -912,21 +1200,28 @@
     });
     li.append(tags);
 
+    sel.value = entry ? entry.id : "";
+    applyUser(li, sel.value);
+
+    sel.addEventListener("change", () => { applyUser(li, sel.value); recount(); });
+    area.addEventListener("input", () => {
+      area.classList.toggle("edited", area.textContent.trim() !== (area.dataset.master || ""));
+    });
+
     return li;
   }
 
-  function buildCar(car, run) {
-    const capacity = car.seats - 1; // 運転手を除く
+  function buildCar(leg, car, run) {
+    const capacity = car.seats - 1;
     const article = el("article", "car");
     article.dataset.capacity = capacity;
 
     const id = el("div", "car-id");
     const no = el("div", "car-no");
     no.append(el("span", "num", String(car.no)), el("span", "unit", "号車"));
-    id.append(no);
+
     const size = el("p", "car-size");
     size.append(el("span", null, car.seats + "人乗り"), el("span", null, "定員 " + capacity + "名"));
-    id.append(size);
 
     const meta = el("p", "car-meta");
     const cut = car.plate.lastIndexOf(" ");
@@ -935,17 +1230,18 @@
       document.createTextNode(car.plate.slice(0, cut + 1)),
       el("span", "nb", car.plate.slice(cut + 1))
     );
-    id.append(meta);
 
     const pips = el("div", "pips");
     for (let i = 0; i < capacity; i++) pips.append(el("span", "pip"));
-    id.append(pips);
 
-    const body = el("div", "car-body");
+    id.append(no, size, meta, pips);
+
     const list = el("ol", "route");
-
     const head = el("li", "stop head");
-    head.append(el("span", "ord", ""), el("span", null, "時刻"), el("span", null, "利用者名"), el("span", null, "地区・住所"), el("span", null, "記号"));
+    head.append(
+      el("span", "ord", ""), el("span", null, "時刻"), el("span", null, "利用者名"),
+      el("span", null, "住所"), el("span", null, "記号")
+    );
     list.append(head);
 
     const stops = run ? run.stops : [];
@@ -954,47 +1250,127 @@
 
     const foot = el("div", "car-foot");
     const arrive = el("span", "arrive");
-    arrive.append(document.createTextNode("事業所 着 "));
     const at = el("b", null, run ? run.arrive : "--:--");
     at.contentEditable = "true";
-    at.style.fontWeight = "600";
-    arrive.append(at);
+    arrive.append(document.createTextNode(leg.arriveLabel + " "), at);
     foot.append(arrive, el("span", "count", ""));
 
+    const body = el("div", "car-body");
     body.append(list, foot);
     article.append(id, body);
     return article;
   }
 
-  function buildLeg(key) {
-    const plan = PLAN[key];
-    const section = document.getElementById(key === "out" ? "leg-out" : "leg-ret");
-    section.dataset.leg = key;
-    section.style.setProperty("--accent", key === "out" ? "var(--ai)" : "var(--kaki)");
-    section.style.setProperty("--accent-soft", key === "out" ? "var(--ai-soft)" : "var(--kaki-soft)");
+  function buildLeg(leg) {
+    const section = el("section", "leg");
+    section.id = "leg-" + leg.key;
+    section.dataset.leg = leg.key;
+    section.dataset.part = leg.part;
+    section.setAttribute("role", "tabpanel");
+    section.setAttribute("aria-labelledby", "tab-" + leg.key);
+    section.style.setProperty("--accent", "var(--" + leg.accent + ")");
+    section.style.setProperty("--accent-soft", "var(--" + leg.accent + "-soft)");
 
     const head = el("div", "leg-head");
-    const title = el("p", "leg-title", plan.title);
-    title.append(el("small", null, plan.sub + "　" + plan.label));
-    head.append(title);
+    const title = el("p", "leg-title", leg.partLabel + "　" + leg.dir);
+    title.append(el("small", null, leg.flow));
 
     const stats = el("div", "stats");
     stats.innerHTML =
-      '<span class="stat"><b data-stat="cars">8</b>台 稼働</span>' +
+      '<span class="stat"><b data-stat="cars">' + FLEET.length + '</b>台 稼働</span>' +
       '<span class="stat"><b data-stat="riders">0</b>名 乗車</span>' +
-      '<span class="stat"><b data-stat="free">0</b>席 空き</span>';
-    head.append(stats);
-    head.append(el("span", "print-stamp", "デイサービス あさひ／運行日 " + fmtDate(document.getElementById("date").value)));
+      '<span class="stat"><b data-stat="free">0</b>席 空き</span>' +
+      '<span class="stat"><b data-stat="left">0</b>名 未割当</span>' +
+      '<span class="stat"><b data-stat="dup">0</b>件 重複</span>';
+
+    head.append(title, stats, el("span", "print-stamp", ""));
 
     const fleet = el("div", "fleet");
-    FLEET.forEach((car) => fleet.append(buildCar(car, plan.runs[car.no])));
+    FLEET.forEach((car) => fleet.append(buildCar(leg, car, PLAN[leg.key].runs[car.no])));
 
-    const foot = el("p", "leg-legend",
-      "記号　車＝車椅子（リフト・スロープ使用）／介＝乗降介助が必要／玄＝玄関先まで送迎　　"
-      + "乗車状況　■＝乗車　□＝空席（定員は運転手を除く人数）　　"
-      + "変更が生じた場合は運行管理者へ連絡のうえ、余白に記入してください。");
+    const leftover = el("p", "leftover");
+    leftover.hidden = true;
 
-    section.append(head, fleet, foot);
+    const legend = el("p", "leg-legend",
+      "記号　車＝車椅子／介＝乗降介助／玄＝玄関先まで　　■＝乗車　□＝空席（定員は運転手を除く人数）　　"
+      + "※印＝住所を当日変更した行　　変更は運行管理者へ連絡のうえ余白に記入してください。");
+
+    section.append(head, fleet, leftover, legend);
+    return section;
+  }
+
+  /* 乗車人数・空席・定員超過・重複・未割当を数え直す */
+  function recount() {
+    LEGS.forEach((leg) => {
+      const section = document.getElementById("leg-" + leg.key);
+      const seen = new Map();
+      let riders = 0;
+      let free = 0;
+
+      section.querySelectorAll(".car").forEach((car) => {
+        const capacity = Number(car.dataset.capacity);
+        let n = 0;
+
+        car.querySelectorAll(".stop:not(.head)").forEach((stop) => {
+          const id = stop.querySelector(".who").value;
+          stop.classList.toggle("filled", !!id);
+          stop.classList.toggle("empty", !id);
+          if (id) {
+            n++;
+            if (!seen.has(id)) seen.set(id, []);
+            seen.get(id).push(stop);
+          }
+        });
+
+        const over = n > capacity;
+        car.classList.toggle("is-over", over);
+        car.querySelectorAll(".pip").forEach((pip, i) => pip.classList.toggle("on", i < n));
+        car.querySelector(".count").textContent =
+          "乗車 " + n + " / " + capacity + " 名" + (over ? "　⚠ 定員超過" : "");
+
+        riders += n;
+        free += Math.max(0, capacity - n);
+      });
+
+      let dup = 0;
+      seen.forEach((stops) => {
+        const isDup = stops.length > 1;
+        if (isDup) dup++;
+        stops.forEach((stop) => stop.classList.toggle("dup", isDup));
+      });
+
+      const missing = ROSTER[leg.part].filter((id) => !seen.has(id)).map((id) => USER_BY_ID.get(id).name);
+
+      const set = (name, value, alert) => {
+        const b = section.querySelector('[data-stat="' + name + '"]');
+        b.textContent = value;
+        b.closest(".stat").classList.toggle("is-alert", !!alert);
+      };
+      set("riders", riders, false);
+      set("free", free, false);
+      set("left", missing.length, missing.length > 0);
+      set("dup", dup, dup > 0);
+
+      const leftover = section.querySelector(".leftover");
+      leftover.hidden = missing.length === 0;
+      leftover.innerHTML = "";
+      leftover.append(
+        el("b", null, "未割当 " + missing.length + "名　"),
+        document.createTextNode(missing.join("　／　"))
+      );
+    });
+  }
+
+  function switchLeg(key) {
+    LEGS.forEach((leg) => {
+      const on = leg.key === key;
+      document.getElementById("leg-" + leg.key).hidden = !on;
+      document.getElementById("tab-" + leg.key).setAttribute("aria-selected", String(on));
+      if (on) {
+        document.documentElement.style.setProperty("--accent", "var(--" + leg.accent + ")");
+        document.documentElement.style.setProperty("--accent-soft", "var(--" + leg.accent + "-soft)");
+      }
+    });
   }
 
   function fmtDate(v) {
@@ -1004,73 +1380,58 @@
     return d.getFullYear() + "年" + (d.getMonth() + 1) + "月" + d.getDate() + "日（" + w + "）";
   }
 
-  // 乗車人数・空席・定員超過を数え直す
-  function recount() {
-    document.querySelectorAll(".leg").forEach((leg) => {
-      let riders = 0;
-      let free = 0;
-
-      leg.querySelectorAll(".car").forEach((car) => {
-        const capacity = Number(car.dataset.capacity);
-        let n = 0;
-
-        car.querySelectorAll(".stop:not(.head)").forEach((stop) => {
-          const filled = stop.querySelector(".who").textContent.trim() !== "";
-          stop.classList.toggle("filled", filled);
-          if (filled) n++;
-        });
-
-        const over = n > capacity;
-        car.classList.toggle("is-over", over);
-        car.querySelectorAll(".pip").forEach((pip, i) => pip.classList.toggle("on", i < n));
-        car.querySelector(".count").textContent = "乗車 " + n + " / " + capacity + " 名" + (over ? "　⚠ 定員超過" : "");
-
-        riders += n;
-        free += Math.max(0, capacity - n);
-      });
-
-      leg.querySelector('[data-stat="riders"]').textContent = riders;
-      leg.querySelector('[data-stat="free"]').textContent = free;
-      leg.querySelector('[data-stat="free"]').closest(".stat").classList.toggle("is-over", free === 0);
+  function refreshStamps() {
+    const date = fmtDate(document.getElementById("date").value);
+    document.getElementById("date-print").textContent = date;
+    LEGS.forEach((leg) => {
+      document.querySelector("#leg-" + leg.key + " .print-stamp").textContent =
+        "デイサービス あさひ／" + leg.partLabel + " " + leg.dir + "／運行日 " + date;
     });
   }
 
-  function switchLeg(key) {
-    const isOut = key === "out";
-    document.getElementById("leg-out").hidden = !isOut;
-    document.getElementById("leg-ret").hidden = isOut;
-    document.getElementById("tab-out").setAttribute("aria-selected", String(isOut));
-    document.getElementById("tab-ret").setAttribute("aria-selected", String(!isOut));
-    document.documentElement.style.setProperty("--accent", isOut ? "var(--ai)" : "var(--kaki)");
-    document.documentElement.style.setProperty("--accent-soft", isOut ? "var(--ai-soft)" : "var(--kaki-soft)");
-  }
+  /* ── 組み立て ─────────────────────────────── */
+  const tablist = document.querySelector(".legs");
+  const sections = document.getElementById("sections");
 
-  function refreshStamps() {
-    const text = "デイサービス あさひ／運行日 " + fmtDate(document.getElementById("date").value);
-    document.querySelectorAll(".print-stamp").forEach((s) => { s.textContent = text; });
-    document.getElementById("date-print").textContent = fmtDate(document.getElementById("date").value);
-  }
+  ["am", "pm"].forEach((part) => {
+    const group = el("span", "leg-group");
+    group.append(el("span", "group-label", part === "am" ? "午前" : "午後"));
+    LEGS.filter((leg) => leg.part === part).forEach((leg) => {
+      const tab = el("button", null, leg.dir);
+      tab.type = "button";
+      tab.id = "tab-" + leg.key;
+      tab.setAttribute("role", "tab");
+      tab.setAttribute("aria-controls", "leg-" + leg.key);
+      tab.setAttribute("aria-selected", "false");
+      tab.style.setProperty("--tab", "var(--" + leg.accent + ")");
+      tab.addEventListener("click", () => switchLeg(leg.key));
+      group.append(tab);
+    });
+    tablist.append(group);
+  });
 
-  buildLeg("out");
-  buildLeg("ret");
+  LEGS.forEach((leg) => sections.append(buildLeg(leg)));
+
+  switchLeg(LEGS[0].key);
   recount();
   refreshStamps();
 
-  document.getElementById("tab-out").addEventListener("click", () => switchLeg("out"));
-  document.getElementById("tab-ret").addEventListener("click", () => switchLeg("ret"));
   document.getElementById("date").addEventListener("change", refreshStamps);
   document.getElementById("btn-print").addEventListener("click", () => window.print());
   document.getElementById("btn-clear").addEventListener("click", () => {
-    if (!window.confirm("すべての利用者名・時刻・地区・記号を消去します。よろしいですか？")) return;
-    document.querySelectorAll(".stop:not(.head) [contenteditable]").forEach((n) => { n.textContent = ""; });
-    document.querySelectorAll(".tag").forEach((t) => t.setAttribute("aria-pressed", "false"));
+    if (!window.confirm("全4便の時刻・利用者・住所・記号を消去します。よろしいですか？")) return;
+    document.querySelectorAll(".stop:not(.head)").forEach((stop) => {
+      stop.querySelector(".t").textContent = "";
+      stop.querySelector(".who").value = "";
+      applyUser(stop, "");
+    });
     recount();
   });
 
   document.addEventListener("input", recount);
   document.addEventListener("click", (e) => { if (e.target.closest(".tag")) recount(); });
 
-  // 貼り付けは書式を落として素のテキストに
+  /* 貼り付けは書式を落として素のテキストに */
   document.addEventListener("paste", (e) => {
     if (!e.target.closest("[contenteditable]")) return;
     e.preventDefault();
