@@ -26,8 +26,8 @@
 
     /* 記号は便によらず一定 */
     --tag-wc: #2F5D8C;
-    --tag-help: #9C2B2B;
-    --tag-door: #8A5A1E;
+    --tag-aid: #8A5A1E;
+    --tag-door: #3F6B4E;
 
     --warn: #9C2B2B;
     --warn-soft: #F6E7E5;
@@ -61,8 +61,8 @@
       --enji: #D2879A;
       --enji-soft: #2E1C22;
       --tag-wc: #8FB2D8;
-      --tag-help: #DE8480;
-      --tag-door: #D2A86A;
+      --tag-aid: #D2A86A;
+      --tag-door: #86B79A;
       --warn: #DE8480;
       --warn-soft: #331E1E;
     }
@@ -87,8 +87,8 @@
     --enji: #D2879A;
     --enji-soft: #2E1C22;
     --tag-wc: #8FB2D8;
-    --tag-help: #DE8480;
-    --tag-door: #D2A86A;
+    --tag-aid: #D2A86A;
+    --tag-door: #86B79A;
     --warn: #DE8480;
     --warn-soft: #331E1E;
   }
@@ -112,8 +112,8 @@
     --enji: #8E3B4E;
     --enji-soft: #F5E5E9;
     --tag-wc: #2F5D8C;
-    --tag-help: #9C2B2B;
-    --tag-door: #8A5A1E;
+    --tag-aid: #8A5A1E;
+    --tag-door: #3F6B4E;
     --warn: #9C2B2B;
     --warn-soft: #F6E7E5;
   }
@@ -144,13 +144,12 @@
     border-radius: 1px;
   }
 
-  /* ── 表題 ─────────────────────────────────── */
+  /* ── 表題（日付と一体） ────────────────────── */
   .masthead {
     display: flex;
     flex-wrap: wrap;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: calc(var(--step) * 5);
+    align-items: baseline;
+    gap: calc(var(--step) * 2) calc(var(--step) * 5);
     padding-bottom: calc(var(--step) * 4);
     border-bottom: 2px solid var(--ink);
   }
@@ -163,48 +162,37 @@
   }
 
   .masthead h1 {
-    margin: 2px 0 0;
+    margin: 0;
     font-family: var(--mincho);
     font-size: 30px;
     font-weight: 600;
-    letter-spacing: .1em;
+    letter-spacing: .08em;
+    line-height: 1.25;
     text-wrap: balance;
   }
 
-  .mast-fields {
-    display: flex;
-    flex-wrap: wrap;
-    gap: calc(var(--step) * 5);
-    align-items: flex-end;
+  /* 日付そのものが入力欄。クリックでカレンダーが開く */
+  .date-slot {
+    position: relative;
+    display: inline-block;
+    border-bottom: 1px dashed var(--rule-2);
   }
 
-  .field {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-  }
+  .date-slot:hover { border-bottom-color: var(--accent); }
 
-  .field > span {
-    font-size: 10px;
-    letter-spacing: .14em;
-    color: var(--ink-3);
-  }
-
-  .field input {
-    font: inherit;
-    font-size: 14px;
-    font-variant-numeric: tabular-nums;
-    color: var(--ink);
-    background: transparent;
+  .date-slot input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
     border: 0;
-    border-bottom: 1px solid var(--rule-2);
-    padding: 2px 0;
-    min-width: 8.5rem;
+    opacity: 0;
+    cursor: pointer;
   }
 
-  .field input:hover { border-bottom-color: var(--accent); }
-
-  .date-print { display: none; }
+  .date-slot:focus-within { border-bottom-color: var(--accent); }
 
   /* ── 便の切替 ─────────────────────────────── */
   .controls {
@@ -326,8 +314,7 @@
     font-variant-numeric: tabular-nums;
   }
 
-  .stat.is-alert b { color: var(--warn); }
-  .stat.is-alert { color: var(--warn); }
+  .stat.is-alert, .stat.is-alert b { color: var(--warn); }
 
   .print-stamp {
     display: none;
@@ -368,18 +355,26 @@
     gap: calc(var(--step) * 2);
   }
 
+  /* 号車は当日書き入れる。枠だけ用意する */
   .car-no {
     display: flex;
-    align-items: baseline;
-    gap: 3px;
+    align-items: center;
+    gap: 5px;
     color: var(--accent);
   }
 
-  .car-no .num {
+  .no-box {
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--accent);
+    background: var(--card);
     font-family: var(--mincho);
-    font-size: 34px;
+    font-size: 22px;
     font-weight: 600;
     line-height: 1;
+    color: var(--accent);
+    display: grid;
+    place-items: center;
     font-variant-numeric: tabular-nums;
   }
 
@@ -541,9 +536,9 @@
     text-overflow: ellipsis;
   }
 
-  /* 当日だけ迎え先を変えた場合の目印 */
-  .area.edited { color: var(--accent); }
-  .area.edited::after {
+  /* 自動で入った値を手で書き換えた欄の目印 */
+  .edited { color: var(--accent); }
+  .edited::after {
     content: "※";
     font-size: 10px;
     margin-left: 2px;
@@ -587,7 +582,7 @@
   }
 
   .tag[aria-pressed="true"].t-wc { color: var(--tag-wc); }
-  .tag[aria-pressed="true"].t-help { color: var(--tag-help); }
+  .tag[aria-pressed="true"].t-aid { color: var(--tag-aid); }
   .tag[aria-pressed="true"].t-door { color: var(--tag-door); }
 
   .car-foot {
@@ -602,9 +597,22 @@
   }
 
   .car-foot .arrive {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    font-size: 11px;
+  }
+
+  /* 着・帰着は空欄。当日手書きで入れる */
+  .arrive-box {
+    display: inline-block;
+    min-width: 4.6rem;
+    padding: 0 3px;
+    border-bottom: 1px solid var(--rule-2);
     font-size: 13px;
     color: var(--ink);
     font-variant-numeric: tabular-nums;
+    text-align: center;
   }
 
   .car-foot .count { font-variant-numeric: tabular-nums; }
@@ -654,7 +662,7 @@
   }
 
   .legend .s-wc { color: var(--tag-wc); }
-  .legend .s-help { color: var(--tag-help); }
+  .legend .s-aid { color: var(--tag-aid); }
   .legend .s-door { color: var(--tag-door); }
 
   /* ── 印刷：A4横・4便で4枚 ─────────────────── */
@@ -692,21 +700,11 @@
 
     .controls { display: none; }
 
-    .masthead { padding-bottom: 1.5mm; border-bottom-width: 1.2pt; }
+    .masthead { padding-bottom: 1.5mm; border-bottom-width: 1.2pt; gap: 1mm 5mm; }
     .eyebrow { font-size: 6.5pt; }
-    .masthead h1 { font-size: 13pt; margin-top: 0; }
-    .mast-fields { gap: 6mm; }
-    .field > span { font-size: 6pt; }
-    .field input { font-size: 8.5pt; padding: 0; min-width: 26mm; border-bottom-color: #999; }
-    #date { display: none; }
-
-    .date-print {
-      display: block;
-      font-size: 8.5pt;
-      padding-bottom: 1px;
-      border-bottom: 1px solid #999;
-      min-width: 34mm;
-    }
+    .masthead h1 { font-size: 14pt; }
+    .date-slot { border-bottom: 0; }
+    .date-slot input { display: none; }
 
     .leg[hidden] { display: block !important; }
     .leg { break-before: page; }
@@ -725,7 +723,7 @@
 
     .car { grid-template-columns: 21mm minmax(0, 1fr); }
     .car-id { padding: 1.2mm; gap: 0.8mm; }
-    .car-no .num { font-size: 15pt; }
+    .no-box { width: 9mm; height: 9mm; font-size: 12pt; }
     .car-no .unit { font-size: 7pt; }
     .car-size { font-size: 6.5pt; }
     .car-meta { font-size: 6.5pt; line-height: 1.25; }
@@ -749,14 +747,15 @@
     .area { font-size: 7pt; }
     [contenteditable]:empty::before { content: ""; }
 
-    /* 空欄の行は手書きできるよう罫線を残す */
+    /* 空欄は手書きできるよう罫線を残す */
     .stop.empty .t, .stop.empty .area { border-bottom: 1px dotted #BBB; }
     .who[data-empty="true"] { border-bottom: 1px dotted #BBB; }
 
     .tag { width: 12px; height: 12px; font-size: 6.5pt; }
 
     .car-foot { padding: 0.6mm 1.6mm; font-size: 7pt; }
-    .car-foot .arrive { font-size: 8.5pt; }
+    .car-foot .arrive { font-size: 7pt; }
+    .arrive-box { min-width: 16mm; font-size: 8.5pt; border-bottom-color: #999; }
 
     .leftover { margin-top: 1.5mm; padding: 1mm 1.6mm; font-size: 7pt; }
 
@@ -776,30 +775,19 @@
 
 <div class="sheet">
   <header class="masthead">
-    <div>
-      <p class="eyebrow">通所介護事業所　デイサービス　あさひ</p>
-      <h1>送迎運行表</h1>
-    </div>
-    <div class="mast-fields">
-      <label class="field">
-        <span>運行日</span>
-        <input type="date" id="date" value="2026-07-27">
-        <span class="date-print" id="date-print"></span>
-      </label>
-      <label class="field">
-        <span>天候・道路状況</span>
-        <input type="text" id="weather" value="晴／通常" size="10">
-      </label>
-      <label class="field">
-        <span>運行管理者</span>
-        <input type="text" id="manager" value="長谷川 美和" size="10">
-      </label>
-    </div>
+    <p class="eyebrow">通所介護事業所　デイサービス　あさひ</p>
+    <h1>
+      <span class="date-slot">
+        <span id="title-date"></span>
+        <input type="date" id="date" value="2026-07-27" aria-label="運行日">
+      </span>送迎表
+    </h1>
   </header>
 
   <div class="controls">
     <div class="legs" role="tablist" aria-label="便の切替"></div>
     <div class="tools">
+      <button type="button" id="btn-recalc">時刻を再計算</button>
       <button type="button" id="btn-clear">記入をクリア</button>
       <button type="button" id="btn-print">印刷（全4便・各1枚）</button>
     </div>
@@ -809,319 +797,187 @@
 
   <div class="legend">
     <span class="item"><span class="swatch s-wc">車</span>車椅子（リフト・スロープ使用）</span>
-    <span class="item"><span class="swatch s-help">介</span>乗降介助が必要</span>
+    <span class="item"><span class="swatch s-aid">補</span>歩行器・車椅子持参もしくは貸出</span>
     <span class="item"><span class="swatch s-door">玄</span>玄関先まで送迎</span>
     <span class="item">■＝乗車　□＝空席（定員は運転手を除く人数）</span>
     <span class="item">利用者名はプルダウンで選択すると、住所と記号がマスタから自動で入ります。</span>
-    <span class="item">※印は住所を当日だけ書き換えた行です。</span>
+    <span class="item">時刻は住所から移動時間を換算して5分刻みで自動入力。手入力で上書きでき、空欄にすると自動に戻ります。</span>
+    <span class="item">※印は自動で入った値を手で書き換えた欄です。</span>
   </div>
 </div>
 
 <script>
   /* ── 車両 ──────────────────────────────────
      5人乗り6台（乗車定員4名）／7人乗り2台（乗車定員6名）
-     seats は車検証上の乗車人数。定員は seats - 1（運転手を除く）で計算する。 */
+     seats は車検証上の乗車人数。定員は seats - 1（運転手を除く）で計算する。
+     号車は当日手書きするため、カードには枠だけ置く。 */
   const FLEET = [
-    { no: 1, seats: 5, plate: "品川 500 あ 12-34", driver: "佐藤 健一" },
-    { no: 2, seats: 5, plate: "品川 500 あ 12-56", driver: "佐々木 実" },
-    { no: 3, seats: 5, plate: "品川 500 あ 21-08", driver: "山口 直樹" },
-    { no: 4, seats: 5, plate: "品川 500 い 3-77", driver: "中村 洋子" },
-    { no: 5, seats: 5, plate: "品川 500 い 45-12", driver: "井上 隆" },
-    { no: 6, seats: 5, plate: "品川 500 う 60-31", driver: "松本 和夫" },
-    { no: 7, seats: 7, plate: "品川 300 か 8-15", driver: "渡辺 千鶴" },
-    { no: 8, seats: 7, plate: "品川 300 か 8-16", driver: "岡田 誠" }
+    { seats: 5, plate: "品川 500 あ 12-34", driver: "佐藤 健一" },
+    { seats: 5, plate: "品川 500 あ 12-56", driver: "佐々木 実" },
+    { seats: 5, plate: "品川 500 あ 21-08", driver: "山口 直樹" },
+    { seats: 5, plate: "品川 500 い 3-77", driver: "中村 洋子" },
+    { seats: 5, plate: "品川 500 い 45-12", driver: "井上 隆" },
+    { seats: 5, plate: "品川 500 う 60-31", driver: "松本 和夫" },
+    { seats: 7, plate: "品川 300 か 8-15", driver: "渡辺 千鶴" },
+    { seats: 7, plate: "品川 300 か 8-16", driver: "岡田 誠" }
   ];
 
   /* ── 便 ────────────────────────────────────
-     午前・午後それぞれに お迎え／お送り の2便。印刷すると1便＝1ページ。 */
+     午前・午後それぞれに お迎え／お送り の2便。印刷すると1便＝1ページ。
+     depart は事業所の出庫時刻で、ここから各利用者宅の時刻を積み上げる。 */
   const LEGS = [
-    { key: "am-pick", part: "am", partLabel: "午前", dir: "お迎え", flow: "自宅 → 事業所", arriveLabel: "事業所 着", accent: "ai" },
-    { key: "am-drop", part: "am", partLabel: "午前", dir: "お送り", flow: "事業所 → 自宅", arriveLabel: "事業所 帰着", accent: "kaki" },
-    { key: "pm-pick", part: "pm", partLabel: "午後", dir: "お迎え", flow: "自宅 → 事業所", arriveLabel: "事業所 着", accent: "seiheki" },
-    { key: "pm-drop", part: "pm", partLabel: "午後", dir: "お送り", flow: "事業所 → 自宅", arriveLabel: "事業所 帰着", accent: "enji" }
+    { key: "am-pick", part: "am", partLabel: "午前", dir: "お迎え", flow: "自宅 → 事業所", arriveLabel: "事業所 着", depart: "08:15", accent: "ai" },
+    { key: "am-drop", part: "am", partLabel: "午前", dir: "お送り", flow: "事業所 → 自宅", arriveLabel: "事業所 帰着", depart: "12:00", accent: "kaki" },
+    { key: "pm-pick", part: "pm", partLabel: "午後", dir: "お迎え", flow: "自宅 → 事業所", arriveLabel: "事業所 着", depart: "12:45", accent: "seiheki" },
+    { key: "pm-drop", part: "pm", partLabel: "午後", dir: "お送り", flow: "事業所 → 自宅", arriveLabel: "事業所 帰着", depart: "16:30", accent: "enji" }
   ];
 
   const TAGS = [
-    { key: "車", cls: "t-wc", title: "車椅子" },
-    { key: "介", cls: "t-help", title: "乗降介助" },
-    { key: "玄", cls: "t-door", title: "玄関先まで" }
+    { key: "車", cls: "t-wc", title: "車椅子（リフト・スロープ使用）" },
+    { key: "補", cls: "t-aid", title: "歩行器・車椅子持参もしくは貸出" },
+    { key: "玄", cls: "t-door", title: "玄関先まで送迎" }
   ];
+
+  /* ── 走行時間の換算 ────────────────────────
+     住所から所要時間を出すための簡易モデル。事業所を原点に町の位置を置き、
+     直線距離に迂回係数をかけて平均速度で割る。番地からの微差も距離に反映する。
+     実距離を使う場合は TOWNS を実座標に、travelMin をルート API に差し替える。 */
+  const DEPOT = { x: 0, y: 0 };
+  const SPEED_KMH = 22;   // 市街地の平均走行速度
+  const DETOUR = 1.35;    // 直線距離に対する道路の迂回係数
+  const DWELL = 3;        // 標準の乗降時間（分）
+  const STEP_MIN = 5;     // 時刻の刻み
+
+  const TOWNS = {
+    "中央町": { x: 0.8, y: 0.6 }, "本町": { x: 1.6, y: 1.2 },
+    "若葉台": { x: 0.4, y: 2.6 }, "緑町": { x: 1.1, y: 3.4 },
+    "桜ヶ丘": { x: -1.5, y: 2.4 }, "旭ヶ丘": { x: -2.3, y: 3.1 },
+    "東雲": { x: -2.6, y: 0.5 }, "川井町": { x: -3.4, y: 1.1 },
+    "富士見町": { x: 0.6, y: -2.2 }, "南台": { x: 1.4, y: -3.0 },
+    "泉町": { x: 2.6, y: -1.2 }, "宮下": { x: 3.3, y: -0.4 },
+    "上野原": { x: 1.2, y: 5.2 }, "戸倉": { x: 2.4, y: 6.1 },
+    "梅林": { x: 3.6, y: 5.4 }, "新町": { x: -3.8, y: -2.6 },
+    "曙": { x: -4.6, y: -3.5 }, "花見川": { x: -5.4, y: -2.4 }
+  };
 
   /* ── 利用者マスタ ───────────────────────────
      プルダウンの選択肢。住所と記号はここから行に流し込まれる。 */
   const USERS = [
-    { id: "u01", name: "田中 ハル", kana: "たなか はる", town: "中央町", addr: "中央町3-14-2", tags: ["介"] },
+    { id: "u01", name: "田中 ハル", kana: "たなか はる", town: "中央町", addr: "中央町3-14-2", tags: ["補"] },
     { id: "u02", name: "鈴木 正一", kana: "すずき しょういち", town: "中央町", addr: "中央町1-8-5", tags: [] },
     { id: "u03", name: "高橋 キヨ", kana: "たかはし きよ", town: "本町", addr: "本町5-3-11", tags: ["玄"] },
     { id: "u04", name: "小林 節子", kana: "こばやし せつこ", town: "本町", addr: "本町2-19-4", tags: [] },
-    { id: "u05", name: "伊藤 フミ", kana: "いとう ふみ", town: "若葉台", addr: "若葉台2-6-3", tags: ["介"] },
+    { id: "u05", name: "伊藤 フミ", kana: "いとう ふみ", town: "若葉台", addr: "若葉台2-6-3", tags: ["補"] },
     { id: "u06", name: "渡部 秀夫", kana: "わたなべ ひでお", town: "若葉台", addr: "若葉台4-11-8", tags: [] },
     { id: "u07", name: "山田 トシ子", kana: "やまだ としこ", town: "緑町", addr: "緑町1-4-16", tags: ["玄"] },
     { id: "u08", name: "中西 幸雄", kana: "なかにし ゆきお", town: "緑町", addr: "緑町3-9-2", tags: [] },
     { id: "u09", name: "大野 スミ", kana: "おおの すみ", town: "桜ヶ丘", addr: "桜ヶ丘1-2-7", tags: ["車"] },
     { id: "u10", name: "藤井 康夫", kana: "ふじい やすお", town: "桜ヶ丘", addr: "桜ヶ丘3-15-1", tags: [] },
-    { id: "u11", name: "岩本 ヨシ", kana: "いわもと よし", town: "旭ヶ丘", addr: "旭ヶ丘2-7-9", tags: ["介"] },
+    { id: "u11", name: "岩本 ヨシ", kana: "いわもと よし", town: "旭ヶ丘", addr: "旭ヶ丘2-7-9", tags: ["補"] },
     { id: "u12", name: "森田 光子", kana: "もりた みつこ", town: "旭ヶ丘", addr: "旭ヶ丘5-1-12", tags: [] },
     { id: "u13", name: "村上 三郎", kana: "むらかみ さぶろう", town: "東雲", addr: "東雲2-11-6", tags: [] },
     { id: "u14", name: "北川 きく", kana: "きたがわ きく", town: "東雲", addr: "東雲6-3-1", tags: ["玄"] },
-    { id: "u15", name: "菅原 テル", kana: "すがわら てる", town: "川井町", addr: "川井町1-22-4", tags: ["介"] },
+    { id: "u15", name: "菅原 テル", kana: "すがわら てる", town: "川井町", addr: "川井町1-22-4", tags: ["補"] },
     { id: "u16", name: "堀内 昌代", kana: "ほりうち まさよ", town: "富士見町", addr: "富士見町4-8-3", tags: [] },
-    { id: "u17", name: "浅野 勝治", kana: "あさの かつじ", town: "富士見町", addr: "富士見町7-2-15", tags: ["介"] },
+    { id: "u17", name: "浅野 勝治", kana: "あさの かつじ", town: "富士見町", addr: "富士見町7-2-15", tags: ["補"] },
     { id: "u18", name: "白石 ミツ", kana: "しらいし みつ", town: "南台", addr: "南台2-5-9", tags: [] },
     { id: "u19", name: "野口 定雄", kana: "のぐち さだお", town: "南台", addr: "南台5-13-2", tags: ["玄"] },
-    { id: "u20", name: "長沢 スエ", kana: "ながさわ すえ", town: "泉町", addr: "泉町1-9-7", tags: ["介"] },
+    { id: "u20", name: "長沢 スエ", kana: "ながさわ すえ", town: "泉町", addr: "泉町1-9-7", tags: ["補"] },
     { id: "u21", name: "谷口 良一", kana: "たにぐち りょういち", town: "泉町", addr: "泉町4-2-11", tags: [] },
     { id: "u22", name: "杉本 アキ", kana: "すぎもと あき", town: "宮下", addr: "宮下2-16-5", tags: [] },
     { id: "u23", name: "西村 タカ", kana: "にしむら たか", town: "上野原", addr: "上野原1-3-8", tags: ["車"] },
     { id: "u24", name: "石田 正治", kana: "いしだ しょうじ", town: "上野原", addr: "上野原3-12-1", tags: [] },
-    { id: "u25", name: "内藤 ハナ", kana: "ないとう はな", town: "戸倉", addr: "戸倉2-7-14", tags: ["介"] },
+    { id: "u25", name: "内藤 ハナ", kana: "ないとう はな", town: "戸倉", addr: "戸倉2-7-14", tags: ["補"] },
     { id: "u26", name: "平野 邦彦", kana: "ひらの くにひこ", town: "戸倉", addr: "戸倉5-1-6", tags: [] },
     { id: "u27", name: "小島 チヨ", kana: "こじま ちよ", town: "梅林", addr: "梅林1-10-3", tags: ["玄"] },
     { id: "u28", name: "福井 静江", kana: "ふくい しずえ", town: "梅林", addr: "梅林4-6-9", tags: [] },
     { id: "u29", name: "尾崎 たけし", kana: "おざき たけし", town: "新町", addr: "新町2-4-17", tags: ["車"] },
-    { id: "u30", name: "上田 ノブ", kana: "うえだ のぶ", town: "新町", addr: "新町5-9-2", tags: ["介"] },
+    { id: "u30", name: "上田 ノブ", kana: "うえだ のぶ", town: "新町", addr: "新町5-9-2", tags: ["補"] },
     { id: "u31", name: "河合 秀子", kana: "かわい ひでこ", town: "曙", addr: "曙1-7-5", tags: [] },
     { id: "u32", name: "遠藤 巌", kana: "えんどう いわお", town: "曙", addr: "曙4-2-13", tags: [] },
     { id: "u33", name: "宮本 サダ", kana: "みやもと さだ", town: "花見川", addr: "花見川2-8-1", tags: ["玄"] },
-    { id: "u34", name: "青木 トメ", kana: "あおき とめ", town: "中央町", addr: "中央町2-5-8", tags: ["介"] },
+    { id: "u34", name: "青木 トメ", kana: "あおき とめ", town: "中央町", addr: "中央町2-5-8", tags: ["補"] },
     { id: "u35", name: "木村 誠一", kana: "きむら せいいち", town: "中央町", addr: "中央町4-1-3", tags: [] },
     { id: "u36", name: "佐野 ハツ", kana: "さの はつ", town: "本町", addr: "本町3-12-7", tags: ["玄"] },
     { id: "u37", name: "早川 春夫", kana: "はやかわ はるお", town: "本町", addr: "本町7-4-2", tags: [] },
     { id: "u38", name: "三浦 キミ", kana: "みうら きみ", town: "若葉台", addr: "若葉台1-9-11", tags: ["車"] },
     { id: "u39", name: "秋山 三男", kana: "あきやま みつお", town: "若葉台", addr: "若葉台5-2-6", tags: [] },
-    { id: "u40", name: "大塚 ヤエ", kana: "おおつか やえ", town: "緑町", addr: "緑町2-14-1", tags: ["介"] },
+    { id: "u40", name: "大塚 ヤエ", kana: "おおつか やえ", town: "緑町", addr: "緑町2-14-1", tags: ["補"] },
     { id: "u41", name: "荒木 敏行", kana: "あらき としゆき", town: "緑町", addr: "緑町5-6-8", tags: [] },
     { id: "u42", name: "富田 サキ", kana: "とみた さき", town: "桜ヶ丘", addr: "桜ヶ丘2-8-4", tags: ["玄"] },
     { id: "u43", name: "沢田 正義", kana: "さわだ まさよし", town: "桜ヶ丘", addr: "桜ヶ丘5-11-9", tags: [] },
-    { id: "u44", name: "江口 マツ", kana: "えぐち まつ", town: "旭ヶ丘", addr: "旭ヶ丘1-3-2", tags: ["介"] },
+    { id: "u44", name: "江口 マツ", kana: "えぐち まつ", town: "旭ヶ丘", addr: "旭ヶ丘1-3-2", tags: ["補"] },
     { id: "u45", name: "星野 幸子", kana: "ほしの さちこ", town: "東雲", addr: "東雲1-7-15", tags: [] },
     { id: "u46", name: "横山 亀吉", kana: "よこやま かめきち", town: "東雲", addr: "東雲4-9-6", tags: ["車"] },
     { id: "u47", name: "久保 リン", kana: "くぼ りん", town: "川井町", addr: "川井町3-2-10", tags: ["玄"] },
     { id: "u48", name: "島田 文夫", kana: "しまだ ふみお", town: "富士見町", addr: "富士見町2-11-4", tags: [] },
-    { id: "u49", name: "岡部 ウメ", kana: "おかべ うめ", town: "富士見町", addr: "富士見町6-5-1", tags: ["介"] },
+    { id: "u49", name: "岡部 ウメ", kana: "おかべ うめ", town: "富士見町", addr: "富士見町6-5-1", tags: ["補"] },
     { id: "u50", name: "神田 光雄", kana: "かんだ みつお", town: "南台", addr: "南台1-8-12", tags: [] },
     { id: "u51", name: "柴田 ハツエ", kana: "しばた はつえ", town: "南台", addr: "南台4-3-7", tags: ["玄"] },
     { id: "u52", name: "藤原 修", kana: "ふじわら おさむ", town: "泉町", addr: "泉町2-6-14", tags: [] },
-    { id: "u53", name: "中山 ミヨ", kana: "なかやま みよ", town: "泉町", addr: "泉町6-1-5", tags: ["介"] },
+    { id: "u53", name: "中山 ミヨ", kana: "なかやま みよ", town: "泉町", addr: "泉町6-1-5", tags: ["補"] },
     { id: "u54", name: "前田 豊", kana: "まえだ ゆたか", town: "宮下", addr: "宮下1-4-9", tags: [] },
     { id: "u55", name: "竹内 サト", kana: "たけうち さと", town: "上野原", addr: "上野原2-10-3", tags: ["玄"] },
     { id: "u56", name: "原田 清", kana: "はらだ きよし", town: "上野原", addr: "上野原5-7-11", tags: [] },
-    { id: "u57", name: "米倉 ツネ", kana: "よねくら つね", town: "戸倉", addr: "戸倉1-2-8", tags: ["介"] },
+    { id: "u57", name: "米倉 ツネ", kana: "よねくら つね", town: "戸倉", addr: "戸倉1-2-8", tags: ["補"] },
     { id: "u58", name: "桑原 昭夫", kana: "くわばら あきお", town: "戸倉", addr: "戸倉4-13-2", tags: [] },
     { id: "u59", name: "志村 ハル江", kana: "しむら はるえ", town: "梅林", addr: "梅林2-5-6", tags: ["車"] },
     { id: "u60", name: "増田 伸一", kana: "ますだ しんいち", town: "新町", addr: "新町1-11-4", tags: [] },
-    { id: "u61", name: "東 ミサヲ", kana: "あずま みさを", town: "新町", addr: "新町4-8-9", tags: ["介"] },
+    { id: "u61", name: "東 ミサヲ", kana: "あずま みさを", town: "新町", addr: "新町4-8-9", tags: ["補"] },
     { id: "u62", name: "片山 良雄", kana: "かたやま よしお", town: "曙", addr: "曙3-1-7", tags: [] }
   ];
 
-  /* 午前の部・午後の部それぞれの利用者。未割当の検出に使う。 */
+  /* ── 号車ごとの担当 ────────────────────────
+     並び順がそのままお迎えのルート順。お送りはこれを逆にたどる。 */
+  const ASSIGN = {
+    am: {
+      1: ["u01", "u02", "u03", "u04"],
+      2: ["u05", "u06", "u07", "u08"],
+      3: ["u09", "u10", "u11", "u12"],
+      4: ["u13", "u14", "u15"],
+      5: ["u16", "u17", "u18", "u19"],
+      6: ["u20", "u21", "u22"],
+      7: ["u23", "u24", "u25", "u26", "u27", "u28"],
+      8: ["u29", "u30", "u31", "u32", "u33"]
+    },
+    pm: {
+      1: ["u34", "u35", "u36", "u37"],
+      2: ["u38", "u39", "u40", "u41"],
+      3: ["u42", "u43", "u44"],
+      4: ["u45", "u46", "u47"],
+      5: ["u48", "u49", "u50", "u51"],
+      6: ["u52", "u53", "u54"],
+      7: ["u55", "u56", "u57", "u58", "u59"],
+      8: ["u60", "u61", "u62"]
+    }
+  };
+
   const ROSTER = {
-    am: ["u01", "u02", "u03", "u04", "u05", "u06", "u07", "u08", "u09", "u10", "u11", "u12", "u13", "u14", "u15", "u16", "u17", "u18", "u19", "u20", "u21", "u22", "u23", "u24", "u25", "u26", "u27", "u28", "u29", "u30", "u31", "u32", "u33"],
-    pm: ["u34", "u35", "u36", "u37", "u38", "u39", "u40", "u41", "u42", "u43", "u44", "u45", "u46", "u47", "u48", "u49", "u50", "u51", "u52", "u53", "u54", "u55", "u56", "u57", "u58", "u59", "u60", "u61", "u62"]
+    am: Object.values(ASSIGN.am).flat(),
+    pm: Object.values(ASSIGN.pm).flat()
   };
-
-  /* 便ごとの運行計画。stops の並び順がそのままルート順。 */
-  const PLAN = {
-    "am-pick": { runs: {
-      1: { arrive: "09:35", stops: [
-        { t: "08:35", id: "u01" },
-        { t: "08:50", id: "u02" },
-        { t: "09:05", id: "u03" },
-        { t: "09:20", id: "u04" }
-      ] },
-      2: { arrive: "09:40", stops: [
-        { t: "08:40", id: "u05" },
-        { t: "08:55", id: "u06" },
-        { t: "09:10", id: "u07" },
-        { t: "09:25", id: "u08" }
-      ] },
-      3: { arrive: "09:30", stops: [
-        { t: "08:30", id: "u09" },
-        { t: "08:46", id: "u10" },
-        { t: "09:02", id: "u11" },
-        { t: "09:18", id: "u12" }
-      ] },
-      4: { arrive: "09:33", stops: [
-        { t: "08:45", id: "u13" },
-        { t: "09:02", id: "u14" },
-        { t: "09:19", id: "u15" }
-      ] },
-      5: { arrive: "09:34", stops: [
-        { t: "08:38", id: "u16" },
-        { t: "08:52", id: "u17" },
-        { t: "09:06", id: "u18" },
-        { t: "09:20", id: "u19" }
-      ] },
-      6: { arrive: "09:32", stops: [
-        { t: "08:42", id: "u20" },
-        { t: "08:59", id: "u21" },
-        { t: "09:16", id: "u22" }
-      ] },
-      7: { arrive: "09:50", stops: [
-        { t: "08:30", id: "u23" },
-        { t: "08:44", id: "u24" },
-        { t: "08:58", id: "u25" },
-        { t: "09:12", id: "u26" },
-        { t: "09:26", id: "u27" },
-        { t: "09:40", id: "u28" }
-      ] },
-      8: { arrive: "09:48", stops: [
-        { t: "08:34", id: "u29" },
-        { t: "08:49", id: "u30" },
-        { t: "09:04", id: "u31" },
-        { t: "09:19", id: "u32" },
-        { t: "09:34", id: "u33" }
-      ] }
-    } },
-    "am-drop": { runs: {
-      1: { arrive: "13:10", stops: [
-        { t: "12:10", id: "u04" },
-        { t: "12:25", id: "u03" },
-        { t: "12:40", id: "u02" },
-        { t: "12:55", id: "u01" }
-      ] },
-      2: { arrive: "13:15", stops: [
-        { t: "12:15", id: "u08" },
-        { t: "12:30", id: "u07" },
-        { t: "12:45", id: "u06" },
-        { t: "13:00", id: "u05" }
-      ] },
-      3: { arrive: "13:05", stops: [
-        { t: "12:05", id: "u12" },
-        { t: "12:21", id: "u11" },
-        { t: "12:37", id: "u10" },
-        { t: "12:53", id: "u09" }
-      ] },
-      4: { arrive: "13:08", stops: [
-        { t: "12:20", id: "u15" },
-        { t: "12:37", id: "u14" },
-        { t: "12:54", id: "u13" }
-      ] },
-      5: { arrive: "13:09", stops: [
-        { t: "12:13", id: "u19" },
-        { t: "12:27", id: "u18" },
-        { t: "12:41", id: "u17" },
-        { t: "12:55", id: "u16" }
-      ] },
-      6: { arrive: "13:07", stops: [
-        { t: "12:17", id: "u22" },
-        { t: "12:34", id: "u21" },
-        { t: "12:51", id: "u20" }
-      ] },
-      7: { arrive: "13:25", stops: [
-        { t: "12:05", id: "u28" },
-        { t: "12:19", id: "u27" },
-        { t: "12:33", id: "u26" },
-        { t: "12:47", id: "u25" },
-        { t: "13:01", id: "u24" },
-        { t: "13:15", id: "u23" }
-      ] },
-      8: { arrive: "13:23", stops: [
-        { t: "12:09", id: "u33" },
-        { t: "12:24", id: "u32" },
-        { t: "12:39", id: "u31" },
-        { t: "12:54", id: "u30" },
-        { t: "13:09", id: "u29" }
-      ] }
-    } },
-    "pm-pick": { runs: {
-      1: { arrive: "14:05", stops: [
-        { t: "13:05", id: "u34" },
-        { t: "13:20", id: "u35" },
-        { t: "13:35", id: "u36" },
-        { t: "13:50", id: "u37" }
-      ] },
-      2: { arrive: "14:10", stops: [
-        { t: "13:10", id: "u38" },
-        { t: "13:25", id: "u39" },
-        { t: "13:40", id: "u40" },
-        { t: "13:55", id: "u41" }
-      ] },
-      3: { arrive: "13:44", stops: [
-        { t: "13:00", id: "u42" },
-        { t: "13:16", id: "u43" },
-        { t: "13:32", id: "u44" }
-      ] },
-      4: { arrive: "14:03", stops: [
-        { t: "13:15", id: "u45" },
-        { t: "13:32", id: "u46" },
-        { t: "13:49", id: "u47" }
-      ] },
-      5: { arrive: "14:04", stops: [
-        { t: "13:08", id: "u48" },
-        { t: "13:22", id: "u49" },
-        { t: "13:36", id: "u50" },
-        { t: "13:50", id: "u51" }
-      ] },
-      6: { arrive: "14:02", stops: [
-        { t: "13:12", id: "u52" },
-        { t: "13:29", id: "u53" },
-        { t: "13:46", id: "u54" }
-      ] },
-      7: { arrive: "14:06", stops: [
-        { t: "13:00", id: "u55" },
-        { t: "13:14", id: "u56" },
-        { t: "13:28", id: "u57" },
-        { t: "13:42", id: "u58" },
-        { t: "13:56", id: "u59" }
-      ] },
-      8: { arrive: "13:48", stops: [
-        { t: "13:04", id: "u60" },
-        { t: "13:19", id: "u61" },
-        { t: "13:34", id: "u62" }
-      ] }
-    } },
-    "pm-drop": { runs: {
-      1: { arrive: "17:40", stops: [
-        { t: "16:40", id: "u37" },
-        { t: "16:55", id: "u36" },
-        { t: "17:10", id: "u35" },
-        { t: "17:25", id: "u34" }
-      ] },
-      2: { arrive: "17:45", stops: [
-        { t: "16:45", id: "u41" },
-        { t: "17:00", id: "u40" },
-        { t: "17:15", id: "u39" },
-        { t: "17:30", id: "u38" }
-      ] },
-      3: { arrive: "17:19", stops: [
-        { t: "16:35", id: "u44" },
-        { t: "16:51", id: "u43" },
-        { t: "17:07", id: "u42" }
-      ] },
-      4: { arrive: "17:38", stops: [
-        { t: "16:50", id: "u47" },
-        { t: "17:07", id: "u46" },
-        { t: "17:24", id: "u45" }
-      ] },
-      5: { arrive: "17:39", stops: [
-        { t: "16:43", id: "u51" },
-        { t: "16:57", id: "u50" },
-        { t: "17:11", id: "u49" },
-        { t: "17:25", id: "u48" }
-      ] },
-      6: { arrive: "17:37", stops: [
-        { t: "16:47", id: "u54" },
-        { t: "17:04", id: "u53" },
-        { t: "17:21", id: "u52" }
-      ] },
-      7: { arrive: "17:41", stops: [
-        { t: "16:35", id: "u59" },
-        { t: "16:49", id: "u58" },
-        { t: "17:03", id: "u57" },
-        { t: "17:17", id: "u56" },
-        { t: "17:31", id: "u55" }
-      ] },
-      8: { arrive: "17:23", stops: [
-        { t: "16:39", id: "u62" },
-        { t: "16:54", id: "u61" },
-        { t: "17:09", id: "u60" }
-      ] }
-    } }
-  };
-
 
   const USER_BY_ID = new Map(USERS.map((u) => [u.id, u]));
+
+  /* 住所から地図上の位置を作る。町の中心に番地ぶんの微差を足す */
+  USERS.forEach((u) => {
+    const c = TOWNS[u.town] || DEPOT;
+    const n = (u.addr.match(/\d+/g) || []).map(Number);
+    const a = n[0] || 0, b = n[1] || 0, d = n[2] || 0;
+    u.pt = { x: c.x + (((a * 7 + b) % 11) - 5) * 0.12, y: c.y + (((b * 3 + d) % 11) - 5) * 0.12 };
+    u.dwell = DWELL + (u.tags.includes("車") ? 3 : 0) + (u.tags.includes("補") ? 2 : 0) + (u.tags.includes("玄") ? 1 : 0);
+  });
+
+  const travelMin = (p, q) => Math.hypot(q.x - p.x, q.y - p.y) * DETOUR / SPEED_KMH * 60;
+  const roundStep = (m) => Math.ceil(m / STEP_MIN) * STEP_MIN;
+  const hhmm = (m) => String(Math.floor(m / 60) % 24).padStart(2, "0") + ":" + String(Math.round(m) % 60).padStart(2, "0");
+
+  function parseHHMM(text) {
+    const m = String(text).match(/(\d{1,2})\s*[:：]\s*(\d{1,2})/);
+    if (!m) return null;
+    const h = Number(m[1]), mi = Number(m[2]);
+    return h > 23 || mi > 59 ? null : h * 60 + mi;
+  }
 
   const el = (tag, cls, text) => {
     const n = document.createElement(tag);
@@ -1130,7 +986,23 @@
     return n;
   };
 
-  /* 利用者マスタを町名でまとめたプルダウン */
+  /* ── 和暦 ─────────────────────────────────── */
+  function wareki(d) {
+    const y = d.getFullYear(), md = (d.getMonth() + 1) * 100 + d.getDate();
+    const era = (name, first) => name + (y - first === 0 ? "元" : y - first + 1) + "年";
+    if (y > 2019 || (y === 2019 && md >= 501)) return era("令和", 2019);
+    if (y > 1989 || (y === 1989 && md >= 108)) return era("平成", 1989);
+    return era("昭和", 1926);
+  }
+
+  function titleDate(v) {
+    if (!v) return "";
+    const d = new Date(v + "T00:00:00");
+    const w = "日月火水木金土"[d.getDay()];
+    return wareki(d) + (d.getMonth() + 1) + "月" + d.getDate() + "日（" + w + "曜日）";
+  }
+
+  /* ── 行の組み立て ─────────────────────────── */
   function buildUserSelect() {
     const sel = el("select", "who");
     sel.append(new Option("", ""));
@@ -1156,13 +1028,20 @@
   function applyUser(stop, userId) {
     const user = USER_BY_ID.get(userId);
     const area = stop.querySelector(".area");
+    const t = stop.querySelector(".t");
     const sel = stop.querySelector(".who");
 
     sel.dataset.empty = userId ? "false" : "true";
     sel.title = user ? user.kana : "";
+
     area.textContent = user ? user.addr : "";
-    area.classList.remove("edited");
     area.dataset.master = user ? user.addr : "";
+    area.classList.remove("edited");
+
+    /* 住所が変わったので時刻は自動に戻す */
+    t.dataset.manual = "false";
+    t.classList.remove("edited");
+    if (!user) t.textContent = "";
 
     stop.querySelectorAll(".tag").forEach((tag) => {
       const on = !!user && user.tags.includes(tag.textContent);
@@ -1170,13 +1049,14 @@
     });
   }
 
-  function buildStop(index, entry) {
+  function buildStop(index, userId) {
     const li = el("li", "stop");
     li.append(el("span", "ord", String(index)));
 
-    const t = el("time", "t", entry ? entry.t : "");
+    const t = el("time", "t");
     t.contentEditable = "true";
     t.dataset.ph = "--:--";
+    t.dataset.manual = "false";
     li.append(t);
 
     const sel = buildUserSelect();
@@ -1200,25 +1080,37 @@
     });
     li.append(tags);
 
-    sel.value = entry ? entry.id : "";
+    sel.value = userId || "";
     applyUser(li, sel.value);
 
-    sel.addEventListener("change", () => { applyUser(li, sel.value); recount(); });
+    sel.addEventListener("change", () => { applyUser(li, sel.value); refresh(); });
+
     area.addEventListener("input", () => {
       area.classList.toggle("edited", area.textContent.trim() !== (area.dataset.master || ""));
+    });
+
+    /* 時刻は手入力で上書きできる。空欄にすると自動計算に戻る */
+    t.addEventListener("input", () => {
+      const manual = t.textContent.trim() !== "";
+      t.dataset.manual = String(manual);
+      t.classList.toggle("edited", manual);
     });
 
     return li;
   }
 
-  function buildCar(leg, car, run) {
+  function buildCar(leg, car, ids) {
     const capacity = car.seats - 1;
     const article = el("article", "car");
     article.dataset.capacity = capacity;
 
     const id = el("div", "car-id");
+
     const no = el("div", "car-no");
-    no.append(el("span", "num", String(car.no)), el("span", "unit", "号車"));
+    const box = el("span", "no-box");
+    box.contentEditable = "true";
+    box.title = "号車を記入";
+    no.append(box, el("span", "unit", "号車"));
 
     const size = el("p", "car-size");
     size.append(el("span", null, car.seats + "人乗り"), el("span", null, "定員 " + capacity + "名"));
@@ -1244,15 +1136,14 @@
     );
     list.append(head);
 
-    const stops = run ? run.stops : [];
-    const rows = Math.max(capacity, stops.length);
-    for (let i = 0; i < rows; i++) list.append(buildStop(i + 1, stops[i]));
+    const rows = Math.max(capacity, ids.length);
+    for (let i = 0; i < rows; i++) list.append(buildStop(i + 1, ids[i]));
 
     const foot = el("div", "car-foot");
     const arrive = el("span", "arrive");
-    const at = el("b", null, run ? run.arrive : "--:--");
-    at.contentEditable = "true";
-    arrive.append(document.createTextNode(leg.arriveLabel + " "), at);
+    const box2 = el("span", "arrive-box");
+    box2.contentEditable = "true";
+    arrive.append(document.createTextNode(leg.arriveLabel), box2);
     foot.append(arrive, el("span", "count", ""));
 
     const body = el("div", "car-body");
@@ -1273,7 +1164,7 @@
 
     const head = el("div", "leg-head");
     const title = el("p", "leg-title", leg.partLabel + "　" + leg.dir);
-    title.append(el("small", null, leg.flow));
+    title.append(el("small", null, leg.flow + "　事業所 " + leg.depart + " 出発"));
 
     const stats = el("div", "stats");
     stats.innerHTML =
@@ -1286,78 +1177,123 @@
     head.append(title, stats, el("span", "print-stamp", ""));
 
     const fleet = el("div", "fleet");
-    FLEET.forEach((car) => fleet.append(buildCar(leg, car, PLAN[leg.key].runs[car.no])));
+    FLEET.forEach((car, i) => {
+      const ids = ASSIGN[leg.part][i + 1] || [];
+      fleet.append(buildCar(leg, car, leg.dir === "お送り" ? [...ids].reverse() : ids));
+    });
 
     const leftover = el("p", "leftover");
     leftover.hidden = true;
 
     const legend = el("p", "leg-legend",
-      "記号　車＝車椅子／介＝乗降介助／玄＝玄関先まで　　■＝乗車　□＝空席（定員は運転手を除く人数）　　"
-      + "※印＝住所を当日変更した行　　変更は運行管理者へ連絡のうえ余白に記入してください。");
+      "記号　車＝車椅子（リフト・スロープ使用）／補＝歩行器・車椅子持参もしくは貸出／玄＝玄関先まで送迎　　"
+      + "■＝乗車　□＝空席（定員は運転手を除く人数）　　※印＝自動で入った値を手で書き換えた欄　　"
+      + "時刻は住所から換算した目安。変更は運行管理者へ連絡のうえ余白に記入してください。");
 
     section.append(head, fleet, leftover, legend);
     return section;
   }
 
-  /* 乗車人数・空席・定員超過・重複・未割当を数え直す */
-  function recount() {
+  /* ── 時刻の自動計算 ────────────────────────
+     事業所の出庫時刻から、住所間の移動時間と乗降時間を積み上げる。
+     手入力された時刻はそこから先の起点として扱い、上書きしない。 */
+  function computeTimes(section, leg) {
+    const depart = parseHHMM(leg.depart) || 0;
+
+    section.querySelectorAll(".car").forEach((car) => {
+      let cursor = depart;
+      let from = DEPOT;
+
+      car.querySelectorAll(".stop:not(.head)").forEach((stop) => {
+        const t = stop.querySelector(".t");
+        const user = USER_BY_ID.get(stop.querySelector(".who").value);
+
+        if (!user) {
+          if (t.dataset.manual !== "true") t.textContent = "";
+          return;
+        }
+
+        const auto = roundStep(cursor + travelMin(from, user.pt));
+
+        if (t.dataset.manual === "true") {
+          const manual = parseHHMM(t.textContent);
+          cursor = manual === null ? auto : manual;
+        } else {
+          t.textContent = hhmm(auto);
+          cursor = auto;
+        }
+
+        cursor += user.dwell;
+        from = user.pt;
+      });
+    });
+  }
+
+  /* ── 乗車人数・空席・定員超過・重複・未割当 ── */
+  function recount(section, leg) {
+    const seen = new Map();
+    let riders = 0;
+    let free = 0;
+
+    section.querySelectorAll(".car").forEach((car) => {
+      const capacity = Number(car.dataset.capacity);
+      let n = 0;
+
+      car.querySelectorAll(".stop:not(.head)").forEach((stop) => {
+        const id = stop.querySelector(".who").value;
+        stop.classList.toggle("filled", !!id);
+        stop.classList.toggle("empty", !id);
+        if (id) {
+          n++;
+          if (!seen.has(id)) seen.set(id, []);
+          seen.get(id).push(stop);
+        }
+      });
+
+      const over = n > capacity;
+      car.classList.toggle("is-over", over);
+      car.querySelectorAll(".pip").forEach((pip, i) => pip.classList.toggle("on", i < n));
+      car.querySelector(".count").textContent =
+        "乗車 " + n + " / " + capacity + " 名" + (over ? "　⚠ 定員超過" : "");
+
+      riders += n;
+      free += Math.max(0, capacity - n);
+    });
+
+    let dup = 0;
+    seen.forEach((stops) => {
+      const isDup = stops.length > 1;
+      if (isDup) dup++;
+      stops.forEach((stop) => stop.classList.toggle("dup", isDup));
+    });
+
+    const roster = ROSTER[leg.part];
+    const missing = roster.filter((id) => !seen.has(id)).map((id) => USER_BY_ID.get(id).name);
+
+    const set = (name, value, alert) => {
+      const b = section.querySelector('[data-stat="' + name + '"]');
+      b.textContent = value;
+      b.closest(".stat").classList.toggle("is-alert", !!alert);
+    };
+    set("riders", riders, false);
+    set("free", free, false);
+    set("left", missing.length, missing.length > 0);
+    set("dup", dup, dup > 0);
+
+    const leftover = section.querySelector(".leftover");
+    leftover.hidden = missing.length === 0;
+    leftover.innerHTML = "";
+    leftover.append(el("b", null, "未割当 " + missing.length + "名"));
+    leftover.append(document.createTextNode(
+      missing.length === roster.length ? "　（名簿全員）" : "　" + missing.join("　／　")
+    ));
+  }
+
+  function refresh() {
     LEGS.forEach((leg) => {
       const section = document.getElementById("leg-" + leg.key);
-      const seen = new Map();
-      let riders = 0;
-      let free = 0;
-
-      section.querySelectorAll(".car").forEach((car) => {
-        const capacity = Number(car.dataset.capacity);
-        let n = 0;
-
-        car.querySelectorAll(".stop:not(.head)").forEach((stop) => {
-          const id = stop.querySelector(".who").value;
-          stop.classList.toggle("filled", !!id);
-          stop.classList.toggle("empty", !id);
-          if (id) {
-            n++;
-            if (!seen.has(id)) seen.set(id, []);
-            seen.get(id).push(stop);
-          }
-        });
-
-        const over = n > capacity;
-        car.classList.toggle("is-over", over);
-        car.querySelectorAll(".pip").forEach((pip, i) => pip.classList.toggle("on", i < n));
-        car.querySelector(".count").textContent =
-          "乗車 " + n + " / " + capacity + " 名" + (over ? "　⚠ 定員超過" : "");
-
-        riders += n;
-        free += Math.max(0, capacity - n);
-      });
-
-      let dup = 0;
-      seen.forEach((stops) => {
-        const isDup = stops.length > 1;
-        if (isDup) dup++;
-        stops.forEach((stop) => stop.classList.toggle("dup", isDup));
-      });
-
-      const missing = ROSTER[leg.part].filter((id) => !seen.has(id)).map((id) => USER_BY_ID.get(id).name);
-
-      const set = (name, value, alert) => {
-        const b = section.querySelector('[data-stat="' + name + '"]');
-        b.textContent = value;
-        b.closest(".stat").classList.toggle("is-alert", !!alert);
-      };
-      set("riders", riders, false);
-      set("free", free, false);
-      set("left", missing.length, missing.length > 0);
-      set("dup", dup, dup > 0);
-
-      const leftover = section.querySelector(".leftover");
-      leftover.hidden = missing.length === 0;
-      leftover.innerHTML = "";
-      leftover.append(
-        el("b", null, "未割当 " + missing.length + "名　"),
-        document.createTextNode(missing.join("　／　"))
-      );
+      computeTimes(section, leg);
+      recount(section, leg);
     });
   }
 
@@ -1373,19 +1309,12 @@
     });
   }
 
-  function fmtDate(v) {
-    if (!v) return "";
-    const d = new Date(v + "T00:00:00");
-    const w = "日月火水木金土"[d.getDay()];
-    return d.getFullYear() + "年" + (d.getMonth() + 1) + "月" + d.getDate() + "日（" + w + "）";
-  }
-
   function refreshStamps() {
-    const date = fmtDate(document.getElementById("date").value);
-    document.getElementById("date-print").textContent = date;
+    const date = titleDate(document.getElementById("date").value);
+    document.getElementById("title-date").textContent = date;
     LEGS.forEach((leg) => {
       document.querySelector("#leg-" + leg.key + " .print-stamp").textContent =
-        "デイサービス あさひ／" + leg.partLabel + " " + leg.dir + "／運行日 " + date;
+        "デイサービス あさひ／" + leg.partLabel + " " + leg.dir + "／" + date;
     });
   }
 
@@ -1413,23 +1342,40 @@
   LEGS.forEach((leg) => sections.append(buildLeg(leg)));
 
   switchLeg(LEGS[0].key);
-  recount();
+  refresh();
   refreshStamps();
 
-  document.getElementById("date").addEventListener("change", refreshStamps);
-  document.getElementById("btn-print").addEventListener("click", () => window.print());
-  document.getElementById("btn-clear").addEventListener("click", () => {
-    if (!window.confirm("全4便の時刻・利用者・住所・記号を消去します。よろしいですか？")) return;
-    document.querySelectorAll(".stop:not(.head)").forEach((stop) => {
-      stop.querySelector(".t").textContent = "";
-      stop.querySelector(".who").value = "";
-      applyUser(stop, "");
-    });
-    recount();
+  const dateInput = document.getElementById("date");
+  dateInput.addEventListener("change", refreshStamps);
+  dateInput.addEventListener("click", () => {
+    if (typeof dateInput.showPicker === "function") dateInput.showPicker();
   });
 
-  document.addEventListener("input", recount);
-  document.addEventListener("click", (e) => { if (e.target.closest(".tag")) recount(); });
+  document.getElementById("btn-print").addEventListener("click", () => window.print());
+
+  document.getElementById("btn-recalc").addEventListener("click", () => {
+    document.querySelectorAll(".stop:not(.head) .t").forEach((t) => {
+      t.dataset.manual = "false";
+      t.classList.remove("edited");
+    });
+    refresh();
+  });
+
+  document.getElementById("btn-clear").addEventListener("click", () => {
+    if (!window.confirm("全4便の利用者・時刻・住所・記号と、号車・事業所着の記入を消去します。よろしいですか？")) return;
+    document.querySelectorAll(".stop:not(.head)").forEach((stop) => {
+      stop.querySelector(".who").value = "";
+      applyUser(stop, "");
+      stop.querySelector(".t").textContent = "";
+    });
+    document.querySelectorAll(".no-box, .arrive-box").forEach((b) => { b.textContent = ""; });
+    refresh();
+  });
+
+  document.addEventListener("input", (e) => {
+    if (e.target.closest(".stop")) refresh();
+  });
+  document.addEventListener("click", (e) => { if (e.target.closest(".tag")) refresh(); });
 
   /* 貼り付けは書式を落として素のテキストに */
   document.addEventListener("paste", (e) => {
