@@ -151,6 +151,9 @@
     -webkit-font-smoothing: antialiased;
   }
 
+  /* hidden 属性が display:flex に負けないようにする */
+  .sheet[hidden] { display: none !important; }
+
   .sheet {
     max-width: 1260px;
     margin: 0 auto;
@@ -1178,7 +1181,88 @@
     border-top: 1px solid var(--rule);
   }
 
-  .modal h3 {
+  /* ── マスタ編集ページ ─────────────────────── */
+  .page-master[hidden] { display: none; }
+
+  .page-master {
+    max-width: 1260px;
+    margin: 0 auto;
+    padding: calc(var(--step) * 8) calc(var(--step) * 5) calc(var(--step) * 12);
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--step) * 5);
+  }
+
+  .pm-head {
+    position: sticky;
+    top: 0;
+    z-index: 15;
+    background: var(--paper);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: calc(var(--step) * 4);
+    padding-bottom: calc(var(--step) * 3);
+    border-bottom: 2px solid var(--ink);
+  }
+
+  .pm-head h1 {
+    margin: 2px 0 0;
+    font-family: var(--mincho);
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: .1em;
+  }
+
+  .pm-actions { display: flex; gap: calc(var(--step) * 2); }
+  .pm-actions .btn { font-size: 13px; padding: 8px 16px; }
+
+  .pm-tabs {
+    display: flex;
+    gap: 2px;
+    background: var(--sub);
+    padding: 3px;
+    align-self: flex-start;
+  }
+
+  .pm-tabs button {
+    font: inherit;
+    font-size: 14px;
+    padding: 7px 22px;
+    border: 0;
+    background: transparent;
+    color: var(--ink-2);
+    cursor: pointer;
+    letter-spacing: .08em;
+  }
+
+  .pm-tabs button[aria-selected="true"] {
+    background: var(--card);
+    color: var(--ink);
+    box-shadow: inset 0 -2px 0 var(--ai);
+  }
+
+  .pm-pane[hidden] { display: none; }
+
+  .pm-ended {
+    margin-top: calc(var(--step) * 8);
+    padding-top: calc(var(--step) * 3);
+    border-top: 1px solid var(--rule-2);
+    color: var(--ink-3);
+  }
+
+  .pm-note {
+    margin: calc(var(--step) * 3) 0 0;
+    font-size: 11px;
+    line-height: 1.6;
+    color: var(--ink-3);
+  }
+
+  .page-master tr.is-ended td { background: var(--sub); }
+
+  .modal h3,
+  .page-master h3 {
     margin: 0 0 calc(var(--step) * 2);
     font-size: 13px;
     letter-spacing: .12em;
@@ -1188,13 +1272,15 @@
     gap: calc(var(--step) * 3);
   }
 
-  .modal table {
+  .modal table,
+  .page-master table {
     width: 100%;
     border-collapse: collapse;
     font-size: 13px;
   }
 
-  .modal th {
+  .modal th,
+  .page-master th {
     text-align: left;
     font-size: 10px;
     letter-spacing: .1em;
@@ -1204,14 +1290,17 @@
     border-bottom: 1px solid var(--rule-2);
   }
 
-  .modal td {
+  .modal td,
+  .page-master td {
     padding: 3px 6px;
     border-bottom: 1px solid var(--rule);
     vertical-align: middle;
   }
 
   .modal input[type="text"],
-  .modal select {
+  .modal select,
+  .page-master input,
+  .page-master select {
     font: inherit;
     font-size: 13px;
     width: 100%;
@@ -1223,9 +1312,12 @@
   }
 
   .modal input[type="text"]:focus,
-  .modal select:focus { border-color: var(--accent); }
+  .modal select:focus,
+  .page-master input:focus,
+  .page-master select:focus { border-color: var(--accent); }
 
-  .modal .btn {
+  .modal .btn,
+  .page-master .btn {
     font: inherit;
     font-size: 12px;
     padding: 5px 12px;
@@ -1235,16 +1327,21 @@
     cursor: pointer;
   }
 
-  .modal .btn:hover { border-color: var(--accent); color: var(--accent); }
-  .modal .btn.primary { border-color: var(--accent); color: var(--accent); }
-  .modal .btn.danger:hover { border-color: var(--warn); color: var(--warn); }
+  .modal .btn:hover,
+  .page-master .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .modal .btn.primary,
+  .page-master .btn.primary { border-color: var(--accent); color: var(--accent); }
+  .modal .btn.danger:hover,
+  .page-master .btn.danger:hover { border-color: var(--warn); color: var(--warn); }
 
-  .modal .tag-cell { display: flex; gap: 3px; }
+  .modal .tag-cell,
+  .page-master .tag-cell { display: flex; gap: 3px; }
 
   .modal-panel.narrow { width: min(660px, 100%); }
   .modal-panel.narrow .modal-head h2 { font-size: 17px; letter-spacing: .06em; }
 
-  .modal h3 .h3-note {
+  .modal h3 .h3-note,
+  .page-master h3 .h3-note {
     font-size: 11px;
     font-weight: 400;
     letter-spacing: .04em;
@@ -1282,9 +1379,11 @@
     padding: 8px;
   }
 
-  .modal .car-pick { display: flex; flex-wrap: wrap; gap: 3px; }
+  .modal .car-pick,
+  .page-master .car-pick { display: flex; flex-wrap: wrap; gap: 3px; }
 
-  .modal .car-pick button {
+  .modal .car-pick button,
+  .page-master .car-pick button {
     font: inherit;
     font-size: 11px;
     padding: 2px 7px;
@@ -1294,15 +1393,18 @@
     cursor: pointer;
   }
 
-  .modal .car-pick button[aria-pressed="true"] {
+  .modal .car-pick button[aria-pressed="true"],
+  .page-master .car-pick button[aria-pressed="true"] {
     border-color: var(--ai);
     background: var(--ai);
     color: #fff;
   }
 
-  .modal .day-cell { display: flex; gap: 2px; }
+  .modal .day-cell,
+  .page-master .day-cell { display: flex; gap: 2px; }
 
-  .modal .day {
+  .modal .day,
+  .page-master .day {
     width: 26px;
     display: flex;
     flex-direction: column;
@@ -1318,18 +1420,24 @@
     line-height: 1;
   }
 
-  .modal .day .d { font-size: 11px; }
+  .modal .day .d,
+  .page-master .day .d { font-size: 11px; }
 
-  .modal .day .ap {
+  .modal .day .ap,
+  .page-master .day .ap {
     font-size: 8px;
     letter-spacing: .04em;
     min-height: 8px;
   }
 
-  .modal .day[data-ap="AM"] { border-color: var(--ai); background: var(--ai); color: #fff; }
-  .modal .day[data-ap="PM"] { border-color: var(--kaki); background: var(--kaki); color: #fff; }
-  .modal .day[data-ap="終日"] { border-color: var(--furikae); background: var(--furikae); color: #fff; }
-  .modal .day[data-ap="終日"] .ap { font-size: 7px; }
+  .modal .day[data-ap="AM"],
+  .page-master .day[data-ap="AM"] { border-color: var(--ai); background: var(--ai); color: #fff; }
+  .modal .day[data-ap="PM"],
+  .page-master .day[data-ap="PM"] { border-color: var(--kaki); background: var(--kaki); color: #fff; }
+  .modal .day[data-ap="終日"],
+  .page-master .day[data-ap="終日"] { border-color: var(--furikae); background: var(--furikae); color: #fff; }
+  .modal .day[data-ap="終日"] .ap,
+  .page-master .day[data-ap="終日"] .ap { font-size: 7px; }
 
   /* ── 印刷：A4横・4便で4枚 ─────────────────── */
   @page {
@@ -1368,7 +1476,7 @@
 
     .sheet { max-width: none; padding: 0; gap: 2mm; }
 
-    .controls, .modal, .saved-note, .swap-bar, .date-open, .toast { display: none !important; }
+    .controls, .modal, .saved-note, .swap-bar, .date-open, .toast, .page-master { display: none !important; }
 
     .sticky-top {
       position: static;
@@ -1511,6 +1619,14 @@
 
   <div id="sections"></div>
   <div class="toast" id="toast" hidden></div>
+<datalist id="end-reasons">
+  <option value="入院"></option>
+  <option value="施設入所"></option>
+  <option value="他事業所へ"></option>
+  <option value="転居"></option>
+  <option value="逝去"></option>
+  <option value="自己都合"></option>
+</datalist>
 
   <div class="legend">
     <span class="item"><span class="swatch s-wc">車</span>車椅子（リフト・スロープ使用）</span>
@@ -1559,50 +1675,77 @@
   </div>
 </div>
 
-<!-- ── マスタ編集 ─────────────────────────── -->
-<div class="modal" id="modal-master" hidden role="dialog" aria-modal="true" aria-labelledby="master-title">
-  <div class="modal-panel">
-    <div class="modal-head">
-      <h2 id="master-title">マスタ編集</h2>
-      <p>変更は保存すると全4便・全日付の表示に反映されます。</p>
+<!-- ── マスタ編集（別ページ） ───────────────── -->
+<div class="page-master" id="page-master" hidden>
+  <header class="pm-head">
+    <div>
+      <p class="eyebrow">通所介護事業所　デイサービス　あさひ</p>
+      <h1>マスタ編集</h1>
     </div>
-    <div class="modal-body">
-      <section>
-        <h3>利用者マスタ <button type="button" class="btn" id="add-user">＋ 利用者を追加</button></h3>
-        <table>
-          <thead>
-            <tr>
-              <th style="width:13%">氏名</th>
-              <th style="width:13%">ふりがな</th>
-              <th style="width:10%">町名</th>
-              <th style="width:18%">住所</th>
-              <th style="width:10%">記号</th>
-              <th style="width:16%">利用曜日</th>
-              <th style="width:7%"></th>
-            </tr>
-          </thead>
-          <tbody id="user-rows"></tbody>
-        </table>
-      </section>
-      <section>
-        <h3>運転手マスタ <button type="button" class="btn" id="add-driver">＋ 運転手を追加</button></h3>
-        <table>
-          <thead><tr><th style="width:22%">氏名</th><th style="width:22%">出勤日</th><th></th></tr></thead>
-          <tbody id="driver-rows"></tbody>
-        </table>
-      </section>
-      <section>
-        <h3>配車マスタ<span class="h3-note">出勤人数ごとに、動かす車両を選ぶ</span></h3>
-        <table>
-          <thead><tr><th style="width:12%">人数版</th><th>使う車両</th></tr></thead>
-          <tbody id="dispatch-rows"></tbody>
-        </table>
-      </section>
+    <div class="pm-actions">
+      <button type="button" class="btn" id="master-cancel">変更を破棄して戻る</button>
+      <button type="button" class="btn primary" id="master-save">保存して送迎表へ戻る</button>
     </div>
-    <div class="modal-foot">
-      <button type="button" class="btn" id="master-cancel">取り消して閉じる</button>
-      <button type="button" class="btn primary" id="master-save">保存して閉じる</button>
-    </div>
+  </header>
+
+  <nav class="pm-tabs" role="tablist">
+    <button type="button" role="tab" id="pmtab-users" aria-selected="true">利用者</button>
+    <button type="button" role="tab" id="pmtab-drivers" aria-selected="false">運転手</button>
+    <button type="button" role="tab" id="pmtab-dispatch" aria-selected="false">配車</button>
+  </nav>
+
+  <div class="pm-body">
+    <section class="pm-pane" id="pm-users">
+      <h3>利用中<span class="h3-note" id="active-count"></span>
+        <button type="button" class="btn" id="add-user">＋ 利用者を追加</button>
+      </h3>
+      <table>
+        <thead>
+          <tr>
+            <th style="width:13%">氏名</th>
+            <th style="width:13%">ふりがな</th>
+            <th style="width:10%">町名</th>
+            <th style="width:18%">住所</th>
+            <th style="width:10%">記号</th>
+            <th style="width:16%">利用曜日</th>
+            <th style="width:12%"></th>
+          </tr>
+        </thead>
+        <tbody id="user-rows"></tbody>
+      </table>
+
+      <h3 class="pm-ended">利用終了<span class="h3-note" id="ended-count"></span></h3>
+      <table>
+        <thead>
+          <tr>
+            <th style="width:16%">氏名</th>
+            <th style="width:16%">ふりがな</th>
+            <th style="width:14%">終了日</th>
+            <th style="width:30%">理由</th>
+            <th style="width:14%"></th>
+          </tr>
+        </thead>
+        <tbody id="ended-rows"></tbody>
+      </table>
+      <p class="pm-note">終了にした方は、送迎表の利用者プルダウン・既定の割り当て・未割当から外れます。
+        すでに表に入っている過去の日付では、そのまま残ります。</p>
+    </section>
+
+    <section class="pm-pane" id="pm-drivers" hidden>
+      <h3>運転手<button type="button" class="btn" id="add-driver">＋ 運転手を追加</button></h3>
+      <table>
+        <thead><tr><th style="width:22%">氏名</th><th style="width:22%">出勤日</th><th></th></tr></thead>
+        <tbody id="driver-rows"></tbody>
+      </table>
+    </section>
+
+    <section class="pm-pane" id="pm-dispatch" hidden>
+      <h3>配車<span class="h3-note">出勤人数ごとに、動かす車両を選ぶ</span></h3>
+      <table>
+        <thead><tr><th style="width:12%">人数版</th><th>使う車両</th></tr></thead>
+        <tbody id="dispatch-rows"></tbody>
+      </table>
+    </section>
   </div>
 </div>
 
@@ -1866,6 +2009,7 @@
       const a = n[0] || 0, b = n[1] || 0, d = n[2] || 0;
       u.pt = { x: c.x + (((a * 7 + b) % 11) - 5) * 0.12, y: c.y + (((b * 3 + d) % 11) - 5) * 0.12 };
       u.days = normDays(u.days);
+      if (!u.end || !u.end.d) u.end = null;
       u.dwell = DWELL + (u.tags.includes("車") ? 3 : 0) + (u.tags.includes("補") ? 2 : 0) + (u.tags.includes("玄") ? 1 : 0);
       USER_BY_ID.set(u.id, u);
     });
@@ -1882,8 +2026,11 @@
   /* その曜日・その部（午前／午後）に来る利用者 */
   function rosterFor(part, weekday) {
     if (!weekday) return [];
-    return USERS.filter((u) => u.days[weekday] === PART_CODE[part]).map((u) => u.id);
+    return activeUsers().filter((u) => u.days[weekday] === PART_CODE[part]).map((u) => u.id);
   }
+
+  /* 利用中の方だけ。終了にした方は表の候補から外す */
+  const activeUsers = () => USERS.filter((u) => !u.end);
 
   /* ── 小道具 ───────────────────────────────── */
   const travelMin = (p, q) => Math.hypot(q.x - p.x, q.y - p.y) * DETOUR / SPEED_KMH * 60;
@@ -1992,8 +2139,8 @@
     sel.append(new Option("", ""));
 
     const pool = weekday
-      ? USERS.filter((u) => u.days[weekday] === PART_CODE[part])
-      : USERS;
+      ? activeUsers().filter((u) => u.days[weekday] === PART_CODE[part])
+      : activeUsers();
 
     const towns = [];
     pool.forEach((u) => { if (!towns.includes(u.town)) towns.push(u.town); });
@@ -2025,7 +2172,7 @@
 
     const pool = swap
       ? SWAP[part].map((id) => USER_BY_ID.get(id)).filter(Boolean)
-      : (weekday ? USERS.filter((u) => u.days[weekday] === PART_CODE[part]) : USERS.slice());
+      : (weekday ? activeUsers().filter((u) => u.days[weekday] === PART_CODE[part]) : activeUsers());
 
     const towns = [];
     pool.forEach((u) => { if (!towns.includes(u.town)) towns.push(u.town); });
@@ -2360,7 +2507,7 @@
     input.setAttribute("list", listId);
     const datalist = document.createElement("datalist");
     datalist.id = listId;
-    USERS.forEach((u) => {
+    activeUsers().forEach((u) => {
       const o = document.createElement("option");
       o.value = u.name;
       o.label = u.kana + "／" + u.addr;
@@ -2373,7 +2520,7 @@
     const addSwap = () => {
       const name = input.value.trim();
       if (!name) return;
-      const user = USERS.find((u) => u.name === name || u.kana === name);
+      const user = activeUsers().find((u) => u.name === name || u.kana === name);
       if (!user) { notify("「" + name + "」は利用者マスタに見つかりません。", "warn"); return; }
       if (!SWAP[leg.part].includes(user.id)) SWAP[leg.part].push(user.id);
       input.value = "";
@@ -3110,7 +3257,6 @@
   });
 
   /* ── マスタ編集 ───────────────────────────── */
-  const modal = document.getElementById("modal-master");
   let draftUsers = [];
   let draftDrivers = [];
   let draftDispatch = {};
@@ -3124,83 +3270,142 @@
     return sel;
   }
 
+  const END_REASONS = ["入院", "施設入所", "他事業所へ", "転居", "逝去", "自己都合", "その他"];
+
+  function drawUserRow(u, i) {
+    const tr = document.createElement("tr");
+    const cell = (child) => { const td = document.createElement("td"); td.append(child); tr.append(td); return child; };
+
+    const nameI = document.createElement("input");
+    nameI.type = "text"; nameI.value = u.name;
+    nameI.addEventListener("input", () => { draftUsers[i].name = nameI.value; });
+    cell(nameI);
+
+    const kanaI = document.createElement("input");
+    kanaI.type = "text"; kanaI.value = u.kana;
+    kanaI.addEventListener("input", () => { draftUsers[i].kana = kanaI.value; });
+    cell(kanaI);
+
+    const townI = townSelect(u.town);
+    townI.addEventListener("change", () => { draftUsers[i].town = townI.value; });
+    cell(townI);
+
+    const addrI = document.createElement("input");
+    addrI.type = "text"; addrI.value = u.addr;
+    addrI.addEventListener("input", () => { draftUsers[i].addr = addrI.value; });
+    cell(addrI);
+
+    const tagWrap = el("span", "tag-cell");
+    TAGS.forEach(({ key, cls, title }) => {
+      const b = el("button", "tag " + cls, key);
+      b.type = "button";
+      b.title = title;
+      b.setAttribute("aria-pressed", String(u.tags.includes(key)));
+      b.addEventListener("click", () => {
+        const on = b.getAttribute("aria-pressed") !== "true";
+        b.setAttribute("aria-pressed", String(on));
+        draftUsers[i].tags = on
+          ? [...draftUsers[i].tags, key]
+          : draftUsers[i].tags.filter((t) => t !== key);
+      });
+      tagWrap.append(b);
+    });
+    cell(tagWrap);
+
+    const dayWrap = el("span", "day-cell");
+    const AP_CYCLE = ["", "AM", "PM"];
+    WEEKDAYS.forEach((d) => {
+      const b = el("button", "day");
+      b.type = "button";
+      const label = el("span", "ap", "");
+      b.append(el("span", "d", d), label);
+
+      const draw = (ap) => {
+        b.dataset.ap = ap;
+        label.textContent = ap;
+        b.setAttribute("aria-pressed", String(ap !== ""));
+        b.title = d + "曜日" + (ap ? "の" + (ap === "AM" ? "午前" : "午後") + "に利用" : "は利用なし");
+      };
+      draw(draftUsers[i].days[d] || "");
+
+      b.addEventListener("click", () => {
+        const next = AP_CYCLE[(AP_CYCLE.indexOf(b.dataset.ap || "") + 1) % AP_CYCLE.length];
+        draw(next);
+        if (next) draftUsers[i].days[d] = next;
+        else delete draftUsers[i].days[d];
+      });
+      dayWrap.append(b);
+    });
+    cell(dayWrap);
+
+    const actions = el("span", "tag-cell");
+    const endBtn = el("button", "btn", "終了");
+    endBtn.type = "button";
+    endBtn.title = "利用終了にして、送迎表の候補から外す";
+    endBtn.addEventListener("click", () => {
+      draftUsers[i].end = { d: isoToday(), r: "" };
+      drawMasterTables();
+    });
+    const del = el("button", "btn danger", "削除");
+    del.type = "button";
+    del.title = "記録ごと消す（履歴を残すなら「終了」）";
+    del.addEventListener("click", () => { draftUsers.splice(i, 1); drawMasterTables(); });
+    actions.append(endBtn, del);
+    cell(actions);
+
+    return tr;
+  }
+
+  function drawEndedRow(u, i) {
+    const tr = document.createElement("tr");
+    tr.className = "is-ended";
+    const cell = (child) => { const td = document.createElement("td"); td.append(child); tr.append(td); return child; };
+
+    const nameI = document.createElement("input");
+    nameI.type = "text"; nameI.value = u.name;
+    nameI.addEventListener("input", () => { draftUsers[i].name = nameI.value; });
+    cell(nameI);
+
+    const kanaI = document.createElement("input");
+    kanaI.type = "text"; kanaI.value = u.kana;
+    kanaI.addEventListener("input", () => { draftUsers[i].kana = kanaI.value; });
+    cell(kanaI);
+
+    const dateI = document.createElement("input");
+    dateI.type = "date"; dateI.value = u.end.d || "";
+    dateI.addEventListener("change", () => { draftUsers[i].end.d = dateI.value || isoToday(); });
+    cell(dateI);
+
+    const reasonI = document.createElement("input");
+    reasonI.type = "text";
+    reasonI.value = u.end.r || "";
+    reasonI.placeholder = "理由（入院・施設入所など）";
+    reasonI.setAttribute("list", "end-reasons");
+    reasonI.addEventListener("input", () => { draftUsers[i].end.r = reasonI.value; });
+    cell(reasonI);
+
+    const back = el("button", "btn", "利用中に戻す");
+    back.type = "button";
+    back.addEventListener("click", () => { draftUsers[i].end = null; drawMasterTables(); });
+    cell(back);
+
+    return tr;
+  }
+
   function drawMasterTables() {
     const ub = document.getElementById("user-rows");
+    const eb = document.getElementById("ended-rows");
     ub.innerHTML = "";
+    eb.innerHTML = "";
+
+    let active = 0;
+    let ended = 0;
     draftUsers.forEach((u, i) => {
-      const tr = document.createElement("tr");
-
-      const cell = (child) => { const td = document.createElement("td"); td.append(child); tr.append(td); return child; };
-
-      const nameI = document.createElement("input");
-      nameI.type = "text"; nameI.value = u.name;
-      nameI.addEventListener("input", () => { draftUsers[i].name = nameI.value; });
-      cell(nameI);
-
-      const kanaI = document.createElement("input");
-      kanaI.type = "text"; kanaI.value = u.kana;
-      kanaI.addEventListener("input", () => { draftUsers[i].kana = kanaI.value; });
-      cell(kanaI);
-
-      const townI = townSelect(u.town);
-      townI.addEventListener("change", () => { draftUsers[i].town = townI.value; });
-      cell(townI);
-
-      const addrI = document.createElement("input");
-      addrI.type = "text"; addrI.value = u.addr;
-      addrI.addEventListener("input", () => { draftUsers[i].addr = addrI.value; });
-      cell(addrI);
-
-      const tagWrap = el("span", "tag-cell");
-      TAGS.forEach(({ key, cls, title }) => {
-        const b = el("button", "tag " + cls, key);
-        b.type = "button";
-        b.title = title;
-        b.setAttribute("aria-pressed", String(u.tags.includes(key)));
-        b.addEventListener("click", () => {
-          const on = b.getAttribute("aria-pressed") !== "true";
-          b.setAttribute("aria-pressed", String(on));
-          draftUsers[i].tags = on
-            ? [...draftUsers[i].tags, key]
-            : draftUsers[i].tags.filter((t) => t !== key);
-        });
-        tagWrap.append(b);
-      });
-      cell(tagWrap);
-
-      const dayWrap = el("span", "day-cell");
-      const AP_CYCLE = ["", "AM", "PM"];
-      WEEKDAYS.forEach((d) => {
-        const b = el("button", "day");
-        b.type = "button";
-        const label = el("span", "ap", "");
-        b.append(el("span", "d", d), label);
-
-        const draw = (ap) => {
-          b.dataset.ap = ap;
-          label.textContent = ap;
-          b.setAttribute("aria-pressed", String(ap !== ""));
-          b.title = d + "曜日" + (ap ? "の" + (ap === "AM" ? "午前" : "午後") + "に利用" : "は利用なし");
-        };
-        draw(draftUsers[i].days[d] || "");
-
-        b.addEventListener("click", () => {
-          const next = AP_CYCLE[(AP_CYCLE.indexOf(b.dataset.ap || "") + 1) % AP_CYCLE.length];
-          draw(next);
-          if (next) draftUsers[i].days[d] = next;
-          else delete draftUsers[i].days[d];
-        });
-        dayWrap.append(b);
-      });
-      cell(dayWrap);
-
-      const del = el("button", "btn danger", "削除");
-      del.type = "button";
-      del.addEventListener("click", () => { draftUsers.splice(i, 1); drawMasterTables(); });
-      cell(del);
-
-      ub.append(tr);
+      if (u.end) { eb.append(drawEndedRow(u, i)); ended++; }
+      else { ub.append(drawUserRow(u, i)); active++; }
     });
+    document.getElementById("active-count").textContent = active + "名";
+    document.getElementById("ended-count").textContent = ended + "名";
 
     const db = document.getElementById("driver-rows");
     db.innerHTML = "";
@@ -3279,23 +3484,52 @@
 
   function openMaster() {
     draftUsers = USERS
-      .map((u) => ({ id: u.id, name: u.name, kana: u.kana, town: u.town, addr: u.addr, tags: [...u.tags], days: { ...u.days } }))
+      .map((u) => ({
+        id: u.id, name: u.name, kana: u.kana, town: u.town, addr: u.addr,
+        tags: [...u.tags], days: { ...u.days },
+        end: u.end ? { d: u.end.d, r: u.end.r || "" } : null
+      }))
       .sort(byKana);
     draftDrivers = DRIVERS.map((d) => ({ name: d.name, days: { ...d.days } }));
     draftDispatch = {};
     CREW_SIZES.forEach((k) => { draftDispatch[k] = [...(DISPATCH[k] || [])]; });
     drawMasterTables();
-    modal.hidden = false;
+    showMaster(true);
   }
 
+  /* マスタ編集は別ページとして開く。#master を付けるので再読み込みしても残る */
+  function showMaster(on) {
+    document.querySelector(".sheet").hidden = on;
+    document.getElementById("page-master").hidden = !on;
+    if (on && location.hash !== "#master") location.hash = "master";
+    if (!on && location.hash === "#master") history.replaceState(null, "", location.pathname + location.search);
+    window.scrollTo(0, 0);
+  }
+
+  function closeMaster() { showMaster(false); }
+
   document.getElementById("btn-master").addEventListener("click", openMaster);
-  document.getElementById("master-cancel").addEventListener("click", () => { modal.hidden = true; });
-  modal.addEventListener("click", (e) => { if (e.target === modal) modal.hidden = true; });
-  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !modal.hidden) modal.hidden = true; });
+  document.getElementById("master-cancel").addEventListener("click", closeMaster);
+
+  window.addEventListener("hashchange", () => {
+    if (location.hash === "#master") { if (document.getElementById("page-master").hidden) openMaster(); }
+    else if (!document.getElementById("page-master").hidden) closeMaster();
+  });
+
+  /* マスタ編集ページの中のタブ */
+  [["users", "pm-users"], ["drivers", "pm-drivers"], ["dispatch", "pm-dispatch"]].forEach(([key, paneId]) => {
+    document.getElementById("pmtab-" + key).addEventListener("click", () => {
+      ["users", "drivers", "dispatch"].forEach((k) => {
+        const on = k === key;
+        document.getElementById("pmtab-" + k).setAttribute("aria-selected", String(on));
+        document.getElementById("pm-" + k).hidden = !on;
+      });
+    });
+  });
 
   document.getElementById("add-user").addEventListener("click", () => {
     const n = draftUsers.reduce((m, u) => Math.max(m, Number(String(u.id).replace(/\D/g, "")) || 0), 0) + 1;
-    draftUsers.push({ id: "u" + String(n).padStart(2, "0"), name: "", kana: "", town: Object.keys(TOWNS)[0], addr: "", tags: [], days: {} });
+    draftUsers.push({ id: "u" + String(n).padStart(2, "0"), name: "", kana: "", town: Object.keys(TOWNS)[0], addr: "", tags: [], days: {}, end: null });
     drawMasterTables();
   });
 
@@ -3309,17 +3543,18 @@
   document.getElementById("master-save").addEventListener("click", () => {
     USERS = draftUsers
       .filter((u) => u.name.trim() !== "")
-      .map((u) => ({ ...u, tags: [...u.tags], days: normDays(u.days) }))
+      .map((u) => ({ ...u, tags: [...u.tags], days: normDays(u.days), end: u.end && u.end.d ? { d: u.end.d, r: u.end.r || "" } : null }))
       .sort(byKana);
     DRIVERS = draftDrivers.map((d) => ({ name: d.name.trim(), days: { ...d.days } })).filter((d) => d.name);
     DISPATCH = {};
     CREW_SIZES.forEach((k) => { DISPATCH[k] = [...draftDispatch[k]]; });
     indexUsers();
-    STORE.setJSON("users", USERS.map(({ id, name, kana, town, addr, tags, days }) => ({ id, name, kana, town, addr, tags, days })));
+    STORE.setJSON("users", USERS.map(({ id, name, kana, town, addr, tags, days, end }) => ({ id, name, kana, town, addr, tags, days, end })));
     STORE.setJSON("drivers", DRIVERS);
     STORE.setJSON("dispatch", DISPATCH);
-    modal.hidden = true;
+    closeMaster();
     openDay(currentDate);
+    notify("マスタを保存しました（利用中 " + activeUsers().length + "名／利用終了 " + (USERS.length - activeUsers().length) + "名）。");
   });
 
   /* ── 日付 ─────────────────────────────────── */
@@ -3362,7 +3597,19 @@
   });
 
   /* ── ツール ───────────────────────────────── */
-  document.getElementById("btn-print").addEventListener("click", () => window.print());
+  /* 埋め込み表示では print() が黙って無視されるので、開けたかどうかを見て案内する */
+  document.getElementById("btn-print").addEventListener("click", () => {
+    let opened = false;
+    const mark = () => { opened = true; };
+    window.addEventListener("beforeprint", mark);
+    try { window.print(); } catch (e) { /* 抑制される環境がある */ }
+    setTimeout(() => {
+      window.removeEventListener("beforeprint", mark);
+      if (!opened) {
+        notify("この表示では印刷ダイアログを開けませんでした。ブラウザの印刷（Ctrl / ⌘ + P）をお使いください。ページを別のタブで開くと確実です。", "warn");
+      }
+    }, 700);
+  });
 
   /* 記入のクリアは、どの車両を空にするか選んでから */
   function clearCar(car) {
@@ -3453,4 +3700,5 @@
   /* ── 起動 ─────────────────────────────────── */
   renderDay(currentDate, LEGS[0].key);
   syncStickyHeight();
+  if (location.hash === "#master") openMaster();
 </script>
