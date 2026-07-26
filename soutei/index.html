@@ -4072,8 +4072,88 @@
   });
 
   /* ── ツール ───────────────────────────────── */
-  /* 埋め込み表示では print() が黙って無視されるので、開けたかどうかを見て案内する */
+  /* 埋め込み（iframe）の中から親ページごと印刷されると、こちらの改ページ指定は
+     無視され、用紙の高さで機械的に切られる（便が途中で割れて枚数も合わない）。
+     枠の中からは親の紙割りに手が出せないので、印刷は別タブへ出して
+     最上位のページとして組ませる。 */
+  function printableHTML() {
+    const srcSelects = [...document.querySelectorAll(".sheet select")];
+    const sheet = document.querySelector(".sheet").cloneNode(true);
+    const dstSelects = [...sheet.querySelectorAll("select")];
+
+    /* select の選択は複製に乗らないので、選ばれている option に印を付け直す */
+    srcSelects.forEach((s, i) => {
+      const d = dstSelects[i];
+      if (!d) return;
+      [...d.options].forEach((o) => o.removeAttribute("selected"));
+      const picked = d.options[s.selectedIndex];
+      if (picked) picked.setAttribute("selected", "");
+    });
+
+    sheet.querySelectorAll(".controls, .saved-note, .date-open, .swap-bar").forEach((n) => n.remove());
+    sheet.querySelectorAll(".leg").forEach((n) => n.removeAttribute("hidden"));
+
+    const css = [...document.querySelectorAll("style")].map((s) => s.textContent).join("\n");
+    const title = titleDate(currentDate) + "送迎表";
+
+    return '<!doctype html>\n<html lang="ja">\n<head>\n<meta charset="utf-8">\n'
+      + "<title>" + title + "</title>\n<style>\n" + css + "\n"
+      + ".print-lead{max-width:1260px;margin:0 auto;padding:20px 20px 0;font-family:var(--gothic);"
+      + "font-size:13px;line-height:1.7;color:var(--ink-2);}\n"
+      + ".print-lead b{color:var(--ink);}\n"
+      + "@media print{.print-lead{display:none !important;}}\n"
+      + "</style>\n</head>\n<body>\n"
+      + '<p class="print-lead">これは印刷用のページです。<b>4便＝A4横4枚</b>で出ます。'
+      + "印刷ダイアログが開かないときは <b>Ctrl / ⌘ + P</b> を押してください。</p>\n"
+      + sheet.outerHTML + "\n</body>\n</html>";
+  }
+
+  function openPrintView() {
+    let w = null;
+    try { w = window.open("", "_blank"); } catch (e) { w = null; }
+    if (!w || !w.document) return false;
+    try {
+      w.document.open();
+      w.document.write(printableHTML());
+      w.document.close();
+      w.focus();
+      setTimeout(() => { try { w.print(); } catch (e) { /* 手動で印刷してもらう */ } }, 400);
+      return true;
+    } catch (e) { return false; }
+  }
+
+  /* 別タブも開けない場合の逃げ道。保存して開けば正しい紙割りで印刷できる */
+  function downloadPrintView() {
+    try {
+      const blob = new Blob([printableHTML()], { type: "text/html;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = titleDate(currentDate) + "送迎表.html";
+      document.body.append(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
+      return true;
+    } catch (e) { return false; }
+  }
+
   document.getElementById("btn-print").addEventListener("click", () => {
+    if (openPrintView()) {
+      notify("印刷用のページを別のタブで開きました。そちらで印刷してください（4便＝A4横4枚）。");
+      return;
+    }
+
+    /* 埋め込みの中で印刷すると親ページの紙割りに巻き込まれ、便が
+       用紙の途中で切られる。そのまま印刷はせず、逃げ道だけ用意する */
+    if (window.top !== window.self) {
+      downloadPrintView();
+      notify("この枠の中から印刷すると、便が用紙の途中で切られてしまいます。"
+        + "印刷用のHTMLの保存を試みました。保存されない場合は、"
+        + "送迎表を別のタブ（別ウィンドウ）で開いてから印刷してください。", "warn");
+      return;
+    }
+
     let opened = false;
     const mark = () => { opened = true; };
     window.addEventListener("beforeprint", mark);
@@ -4081,7 +4161,7 @@
     setTimeout(() => {
       window.removeEventListener("beforeprint", mark);
       if (!opened) {
-        notify("この表示では印刷ダイアログを開けませんでした。ブラウザの印刷（Ctrl / ⌘ + P）をお使いください。ページを別のタブで開くと確実です。", "warn");
+        notify("印刷ダイアログを開けませんでした。ブラウザの印刷（Ctrl / ⌘ + P）をお使いください。", "warn");
       }
     }, 700);
   });
