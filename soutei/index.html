@@ -1076,6 +1076,7 @@
   .left-name:hover { background: var(--warn); color: var(--card); }
 
   .leg-legend { display: none; }
+  .leg-banner { display: none; }
 
   /* ── 凡例 ─────────────────────────────────── */
   .legend {
@@ -1390,6 +1391,20 @@
   .plan-mv:disabled { opacity: .3; cursor: default; }
   .plan-none { font-size: 11px; color: var(--ink-3); }
 
+  .plan-src-label { font-size: 12px; color: var(--ink-3); }
+
+  .plan-src {
+    font: inherit;
+    font-size: 12px;
+    padding: 4px 6px;
+    background: var(--card);
+    border: 1px solid var(--rule-2);
+    border-radius: 0;
+    cursor: pointer;
+  }
+
+  .plan-src:disabled { color: var(--ink-3); cursor: default; }
+
   .plan-add {
     font: inherit;
     font-size: 12px;
@@ -1627,64 +1642,84 @@
     .leg-head { position: static; }
     .left-name { border: 0; padding: 0 4px; background: none; color: var(--warn); }
 
-    .masthead { padding-bottom: 1.5mm; border-bottom-width: 1.2pt; gap: 1mm 5mm; }
-    .eyebrow { font-size: 6.5pt; }
-    .masthead h1 { font-size: 14pt; }
-    .date-slot { border-bottom: 0; }
-    .date-slot::after { content: ""; }
-    .date-slot select, .date-slot input { display: none; }
-    .date-open { display: none !important; }
+    /* 便ごとに1枚。表題は各便の見出しが持つので、画面用の表題は出さない */
+    .masthead, .date-open, .sticky-top { display: none !important; }
 
     .leg[hidden] { display: block !important; }
-    .leg { break-before: page; }
+    .leg { break-before: page; break-inside: avoid; }
     .leg:first-of-type { break-before: auto; }
 
-    .print-stamp { display: block; margin-left: auto; font-size: 7pt; }
-    .stats { margin-left: 0; gap: 4mm; }
-    .stat { font-size: 6.5pt; gap: 3px; }
-    .stat b { font-size: 9.5pt; }
+    .leg-banner {
+      display: flex;
+      align-items: baseline;
+      gap: 4mm;
+      padding-bottom: 0.6mm;
+      border-bottom: 1.2pt solid var(--ink);
+    }
 
-    .leg-head { padding: 1mm 0; margin-bottom: 1.5mm; gap: 1mm 4mm; }
-    .leg-title { font-size: 11pt; }
-    .leg-title small { font-size: 7.5pt; }
+    .lb-office { font-size: 7pt; letter-spacing: .12em; color: var(--ink-2); }
+
+    .lb-date {
+      font-family: var(--mincho);
+      font-size: 12pt;
+      font-weight: 600;
+      letter-spacing: .06em;
+    }
+
+    .lb-leg {
+      font-family: var(--mincho);
+      font-size: 12pt;
+      font-weight: 600;
+      letter-spacing: .1em;
+      color: var(--accent);
+      margin-left: auto;
+    }
+
+    .print-stamp { display: none; }
+    .stats { margin-left: auto; gap: 5mm; }
+    .stat { font-size: 7pt; gap: 3px; }
+    .stat b { font-size: 10.5pt; }
+
+    .leg-head { padding: 0.6mm 0; margin-bottom: 1mm; gap: 0.6mm 4mm; border-bottom-width: 0.6pt; }
+    .leg-title { display: none; }
 
     .fleet { gap: 1.4mm; }
 
-    .car { grid-template-columns: 20mm minmax(0, 1fr); }
-    .car-id { padding: 1mm; gap: 0.5mm; }
-    .no-box { width: 8mm; height: 8mm; font-size: 11pt; }
-    .car-no .unit { font-size: 6.5pt; }
-    .car-name { font-size: 9.5pt; }
+    .car { grid-template-columns: 21mm minmax(0, 1fr); }
+    .car-id { padding: 0.9mm; gap: 0.6mm; }
+    .no-box { width: 9mm; height: 9mm; font-size: 12pt; }
+    .car-no .unit { font-size: 7pt; }
+    .car-name { font-size: 10.5pt; }
     .car-start .lbl { font-size: 5.5pt; }
-    .start-box { font-size: 7pt; padding: 0.3mm 0.6mm; min-height: 3mm; }
+    .start-box { font-size: 7.5pt; padding: 0.5mm 0.6mm; min-height: 3.5mm; }
     .car-driver .lbl { font-size: 5.5pt; }
-    .driver-select { font-size: 7.5pt; padding: 0.3mm 0; }
-    .car-size { font-size: 6pt; }
+    .driver-select { font-size: 8.5pt; padding: 0.5mm 0; }
+    .car-size { font-size: 6.5pt; }
     .pip { width: 5px; height: 5px; }
 
     .route::before { top: 10px; bottom: 4px; left: calc(1.6mm + 6.5px); }
 
-    .car-depart, .car-foot { padding: 0.25mm 1.6mm; font-size: 6pt; gap: 1.4mm; line-height: 1.2; }
-    .dep { font-size: 7.5pt; min-width: 9mm; }
-    .actual-box { min-width: 11mm; font-size: 7.5pt; border-bottom-color: #999; }
-    .arrive-box { min-width: 13mm; font-size: 7.5pt; border-bottom-color: #999; }
-    .eta { font-size: 6pt; }
+    .car-depart, .car-foot { padding: 0.22mm 1.6mm; font-size: 6.5pt; gap: 1.4mm; line-height: 1.15; }
+    .dep { font-size: 8.5pt; min-width: 9mm; }
+    .actual-box { min-width: 11mm; font-size: 8.5pt; border-bottom-color: #999; }
+    .arrive-box { min-width: 13mm; font-size: 8.5pt; border-bottom-color: #999; }
+    .eta { font-size: 6.5pt; }
 
     .stop {
       min-height: 0;
-      padding: 0.35mm 1.6mm;
+      padding: 0.28mm 1.6mm;
       gap: 1.2mm;
       grid-template-columns: 13px 2.8rem 2.9rem minmax(3.6rem, 1.1fr) minmax(3.6rem, 0.95fr) auto minmax(3.6rem, 1fr);
       line-height: 1.25;
     }
 
-    .stop.head { font-size: 5pt; padding-top: 0.1mm; padding-bottom: 0.1mm; }
+    .stop.head { font-size: 5.5pt; padding-top: 0.12mm; padding-bottom: 0.12mm; }
 
     .ord { width: 13px; height: 13px; font-size: 6.5pt; }
     .t, .who { font-size: 8.5pt; }
-    .actual { font-size: 8pt; border-bottom-color: #999; }
-    .area { font-size: 7pt; }
-    .note { font-size: 7pt; border-bottom-color: #BBB; }
+    .actual { font-size: 8.5pt; border-bottom-color: #999; }
+    .area { font-size: 7.5pt; }
+    .note { font-size: 7.5pt; border-bottom-color: #BBB; }
     [contenteditable]:empty::before { content: ""; }
 
     /* 空欄は手書きできるよう罫線を残す */
@@ -1692,9 +1727,18 @@
     .stop.empty .area { border-bottom: 1px dotted #BBB; }
     .who[data-empty="true"] { border-bottom: 1px dotted #BBB; }
 
-    .tag { width: 11px; height: 11px; font-size: 6pt; }
+    .tag { width: 12px; height: 12px; font-size: 6.5pt; }
 
-    .leftover { margin-top: 1mm; padding: 0.6mm 1.6mm; font-size: 6.5pt; }
+    /* 未割当は1行に収める。名前が多いときは画面側で確認する */
+    .leftover {
+      margin-top: 0.5mm;
+      padding: 0.25mm 1.6mm;
+      font-size: 5.5pt;
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
 
     .car.collapsed > .car-collapsed { padding: 0.6mm 1.6mm; font-size: 7pt; }
     .cc-why { font-size: 6pt; }
@@ -1704,10 +1748,11 @@
 
     .leg-legend {
       display: block;
-      margin: 1mm 0 0;
-      padding-top: 0.8mm;
+      margin: 0.5mm 0 0;
+      padding-top: 0.4mm;
       border-top: 1px solid var(--rule);
-      font-size: 6.5pt;
+      font-size: 6pt;
+      line-height: 1.25;
       letter-spacing: .04em;
       color: var(--ink-2);
     }
@@ -2667,6 +2712,14 @@
       '<span class="stat"><b data-stat="left">0</b>名 未割当</span>' +
       '<span class="stat"><b data-stat="dup">0</b>件 重複</span>';
 
+    /* 印刷では便ごとに1枚になるので、どの紙にも事業所名と日付を載せる */
+    const banner = el("div", "leg-banner");
+    banner.append(
+      el("span", "lb-office", "通所介護事業所　デイサービス　あさひ"),
+      el("span", "lb-date", ""),
+      el("span", "lb-leg", leg.partLabel + "　" + leg.dir + "　" + leg.flow)
+    );
+
     head.append(title, stats, el("span", "print-stamp", ""));
 
     /* 既定の割り当ても、その曜日に来る人だけに絞る */
@@ -2730,7 +2783,7 @@
       + "番号の色　赤＝欠席（取り消し線）／黄緑＝振替利用／橙＝新規・増回　　朱色の車両＝車椅子の方が乗るため定員1名減　　"
       + "「実績」欄は実際の到着時刻、「備考」欄は玄関先の目印や部屋番号の記入用です。");
 
-    section.append(head, fleet, leftover, legend);
+    section.append(banner, head, fleet, leftover, legend);
     return section;
   }
 
@@ -3257,6 +3310,8 @@
     LEGS.forEach((leg) => {
       const stamp = document.querySelector("#leg-" + leg.key + " .print-stamp");
       if (stamp) stamp.textContent = "デイサービス あさひ／" + leg.partLabel + " " + leg.dir + "／" + date;
+      const lb = document.querySelector("#leg-" + leg.key + " .lb-date");
+      if (lb) lb.textContent = date + "　送迎表";
     });
   }
 
@@ -3745,7 +3800,8 @@
 
     const box = el("div", "plan-box");
     box.append(el("p", "plan-lead", size + "人版の割り当て　"
-      + "曜日と便ごとに保存します。ここに入れた方は「デフォルトに設置」で先にその車へ乗ります。"));
+      + "曜日と便ごとに保存します。取り込み元に出るのは、その曜日で保存済みの日付だけです。"
+      + "ここに入れた方は「デフォルトに設置」で先にその車へ乗ります。"));
 
     /* 曜日のタブ */
     const dayTabs = el("div", "plan-tabs");
@@ -3775,45 +3831,56 @@
     });
     box.append(legTabs);
 
-    /* 操作 */
+    /* 操作：保存済みの日付から、その曜日の同じ便を取り込む */
     const head = el("div", "plan-head");
-    const grab = el("button", "btn", today
-      ? "いまの送迎表（" + today + "曜）の" + leg.partLabel + leg.dir + "から取り込む"
-      : "取り込みは月〜土の送迎表を開いているときだけ");
+    head.append(el("span", "plan-src-label", "取り込み元"));
+
+    const sameDay = STORE.days()
+      .filter((d) => weekdayOf(d) === openPlanDay)
+      .sort()
+      .reverse();
+
+    const src = document.createElement("select");
+    src.className = "plan-src";
+    if (sameDay.length === 0) {
+      src.append(new Option("保存済みの" + openPlanDay + "曜がありません", ""));
+      src.disabled = true;
+    } else {
+      sameDay.forEach((d) => src.append(new Option(titleDate(d) + (d === currentDate ? "　（表示中）" : ""), d)));
+      if (sameDay.includes(currentDate)) src.value = currentDate;
+    }
+    head.append(src);
+
+    const grab = el("button", "btn", "この便を取り込む");
     grab.type = "button";
-    grab.disabled = !today;
+    grab.disabled = sameDay.length === 0;
     grab.addEventListener("click", () => {
-      const section = document.getElementById("leg-" + leg.key);
-      if (!section) return;
+      const date = src.value;
+      if (!date) return;
+      const day = STORE.getJSON("day." + date);
+      const saved = day && day.legs && day.legs[leg.key];
+      if (!saved) { notify(titleDate(date) + " の " + leg.partLabel + leg.dir + " は保存されていません。", "warn"); return; }
+
       const next = {};
       let skipped = 0;
-      [...section.querySelectorAll(".car")].forEach((car, i) => {
-        const ids = [...car.querySelectorAll(".stop:not(.head) .who")].map((x) => x.value).filter(Boolean);
+      saved.forEach((car, i) => {
+        const ids = (car.stops || []).map((r) => r.u).filter(Boolean);
         if (!ids.length) return;
         if (cfg.cars.includes(i)) next[i] = ids;
         else skipped++;
       });
       cfg.plan[openPlanDay][leg.key] = next;
       drawMasterTables();
+
+      const total = Object.values(next).reduce((n, list) => n + list.length, 0);
       if (skipped) {
         notify(size + "人版で使わない車両が " + skipped + "台ありました。その車の方は取り込んでいません。"
           + "先に「" + size + "人版 デフォルトに設置」で台数を合わせてください。", "warn");
       } else {
-        notify(openPlanDay + "曜 " + leg.partLabel + leg.dir + " の並びを " + size + "人版に取り込みました。");
+        notify(titleDate(date) + " の " + leg.partLabel + leg.dir + " から " + total + "名を取り込みました。");
       }
     });
     head.append(grab);
-
-    const copy = el("button", "btn", "この便を全曜日へコピー");
-    copy.type = "button";
-    copy.addEventListener("click", () => {
-      WEEKDAYS.forEach((w) => {
-        cfg.plan[w][leg.key] = JSON.parse(JSON.stringify(bucket));
-      });
-      drawMasterTables();
-      notify(openPlanDay + "曜 " + leg.partLabel + leg.dir + " の割り当てを月〜土へコピーしました。");
-    });
-    head.append(copy);
 
     const wipe = el("button", "btn danger", "この便を消す");
     wipe.type = "button";
@@ -3881,6 +3948,11 @@
   }
 
   function openMaster() {
+    /* 取り込み元として選べるよう、いま開いている日付を確定して保存しておく */
+    if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
+    STORE.setJSON("day." + currentDate, captureDay());
+    STORE.addDay(currentDate);
+
     draftUsers = USERS
       .map((u) => ({
         id: u.id, name: u.name, kana: u.kana, town: u.town, addr: u.addr,
