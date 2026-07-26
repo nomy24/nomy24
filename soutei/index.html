@@ -537,6 +537,45 @@
 
   .car-body { min-width: 0; }
 
+  /* 乗車0名の車は畳んで、稼働している車を追いやすくする */
+  .car > .car-collapsed { display: none; }
+
+  .car.collapsed > .car-collapsed {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: calc(var(--step) * 3);
+    padding: 5px calc(var(--step) * 3);
+    background: var(--accent-soft);
+    font-size: 12px;
+    color: var(--ink-2);
+  }
+
+  .car.collapsed > .car-id,
+  .car.collapsed > .car-body { display: none; }
+
+  .cc-label { color: var(--accent); }
+  .cc-why { color: var(--ink-3); font-size: 11px; font-weight: 400; }
+
+  .cc-expand, .car-fold {
+    margin-left: auto;
+    width: 20px;
+    height: 20px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    font-family: inherit;
+    font-size: 13px;
+    line-height: 1;
+    border: 1px solid var(--accent);
+    background: var(--card);
+    color: var(--accent);
+    cursor: pointer;
+  }
+
+  .car-fold { display: none; }
+  .car[data-canfold="1"] .car-fold { display: grid; }
+
   /* ── 事業所発／着のバー ───────────────────── */
   .car-depart,
   .car-foot {
@@ -1092,6 +1131,10 @@
 
     .leftover { margin-top: 1mm; padding: 0.6mm 1.6mm; font-size: 6.5pt; }
 
+    .car.collapsed > .car-collapsed { padding: 0.6mm 1.6mm; font-size: 7pt; }
+    .cc-why { font-size: 6pt; }
+    .cc-expand, .car-fold { display: none !important; }
+
     .legend { display: none; }
 
     .leg-legend {
@@ -1142,7 +1185,8 @@
     <span class="item">利用者名のプルダウンには、その曜日・その便（午前／午後）に来る方だけが並びます。選ぶと住所と記号がマスタから自動で入ります。</span>
     <span class="item">予定の時刻は事業所発の時刻と住所から換算。手入力で上書きでき、空欄にすると自動に戻ります。</span>
     <span class="item">「実績」欄は実際の到着時刻の記入用です。</span>
-    <span class="item">左端の番号をクリックするたびに　欠席（赤・取り消し線）→ 振替利用（黄緑）→ 新規・増回（橙）→ 通常　と切り替わります。</span>
+    <span class="item">左端の番号をクリックするたびに　欠席（赤・取り消し線）→ 振替利用（黄緑）→ 新規・増回（橙）→ 空白（利用者を外す）　と切り替わります。</span>
+    <span class="item">乗車0名の車両カードは自動で畳まれます。<b>＋</b>で開き、<b>−</b>で畳み直せます。</span>
     <span class="item">記号「車」の方が乗る車両はカードが朱色になり、定員が1名減ります（リフト車 6名→5名）。</span>
     <span class="item">※印は自動で入った値を手で書き換えた欄です。</span>
   </div>
@@ -1214,7 +1258,8 @@
   const WEEKDAYS = ["月", "火", "水", "木", "金", "土"];
   const PART_CODE = { am: "AM", pm: "PM" };
 
-  const STATES = ["", "absent", "furikae", "shinki"];
+  /* 番号の切替。最後の clear は状態ではなく「利用者を外す」操作 */
+  const STATES = ["", "absent", "furikae", "shinki", "clear"];
   const STATE_LABEL = { "": "通常", absent: "欠席", furikae: "振替利用", shinki: "新規・増回" };
 
   const TAGS = [
@@ -1433,7 +1478,7 @@
 
   function setState(stop, st) {
     stop.dataset.state = st;
-    STATES.forEach((s) => { if (s) stop.classList.toggle("st-" + s, s === st); });
+    STATES.forEach((s) => { if (s && s !== "clear") stop.classList.toggle("st-" + s, s === st); });
     const ord = stop.querySelector(".ord");
     ord.setAttribute("aria-pressed", String(st !== ""));
     ord.setAttribute("aria-label", "この行は" + STATE_LABEL[st] + "（クリックで切替）");
@@ -1544,12 +1589,18 @@
     /* 順番の数字はそのまま欠席の切替ボタン */
     const ord = el("button", "ord", String(index));
     ord.type = "button";
-    ord.title = "クリックで切替：欠席 → 振替利用 → 新規・増回 → 通常";
+    ord.title = "クリックで切替：欠席 → 振替利用 → 新規・増回 → 空白（利用者を外す）";
     ord.setAttribute("aria-pressed", "false");
     ord.addEventListener("click", () => {
       if (ord.disabled) return;
-      const cur = li.dataset.state || "";
-      setState(li, STATES[(STATES.indexOf(cur) + 1) % STATES.length]);
+      const next = STATES[(STATES.indexOf(li.dataset.state || "") + 1) % STATES.length];
+      if (next === "clear") {
+        /* 他の車に移すとき用。行を空にして次の選択に備える */
+        li.querySelector(".who").value = "";
+        applyUser(li, "");
+      } else {
+        setState(li, next);
+      }
       refresh();
     });
     li.append(ord);
@@ -1610,6 +1661,7 @@
   function buildCar(leg, car, ids, weekday) {
     const capacity = car.seats - 1;
     const article = el("article", "car");
+    article.dataset.seats = car.seats;
     article.dataset.capacityBase = capacity;
     article.dataset.capacity = capacity;
     if (car.lift) article.dataset.lift = "1";
@@ -1643,12 +1695,30 @@
     id.append(no, size, who, pips);
 
     /* 事業所発：カードごとに持つ。予定の横に実績の記入枠 */
+    /* 畳んだときに出る1行。＋で開く */
+    const bar = el("div", "car-collapsed");
+    const expand = el("button", "cc-expand", "＋");
+    expand.type = "button";
+    expand.title = "この車両を開く";
+    expand.addEventListener("click", () => {
+      article.dataset.forceOpen = "1";
+      article.classList.remove("collapsed");
+    });
+    bar.append(el("span", "cc-label", ""), el("span", "cc-why", ""), expand);
+
     const depBar = el("div", "car-depart");
     const dep = el("time", "dep", leg.depart);
     dep.contentEditable = "true";
     const depActual = el("span", "actual-box dep-actual");
     depActual.contentEditable = "true";
-    depBar.append(el("span", "lbl", leg.departLabel), dep, el("span", "lbl", "実績"), depActual);
+    const fold = el("button", "car-fold", "−");
+    fold.type = "button";
+    fold.title = "この車両を畳む";
+    fold.addEventListener("click", () => {
+      article.dataset.forceOpen = "";
+      article.classList.add("collapsed");
+    });
+    depBar.append(el("span", "lbl", leg.departLabel), dep, el("span", "lbl", "実績"), depActual, fold);
     dep.addEventListener("input", refresh);
 
     const list = el("ol", "route");
@@ -1669,7 +1739,7 @@
 
     const body = el("div", "car-body");
     body.append(depBar, list, foot);
-    article.append(id, body);
+    article.append(bar, id, body);
     return article;
   }
 
@@ -1788,6 +1858,8 @@
         stop.classList.toggle("filled", !!id && !absent);
         stop.classList.toggle("empty", !id);
         ord.disabled = !id;
+        /* 重複の印はここで必ず落とす。付け直しは下の突き合わせで行う */
+        stop.classList.remove("dup");
         if (!id) setState(stop, "");
 
         if (id) {
@@ -1814,6 +1886,18 @@
       });
       car.querySelector(".count").textContent =
         "乗車 " + n + " / " + capacity + " 名" + (off ? "（欠席 " + off + "）" : "") + (over ? "　⚠ 定員超過" : "");
+
+      /* 乗車0名なら畳む。＋で開いたカードは開いたままにする */
+      const nameEl = car.querySelector(".car-name");
+      const noBox = car.querySelector(".no-box");
+      const label = nameEl ? nameEl.textContent
+        : (noBox && noBox.textContent.trim() ? noBox.textContent.trim() + "号車" : "号車 未記入");
+      car.querySelector(".cc-label").textContent = label;
+      car.querySelector(".cc-why").textContent =
+        car.dataset.seats + "人乗り 定員" + capacity + "名　"
+        + (n + off === 0 ? "利用者なし" : "全員欠席 " + off + "名");
+      car.dataset.canfold = n === 0 ? "1" : "";
+      car.classList.toggle("collapsed", n === 0 && car.dataset.forceOpen !== "1");
 
       /* 乗車0名の車は稼働に数えない */
       if (n > 0) running++;
