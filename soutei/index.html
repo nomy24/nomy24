@@ -25,8 +25,8 @@
     --enji-soft: #F5E5E9;
 
     /* 記号は便によらず一定 */
-    --tag-wc: #2F5D8C;
-    --tag-aid: #8A5A1E;
+    --tag-wc: #8A5A1E;
+    --tag-aid: #2F5D8C;
     --tag-door: #3F6B4E;
 
     --warn: #9C2B2B;
@@ -60,8 +60,8 @@
       --seiheki-soft: #17292C;
       --enji: #D2879A;
       --enji-soft: #2E1C22;
-      --tag-wc: #8FB2D8;
-      --tag-aid: #D2A86A;
+      --tag-wc: #D2A86A;
+      --tag-aid: #8FB2D8;
       --tag-door: #86B79A;
       --warn: #DE8480;
       --warn-soft: #331E1E;
@@ -86,8 +86,8 @@
     --seiheki-soft: #17292C;
     --enji: #D2879A;
     --enji-soft: #2E1C22;
-    --tag-wc: #8FB2D8;
-    --tag-aid: #D2A86A;
+    --tag-wc: #D2A86A;
+    --tag-aid: #8FB2D8;
     --tag-door: #86B79A;
     --warn: #DE8480;
     --warn-soft: #331E1E;
@@ -111,8 +111,8 @@
     --seiheki-soft: #E1EDEE;
     --enji: #8E3B4E;
     --enji-soft: #F5E5E9;
-    --tag-wc: #2F5D8C;
-    --tag-aid: #8A5A1E;
+    --tag-wc: #8A5A1E;
+    --tag-aid: #2F5D8C;
     --tag-door: #3F6B4E;
     --warn: #9C2B2B;
     --warn-soft: #F6E7E5;
@@ -383,6 +383,44 @@
     letter-spacing: .08em;
   }
 
+  /* 7人乗りは車両名を固定表示する */
+  .car-name {
+    font-family: var(--mincho);
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: .06em;
+    color: var(--accent);
+  }
+
+  /* 運転手：号車と同じ記入枠。プルダウンから選ぶ */
+  .car-driver {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .car-driver .lbl {
+    font-size: 10px;
+    letter-spacing: .12em;
+    color: var(--ink-3);
+  }
+
+  .driver-select {
+    font: inherit;
+    font-size: 12px;
+    width: 100%;
+    padding: 2px 3px;
+    color: var(--ink);
+    background: var(--card);
+    border: 1px solid var(--accent);
+    border-radius: 0;
+    appearance: none;
+    -webkit-appearance: none;
+    cursor: pointer;
+    text-align: center;
+  }
+
   .car-size {
     display: flex;
     flex-direction: column;
@@ -412,25 +450,6 @@
 
   .car.is-over .pip { border-color: var(--warn); }
   .car.is-over .pip.on { background: var(--warn); }
-
-  .car-meta {
-    margin: 0;
-    font-size: 10px;
-    line-height: 1.45;
-    color: var(--ink-2);
-    word-break: keep-all;
-    overflow-wrap: break-word;
-  }
-
-  .car-meta .nb { white-space: nowrap; }
-
-  .car-meta .driver {
-    display: block;
-    font-size: 13px;
-    line-height: 1.35;
-    color: var(--ink);
-    margin-bottom: 1px;
-  }
 
   .car-body { min-width: 0; }
 
@@ -475,6 +494,27 @@
 
   .stop.head .ord { visibility: hidden; }
 
+  /* 行の中身は明示配置。赤線が時刻と利用者名に重なれるようにする */
+  .stop > *:nth-child(1) { grid-column: 1; grid-row: 1; }
+  .stop > *:nth-child(2) { grid-column: 2; grid-row: 1; }
+  .stop > *:nth-child(3) { grid-column: 3; grid-row: 1; }
+  .stop > *:nth-child(4) { grid-column: 4; grid-row: 1; }
+  .stop > *:nth-child(5) { grid-column: 5; grid-row: 1; }
+
+  .strike {
+    grid-column: 2 / 4;
+    grid-row: 1;
+    align-self: center;
+    height: 0;
+    border-top: 2px solid var(--warn);
+    opacity: 0;
+    pointer-events: none;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .stop.absent .strike { opacity: 1; }
+
   .stop.dup { background: var(--warn-soft); }
 
   .ord {
@@ -482,15 +522,20 @@
     z-index: 1;
     width: 19px;
     height: 19px;
+    padding: 0;
     border-radius: 50%;
     border: 1px solid var(--rule-2);
     background: var(--card);
     color: var(--ink-2);
+    font-family: inherit;
     font-size: 11px;
     font-variant-numeric: tabular-nums;
     display: grid;
     place-items: center;
   }
+
+  button.ord { cursor: pointer; }
+  button.ord:disabled { cursor: default; }
 
   .stop.filled .ord {
     border-color: var(--accent);
@@ -499,6 +544,13 @@
   }
 
   .stop.dup .ord { border-color: var(--warn); background: var(--warn); }
+
+  /* 欠席：本人と時刻を残したまま、乗車しないことを示す */
+  .stop.absent .ord { border-color: var(--warn); background: var(--warn); color: var(--card); }
+  .stop.absent .t,
+  .stop.absent .who,
+  .stop.absent .area { color: var(--ink-3); }
+  .stop.absent .tag[aria-pressed="true"] { color: var(--rule-2); }
 
   .t {
     font-size: 14px;
@@ -726,8 +778,9 @@
     .no-box { width: 9mm; height: 9mm; font-size: 12pt; }
     .car-no .unit { font-size: 7pt; }
     .car-size { font-size: 6.5pt; }
-    .car-meta { font-size: 6.5pt; line-height: 1.25; }
-    .car-meta .driver { font-size: 8pt; margin-bottom: 0; }
+    .car-name { font-size: 10pt; }
+    .car-driver .lbl { font-size: 5.5pt; }
+    .driver-select { font-size: 8pt; padding: 0.4mm 0; }
     .pip { width: 6px; height: 6px; }
 
     .route::before { top: 12px; bottom: 12px; left: calc(1.6mm + 6.5px); }
@@ -803,6 +856,7 @@
     <span class="item">利用者名はプルダウンで選択すると、住所と記号がマスタから自動で入ります。</span>
     <span class="item">時刻は住所から移動時間を換算して5分刻みで自動入力。手入力で上書きでき、空欄にすると自動に戻ります。</span>
     <span class="item">※印は自動で入った値を手で書き換えた欄です。</span>
+    <span class="item">左端の番号をクリックすると欠席に切り替わり、赤い取り消し線が入って以降の時刻が繰り上がります。</span>
   </div>
 </div>
 
@@ -812,14 +866,16 @@
      seats は車検証上の乗車人数。定員は seats - 1（運転手を除く）で計算する。
      号車は当日手書きするため、カードには枠だけ置く。 */
   const FLEET = [
-    { seats: 5, plate: "品川 500 あ 12-34", driver: "佐藤 健一" },
-    { seats: 5, plate: "品川 500 あ 12-56", driver: "佐々木 実" },
-    { seats: 5, plate: "品川 500 あ 21-08", driver: "山口 直樹" },
-    { seats: 5, plate: "品川 500 い 3-77", driver: "中村 洋子" },
-    { seats: 5, plate: "品川 500 い 45-12", driver: "井上 隆" },
-    { seats: 5, plate: "品川 500 う 60-31", driver: "松本 和夫" },
-    { seats: 7, plate: "品川 300 か 8-15", driver: "渡辺 千鶴" },
-    { seats: 7, plate: "品川 300 か 8-16", driver: "岡田 誠" }
+    { seats: 5 }, { seats: 5 }, { seats: 5 },
+    { seats: 5 }, { seats: 5 }, { seats: 5 },
+    { seats: 7, name: "ノア" },
+    { seats: 7, name: "リフト車" }
+  ];
+
+  /* 運転手マスタ。カードのプルダウンの選択肢になる */
+  const DRIVERS = [
+    "佐藤 健一", "佐々木 実", "山口 直樹", "中村 洋子", "井上 隆",
+    "松本 和夫", "渡辺 千鶴", "岡田 誠", "三好 陽子", "黒田 健二"
   ];
 
   /* ── 便 ────────────────────────────────────
@@ -1041,7 +1097,10 @@
     /* 住所が変わったので時刻は自動に戻す */
     t.dataset.manual = "false";
     t.classList.remove("edited");
-    if (!user) t.textContent = "";
+    if (!user) {
+      t.textContent = "";
+      stop.classList.remove("absent");
+    }
 
     stop.querySelectorAll(".tag").forEach((tag) => {
       const on = !!user && user.tags.includes(tag.textContent);
@@ -1051,7 +1110,19 @@
 
   function buildStop(index, userId) {
     const li = el("li", "stop");
-    li.append(el("span", "ord", String(index)));
+
+    /* 順番の数字はそのまま欠席の切替ボタン */
+    const ord = el("button", "ord", String(index));
+    ord.type = "button";
+    ord.title = "クリックで欠席に切替";
+    ord.setAttribute("aria-pressed", "false");
+    ord.addEventListener("click", () => {
+      if (ord.disabled) return;
+      li.classList.toggle("absent");
+      ord.setAttribute("aria-pressed", String(li.classList.contains("absent")));
+      refresh();
+    });
+    li.append(ord);
 
     const t = el("time", "t");
     t.contentEditable = "true";
@@ -1079,6 +1150,7 @@
       tags.append(b);
     });
     li.append(tags);
+    li.append(el("span", "strike"));
 
     sel.value = userId || "";
     applyUser(li, sel.value);
@@ -1106,27 +1178,33 @@
 
     const id = el("div", "car-id");
 
+    /* 号車：5人乗りは当日書き入れる枠、7人乗りは車両名を固定表示 */
     const no = el("div", "car-no");
-    const box = el("span", "no-box");
-    box.contentEditable = "true";
-    box.title = "号車を記入";
-    no.append(box, el("span", "unit", "号車"));
+    if (car.name) {
+      no.append(el("span", "car-name", car.name));
+    } else {
+      const box = el("span", "no-box");
+      box.contentEditable = "true";
+      box.title = "号車を記入";
+      no.append(box, el("span", "unit", "号車"));
+    }
 
     const size = el("p", "car-size");
     size.append(el("span", null, car.seats + "人乗り"), el("span", null, "定員 " + capacity + "名"));
 
-    const meta = el("p", "car-meta");
-    const cut = car.plate.lastIndexOf(" ");
-    meta.append(
-      el("span", "driver", car.driver),
-      document.createTextNode(car.plate.slice(0, cut + 1)),
-      el("span", "nb", car.plate.slice(cut + 1))
-    );
+    /* 運転手：号車と同じ記入枠。マスタから選ぶ */
+    const who = el("p", "car-driver");
+    const dsel = el("select", "driver-select");
+    dsel.append(new Option("", ""));
+    DRIVERS.forEach((d) => dsel.append(new Option(d, d)));
+    dsel.dataset.empty = "true";
+    dsel.addEventListener("change", () => { dsel.dataset.empty = dsel.value ? "false" : "true"; });
+    who.append(el("span", "lbl", "運転手"), dsel);
 
     const pips = el("div", "pips");
     for (let i = 0; i < capacity; i++) pips.append(el("span", "pip"));
 
-    id.append(no, size, meta, pips);
+    id.append(no, size, who, pips);
 
     const list = el("ol", "route");
     const head = el("li", "stop head");
@@ -1170,6 +1248,7 @@
     stats.innerHTML =
       '<span class="stat"><b data-stat="cars">' + FLEET.length + '</b>台 稼働</span>' +
       '<span class="stat"><b data-stat="riders">0</b>名 乗車</span>' +
+      '<span class="stat"><b data-stat="away">0</b>名 欠席</span>' +
       '<span class="stat"><b data-stat="free">0</b>席 空き</span>' +
       '<span class="stat"><b data-stat="left">0</b>名 未割当</span>' +
       '<span class="stat"><b data-stat="dup">0</b>件 重複</span>';
@@ -1188,7 +1267,7 @@
     const legend = el("p", "leg-legend",
       "記号　車＝車椅子（リフト・スロープ使用）／補＝歩行器・車椅子持参もしくは貸出／玄＝玄関先まで送迎　　"
       + "■＝乗車　□＝空席（定員は運転手を除く人数）　　※印＝自動で入った値を手で書き換えた欄　　"
-      + "時刻は住所から換算した目安。変更は運行管理者へ連絡のうえ余白に記入してください。");
+      + "赤い取り消し線＝欠席　　時刻は住所から換算した目安。変更は運行管理者へ連絡のうえ余白に記入してください。");
 
     section.append(head, fleet, leftover, legend);
     return section;
@@ -1213,6 +1292,9 @@
           return;
         }
 
+        /* 欠席は立ち寄らない。予定時刻は取り消し線つきで残す */
+        if (stop.classList.contains("absent")) return;
+
         const auto = roundStep(cursor + travelMin(from, user.pt));
 
         if (t.dataset.manual === "true") {
@@ -1234,6 +1316,7 @@
     const seen = new Map();
     let riders = 0;
     let free = 0;
+    let away = 0;
 
     section.querySelectorAll(".car").forEach((car) => {
       const capacity = Number(car.dataset.capacity);
@@ -1241,12 +1324,17 @@
 
       car.querySelectorAll(".stop:not(.head)").forEach((stop) => {
         const id = stop.querySelector(".who").value;
-        stop.classList.toggle("filled", !!id);
+        const absent = stop.classList.contains("absent");
+        const ord = stop.querySelector(".ord");
+
+        stop.classList.toggle("filled", !!id && !absent);
         stop.classList.toggle("empty", !id);
+        ord.disabled = !id;
+
         if (id) {
-          n++;
           if (!seen.has(id)) seen.set(id, []);
           seen.get(id).push(stop);
+          if (absent) away++; else n++;
         }
       });
 
@@ -1262,9 +1350,10 @@
 
     let dup = 0;
     seen.forEach((stops) => {
-      const isDup = stops.length > 1;
+      const riding = stops.filter((s) => !s.classList.contains("absent"));
+      const isDup = riding.length > 1;
       if (isDup) dup++;
-      stops.forEach((stop) => stop.classList.toggle("dup", isDup));
+      stops.forEach((stop) => stop.classList.toggle("dup", isDup && !stop.classList.contains("absent")));
     });
 
     const roster = ROSTER[leg.part];
@@ -1276,6 +1365,7 @@
       b.closest(".stat").classList.toggle("is-alert", !!alert);
     };
     set("riders", riders, false);
+    set("away", away, away > 0);
     set("free", free, false);
     set("left", missing.length, missing.length > 0);
     set("dup", dup, dup > 0);
@@ -1362,13 +1452,15 @@
   });
 
   document.getElementById("btn-clear").addEventListener("click", () => {
-    if (!window.confirm("全4便の利用者・時刻・住所・記号と、号車・事業所着の記入を消去します。よろしいですか？")) return;
+    if (!window.confirm("全4便の利用者・時刻・住所・記号・欠席と、号車・運転手・事業所着の記入を消去します。よろしいですか？")) return;
     document.querySelectorAll(".stop:not(.head)").forEach((stop) => {
       stop.querySelector(".who").value = "";
       applyUser(stop, "");
       stop.querySelector(".t").textContent = "";
+      stop.querySelector(".ord").setAttribute("aria-pressed", "false");
     });
     document.querySelectorAll(".no-box, .arrive-box").forEach((b) => { b.textContent = ""; });
+    document.querySelectorAll(".driver-select").forEach((d) => { d.value = ""; d.dataset.empty = "true"; });
     refresh();
   });
 
