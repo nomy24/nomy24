@@ -1,0 +1,1080 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>デイサービス送迎表</title>
+<style>
+  /* ── トークン ─────────────────────────────── */
+  :root {
+    color-scheme: light;
+    --paper: #F5F6F2;
+    --card: #FFFFFF;
+    --sub: #ECEEE8;
+    --ink: #16202A;
+    --ink-2: #4A5765;
+    --ink-3: #8A96A3;
+    --rule: #D9DED6;
+    --rule-2: #C3CABE;
+    --ai: #2C4F7C;
+    --ai-soft: #E6EDF5;
+    --kaki: #A84B23;
+    --kaki-soft: #F6E8E0;
+    --warn: #9C2B2B;
+    --warn-soft: #F4E4E2;
+    --ok: #3D6F52;
+
+    --accent: var(--ai);
+    --accent-soft: var(--ai-soft);
+
+    --mincho: "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", "Noto Serif JP", "MS PMincho", serif;
+    --gothic: "Hiragino Kaku Gothic ProN", "Yu Gothic", "YuGothic", "Noto Sans JP", "Meiryo", system-ui, sans-serif;
+
+    --step: 4px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      color-scheme: dark;
+      --paper: #11161B;
+      --card: #191F26;
+      --sub: #212932;
+      --ink: #E7EAE5;
+      --ink-2: #A4AEB8;
+      --ink-3: #6C7883;
+      --rule: #2B333B;
+      --rule-2: #3A444E;
+      --ai: #8FB2D8;
+      --ai-soft: #1D2937;
+      --kaki: #D68C64;
+      --kaki-soft: #31241C;
+      --warn: #DE8480;
+      --warn-soft: #331E1E;
+      --ok: #7FB496;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --paper: #11161B;
+    --card: #191F26;
+    --sub: #212932;
+    --ink: #E7EAE5;
+    --ink-2: #A4AEB8;
+    --ink-3: #6C7883;
+    --rule: #2B333B;
+    --rule-2: #3A444E;
+    --ai: #8FB2D8;
+    --ai-soft: #1D2937;
+    --kaki: #D68C64;
+    --kaki-soft: #31241C;
+    --warn: #DE8480;
+    --warn-soft: #331E1E;
+    --ok: #7FB496;
+  }
+
+  :root[data-theme="light"] {
+    color-scheme: light;
+    --paper: #F5F6F2;
+    --card: #FFFFFF;
+    --sub: #ECEEE8;
+    --ink: #16202A;
+    --ink-2: #4A5765;
+    --ink-3: #8A96A3;
+    --rule: #D9DED6;
+    --rule-2: #C3CABE;
+    --ai: #2C4F7C;
+    --ai-soft: #E6EDF5;
+    --kaki: #A84B23;
+    --kaki-soft: #F6E8E0;
+    --warn: #9C2B2B;
+    --warn-soft: #F4E4E2;
+    --ok: #3D6F52;
+  }
+
+  /* ── ベース ───────────────────────────────── */
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--gothic);
+    font-size: 15px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .sheet {
+    max-width: 1260px;
+    margin: 0 auto;
+    padding: calc(var(--step) * 8) calc(var(--step) * 5) calc(var(--step) * 12);
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--step) * 6);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 1px;
+  }
+
+  /* ── 表題 ─────────────────────────────────── */
+  .masthead {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: calc(var(--step) * 5);
+    padding-bottom: calc(var(--step) * 4);
+    border-bottom: 2px solid var(--ink);
+  }
+
+  .eyebrow {
+    margin: 0;
+    font-size: 11px;
+    letter-spacing: .18em;
+    color: var(--ink-3);
+  }
+
+  .masthead h1 {
+    margin: 2px 0 0;
+    font-family: var(--mincho);
+    font-size: 30px;
+    font-weight: 600;
+    letter-spacing: .1em;
+    text-wrap: balance;
+  }
+
+  .mast-fields {
+    display: flex;
+    flex-wrap: wrap;
+    gap: calc(var(--step) * 5);
+    align-items: flex-end;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .field > span {
+    font-size: 10px;
+    letter-spacing: .14em;
+    color: var(--ink-3);
+  }
+
+  .field input {
+    font: inherit;
+    font-size: 14px;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--rule-2);
+    padding: 2px 0;
+    min-width: 8.5rem;
+  }
+
+  .field input:hover { border-bottom-color: var(--accent); }
+
+  .date-print { display: none; }
+
+  /* ── 便の切替 ─────────────────────────────── */
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: calc(var(--step) * 4);
+  }
+
+  .legs {
+    display: flex;
+    gap: 2px;
+    background: var(--sub);
+    padding: 3px;
+  }
+
+  .legs button {
+    font: inherit;
+    font-size: 14px;
+    padding: 7px 20px;
+    border: 0;
+    background: transparent;
+    color: var(--ink-2);
+    cursor: pointer;
+    letter-spacing: .06em;
+  }
+
+  .legs button b {
+    font-weight: 600;
+  }
+
+  .legs button small {
+    font-size: 11px;
+    color: var(--ink-3);
+    margin-left: 6px;
+  }
+
+  .legs button[aria-selected="true"] {
+    background: var(--card);
+    color: var(--ink);
+    box-shadow: inset 0 -2px 0 var(--accent);
+  }
+
+  .legs button[aria-selected="true"] small { color: var(--ink-2); }
+
+  .tools {
+    display: flex;
+    gap: calc(var(--step) * 2);
+  }
+
+  .tools button {
+    font: inherit;
+    font-size: 13px;
+    padding: 7px 16px;
+    background: transparent;
+    color: var(--ink-2);
+    border: 1px solid var(--rule-2);
+    cursor: pointer;
+  }
+
+  .tools button:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* ── 便ヘッダ ─────────────────────────────── */
+  .leg[hidden] { display: none; }
+
+  .leg-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: calc(var(--step) * 3) calc(var(--step) * 6);
+    padding: calc(var(--step) * 3) 0;
+    margin-bottom: calc(var(--step) * 4);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .leg-title {
+    font-family: var(--mincho);
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: .12em;
+    color: var(--accent);
+  }
+
+  .leg-title small {
+    font-family: var(--gothic);
+    font-size: 12px;
+    letter-spacing: .1em;
+    color: var(--ink-2);
+    margin-left: 8px;
+  }
+
+  .stats {
+    display: flex;
+    gap: calc(var(--step) * 6);
+    margin-left: auto;
+  }
+
+  .stat {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--ink-3);
+  }
+
+  .stat b {
+    font-size: 19px;
+    font-weight: 600;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .stat.is-over b { color: var(--warn); }
+
+  .print-stamp {
+    display: none;
+    font-size: 11px;
+    color: var(--ink-2);
+    letter-spacing: .08em;
+  }
+
+  /* ── 車両カード ───────────────────────────── */
+  .fleet {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: calc(var(--step) * 4);
+  }
+
+  @media (max-width: 900px) {
+    .fleet { grid-template-columns: minmax(0, 1fr); }
+  }
+
+  .car {
+    display: grid;
+    grid-template-columns: 116px minmax(0, 1fr);
+    background: var(--card);
+    border: 1px solid var(--rule);
+    break-inside: avoid;
+  }
+
+  @media (max-width: 460px) {
+    .car { grid-template-columns: minmax(0, 1fr); }
+  }
+
+  .car-id {
+    background: var(--accent-soft);
+    border-right: 1px solid var(--rule);
+    padding: calc(var(--step) * 3);
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--step) * 2);
+  }
+
+  .car-no {
+    display: flex;
+    align-items: baseline;
+    gap: 3px;
+    color: var(--accent);
+  }
+
+  .car-no .num {
+    font-family: var(--mincho);
+    font-size: 34px;
+    font-weight: 600;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .car-no .unit {
+    font-size: 12px;
+    letter-spacing: .08em;
+  }
+
+  .car-size {
+    display: flex;
+    flex-direction: column;
+    font-size: 11px;
+    line-height: 1.4;
+    letter-spacing: .06em;
+    color: var(--ink-2);
+    white-space: nowrap;
+  }
+
+  /* 定員ピップ：■=乗車 □=空席 */
+  .pips {
+    display: flex;
+    gap: 3px;
+    margin-top: auto;
+  }
+
+  .pip {
+    width: 9px;
+    height: 9px;
+    border: 1px solid var(--accent);
+    background: transparent;
+  }
+
+  .pip.on { background: var(--accent); }
+
+  .car.is-over .pip { border-color: var(--warn); }
+  .car.is-over .pip.on { background: var(--warn); }
+
+  .car-meta {
+    margin: 0;
+    font-size: 10px;
+    line-height: 1.45;
+    color: var(--ink-2);
+    word-break: keep-all;
+    overflow-wrap: break-word;
+  }
+
+  .car-meta .nb { white-space: nowrap; }
+
+  .car-meta .driver {
+    display: block;
+    font-size: 13px;
+    line-height: 1.35;
+    color: var(--ink);
+    margin-bottom: 1px;
+  }
+
+  .car-size {
+    margin: 0;
+  }
+
+  .car-body { min-width: 0; }
+
+  /* ── ルート順 ─────────────────────────────── */
+  .route {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    position: relative;
+  }
+
+  /* 経路線：順番の丸を縦につなぐ */
+  .route::before {
+    content: "";
+    position: absolute;
+    left: calc(var(--step) * 3 + 9px);
+    top: 18px;
+    bottom: 18px;
+    width: 1px;
+    background: var(--rule-2);
+  }
+
+  .stop {
+    display: grid;
+    grid-template-columns: 19px 3.6rem minmax(4.5rem, 1.3fr) minmax(4.5rem, 1fr) auto;
+    align-items: center;
+    gap: calc(var(--step) * 2);
+    padding: 5px calc(var(--step) * 3);
+    border-bottom: 1px solid var(--rule);
+    min-height: 30px;
+  }
+
+  .stop.head {
+    padding-top: 3px;
+    padding-bottom: 3px;
+    min-height: 0;
+    font-size: 10px;
+    letter-spacing: .1em;
+    color: var(--ink-3);
+    background: var(--sub);
+  }
+
+  .stop.head .ord { visibility: hidden; }
+
+  .ord {
+    position: relative;
+    z-index: 1;
+    width: 19px;
+    height: 19px;
+    border-radius: 50%;
+    border: 1px solid var(--rule-2);
+    background: var(--card);
+    color: var(--ink-2);
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    display: grid;
+    place-items: center;
+  }
+
+  .stop.filled .ord {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--card);
+  }
+
+  .t {
+    font-size: 14px;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: .02em;
+  }
+
+  .who {
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .area {
+    font-size: 12px;
+    color: var(--ink-2);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  [contenteditable] {
+    min-height: 1.2em;
+    outline-offset: 2px;
+  }
+
+  [contenteditable]:hover {
+    background: var(--accent-soft);
+    box-shadow: 0 0 0 2px var(--accent-soft);
+  }
+
+  [contenteditable]:empty::before {
+    content: attr(data-ph);
+    color: var(--ink-3);
+    font-size: 12px;
+  }
+
+  .tags {
+    display: flex;
+    gap: 3px;
+    justify-content: flex-end;
+  }
+
+  .tag {
+    width: 17px;
+    height: 17px;
+    display: grid;
+    place-items: center;
+    font-size: 10px;
+    border: 1px solid currentColor;
+    cursor: pointer;
+    user-select: none;
+    color: var(--rule-2);
+    background: transparent;
+    padding: 0;
+    font-family: inherit;
+  }
+
+  .tag[aria-pressed="true"] { color: var(--kaki); }
+  .tag[aria-pressed="true"].t-wc { color: var(--ai); }
+  .tag[aria-pressed="true"].t-help { color: var(--warn); }
+
+  .car-foot {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: calc(var(--step) * 3);
+    padding: 5px calc(var(--step) * 3);
+    font-size: 11px;
+    color: var(--ink-2);
+    background: var(--sub);
+  }
+
+  .car-foot .arrive {
+    font-size: 13px;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .car-foot .count {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .car.is-over .car-foot .count { color: var(--warn); font-weight: 600; }
+
+  .leg-legend { display: none; }
+
+  /* ── 凡例 ─────────────────────────────────── */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: calc(var(--step) * 2) calc(var(--step) * 6);
+    padding-top: calc(var(--step) * 3);
+    border-top: 1px solid var(--rule);
+    font-size: 11px;
+    color: var(--ink-2);
+  }
+
+  .legend .item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .legend .swatch {
+    width: 15px;
+    height: 15px;
+    display: grid;
+    place-items: center;
+    font-size: 9px;
+    border: 1px solid currentColor;
+  }
+
+  /* ── 印刷：A4横・往路と復路で1枚ずつ ───────── */
+  @page {
+    size: A4 landscape;
+    margin: 8mm;
+  }
+
+  @media print {
+    :root {
+      color-scheme: light;
+      --paper: #fff;
+      --card: #fff;
+      --sub: #F2F2F0;
+      --ink: #000;
+      --ink-2: #333;
+      --ink-3: #666;
+      --rule: #B8B8B8;
+      --rule-2: #CCCCCC;
+      --ai: #1F3A5C;
+      --ai-soft: #EDF1F6;
+      --kaki: #7E3617;
+      --kaki-soft: #F7EDE7;
+      --warn: #8A1F1F;
+    }
+
+    body { background: #fff; font-size: 9pt; line-height: 1.3; }
+
+    .sheet {
+      max-width: none;
+      padding: 0;
+      gap: 2mm;
+    }
+
+    .controls { display: none; }
+
+    .masthead {
+      padding-bottom: 1.5mm;
+      border-bottom-width: 1.2pt;
+    }
+
+    .eyebrow { font-size: 6.5pt; }
+    .masthead h1 { font-size: 13pt; margin-top: 0; }
+    .mast-fields { gap: 6mm; }
+    .field > span { font-size: 6pt; }
+    .field input { font-size: 8.5pt; padding: 0; min-width: 26mm; border-bottom-color: #999; }
+    #date { display: none; }
+
+    .date-print {
+      display: block;
+      font-size: 8.5pt;
+      padding-bottom: 1px;
+      border-bottom: 1px solid #999;
+      min-width: 34mm;
+    }
+
+    .leg[hidden] { display: block !important; }
+    .leg { break-before: page; }
+    .leg:first-of-type { break-before: auto; }
+
+    .print-stamp { display: block; margin-left: auto; font-size: 7pt; }
+    .stats { margin-left: 0; gap: 8mm; }
+    .stat { font-size: 7pt; }
+    .stat b { font-size: 10pt; }
+
+    .leg-head { padding: 1mm 0; margin-bottom: 1.5mm; gap: 1mm 6mm; }
+    .leg-title { font-size: 11pt; }
+    .leg-title small { font-size: 7.5pt; }
+
+    .fleet { gap: 2mm; }
+
+    .car { grid-template-columns: 21mm minmax(0, 1fr); }
+    .car-id { padding: 1.2mm; gap: 0.8mm; }
+    .car-no .num { font-size: 15pt; }
+    .car-no .unit { font-size: 7pt; }
+    .car-size { font-size: 6.5pt; }
+    .car-meta { font-size: 6.5pt; line-height: 1.25; }
+    .car-meta .driver { font-size: 8pt; margin-bottom: 0; }
+    .pip { width: 6px; height: 6px; }
+
+    .route::before { top: 12px; bottom: 12px; left: calc(1.6mm + 6.5px); }
+
+    .stop {
+      min-height: 0;
+      padding: 0.55mm 1.6mm;
+      gap: 1.4mm;
+      grid-template-columns: 13px 3.2rem minmax(4rem, 1.3fr) minmax(4rem, 1fr) auto;
+      line-height: 1.25;
+    }
+
+    .stop.head { font-size: 6pt; padding-top: 0.3mm; padding-bottom: 0.3mm; }
+
+    .ord { width: 13px; height: 13px; font-size: 6.5pt; }
+    .t, .who { font-size: 8.5pt; }
+    .area { font-size: 7pt; }
+    [contenteditable]:empty::before { content: ""; }
+
+    .tag { width: 12px; height: 12px; font-size: 6.5pt; }
+
+    .car-foot { padding: 0.6mm 1.6mm; font-size: 7pt; }
+    .car-foot .arrive { font-size: 8.5pt; }
+
+    .legend { display: none; }
+
+    .leg-legend {
+      display: block;
+      margin: 1.5mm 0 0;
+      padding-top: 1mm;
+      border-top: 1px solid var(--rule);
+      font-size: 6.5pt;
+      letter-spacing: .04em;
+      color: var(--ink-2);
+    }
+  }
+
+</style>
+
+<div class="sheet">
+  <header class="masthead">
+    <div>
+      <p class="eyebrow">通所介護事業所　デイサービス　あさひ</p>
+      <h1>送迎運行表</h1>
+    </div>
+    <div class="mast-fields">
+      <label class="field">
+        <span>運行日</span>
+        <input type="date" id="date" value="2026-07-27">
+        <span class="date-print" id="date-print"></span>
+      </label>
+      <label class="field">
+        <span>天候・道路状況</span>
+        <input type="text" id="weather" value="晴／通常" size="10">
+      </label>
+      <label class="field">
+        <span>運行管理者</span>
+        <input type="text" id="manager" value="長谷川 美和" size="10">
+      </label>
+    </div>
+  </header>
+
+  <div class="controls">
+    <div class="legs" role="tablist" aria-label="便の切替">
+      <button role="tab" id="tab-out" aria-controls="leg-out" aria-selected="true"><b>往路</b><small>お迎え</small></button>
+      <button role="tab" id="tab-ret" aria-controls="leg-ret" aria-selected="false"><b>復路</b><small>お送り</small></button>
+    </div>
+    <div class="tools">
+      <button type="button" id="btn-clear">記入をクリア</button>
+      <button type="button" id="btn-print">印刷（往路・復路 各1枚）</button>
+    </div>
+  </div>
+
+  <section class="leg" id="leg-out" role="tabpanel" aria-labelledby="tab-out"></section>
+  <section class="leg" id="leg-ret" role="tabpanel" aria-labelledby="tab-ret" hidden></section>
+
+  <div class="legend">
+    <span class="item"><span class="swatch">車</span>車椅子（リフト・スロープ使用）</span>
+    <span class="item"><span class="swatch">介</span>乗降介助が必要</span>
+    <span class="item"><span class="swatch">玄</span>玄関先まで送迎</span>
+    <span class="item"><span class="swatch" style="border-style:solid;background:currentColor;color:var(--ink-2)"></span>■＝乗車　□＝空席（定員は運転手を除く人数）</span>
+    <span class="item">氏名・時刻・地区・記号はクリックで直接書き換えできます。</span>
+  </div>
+</div>
+
+<script>
+  // 車両：5人乗り6台（乗車4名）／7人乗り2台（乗車6名）
+  const FLEET = [
+    { no: 1, seats: 5, plate: "品川 500 あ 12-34", driver: "佐藤 健一" },
+    { no: 2, seats: 5, plate: "品川 500 あ 12-56", driver: "佐々木 実" },
+    { no: 3, seats: 5, plate: "品川 500 あ 21-08", driver: "山口 直樹" },
+    { no: 4, seats: 5, plate: "品川 500 い 3-77", driver: "中村 洋子" },
+    { no: 5, seats: 5, plate: "品川 500 い 45-12", driver: "井上 隆" },
+    { no: 6, seats: 5, plate: "品川 500 う 60-31", driver: "松本 和夫" },
+    { no: 7, seats: 7, plate: "品川 300 か 8-15", driver: "渡辺 千鶴" },
+    { no: 8, seats: 7, plate: "品川 300 か 8-16", driver: "岡田 誠" }
+  ];
+
+  const PLAN = {
+    out: {
+      title: "往路", sub: "お迎え", label: "自宅 → 事業所",
+      runs: {
+        1: { arrive: "09:35", stops: [
+          { t: "08:35", who: "田中 ハル", area: "中央町 3丁目", tags: ["介"] },
+          { t: "08:50", who: "鈴木 正一", area: "中央町 1丁目", tags: [] },
+          { t: "09:05", who: "高橋 キヨ", area: "本町 5丁目", tags: ["玄"] },
+          { t: "09:20", who: "小林 節子", area: "本町 2丁目", tags: [] }
+        ]},
+        2: { arrive: "09:40", stops: [
+          { t: "08:40", who: "伊藤 フミ", area: "若葉台 2丁目", tags: ["介"] },
+          { t: "08:55", who: "渡部 秀夫", area: "若葉台 4丁目", tags: [] },
+          { t: "09:10", who: "山田 トシ子", area: "緑町 1丁目", tags: ["玄"] },
+          { t: "09:25", who: "中西 幸雄", area: "緑町 3丁目", tags: [] }
+        ]},
+        3: { arrive: "09:30", stops: [
+          { t: "08:30", who: "大野 スミ", area: "桜ヶ丘 1丁目", tags: ["車"] },
+          { t: "08:50", who: "藤井 康夫", area: "桜ヶ丘 3丁目", tags: [] },
+          { t: "09:05", who: "岩本 ヨシ", area: "旭ヶ丘 2丁目", tags: ["介"] },
+          { t: "09:18", who: "森田 光子", area: "旭ヶ丘 5丁目", tags: [] }
+        ]},
+        4: { arrive: "09:45", stops: [
+          { t: "08:45", who: "村上 三郎", area: "東雲 2丁目", tags: [] },
+          { t: "09:00", who: "北川 きく", area: "東雲 6丁目", tags: ["玄"] },
+          { t: "09:22", who: "菅原 テル", area: "川井町 1丁目", tags: ["介"] }
+        ]},
+        5: { arrive: "09:38", stops: [
+          { t: "08:38", who: "堀内 昌代", area: "富士見町 4丁目", tags: [] },
+          { t: "08:52", who: "浅野 勝治", area: "富士見町 7丁目", tags: ["介"] },
+          { t: "09:08", who: "白石 ミツ", area: "南台 2丁目", tags: [] },
+          { t: "09:24", who: "野口 定雄", area: "南台 5丁目", tags: ["玄"] }
+        ]},
+        6: { arrive: "09:32", stops: [
+          { t: "08:42", who: "長沢 スエ", area: "泉町 1丁目", tags: ["介"] },
+          { t: "09:00", who: "谷口 良一", area: "泉町 4丁目", tags: [] },
+          { t: "09:16", who: "杉本 アキ", area: "宮下 2丁目", tags: [] }
+        ]},
+        7: { arrive: "09:50", stops: [
+          { t: "08:30", who: "西村 タカ", area: "上野原 1丁目", tags: ["車"] },
+          { t: "08:44", who: "石田 正治", area: "上野原 3丁目", tags: [] },
+          { t: "08:58", who: "内藤 ハナ", area: "戸倉 2丁目", tags: ["介"] },
+          { t: "09:12", who: "平野 邦彦", area: "戸倉 5丁目", tags: [] },
+          { t: "09:26", who: "小島 チヨ", area: "梅林 1丁目", tags: ["玄"] },
+          { t: "09:40", who: "福井 静江", area: "梅林 4丁目", tags: [] }
+        ]},
+        8: { arrive: "09:48", stops: [
+          { t: "08:34", who: "尾崎 たけし", area: "新町 2丁目", tags: ["車"] },
+          { t: "08:48", who: "上田 ノブ", area: "新町 5丁目", tags: ["介"] },
+          { t: "09:04", who: "河合 秀子", area: "曙 1丁目", tags: [] },
+          { t: "09:20", who: "遠藤 巌", area: "曙 4丁目", tags: [] },
+          { t: "09:34", who: "宮本 サダ", area: "花見川 2丁目", tags: ["玄"] }
+        ]}
+      }
+    },
+    ret: {
+      title: "復路", sub: "お送り", label: "事業所 → 自宅",
+      runs: {
+        1: { arrive: "16:55", stops: [
+          { t: "15:55", who: "小林 節子", area: "本町 2丁目", tags: [] },
+          { t: "16:10", who: "高橋 キヨ", area: "本町 5丁目", tags: ["玄"] },
+          { t: "16:28", who: "鈴木 正一", area: "中央町 1丁目", tags: [] },
+          { t: "16:42", who: "田中 ハル", area: "中央町 3丁目", tags: ["介"] }
+        ]},
+        2: { arrive: "17:00", stops: [
+          { t: "15:58", who: "中西 幸雄", area: "緑町 3丁目", tags: [] },
+          { t: "16:12", who: "山田 トシ子", area: "緑町 1丁目", tags: ["玄"] },
+          { t: "16:30", who: "渡部 秀夫", area: "若葉台 4丁目", tags: [] },
+          { t: "16:45", who: "伊藤 フミ", area: "若葉台 2丁目", tags: ["介"] }
+        ]},
+        3: { arrive: "16:50", stops: [
+          { t: "15:50", who: "森田 光子", area: "旭ヶ丘 5丁目", tags: [] },
+          { t: "16:04", who: "岩本 ヨシ", area: "旭ヶ丘 2丁目", tags: ["介"] },
+          { t: "16:20", who: "藤井 康夫", area: "桜ヶ丘 3丁目", tags: [] },
+          { t: "16:36", who: "大野 スミ", area: "桜ヶ丘 1丁目", tags: ["車"] }
+        ]},
+        4: { arrive: "16:48", stops: [
+          { t: "15:52", who: "菅原 テル", area: "川井町 1丁目", tags: ["介"] },
+          { t: "16:14", who: "北川 きく", area: "東雲 6丁目", tags: ["玄"] },
+          { t: "16:30", who: "村上 三郎", area: "東雲 2丁目", tags: [] }
+        ]},
+        5: { arrive: "16:58", stops: [
+          { t: "15:56", who: "野口 定雄", area: "南台 5丁目", tags: ["玄"] },
+          { t: "16:10", who: "白石 ミツ", area: "南台 2丁目", tags: [] },
+          { t: "16:28", who: "浅野 勝治", area: "富士見町 7丁目", tags: ["介"] },
+          { t: "16:44", who: "堀内 昌代", area: "富士見町 4丁目", tags: [] }
+        ]},
+        6: { arrive: "16:46", stops: [
+          { t: "15:54", who: "杉本 アキ", area: "宮下 2丁目", tags: [] },
+          { t: "16:10", who: "谷口 良一", area: "泉町 4丁目", tags: [] },
+          { t: "16:28", who: "長沢 スエ", area: "泉町 1丁目", tags: ["介"] }
+        ]},
+        7: { arrive: "17:05", stops: [
+          { t: "15:50", who: "福井 静江", area: "梅林 4丁目", tags: [] },
+          { t: "16:03", who: "小島 チヨ", area: "梅林 1丁目", tags: ["玄"] },
+          { t: "16:18", who: "平野 邦彦", area: "戸倉 5丁目", tags: [] },
+          { t: "16:32", who: "内藤 ハナ", area: "戸倉 2丁目", tags: ["介"] },
+          { t: "16:46", who: "石田 正治", area: "上野原 3丁目", tags: [] },
+          { t: "17:00", who: "西村 タカ", area: "上野原 1丁目", tags: ["車"] }
+        ]},
+        8: { arrive: "17:02", stops: [
+          { t: "15:52", who: "宮本 サダ", area: "花見川 2丁目", tags: ["玄"] },
+          { t: "16:08", who: "遠藤 巌", area: "曙 4丁目", tags: [] },
+          { t: "16:24", who: "河合 秀子", area: "曙 1丁目", tags: [] },
+          { t: "16:40", who: "上田 ノブ", area: "新町 5丁目", tags: ["介"] },
+          { t: "16:56", who: "尾崎 たけし", area: "新町 2丁目", tags: ["車"] }
+        ]}
+      }
+    }
+  };
+
+  const TAGS = [
+    { key: "車", cls: "t-wc", title: "車椅子" },
+    { key: "介", cls: "t-help", title: "乗降介助" },
+    { key: "玄", cls: "t-door", title: "玄関先まで" }
+  ];
+
+  const el = (tag, cls, text) => {
+    const n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  };
+
+  function buildStop(index, data) {
+    const li = el("li", "stop");
+    li.append(el("span", "ord", String(index)));
+
+    const t = el("time", "t", data ? data.t : "");
+    t.contentEditable = "true";
+    t.dataset.ph = "--:--";
+    li.append(t);
+
+    const who = el("span", "who", data ? data.who : "");
+    who.contentEditable = "true";
+    who.dataset.ph = "利用者名";
+    li.append(who);
+
+    const area = el("span", "area", data ? data.area : "");
+    area.contentEditable = "true";
+    area.dataset.ph = "地区・住所";
+    li.append(area);
+
+    const tags = el("span", "tags");
+    TAGS.forEach(({ key, cls, title }) => {
+      const b = el("button", "tag " + cls, key);
+      b.type = "button";
+      b.title = title;
+      b.setAttribute("aria-pressed", data && data.tags.includes(key) ? "true" : "false");
+      b.addEventListener("click", () => {
+        b.setAttribute("aria-pressed", b.getAttribute("aria-pressed") === "true" ? "false" : "true");
+      });
+      tags.append(b);
+    });
+    li.append(tags);
+
+    return li;
+  }
+
+  function buildCar(car, run) {
+    const capacity = car.seats - 1; // 運転手を除く
+    const article = el("article", "car");
+    article.dataset.capacity = capacity;
+
+    const id = el("div", "car-id");
+    const no = el("div", "car-no");
+    no.append(el("span", "num", String(car.no)), el("span", "unit", "号車"));
+    id.append(no);
+    const size = el("p", "car-size");
+    size.append(el("span", null, car.seats + "人乗り"), el("span", null, "定員 " + capacity + "名"));
+    id.append(size);
+
+    const meta = el("p", "car-meta");
+    const cut = car.plate.lastIndexOf(" ");
+    meta.append(
+      el("span", "driver", car.driver),
+      document.createTextNode(car.plate.slice(0, cut + 1)),
+      el("span", "nb", car.plate.slice(cut + 1))
+    );
+    id.append(meta);
+
+    const pips = el("div", "pips");
+    for (let i = 0; i < capacity; i++) pips.append(el("span", "pip"));
+    id.append(pips);
+
+    const body = el("div", "car-body");
+    const list = el("ol", "route");
+
+    const head = el("li", "stop head");
+    head.append(el("span", "ord", ""), el("span", null, "時刻"), el("span", null, "利用者名"), el("span", null, "地区・住所"), el("span", null, "記号"));
+    list.append(head);
+
+    const stops = run ? run.stops : [];
+    const rows = Math.max(capacity, stops.length);
+    for (let i = 0; i < rows; i++) list.append(buildStop(i + 1, stops[i]));
+
+    const foot = el("div", "car-foot");
+    const arrive = el("span", "arrive");
+    arrive.append(document.createTextNode("事業所 着 "));
+    const at = el("b", null, run ? run.arrive : "--:--");
+    at.contentEditable = "true";
+    at.style.fontWeight = "600";
+    arrive.append(at);
+    foot.append(arrive, el("span", "count", ""));
+
+    body.append(list, foot);
+    article.append(id, body);
+    return article;
+  }
+
+  function buildLeg(key) {
+    const plan = PLAN[key];
+    const section = document.getElementById(key === "out" ? "leg-out" : "leg-ret");
+    section.dataset.leg = key;
+    section.style.setProperty("--accent", key === "out" ? "var(--ai)" : "var(--kaki)");
+    section.style.setProperty("--accent-soft", key === "out" ? "var(--ai-soft)" : "var(--kaki-soft)");
+
+    const head = el("div", "leg-head");
+    const title = el("p", "leg-title", plan.title);
+    title.append(el("small", null, plan.sub + "　" + plan.label));
+    head.append(title);
+
+    const stats = el("div", "stats");
+    stats.innerHTML =
+      '<span class="stat"><b data-stat="cars">8</b>台 稼働</span>' +
+      '<span class="stat"><b data-stat="riders">0</b>名 乗車</span>' +
+      '<span class="stat"><b data-stat="free">0</b>席 空き</span>';
+    head.append(stats);
+    head.append(el("span", "print-stamp", "デイサービス あさひ／運行日 " + fmtDate(document.getElementById("date").value)));
+
+    const fleet = el("div", "fleet");
+    FLEET.forEach((car) => fleet.append(buildCar(car, plan.runs[car.no])));
+
+    const foot = el("p", "leg-legend",
+      "記号　車＝車椅子（リフト・スロープ使用）／介＝乗降介助が必要／玄＝玄関先まで送迎　　"
+      + "乗車状況　■＝乗車　□＝空席（定員は運転手を除く人数）　　"
+      + "変更が生じた場合は運行管理者へ連絡のうえ、余白に記入してください。");
+
+    section.append(head, fleet, foot);
+  }
+
+  function fmtDate(v) {
+    if (!v) return "";
+    const d = new Date(v + "T00:00:00");
+    const w = "日月火水木金土"[d.getDay()];
+    return d.getFullYear() + "年" + (d.getMonth() + 1) + "月" + d.getDate() + "日（" + w + "）";
+  }
+
+  // 乗車人数・空席・定員超過を数え直す
+  function recount() {
+    document.querySelectorAll(".leg").forEach((leg) => {
+      let riders = 0;
+      let free = 0;
+
+      leg.querySelectorAll(".car").forEach((car) => {
+        const capacity = Number(car.dataset.capacity);
+        let n = 0;
+
+        car.querySelectorAll(".stop:not(.head)").forEach((stop) => {
+          const filled = stop.querySelector(".who").textContent.trim() !== "";
+          stop.classList.toggle("filled", filled);
+          if (filled) n++;
+        });
+
+        const over = n > capacity;
+        car.classList.toggle("is-over", over);
+        car.querySelectorAll(".pip").forEach((pip, i) => pip.classList.toggle("on", i < n));
+        car.querySelector(".count").textContent = "乗車 " + n + " / " + capacity + " 名" + (over ? "　⚠ 定員超過" : "");
+
+        riders += n;
+        free += Math.max(0, capacity - n);
+      });
+
+      leg.querySelector('[data-stat="riders"]').textContent = riders;
+      leg.querySelector('[data-stat="free"]').textContent = free;
+      leg.querySelector('[data-stat="free"]').closest(".stat").classList.toggle("is-over", free === 0);
+    });
+  }
+
+  function switchLeg(key) {
+    const isOut = key === "out";
+    document.getElementById("leg-out").hidden = !isOut;
+    document.getElementById("leg-ret").hidden = isOut;
+    document.getElementById("tab-out").setAttribute("aria-selected", String(isOut));
+    document.getElementById("tab-ret").setAttribute("aria-selected", String(!isOut));
+    document.documentElement.style.setProperty("--accent", isOut ? "var(--ai)" : "var(--kaki)");
+    document.documentElement.style.setProperty("--accent-soft", isOut ? "var(--ai-soft)" : "var(--kaki-soft)");
+  }
+
+  function refreshStamps() {
+    const text = "デイサービス あさひ／運行日 " + fmtDate(document.getElementById("date").value);
+    document.querySelectorAll(".print-stamp").forEach((s) => { s.textContent = text; });
+    document.getElementById("date-print").textContent = fmtDate(document.getElementById("date").value);
+  }
+
+  buildLeg("out");
+  buildLeg("ret");
+  recount();
+  refreshStamps();
+
+  document.getElementById("tab-out").addEventListener("click", () => switchLeg("out"));
+  document.getElementById("tab-ret").addEventListener("click", () => switchLeg("ret"));
+  document.getElementById("date").addEventListener("change", refreshStamps);
+  document.getElementById("btn-print").addEventListener("click", () => window.print());
+  document.getElementById("btn-clear").addEventListener("click", () => {
+    if (!window.confirm("すべての利用者名・時刻・地区・記号を消去します。よろしいですか？")) return;
+    document.querySelectorAll(".stop:not(.head) [contenteditable]").forEach((n) => { n.textContent = ""; });
+    document.querySelectorAll(".tag").forEach((t) => t.setAttribute("aria-pressed", "false"));
+    recount();
+  });
+
+  document.addEventListener("input", recount);
+  document.addEventListener("click", (e) => { if (e.target.closest(".tag")) recount(); });
+
+  // 貼り付けは書式を落として素のテキストに
+  document.addEventListener("paste", (e) => {
+    if (!e.target.closest("[contenteditable]")) return;
+    e.preventDefault();
+    const text = (e.clipboardData || window.clipboardData).getData("text").replace(/\s+/g, " ").trim();
+    document.execCommand("insertText", false, text);
+  });
+</script>
