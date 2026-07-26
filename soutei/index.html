@@ -818,10 +818,21 @@
   }
 
   .eta {
+    font: inherit;
     font-size: 11px;
+    font-weight: inherit;
+    padding: 0;
+    border: 0;
+    background: transparent;
     color: var(--ink-3);
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
+  }
+
+  .eta.over {
+    color: var(--warn);
+    text-decoration: underline;
+    cursor: pointer;
   }
 
   .car-foot .count { font-variant-numeric: tabular-nums; margin-left: auto; }
@@ -1260,6 +1271,101 @@
   }
 
   .page-master tr.is-ended td { background: var(--sub); }
+
+  .plan-count {
+    font-size: 11px;
+    color: var(--ink-3);
+    margin-right: calc(var(--step) * 2);
+  }
+
+  .page-master tr.plan-row td { background: var(--sub); }
+
+  .plan-box {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--step) * 4);
+    padding: calc(var(--step) * 2) 0 calc(var(--step) * 3);
+  }
+
+  .plan-lead {
+    margin: 0;
+    font-size: 11px;
+    line-height: 1.6;
+    color: var(--ink-3);
+  }
+
+  .plan-part {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--step) * 2);
+  }
+
+  .plan-head {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--step) * 2);
+  }
+
+  .plan-title {
+    font-family: var(--mincho);
+    font-size: 15px;
+    letter-spacing: .1em;
+    color: var(--ink);
+    min-width: 3em;
+  }
+
+  .plan-car {
+    display: grid;
+    grid-template-columns: 6.5rem minmax(0, 1fr) 6.5rem;
+    align-items: center;
+    gap: calc(var(--step) * 2);
+    padding: 3px 0;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .plan-car-name { font-size: 12px; color: var(--ink-2); }
+
+  .plan-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    align-items: center;
+  }
+
+  .plan-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 1px 3px 1px 8px;
+    font-size: 12px;
+    background: var(--card);
+    border: 1px solid var(--rule-2);
+  }
+
+  .plan-mv {
+    font: inherit;
+    font-size: 10px;
+    line-height: 1;
+    padding: 2px 3px;
+    border: 0;
+    background: transparent;
+    color: var(--ink-3);
+    cursor: pointer;
+  }
+
+  .plan-mv:hover:not(:disabled) { color: var(--ai); }
+  .plan-mv:disabled { opacity: .3; cursor: default; }
+  .plan-none { font-size: 11px; color: var(--ink-3); }
+
+  .plan-add {
+    font: inherit;
+    font-size: 12px;
+    padding: 3px 4px;
+    background: var(--card);
+    border: 1px solid var(--rule-2);
+    border-radius: 0;
+    cursor: pointer;
+  }
 
   .modal h3,
   .page-master h3 {
@@ -1742,7 +1848,7 @@
     <section class="pm-pane" id="pm-dispatch" hidden>
       <h3>配車<span class="h3-note">出勤人数ごとに、動かす車両を選ぶ</span></h3>
       <table>
-        <thead><tr><th style="width:12%">人数版</th><th>使う車両</th></tr></thead>
+        <thead><tr><th style="width:10%">人数版</th><th>使う車両</th><th style="width:22%">割り当て</th></tr></thead>
         <tbody id="dispatch-rows"></tbody>
       </table>
     </section>
@@ -1767,7 +1873,7 @@
   const LEGS = [
     { key: "am-pick", part: "am", partLabel: "午前", dir: "お迎え", flow: "自宅 → 事業所", departLabel: "事業所 発", arriveLabel: "事業所 着", depart: "08:15", arriveBy: ["08:55", "09:00"], accent: "ai" },
     { key: "am-drop", part: "am", partLabel: "午前", dir: "お送り", flow: "事業所 → 自宅", departLabel: "事業所 発", arriveLabel: "事業所 帰着", depart: "12:00", accent: "kaki" },
-    { key: "pm-pick", part: "pm", partLabel: "午後", dir: "お迎え", flow: "自宅 → 事業所", departLabel: "事業所 発", arriveLabel: "事業所 着", depart: "12:45", arriveBy: ["13:25", "13:30"], accent: "seiheki" },
+    { key: "pm-pick", part: "pm", partLabel: "午後", dir: "お迎え", flow: "自宅 → 事業所", departLabel: "事業所 発", arriveLabel: "事業所 着", depart: "12:45", arriveBy: ["13:15", "13:20"], accent: "seiheki" },
     { key: "pm-drop", part: "pm", partLabel: "午後", dir: "お送り", flow: "事業所 → 自宅", departLabel: "事業所 発", arriveLabel: "事業所 帰着", depart: "16:30", accent: "enji" }
   ];
 
@@ -1892,10 +1998,10 @@
      出勤する職員の人数で動かす車が変わる。人数版ごとに、使う車両の並びを持つ。
      数字は FLEET の並び順（0〜5＝号車枠、6＝ノア、7＝リフト車）。 */
   const DEFAULT_DISPATCH = {
-    "5": [0, 1, 2, 6, 7],
-    "6": [0, 1, 2, 3, 6, 7],
-    "7": [0, 1, 2, 3, 4, 6, 7],
-    "8": [0, 1, 2, 3, 4, 5, 6, 7]
+    "5": { cars: [0, 1, 2, 6, 7], plan: { am: {}, pm: {} } },
+    "6": { cars: [0, 1, 2, 3, 6, 7], plan: { am: {}, pm: {} } },
+    "7": { cars: [0, 1, 2, 3, 4, 6, 7], plan: { am: {}, pm: {} } },
+    "8": { cars: [0, 1, 2, 3, 4, 5, 6, 7], plan: { am: {}, pm: {} } }
   };
 
   const CREW_SIZES = ["5", "6", "7", "8"];
@@ -1960,8 +2066,29 @@
   /* ── マスタ（保存されていればそちらを使う） ── */
   let USERS = STORE.getJSON("users") || DEFAULT_USERS.map((u) => ({ ...u, tags: [...u.tags] }));
   let DRIVERS = normDrivers(STORE.getJSON("drivers")) || DEFAULT_DRIVERS.map((d) => ({ name: d.name, days: { ...d.days } }));
-  let DISPATCH = STORE.getJSON("dispatch") || JSON.parse(JSON.stringify(DEFAULT_DISPATCH));
+  let DISPATCH = normDispatch(STORE.getJSON("dispatch"));
   let USER_BY_ID = new Map();
+
+  /* 配車は { cars: [車の並び], plan: { am: { 車: [利用者id] }, pm: {…} } }。
+     旧い「使う車の配列だけ」の形も読めるようにしておく */
+  function normDispatch(raw) {
+    const out = {};
+    ["5", "6", "7", "8"].forEach((size) => {
+      const src = raw && raw[size];
+      const fallback = DEFAULT_DISPATCH[size];
+      if (Array.isArray(src)) out[size] = { cars: [...src], plan: { am: {}, pm: {} } };
+      else if (src && Array.isArray(src.cars)) {
+        out[size] = {
+          cars: [...src.cars],
+          plan: {
+            am: { ...((src.plan && src.plan.am) || {}) },
+            pm: { ...((src.plan && src.plan.pm) || {}) }
+          }
+        };
+      } else out[size] = JSON.parse(JSON.stringify(fallback));
+    });
+    return out;
+  }
 
   /* 運転手は { name, days: { 曜日: "AM"|"PM"|"終日" } }。旧い文字列だけの形も読む */
   function normDrivers(list) {
@@ -2449,7 +2576,11 @@
     const foot = el("div", "car-foot");
     const arriveBox = el("span", "arrive-box");
     arriveBox.contentEditable = "true";
-    foot.append(el("span", "lbl", leg.arriveLabel), el("span", "eta", ""), arriveBox, el("span", "count", ""));
+    const eta = el("button", "eta", "");
+    eta.type = "button";
+    eta.disabled = true;
+    eta.addEventListener("click", () => { retimeCar(article, leg, index); refresh(); });
+    foot.append(el("span", "lbl", leg.arriveLabel), eta, arriveBox, el("span", "count", ""));
 
     const body = el("div", "car-body");
     body.append(depBar, list, foot);
@@ -2469,8 +2600,7 @@
 
     const head = el("div", "leg-head");
     const title = el("p", "leg-title", leg.partLabel + "　" + leg.dir);
-    title.append(el("small", null, leg.flow
-      + (leg.arriveBy ? "　事業所着 " + leg.arriveBy[0] + "〜" + leg.arriveBy[1] + " を目標に逆算" : "")));
+    title.append(el("small", null, leg.flow));
 
     const stats = el("div", "stats");
     stats.innerHTML =
@@ -2592,7 +2722,18 @@
 
       /* 最後の家から事業所へ戻るまでを足して、着の目安を出す */
       const eta = car.querySelector(".eta");
-      eta.textContent = riding ? "目安 " + hhmm(roundStep(cursor + travelMin(from, DEPOT))) : "";
+      if (!riding) {
+        eta.textContent = "";
+        eta.classList.remove("over");
+        eta.disabled = true;
+      } else {
+        const arrive = roundStep(cursor + travelMin(from, DEPOT));
+        const limit = leg.arriveBy ? parseHHMM(leg.arriveBy[1]) : null;
+        const over = limit !== null && arrive > limit;
+        eta.textContent = "目安 " + hhmm(arrive) + (over ? "　⚠ " + leg.arriveBy[1] + "超過（押すと発を早める）" : "");
+        eta.classList.toggle("over", over);
+        eta.disabled = !over;
+      }
     });
   }
 
@@ -3180,8 +3321,9 @@
   function applyDispatch(leg, size) {
     const section = document.getElementById("leg-" + leg.key);
     const cars = [...section.querySelectorAll(".car")];
-    const use = (DISPATCH[size] || []).filter((i) => i < cars.length);
-    if (use.length === 0) { notify("この人数版に車両が登録されていません。マスタ編集の配車マスタで選んでください。", "warn"); return; }
+    const cfg = DISPATCH[size] || { cars: [], plan: { am: {}, pm: {} } };
+    const use = cfg.cars.filter((i) => i < cars.length);
+    if (use.length === 0) { notify("この人数版に車両が登録されていません。マスタ編集の配車で選んでください。", "warn"); return; }
 
     /* いまカードに乗っている人を、いつもの並び順のまま集める */
     const queue = [];
@@ -3189,18 +3331,30 @@
       const r = readRow(stop);
       if (r.u) queue.push(r);
     }));
+    const byId = new Map(queue.map((r) => [r.u, r]));
 
     cars.forEach((car) => applyRows(car, []));
 
+    /* まず、人数版に保存してある割り当てのとおりに乗せる */
+    const placed = new Set();
+    const plan = (cfg.plan && cfg.plan[leg.part]) || {};
+    use.forEach((ci) => {
+      (plan[ci] || []).forEach((uid) => {
+        const r = byId.get(uid);
+        if (r && !placed.has(uid) && seatInto(cars[ci], r)) placed.add(uid);
+      });
+    });
+
     const liftIdx = cars.findIndex((c) => c.dataset.lift);
-    const wheel = queue.filter((r) => r.g.includes("車"));
-    const rest = queue.filter((r) => !r.g.includes("車"));
+    const remaining = queue.filter((r) => !placed.has(r.u));
+    const wheel = remaining.filter((r) => r.g.includes("車"));
+    const rest = remaining.filter((r) => !r.g.includes("車"));
 
     /* 車椅子の方はリフト車へ先に乗せる */
     if (use.includes(liftIdx)) wheel.forEach((r) => { if (!seatInto(cars[liftIdx], r)) rest.push(r); });
     else rest.push(...wheel);
 
-    /* 使う車へ均して配る。並び順は崩さないので地区のまとまりは保たれる */
+    /* 残りを使う車へ均して配る。並び順は崩さないので地区のまとまりは保たれる */
     let idx = 0;
     use.forEach((carIdx, k) => {
       const car = cars[carIdx];
@@ -3212,7 +3366,6 @@
       }
     });
 
-    /* 端数はまだ空いている車へ */
     const leftovers = [];
     while (idx < rest.length) {
       const car = use.map((i) => cars[i]).find((c) => rowsOf(c).some((st) => !st.querySelector(".who").value));
@@ -3221,13 +3374,29 @@
     }
 
     cars.forEach((car, i) => { car.dataset.forceOpen = use.includes(i) ? "1" : ""; });
+    retimeAll(section, leg);
     refresh();
 
     if (leftovers.length) {
       notify(size + "人版の車両に収まらなかった方が " + leftovers.length + "名います。未割当の欄から乗せてください。", "warn");
     } else {
-      notify(size + "人版の配車に組み直しました（" + use.length + "台）。戻すときは「一つ戻る」。");
+      notify(size + "人版の配車に組み直しました（" + use.length + "台"
+        + (placed.size ? "、うち保存済みの割り当て " + placed.size + "名" : "") + "）。戻すときは「一つ戻る」。");
     }
+  }
+
+  /* いま乗っている顔ぶれで、その車の事業所発を引き直す（着の目標に収める） */
+  function retimeCar(car, leg, index) {
+    if (!leg.arriveBy) return;
+    const ids = rowsOf(car)
+      .filter((st) => st.dataset.state !== "absent")
+      .map((st) => st.querySelector(".who").value)
+      .filter(Boolean);
+    car.querySelector(".dep").textContent = departFor(leg, index, ids);
+  }
+
+  function retimeAll(section, leg) {
+    section.querySelectorAll(".car").forEach((car, i) => retimeCar(car, leg, i));
   }
 
   document.getElementById("btn-dispatch").addEventListener("click", () => {
@@ -3260,6 +3429,7 @@
   let draftUsers = [];
   let draftDrivers = [];
   let draftDispatch = {};
+  let openPlan = null;
 
   const byKana = (a, b) => String(a.kana || a.name).localeCompare(String(b.kana || b.name), "ja");
 
@@ -3458,28 +3628,158 @@
     const pb = document.getElementById("dispatch-rows");
     pb.innerHTML = "";
     CREW_SIZES.forEach((size) => {
+      const cfg = draftDispatch[size];
       const tr = document.createElement("tr");
+
       const td1 = document.createElement("td");
       td1.textContent = size + "人版";
+
       const td2 = document.createElement("td");
       const wrap = el("span", "car-pick");
       FLEET.forEach((car, i) => {
         const b = el("button", null, car.name || (i + 1) + "号車枠");
         b.type = "button";
-        b.setAttribute("aria-pressed", String(draftDispatch[size].includes(i)));
+        b.setAttribute("aria-pressed", String(cfg.cars.includes(i)));
         b.addEventListener("click", () => {
           const on = b.getAttribute("aria-pressed") !== "true";
           b.setAttribute("aria-pressed", String(on));
-          draftDispatch[size] = on
-            ? FLEET.map((_, k) => k).filter((k) => draftDispatch[size].includes(k) || k === i)
-            : draftDispatch[size].filter((k) => k !== i);
+          cfg.cars = on
+            ? FLEET.map((_, k) => k).filter((k) => cfg.cars.includes(k) || k === i)
+            : cfg.cars.filter((k) => k !== i);
+          drawMasterTables();
         });
         wrap.append(b);
       });
       td2.append(wrap);
-      tr.append(td1, td2);
+
+      const td3 = document.createElement("td");
+      const planned = ["am", "pm"].reduce((n, part) =>
+        n + Object.values(cfg.plan[part] || {}).reduce((m, list) => m + list.length, 0), 0);
+      td3.append(el("span", "plan-count", planned ? "割り当て " + planned + "名" : "割り当てなし"));
+      const edit = el("button", "btn", openPlan === size ? "閉じる" : "編集");
+      edit.type = "button";
+      edit.addEventListener("click", () => {
+        openPlan = openPlan === size ? null : size;
+        drawMasterTables();
+      });
+      td3.append(edit);
+
+      tr.append(td1, td2, td3);
       pb.append(tr);
+
+      if (openPlan === size) pb.append(drawPlanRow(size, cfg));
     });
+  }
+
+  /* 人数版ごとの割り当てを手作業で組む欄 */
+  function drawPlanRow(size, cfg) {
+    const tr = document.createElement("tr");
+    tr.className = "plan-row";
+    const td = document.createElement("td");
+    td.colSpan = 3;
+
+    const box = el("div", "plan-box");
+    box.append(el("p", "plan-lead", size + "人版の割り当て　"
+      + "送迎表で組んだ並びをそのまま取り込めます。ここに入れた方は「デフォルトに設置」で先にその車へ乗ります。"));
+
+    [["am", "午前"], ["pm", "午後"]].forEach(([part, label]) => {
+      const sec = el("div", "plan-part");
+      const head = el("div", "plan-head");
+      head.append(el("span", "plan-title", label));
+
+      const grab = el("button", "btn", "いまの" + label + "お迎えから取り込む");
+      grab.type = "button";
+      grab.addEventListener("click", () => {
+        const legKey = part + "-pick";
+        const section = document.getElementById("leg-" + legKey);
+        if (!section) return;
+        /* 取り込むのはこの人数版で使う車両ぶんだけ。台数は勝手に増やさない */
+        const next = {};
+        let skipped = 0;
+        [...section.querySelectorAll(".car")].forEach((car, i) => {
+          const ids = [...car.querySelectorAll(".stop:not(.head) .who")].map((x) => x.value).filter(Boolean);
+          if (!ids.length) return;
+          if (cfg.cars.includes(i)) next[i] = ids;
+          else skipped++;
+        });
+        cfg.plan[part] = next;
+        drawMasterTables();
+        if (skipped) {
+          notify(size + "人版で使わない車両が " + skipped + "台ありました。その車の方は取り込んでいません。"
+            + "先に「" + size + "人版 デフォルトに設置」で台数を合わせてから組み直してください。", "warn");
+        } else {
+          notify(label + "の並びを " + size + "人版に取り込みました。");
+        }
+      });
+      head.append(grab);
+
+      const wipe = el("button", "btn danger", "消す");
+      wipe.type = "button";
+      wipe.addEventListener("click", () => { cfg.plan[part] = {}; drawMasterTables(); });
+      head.append(wipe);
+      sec.append(head);
+
+      cfg.cars.forEach((ci) => {
+        const car = FLEET[ci];
+        if (!car) return;
+        const row = el("div", "plan-car");
+        row.append(el("span", "plan-car-name", car.name || (ci + 1) + "号車枠"));
+
+        const chips = el("span", "plan-chips");
+        const list = cfg.plan[part][ci] || [];
+        list.forEach((uid, pos) => {
+          const u = USER_BY_ID.get(uid);
+          const chip = el("span", "plan-chip");
+          chip.append(document.createTextNode(u ? u.name : uid));
+          [["◀", -1], ["▶", 1]].forEach(([mark, d]) => {
+            const mv = el("button", "plan-mv", mark);
+            mv.type = "button";
+            mv.title = "順番を動かす";
+            mv.disabled = (d < 0 && pos === 0) || (d > 0 && pos === list.length - 1);
+            mv.addEventListener("click", () => {
+              const arr = [...list];
+              arr.splice(pos + d, 0, arr.splice(pos, 1)[0]);
+              cfg.plan[part][ci] = arr;
+              drawMasterTables();
+            });
+            chip.append(mv);
+          });
+          const x = el("button", "plan-mv", "×");
+          x.type = "button";
+          x.title = "外す";
+          x.addEventListener("click", () => {
+            cfg.plan[part][ci] = list.filter((v) => v !== uid);
+            drawMasterTables();
+          });
+          chip.append(x);
+          chips.append(chip);
+        });
+        if (list.length === 0) chips.append(el("span", "plan-none", "なし"));
+        row.append(chips);
+
+        const add = document.createElement("select");
+        add.className = "plan-add";
+        add.append(new Option("＋ 追加", ""));
+        draftUsers.filter((u) => !u.end).sort(byKana).forEach((u) => add.append(new Option(u.name, u.id)));
+        add.addEventListener("change", () => {
+          if (!add.value) return;
+          Object.keys(cfg.plan[part]).forEach((k) => {
+            cfg.plan[part][k] = cfg.plan[part][k].filter((v) => v !== add.value);
+          });
+          cfg.plan[part][ci] = [...(cfg.plan[part][ci] || []), add.value];
+          drawMasterTables();
+        });
+        row.append(add);
+
+        sec.append(row);
+      });
+
+      box.append(sec);
+    });
+
+    td.append(box);
+    tr.append(td);
+    return tr;
   }
 
   function openMaster() {
@@ -3491,8 +3791,8 @@
       }))
       .sort(byKana);
     draftDrivers = DRIVERS.map((d) => ({ name: d.name, days: { ...d.days } }));
-    draftDispatch = {};
-    CREW_SIZES.forEach((k) => { draftDispatch[k] = [...(DISPATCH[k] || [])]; });
+    draftDispatch = normDispatch(DISPATCH);
+    openPlan = null;
     drawMasterTables();
     showMaster(true);
   }
@@ -3546,8 +3846,7 @@
       .map((u) => ({ ...u, tags: [...u.tags], days: normDays(u.days), end: u.end && u.end.d ? { d: u.end.d, r: u.end.r || "" } : null }))
       .sort(byKana);
     DRIVERS = draftDrivers.map((d) => ({ name: d.name.trim(), days: { ...d.days } })).filter((d) => d.name);
-    DISPATCH = {};
-    CREW_SIZES.forEach((k) => { DISPATCH[k] = [...draftDispatch[k]]; });
+    DISPATCH = normDispatch(draftDispatch);
     indexUsers();
     STORE.setJSON("users", USERS.map(({ id, name, kana, town, addr, tags, days, end }) => ({ id, name, kana, town, addr, tags, days, end })));
     STORE.setJSON("drivers", DRIVERS);
