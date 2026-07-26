@@ -1678,10 +1678,25 @@
     .stat { font-size: 6.5pt; gap: 3px; }
     .stat b { font-size: 9.5pt; }
 
-    /* 画面幅がどうであれ、紙の上では必ず2列8台に組む */
-    .fleet { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.4mm; }
+    /* 画面幅がどうであれ、紙の上では必ず2列4段の8台に組む。
+       高さを mm で決め打ちして、環境ごとのフォント寸法で
+       ページ数が変わらないようにする（Windows の游ゴシックは背が高い） */
+    .fleet {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-rows: repeat(4, minmax(0, 1fr));
+      height: 152mm;
+      gap: 1.4mm;
+    }
 
-    .car { grid-template-columns: 21mm minmax(0, 1fr); }
+    .car { grid-template-columns: 21mm minmax(0, 1fr); height: 100%; min-height: 0; }
+    .car.collapsed { height: auto; }
+
+    /* 車両カードの中身も、決め打ちした高さを行で分け合う。
+       行の高さが中身なりに伸びないので、便の高さは環境によらず一定になる */
+    .car-body { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+    .route { flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0; }
+    .route .stop { flex: 1 1 0; min-height: 0; }
+    .route .stop.head { flex: 0 0 auto; }
     .car-id { padding: 0.9mm; gap: 0.6mm; }
     .no-box { width: 9mm; height: 9mm; font-size: 12pt; }
     .car-no .unit { font-size: 7pt; }
