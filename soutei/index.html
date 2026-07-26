@@ -154,10 +154,33 @@
   .sheet {
     max-width: 1260px;
     margin: 0 auto;
-    padding: calc(var(--step) * 8) calc(var(--step) * 5) calc(var(--step) * 12);
+    padding: 0 calc(var(--step) * 5) calc(var(--step) * 12);
     display: flex;
     flex-direction: column;
     gap: calc(var(--step) * 6);
+  }
+
+  /* スクロールしても日付・便・操作は手元に残す */
+  .sticky-top {
+    position: sticky;
+    top: 0;
+    z-index: 15;
+    background: var(--paper);
+    padding: calc(var(--step) * 6) 0 calc(var(--step) * 3);
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--step) * 4);
+  }
+
+  .sticky-top::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: calc(var(--step) * -3);
+    height: calc(var(--step) * 3);
+    background: linear-gradient(var(--paper), transparent);
+    pointer-events: none;
   }
 
   :focus-visible {
@@ -462,6 +485,10 @@
   .leg[hidden] { display: none; }
 
   .leg-head {
+    position: sticky;
+    top: var(--topbar-h, 120px);
+    z-index: 10;
+    background: var(--paper);
     display: flex;
     flex-wrap: wrap;
     align-items: baseline;
@@ -602,6 +629,29 @@
     font-weight: 600;
     letter-spacing: .06em;
     color: var(--accent);
+  }
+
+  .car-start {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .car-start .lbl {
+    font-size: 10px;
+    letter-spacing: .12em;
+    color: var(--ink-3);
+  }
+
+  .start-box {
+    display: block;
+    min-height: 1.3em;
+    padding: 2px 4px;
+    font-size: 11px;
+    color: var(--ink);
+    background: var(--card);
+    border: 1px solid var(--accent);
   }
 
   /* 運転手：号車と同じ記入枠。プルダウンから選ぶ */
@@ -762,6 +812,13 @@
     color: var(--ink);
     font-variant-numeric: tabular-nums;
     text-align: center;
+  }
+
+  .eta {
+    font-size: 11px;
+    color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
   }
 
   .car-foot .count { font-variant-numeric: tabular-nums; margin-left: auto; }
@@ -1036,13 +1093,32 @@
   .legend .s-aid { color: var(--tag-aid); }
   .legend .s-door { color: var(--tag-door); }
 
+  /* ── 画面内の通知 ─────────────────────────── */
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: 28px;
+    transform: translateX(-50%);
+    z-index: 40;
+    max-width: min(560px, 90vw);
+    padding: calc(var(--step) * 3) calc(var(--step) * 5);
+    background: var(--ink);
+    color: var(--paper);
+    font-size: 13px;
+    line-height: 1.5;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, .22);
+  }
+
+  .toast[hidden] { display: none; }
+  .toast.warn { background: var(--warn); color: #fff; }
+
   /* ── マスタ編集 ───────────────────────────── */
   .modal[hidden] { display: none; }
 
   .modal {
     position: fixed;
     inset: 0;
-    z-index: 20;
+    z-index: 30;
     background: rgba(10, 14, 18, .45);
     display: grid;
     place-items: center;
@@ -1292,7 +1368,16 @@
 
     .sheet { max-width: none; padding: 0; gap: 2mm; }
 
-    .controls, .modal, .saved-note, .swap-bar, .date-open { display: none !important; }
+    .controls, .modal, .saved-note, .swap-bar, .date-open, .toast { display: none !important; }
+
+    .sticky-top {
+      position: static;
+      padding: 0;
+      gap: 0;
+    }
+
+    .sticky-top::after { display: none; }
+    .leg-head { position: static; }
     .left-name { border: 0; padding: 0 4px; background: none; color: var(--warn); }
 
     .masthead { padding-bottom: 1.5mm; border-bottom-width: 1.2pt; gap: 1mm 5mm; }
@@ -1323,6 +1408,8 @@
     .no-box { width: 8mm; height: 8mm; font-size: 11pt; }
     .car-no .unit { font-size: 6.5pt; }
     .car-name { font-size: 9.5pt; }
+    .car-start .lbl { font-size: 5.5pt; }
+    .start-box { font-size: 7pt; padding: 0.3mm 0.6mm; min-height: 3mm; }
     .car-driver .lbl { font-size: 5.5pt; }
     .driver-select { font-size: 7.5pt; padding: 0.3mm 0; }
     .car-size { font-size: 6pt; }
@@ -1334,6 +1421,7 @@
     .dep { font-size: 7.5pt; min-width: 9mm; }
     .actual-box { min-width: 11mm; font-size: 7.5pt; border-bottom-color: #999; }
     .arrive-box { min-width: 13mm; font-size: 7.5pt; border-bottom-color: #999; }
+    .eta { font-size: 6pt; }
 
     .stop {
       min-height: 0;
@@ -1380,6 +1468,7 @@
 </style>
 
 <div class="sheet">
+  <div class="sticky-top" id="sticky-top">
   <header class="masthead">
     <p class="eyebrow">通所介護事業所　デイサービス　あさひ</p>
     <h1>
@@ -1414,13 +1503,14 @@
         <button type="button" id="btn-redo" title="一つ進む">↷ 一つ進む</button>
       </span>
       <button type="button" id="btn-master">マスタ編集</button>
-      <button type="button" id="btn-recalc">時刻を再計算</button>
       <button type="button" id="btn-clear">記入をクリア</button>
       <button type="button" id="btn-print">印刷（全4便・各1枚）</button>
     </div>
   </div>
+  </div>
 
   <div id="sections"></div>
+  <div class="toast" id="toast" hidden></div>
 
   <div class="legend">
     <span class="item"><span class="swatch s-wc">車</span>車椅子（リフト・スロープ使用）</span>
@@ -1532,9 +1622,9 @@
      午前・午後それぞれに お迎え／お送り の2便。印刷すると1便＝1ページ。
      depart は各車の事業所発の初期値で、カードごとに書き換えられる。 */
   const LEGS = [
-    { key: "am-pick", part: "am", partLabel: "午前", dir: "お迎え", flow: "自宅 → 事業所", departLabel: "事業所 発", arriveLabel: "事業所 着", depart: "08:15", accent: "ai" },
+    { key: "am-pick", part: "am", partLabel: "午前", dir: "お迎え", flow: "自宅 → 事業所", departLabel: "事業所 発", arriveLabel: "事業所 着", depart: "08:15", arriveBy: ["08:55", "09:00"], accent: "ai" },
     { key: "am-drop", part: "am", partLabel: "午前", dir: "お送り", flow: "事業所 → 自宅", departLabel: "事業所 発", arriveLabel: "事業所 帰着", depart: "12:00", accent: "kaki" },
-    { key: "pm-pick", part: "pm", partLabel: "午後", dir: "お迎え", flow: "自宅 → 事業所", departLabel: "事業所 発", arriveLabel: "事業所 着", depart: "12:45", accent: "seiheki" },
+    { key: "pm-pick", part: "pm", partLabel: "午後", dir: "お迎え", flow: "自宅 → 事業所", departLabel: "事業所 発", arriveLabel: "事業所 着", depart: "12:45", arriveBy: ["13:25", "13:30"], accent: "seiheki" },
     { key: "pm-drop", part: "pm", partLabel: "午後", dir: "お送り", flow: "事業所 → 自宅", departLabel: "事業所 発", arriveLabel: "事業所 帰着", depart: "16:30", accent: "enji" }
   ];
 
@@ -1798,6 +1888,47 @@
   /* ── 小道具 ───────────────────────────────── */
   const travelMin = (p, q) => Math.hypot(q.x - p.x, q.y - p.y) * DETOUR / SPEED_KMH * 60;
   const roundStep = (m) => Math.ceil(m / STEP_MIN) * STEP_MIN;
+  const floorStep = (m) => Math.floor(m / STEP_MIN) * STEP_MIN;
+
+  /* 事業所を出て全員を回り、事業所へ戻るまでの所要（分） */
+  function routeMinutes(ids) {
+    let total = 0;
+    let from = DEPOT;
+    ids.forEach((id) => {
+      const u = USER_BY_ID.get(id);
+      if (!u) return;
+      total += travelMin(from, u.pt) + u.dwell;
+      from = u.pt;
+    });
+    return total + travelMin(from, DEPOT);
+  }
+
+  /* 実際に走らせたときの事業所着。表示と同じ5分刻みの丸めを通す */
+  function simulateArrival(depart, ids) {
+    let cursor = depart;
+    let from = DEPOT;
+    ids.forEach((id) => {
+      const u = USER_BY_ID.get(id);
+      if (!u) return;
+      cursor = roundStep(cursor + travelMin(from, u.pt)) + u.dwell;
+      from = u.pt;
+    });
+    return roundStep(cursor + travelMin(from, DEPOT));
+  }
+
+  /* お迎え便は「事業所に何時までに着きたいか」から出発時刻を逆算する。
+     丸めのぶん着が後ろへずれるので、目標に収まるまで5分ずつ早める。
+     目標は車ごとに1分ずつずらして、事業所が一度に混まないようにする。 */
+  function departFor(leg, index, ids) {
+    if (!leg.arriveBy || ids.length === 0) return leg.depart;
+    const from = parseHHMM(leg.arriveBy[0]);
+    const to = parseHHMM(leg.arriveBy[1]);
+    const span = Math.max(0, to - from);
+    const target = from + (span === 0 ? 0 : index % (span + 1));
+    let depart = floorStep(target - routeMinutes(ids));
+    for (let i = 0; i < 12 && simulateArrival(depart, ids) > to; i++) depart -= STEP_MIN;
+    return hhmm(Math.max(0, depart));
+  }
   const hhmm = (m) => String(Math.floor(m / 60) % 24).padStart(2, "0") + ":" + String(m % 60).padStart(2, "0");
 
   function parseHHMM(text) {
@@ -1813,6 +1944,18 @@
     const ord = stop.querySelector(".ord");
     ord.setAttribute("aria-pressed", String(st !== ""));
     ord.setAttribute("aria-label", "この行は" + STATE_LABEL[st] + "（クリックで切替）");
+  }
+
+  let toastTimer = null;
+
+  /* 埋め込み先によっては alert/confirm が抑制されるので、画面内で知らせる */
+  function notify(message, kind) {
+    const box = document.getElementById("toast");
+    box.textContent = message;
+    box.classList.toggle("warn", kind === "warn");
+    box.hidden = false;
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { box.hidden = true; }, 4200);
   }
 
   const el = (tag, cls, text) => {
@@ -2040,7 +2183,7 @@
     return li;
   }
 
-  function buildCar(leg, car, ids, weekday) {
+  function buildCar(leg, car, ids, weekday, index) {
     const capacity = car.seats - 1;
     const article = el("article", "car");
     article.dataset.seats = car.seats;
@@ -2058,6 +2201,17 @@
       box.contentEditable = "true";
       box.title = "号車を記入";
       no.append(box, el("span", "unit", "号車"));
+    }
+
+    /* 出発位置：どこから走り出すか。号車枠のある車だけ */
+    let startWrap = null;
+    if (!car.name) {
+      startWrap = el("p", "car-start");
+      const box = el("span", "start-box");
+      box.contentEditable = "true";
+      box.dataset.ph = "記入";
+      box.title = "出発位置を記入";
+      startWrap.append(el("span", "lbl", "出発位置"), box);
     }
 
     const size = el("p", "car-size");
@@ -2102,7 +2256,9 @@
     const pips = el("div", "pips");
     for (let i = 0; i < capacity; i++) pips.append(el("span", "pip"));
 
-    id.append(no, size, who, pips);
+    id.append(no);
+    if (startWrap) id.append(startWrap);
+    id.append(size, who, pips);
 
     /* 事業所発：カードごとに持つ。予定の横に実績の記入枠 */
     /* 畳んだときに出る1行。＋で開く */
@@ -2117,7 +2273,7 @@
     bar.append(el("span", "cc-label", ""), el("span", "cc-why", ""), expand);
 
     const depBar = el("div", "car-depart");
-    const dep = el("time", "dep", leg.depart);
+    const dep = el("time", "dep", departFor(leg, index, ids));
     dep.contentEditable = "true";
     const depActual = el("span", "actual-box dep-actual");
     depActual.contentEditable = "true";
@@ -2146,7 +2302,7 @@
     const foot = el("div", "car-foot");
     const arriveBox = el("span", "arrive-box");
     arriveBox.contentEditable = "true";
-    foot.append(el("span", "lbl", leg.arriveLabel), arriveBox, el("span", "count", ""));
+    foot.append(el("span", "lbl", leg.arriveLabel), el("span", "eta", ""), arriveBox, el("span", "count", ""));
 
     const body = el("div", "car-body");
     body.append(depBar, list, foot);
@@ -2166,7 +2322,8 @@
 
     const head = el("div", "leg-head");
     const title = el("p", "leg-title", leg.partLabel + "　" + leg.dir);
-    title.append(el("small", null, leg.flow));
+    title.append(el("small", null, leg.flow
+      + (leg.arriveBy ? "　事業所着 " + leg.arriveBy[0] + "〜" + leg.arriveBy[1] + " を目標に逆算" : "")));
 
     const stats = el("div", "stats");
     stats.innerHTML =
@@ -2186,7 +2343,7 @@
     const fleet = el("div", "fleet");
     FLEET.forEach((car, i) => {
       const ids = (ASSIGN[leg.part][i + 1] || []).filter((id) => roster.includes(id));
-      fleet.append(buildCar(leg, car, leg.dir === "お送り" ? [...ids].reverse() : ids, weekday));
+      fleet.append(buildCar(leg, car, leg.dir === "お送り" ? [...ids].reverse() : ids, weekday, i));
     });
 
     if (!weekday) {
@@ -2217,7 +2374,7 @@
       const name = input.value.trim();
       if (!name) return;
       const user = USERS.find((u) => u.name === name || u.kana === name);
-      if (!user) { window.alert("「" + name + "」は利用者マスタに見つかりません。"); return; }
+      if (!user) { notify("「" + name + "」は利用者マスタに見つかりません。", "warn"); return; }
       if (!SWAP[leg.part].includes(user.id)) SWAP[leg.part].push(user.id);
       input.value = "";
       drawSwapChips();
@@ -2254,6 +2411,7 @@
       let cursor = parseHHMM(car.querySelector(".dep").textContent);
       if (cursor === null) cursor = parseHHMM(leg.depart) || 0;
       let from = DEPOT;
+      let riding = 0;
 
       car.querySelectorAll(".stop:not(.head)").forEach((stop) => {
         const t = stop.querySelector(".t");
@@ -2282,7 +2440,12 @@
 
         cursor += user.dwell;
         from = user.pt;
+        riding++;
       });
+
+      /* 最後の家から事業所へ戻るまでを足して、着の目安を出す */
+      const eta = car.querySelector(".eta");
+      eta.textContent = riding ? "目安 " + hhmm(roundStep(cursor + travelMin(from, DEPOT))) : "";
     });
   }
 
@@ -2565,7 +2728,7 @@
     to.splice(di, 0, item);
     const overflow = to.pop();
     if (overflow.u) {
-      window.alert("移動先の車両に空きがありません。");
+      notify("移動先の車両に空きがありません。", "warn");
       return;
     }
     applyRows(srcCar, from);
@@ -2579,6 +2742,7 @@
       const section = document.getElementById("leg-" + leg.key);
       data.legs[leg.key] = [...section.querySelectorAll(".car")].map((car) => ({
         no: car.querySelector(".no-box") ? car.querySelector(".no-box").textContent : "",
+        start: car.querySelector(".start-box") ? car.querySelector(".start-box").textContent : "",
         driver: car.querySelector(".driver-select").value,
         dep: car.querySelector(".dep").textContent,
         depActual: car.querySelector(".dep-actual").textContent,
@@ -2617,6 +2781,8 @@
         if (!s) return;
         const noBox = car.querySelector(".no-box");
         if (noBox) noBox.textContent = s.no || "";
+        const startBox = car.querySelector(".start-box");
+        if (startBox) startBox.textContent = s.start || "";
         const dsel = car.querySelector(".driver-select");
         if (s.driver && !dsel.querySelector('option[value="' + CSS.escape(s.driver) + '"]')) {
           const g = document.createElement("optgroup");
@@ -2729,6 +2895,7 @@
   }
 
   function switchLeg(key) {
+    syncStickyHeight();
     LEGS.forEach((leg) => {
       const on = leg.key === key;
       document.getElementById("leg-" + leg.key).hidden = !on;
@@ -2842,7 +3009,7 @@
       btn.addEventListener("click", () => {
         const payload = emptyRow();
         payload.u = userId;
-        if (!seatInto(car, payload)) { window.alert("空きがありません。"); return; }
+        if (!seatInto(car, payload)) { notify("空きがありません。", "warn"); return; }
         car.dataset.forceOpen = "1";
         car.classList.remove("collapsed");
         dialog.hidden = true;
@@ -2867,7 +3034,7 @@
     const section = document.getElementById("leg-" + leg.key);
     const cars = [...section.querySelectorAll(".car")];
     const use = (DISPATCH[size] || []).filter((i) => i < cars.length);
-    if (use.length === 0) { window.alert("この人数版に車両が登録されていません。"); return; }
+    if (use.length === 0) { notify("この人数版に車両が登録されていません。マスタ編集の配車マスタで選んでください。", "warn"); return; }
 
     /* いまカードに乗っている人を、いつもの並び順のまま集める */
     const queue = [];
@@ -2910,7 +3077,9 @@
     refresh();
 
     if (leftovers.length) {
-      window.alert(size + "人版の車両に収まらなかった方が " + leftovers.length + "名います。未割当の欄から乗せてください。");
+      notify(size + "人版の車両に収まらなかった方が " + leftovers.length + "名います。未割当の欄から乗せてください。", "warn");
+    } else {
+      notify(size + "人版の配車に組み直しました（" + use.length + "台）。戻すときは「一つ戻る」。");
     }
   }
 
@@ -2918,7 +3087,6 @@
     const size = document.getElementById("crew-size").value;
     const leg = LEGS.find((l) => !document.getElementById("leg-" + l.key).hidden);
     if (!leg) return;
-    if (!window.confirm(leg.partLabel + " " + leg.dir + " を " + size + "人版の配車に組み直します。よろしいですか？")) return;
     applyDispatch(leg, size);
   });
 
@@ -3196,14 +3364,6 @@
   /* ── ツール ───────────────────────────────── */
   document.getElementById("btn-print").addEventListener("click", () => window.print());
 
-  document.getElementById("btn-recalc").addEventListener("click", () => {
-    document.querySelectorAll(".stop:not(.head) .t").forEach((t) => {
-      t.dataset.manual = "false";
-      t.classList.remove("edited");
-    });
-    refresh();
-  });
-
   /* 記入のクリアは、どの車両を空にするか選んでから */
   function clearCar(car) {
     rowsOf(car).forEach((stop) => writeRow(stop, emptyRow()));
@@ -3250,10 +3410,10 @@
   document.getElementById("clear-all").addEventListener("click", () => {
     const leg = LEGS.find((l) => !document.getElementById("leg-" + l.key).hidden);
     if (!leg) return;
-    if (!window.confirm(leg.partLabel + " " + leg.dir + " の全車両の利用者を取り消します。よろしいですか？")) return;
     document.getElementById("leg-" + leg.key).querySelectorAll(".car").forEach(clearCar);
     document.getElementById("modal-clear").hidden = true;
     refresh();
+    notify(leg.partLabel + " " + leg.dir + " の全車両の利用者を取り消しました。戻すときは「一つ戻る」。");
   });
 
   document.getElementById("clear-close").addEventListener("click", () => {
@@ -3265,7 +3425,7 @@
 
   document.addEventListener("input", (e) => {
     if (e.target.closest(".stop") || e.target.closest(".car-depart") || e.target.closest(".car-foot")) refresh();
-    else if (e.target.closest(".no-box")) save();
+    else if (e.target.closest(".no-box") || e.target.closest(".start-box")) save();
   });
   document.addEventListener("click", (e) => { if (e.target.closest(".stop .tag")) refresh(); });
   window.addEventListener("beforeunload", () => {
@@ -3281,6 +3441,16 @@
     document.execCommand("insertText", false, text);
   });
 
+  /* 固定した上部の高さを測って、便ヘッダの貼り付き位置に渡す */
+  function syncStickyHeight() {
+    const bar = document.getElementById("sticky-top");
+    if (!bar) return;
+    document.documentElement.style.setProperty("--topbar-h", Math.round(bar.getBoundingClientRect().height) + "px");
+  }
+
+  window.addEventListener("resize", syncStickyHeight);
+
   /* ── 起動 ─────────────────────────────────── */
   renderDay(currentDate, LEGS[0].key);
+  syncStickyHeight();
 </script>
