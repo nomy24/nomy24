@@ -577,6 +577,8 @@
     color: var(--ink-3);
   }
 
+  .driver-select option.is-used { color: var(--ink-3); font-style: italic; }
+
   .driver-select {
     font: inherit;
     font-size: 12px;
@@ -641,6 +643,9 @@
 
   .car.collapsed > .car-id,
   .car.collapsed > .car-body { display: none; }
+
+  /* 隣のカードの高さに引き伸ばされないようにする */
+  .car.collapsed { align-self: start; }
 
   .cc-label { color: var(--accent); }
   .cc-why { color: var(--ink-3); font-size: 11px; font-weight: 400; }
@@ -738,7 +743,7 @@
 
   .stop {
     display: grid;
-    grid-template-columns: 19px 3.3rem 3.5rem minmax(4.8rem, 1.2fr) minmax(4.8rem, 1fr) auto;
+    grid-template-columns: 19px 3.2rem 3.4rem minmax(4.4rem, 1.15fr) minmax(4.4rem, 1fr) auto minmax(4.4rem, 1.05fr);
     align-items: center;
     gap: calc(var(--step) * 2);
     padding: 5px calc(var(--step) * 3);
@@ -766,6 +771,7 @@
   .stop > *:nth-child(4) { grid-column: 4; grid-row: 1; }
   .stop > *:nth-child(5) { grid-column: 5; grid-row: 1; }
   .stop > *:nth-child(6) { grid-column: 6; grid-row: 1; }
+  .stop > *:nth-child(7) { grid-column: 7; grid-row: 1; }
 
   .strike {
     grid-column: 2 / 6;
@@ -869,6 +875,15 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+
+  /* 備考：玄関先の目印、マンションの部屋番号など */
+  .note {
+    font-size: 12px;
+    color: var(--ink-2);
+    border-bottom: 1px dotted var(--rule-2);
+    min-height: 1.2em;
+    overflow: hidden;
   }
 
   /* 自動で入った値を手で書き換えた欄の目印 */
@@ -1140,6 +1155,12 @@
   .ac-name { font-size: 14px; font-weight: 600; }
   .ac-num, .ac-free { font-size: 11px; color: var(--ink-3); }
 
+  .clear-all {
+    margin-top: calc(var(--step) * 4);
+    width: 100%;
+    padding: 8px;
+  }
+
   .modal .car-pick { display: flex; flex-wrap: wrap; gap: 3px; }
 
   .modal .car-pick button {
@@ -1186,6 +1207,8 @@
 
   .modal .day[data-ap="AM"] { border-color: var(--ai); background: var(--ai); color: #fff; }
   .modal .day[data-ap="PM"] { border-color: var(--kaki); background: var(--kaki); color: #fff; }
+  .modal .day[data-ap="終日"] { border-color: var(--furikae); background: var(--furikae); color: #fff; }
+  .modal .day[data-ap="終日"] .ap { font-size: 7px; }
 
   /* ── 印刷：A4横・4便で4枚 ─────────────────── */
   @page {
@@ -1271,7 +1294,7 @@
       min-height: 0;
       padding: 0.35mm 1.6mm;
       gap: 1.2mm;
-      grid-template-columns: 13px 2.9rem 3rem minmax(4.2rem, 1.2fr) minmax(4.2rem, 1fr) auto;
+      grid-template-columns: 13px 2.8rem 2.9rem minmax(3.6rem, 1.1fr) minmax(3.6rem, 0.95fr) auto minmax(3.6rem, 1fr);
       line-height: 1.25;
     }
 
@@ -1281,6 +1304,7 @@
     .t, .who { font-size: 8.5pt; }
     .actual { font-size: 8pt; border-bottom-color: #999; }
     .area { font-size: 7pt; }
+    .note { font-size: 7pt; border-bottom-color: #BBB; }
     [contenteditable]:empty::before { content: ""; }
 
     /* 空欄は手書きできるよう罫線を残す */
@@ -1358,7 +1382,8 @@
     <span class="item">左端の番号をクリックするたびに　欠席（赤・取り消し線）→ 振替利用（黄緑）→ 新規・増回（橙）→ 空白（利用者を外す）　と切り替わります。</span>
     <span class="item">乗車0名の車両カードは自動で畳まれます。<b>＋</b>で開き、<b>−</b>で畳み直せます。</span>
     <span class="item">記号「車」の方が乗る車両はカードが朱色になり、定員が1名減ります（リフト車 6名→5名）。</span>
-    <span class="item">※印は自動で入った値を手で書き換えた欄です。</span>
+    <span class="item">※印は自動で入った時刻を手で書き換えた欄です。住所はマスタからの自動表示で、当日の変更は「備考」に書いてください。</span>
+    <span class="item">利用者名・運転手のプルダウンは<b>右クリックで空欄</b>に戻せます。運転手は他の車で選ぶとそちらへ移ります。</span>
   </div>
 </div>
 
@@ -1373,6 +1398,22 @@
     </div>
     <div class="modal-foot">
       <button type="button" class="btn" id="assign-close">閉じる</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── どの車両の利用者を取り消すか ───────── -->
+<div class="modal" id="modal-clear" hidden role="dialog" aria-modal="true" aria-labelledby="clear-title">
+  <div class="modal-panel narrow">
+    <div class="modal-head">
+      <h2 id="clear-title">どの車両の利用者を取り消しますか</h2>
+    </div>
+    <div class="modal-body">
+      <div class="assign-cars" id="clear-cars"></div>
+      <button type="button" class="btn danger clear-all" id="clear-all">この便の全車両の利用者を取り消す</button>
+    </div>
+    <div class="modal-foot">
+      <button type="button" class="btn" id="clear-close">閉じる</button>
     </div>
   </div>
 </div>
@@ -1839,7 +1880,6 @@
 
     area.textContent = user ? user.addr : "";
     area.dataset.master = user ? user.addr : "";
-    area.classList.remove("edited");
 
     /* 住所が変わったので時刻は自動に戻す */
     t.dataset.manual = "false";
@@ -1895,9 +1935,9 @@
     if (weekday) sel.dataset.weekday = weekday;
     li.append(sel);
 
+    /* 住所はマスタからの自動表示。編集しない（行をつかむ余地を広げる） */
     const area = el("span", "area");
-    area.contentEditable = "true";
-    area.dataset.ph = "住所（自動）";
+    area.title = "住所はマスタから自動表示（変更は備考へ）";
     li.append(area);
 
     const tags = el("span", "tags");
@@ -1912,6 +1952,13 @@
       tags.append(b);
     });
     li.append(tags);
+
+    const note = el("span", "note");
+    note.contentEditable = "true";
+    note.dataset.ph = "備考";
+    note.title = "玄関先の目印、部屋番号など";
+    li.append(note);
+
     li.append(el("span", "strike"));
 
     li.draggable = true;
@@ -1923,8 +1970,13 @@
 
     sel.addEventListener("change", () => { applyUser(li, sel.value); refresh(); });
 
-    area.addEventListener("input", () => {
-      area.classList.toggle("edited", area.textContent.trim() !== (area.dataset.master || ""));
+    /* 右クリックで空欄に戻す */
+    sel.addEventListener("contextmenu", (e) => {
+      e.preventDefault();
+      if (!sel.value) return;
+      sel.value = "";
+      applyUser(li, "");
+      refresh();
     });
 
     /* 時刻は手入力で上書きできる。空欄にすると自動計算に戻る */
@@ -1963,9 +2015,37 @@
     const who = el("p", "car-driver");
     const dsel = el("select", "driver-select");
     dsel.append(new Option("", ""));
-    driversFor(leg.part, weekday).forEach((d) => dsel.append(new Option(d, d)));
+    driversFor(leg.part, weekday).forEach((d) => {
+      const opt = new Option(d, d);
+      opt.dataset.name = d;
+      dsel.append(opt);
+    });
     dsel.dataset.empty = "true";
-    dsel.addEventListener("change", () => { dsel.dataset.empty = dsel.value ? "false" : "true"; save(); });
+
+    dsel.addEventListener("change", () => {
+      dsel.dataset.empty = dsel.value ? "false" : "true";
+      /* 同じ便の他の車で使われていたら、そちらから外して移す */
+      if (dsel.value) {
+        article.closest(".leg").querySelectorAll(".driver-select").forEach((other) => {
+          if (other !== dsel && other.value === dsel.value) {
+            other.value = "";
+            other.dataset.empty = "true";
+          }
+        });
+      }
+      markDrivers(article.closest(".leg"));
+      save();
+    });
+
+    /* 右クリックで外す */
+    dsel.addEventListener("contextmenu", (e) => {
+      e.preventDefault();
+      if (!dsel.value) return;
+      dsel.value = "";
+      dsel.dataset.empty = "true";
+      markDrivers(article.closest(".leg"));
+      save();
+    });
     who.append(el("span", "lbl", "運転手"), dsel);
 
     const pips = el("div", "pips");
@@ -2004,7 +2084,8 @@
     const head = el("li", "stop head");
     head.append(
       el("span", "ord", ""), el("span", null, "予定"), el("span", null, "実績"),
-      el("span", null, "利用者名"), el("span", null, "住所"), el("span", null, "記号")
+      el("span", null, "利用者名"), el("span", null, "住所"), el("span", null, "記号"),
+      el("span", null, "備考")
     );
     list.append(head);
 
@@ -2104,7 +2185,7 @@
       "記号　車＝車椅子（リフト・スロープ使用）／補＝歩行器・車椅子持参もしくは貸出／玄＝玄関先まで送迎　　"
       + "■＝乗車　□＝空席（定員は運転手を除く人数）　　※印＝手で書き換えた欄　　"
       + "番号の色　赤＝欠席（取り消し線）／黄緑＝振替利用／橙＝新規・増回　　朱色の車両＝車椅子の方が乗るため定員1名減　　"
-      + "「実績」欄は実際の到着時刻の記入用。予定は事業所発の時刻と住所から換算した目安です。");
+      + "「実績」欄は実際の到着時刻、「備考」欄は玄関先の目印や部屋番号の記入用です。");
 
     section.append(head, swapBar, fleet, leftover, legend);
     return section;
@@ -2174,6 +2255,25 @@
         wrap.append(chip);
       });
       if (SWAP[leg.part].length === 0) wrap.append(el("span", "swap-none", "登録なし"));
+    });
+  }
+
+  /* 同じ便で既に選ばれている運転手に「使用中」の印を付ける */
+  function markDrivers(section) {
+    if (!section) return;
+    const taken = new Map();
+    section.querySelectorAll(".driver-select").forEach((sel, i) => {
+      if (sel.value) taken.set(sel.value, i);
+    });
+    section.querySelectorAll(".driver-select").forEach((sel, i) => {
+      [...sel.options].forEach((opt) => {
+        const name = opt.dataset.name;
+        if (!name) return;
+        const at = taken.get(name);
+        const used = at !== undefined && at !== i;
+        opt.textContent = used ? name + "（使用中）" : name;
+        opt.classList.toggle("is-used", used);
+      });
     });
   }
 
@@ -2253,7 +2353,8 @@
       stops.forEach((stop) => stop.classList.toggle("dup", isDup && stop.dataset.state !== "absent"));
     });
 
-    const roster = rosterFor(leg.part, weekdayOf(currentDate));
+    /* その曜日の名簿に、その日に受け付けた振替の方を足して突き合わせる */
+    const roster = [...new Set([...rosterFor(leg.part, weekdayOf(currentDate)), ...SWAP[leg.part]])];
     const missing = roster.filter((id) => !seen.has(id));
 
     const set = (name, value, alert) => {
@@ -2270,6 +2371,7 @@
     set("dup", dup, dup > 0);
     section.querySelector(".s-away").classList.toggle("on", away > 0);
     section.querySelector(".s-furikae").classList.toggle("on", furikae > 0);
+    markDrivers(section);
 
     const leftover = section.querySelector(".leftover");
     leftover.hidden = missing.length === 0;
@@ -2299,11 +2401,12 @@
       a: stop.querySelector(".area").textContent,
       ae: stop.querySelector(".area").classList.contains("edited"),
       ac: stop.querySelector(".actual").textContent,
+      n: stop.querySelector(".note").textContent,
       g: [...stop.querySelectorAll('.tag[aria-pressed="true"]')].map((t) => t.textContent)
     };
   }
 
-  const emptyRow = () => ({ u: "", st: "", t: "", m: false, a: "", ae: false, ac: "", g: [] });
+  const emptyRow = () => ({ u: "", st: "", t: "", m: false, a: "", ae: false, ac: "", n: "", g: [] });
 
   function writeRow(stop, r) {
     const sel = stop.querySelector(".who");
@@ -2323,6 +2426,7 @@
     if (r.ae) { area.textContent = r.a || ""; area.classList.add("edited"); }
 
     stop.querySelector(".actual").textContent = r.ac || "";
+    stop.querySelector(".note").textContent = r.n || "";
     if (r.g) {
       stop.querySelectorAll(".tag").forEach((tag) => {
         tag.setAttribute("aria-pressed", String(r.g.includes(tag.textContent)));
@@ -2432,6 +2536,7 @@
           a: stop.querySelector(".area").textContent,
           ae: stop.querySelector(".area").classList.contains("edited"),
           ac: stop.querySelector(".actual").textContent,
+          n: stop.querySelector(".note").textContent,
           st: stop.dataset.state || "",
           g: [...stop.querySelectorAll('.tag[aria-pressed="true"]')].map((t) => t.textContent)
         }))
@@ -2493,6 +2598,7 @@
           if (r.ae) { area.textContent = r.a || ""; area.classList.add("edited"); }
 
           stop.querySelector(".actual").textContent = r.ac || "";
+          stop.querySelector(".note").textContent = r.n || "";
 
           if (r.g) {
             stop.querySelectorAll(".tag").forEach((tag) => {
@@ -2980,20 +3086,63 @@
     refresh();
   });
 
+  /* 記入のクリアは、どの車両を空にするか選んでから */
+  function clearCar(car) {
+    rowsOf(car).forEach((stop) => writeRow(stop, emptyRow()));
+  }
+
   document.getElementById("btn-clear").addEventListener("click", () => {
-    if (!window.confirm("この日の全4便の記入をすべて消去します。よろしいですか？")) return;
-    document.querySelectorAll(".stop:not(.head)").forEach((stop) => {
-      stop.querySelector(".who").value = "";
-      applyUser(stop, "");
-      stop.querySelector(".t").textContent = "";
-      stop.querySelector(".actual").textContent = "";
+    const leg = LEGS.find((l) => !document.getElementById("leg-" + l.key).hidden);
+    if (!leg) return;
+    const section = document.getElementById("leg-" + leg.key);
+    const dialog = document.getElementById("modal-clear");
+    document.getElementById("clear-title").textContent =
+      leg.partLabel + " " + leg.dir + "　どの車両の利用者を取り消しますか";
+
+    const list = document.getElementById("clear-cars");
+    list.innerHTML = "";
+
+    section.querySelectorAll(".car").forEach((car, i) => {
+      const taken = rowsOf(car).filter((st) => st.querySelector(".who").value).length;
+      const nameEl = car.querySelector(".car-name");
+      const noBox = car.querySelector(".no-box");
+      const label = nameEl ? nameEl.textContent
+        : (noBox && noBox.textContent.trim() ? noBox.textContent.trim() + "号車" : (i + 1) + "台目");
+
+      const btn = el("button", "assign-car");
+      btn.type = "button";
+      btn.disabled = taken === 0;
+      btn.append(
+        el("span", "ac-name", label),
+        el("span", "ac-num", "乗車 " + taken + " 名"),
+        el("span", "ac-free", taken === 0 ? "取り消すものなし" : "この車両を空にする")
+      );
+      if (car.dataset.lift) btn.classList.add("is-lift");
+      btn.addEventListener("click", () => {
+        clearCar(car);
+        dialog.hidden = true;
+        refresh();
+      });
+      list.append(btn);
     });
-    document.querySelectorAll(".no-box, .arrive-box, .dep-actual").forEach((b) => { b.textContent = ""; });
-    document.querySelectorAll(".driver-select").forEach((d) => { d.value = ""; d.dataset.empty = "true"; });
-    SWAP = { am: [], pm: [] };
-    drawSwapChips();
-    document.querySelectorAll(".stop").forEach((stop) => { if (stop.dataset.state) refillSelect(stop); });
+
+    dialog.hidden = false;
+  });
+
+  document.getElementById("clear-all").addEventListener("click", () => {
+    const leg = LEGS.find((l) => !document.getElementById("leg-" + l.key).hidden);
+    if (!leg) return;
+    if (!window.confirm(leg.partLabel + " " + leg.dir + " の全車両の利用者を取り消します。よろしいですか？")) return;
+    document.getElementById("leg-" + leg.key).querySelectorAll(".car").forEach(clearCar);
+    document.getElementById("modal-clear").hidden = true;
     refresh();
+  });
+
+  document.getElementById("clear-close").addEventListener("click", () => {
+    document.getElementById("modal-clear").hidden = true;
+  });
+  document.getElementById("modal-clear").addEventListener("click", (e) => {
+    if (e.target.id === "modal-clear") e.target.hidden = true;
   });
 
   document.addEventListener("input", (e) => {
