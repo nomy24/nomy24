@@ -1076,7 +1076,6 @@
   .left-name:hover { background: var(--warn); color: var(--card); }
 
   .leg-legend { display: none; }
-  .leg-banner { display: none; }
 
   /* ── 凡例 ─────────────────────────────────── */
   .legend {
@@ -1628,7 +1627,9 @@
 
     body { background: #fff; font-size: 9pt; line-height: 1.3; }
 
-    .sheet { max-width: none; padding: 0; gap: 2mm; }
+    /* flex コンテナの中は改ページ指定が効かないブラウザがあるので、
+       紙の上では通常のブロックに戻して便ごとの改ページを確実にする */
+    .sheet { display: block; max-width: none; padding: 0; gap: 0; }
 
     .controls, .modal, .saved-note, .swap-bar, .date-open, .toast, .page-master { display: none !important; }
 
@@ -1642,48 +1643,43 @@
     .leg-head { position: static; }
     .left-name { border: 0; padding: 0 4px; background: none; color: var(--warn); }
 
-    /* 便ごとに1枚。表題は各便の見出しが持つので、画面用の表題は出さない */
+    /* 便ごとに1枚。画面用の表題は出さず、便の見出しだけで紙が成り立つようにする */
     .masthead, .date-open, .sticky-top { display: none !important; }
 
     .leg[hidden] { display: block !important; }
     .leg { break-before: page; break-inside: avoid; }
     .leg:first-of-type { break-before: auto; }
 
-    .leg-banner {
-      display: flex;
+    /* 便の見出し：便名・事業所名と日付・当日の人数を1行に収める */
+    .leg-head {
+      flex-wrap: nowrap;
       align-items: baseline;
+      padding: 0 0 0.8mm;
+      margin-bottom: 1mm;
       gap: 4mm;
-      padding-bottom: 0.6mm;
       border-bottom: 1.2pt solid var(--ink);
     }
 
-    .lb-office { font-size: 7pt; letter-spacing: .12em; color: var(--ink-2); }
+    .leg-title { font-size: 12pt; letter-spacing: .1em; }
+    .leg-title small { font-size: 7pt; margin-left: 5px; }
+    .leg-title .day-note { display: none; }
 
-    .lb-date {
-      font-family: var(--mincho);
-      font-size: 12pt;
-      font-weight: 600;
-      letter-spacing: .06em;
-    }
-
-    .lb-leg {
-      font-family: var(--mincho);
-      font-size: 12pt;
-      font-weight: 600;
-      letter-spacing: .1em;
-      color: var(--accent);
+    .print-stamp {
+      display: block;
+      order: 3;
       margin-left: auto;
+      font-size: 7.5pt;
+      letter-spacing: .06em;
+      color: var(--ink);
+      white-space: nowrap;
     }
 
-    .print-stamp { display: none; }
-    .stats { margin-left: auto; gap: 5mm; }
-    .stat { font-size: 7pt; gap: 3px; }
-    .stat b { font-size: 10.5pt; }
+    .stats { margin-left: 0; gap: 4mm; flex-wrap: nowrap; }
+    .stat { font-size: 6.5pt; gap: 3px; }
+    .stat b { font-size: 9.5pt; }
 
-    .leg-head { padding: 0.6mm 0; margin-bottom: 1mm; gap: 0.6mm 4mm; border-bottom-width: 0.6pt; }
-    .leg-title { display: none; }
-
-    .fleet { gap: 1.4mm; }
+    /* 画面幅がどうであれ、紙の上では必ず2列8台に組む */
+    .fleet { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.4mm; }
 
     .car { grid-template-columns: 21mm minmax(0, 1fr); }
     .car-id { padding: 0.9mm; gap: 0.6mm; }
@@ -1746,7 +1742,10 @@
 
     .legend { display: none; }
 
-    .leg-legend {
+    /* 凡例は毎ページ繰り返さず、1枚目の下だけに置く */
+    .leg-legend { display: none; }
+
+    .leg:first-of-type .leg-legend {
       display: block;
       margin: 0.5mm 0 0;
       padding-top: 0.4mm;
@@ -2712,14 +2711,6 @@
       '<span class="stat"><b data-stat="left">0</b>名 未割当</span>' +
       '<span class="stat"><b data-stat="dup">0</b>件 重複</span>';
 
-    /* 印刷では便ごとに1枚になるので、どの紙にも事業所名と日付を載せる */
-    const banner = el("div", "leg-banner");
-    banner.append(
-      el("span", "lb-office", "通所介護事業所　デイサービス　あさひ"),
-      el("span", "lb-date", ""),
-      el("span", "lb-leg", leg.partLabel + "　" + leg.dir + "　" + leg.flow)
-    );
-
     head.append(title, stats, el("span", "print-stamp", ""));
 
     /* 既定の割り当ても、その曜日に来る人だけに絞る */
@@ -2783,7 +2774,7 @@
       + "番号の色　赤＝欠席（取り消し線）／黄緑＝振替利用／橙＝新規・増回　　朱色の車両＝車椅子の方が乗るため定員1名減　　"
       + "「実績」欄は実際の到着時刻、「備考」欄は玄関先の目印や部屋番号の記入用です。");
 
-    section.append(banner, head, fleet, leftover, legend);
+    section.append(head, fleet, leftover, legend);
     return section;
   }
 
@@ -3309,9 +3300,7 @@
     document.getElementById("title-date").textContent = date;
     LEGS.forEach((leg) => {
       const stamp = document.querySelector("#leg-" + leg.key + " .print-stamp");
-      if (stamp) stamp.textContent = "デイサービス あさひ／" + leg.partLabel + " " + leg.dir + "／" + date;
-      const lb = document.querySelector("#leg-" + leg.key + " .lb-date");
-      if (lb) lb.textContent = date + "　送迎表";
+      if (stamp) stamp.textContent = "通所介護事業所 デイサービス あさひ　" + date + " 送迎表";
     });
   }
 
