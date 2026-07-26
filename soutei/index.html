@@ -1302,8 +1302,41 @@
 
   .plan-head {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: calc(var(--step) * 2);
+    margin-bottom: calc(var(--step) * 1);
+  }
+
+  .plan-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px;
+    background: var(--paper);
+    padding: 3px;
+    align-self: flex-start;
+  }
+
+  .plan-tabs.sub { background: transparent; padding: 0; }
+
+  .plan-tab {
+    font: inherit;
+    font-size: 12px;
+    padding: 5px 14px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--ink-2);
+    cursor: pointer;
+    letter-spacing: .06em;
+  }
+
+  .plan-tab.is-today { font-weight: 600; }
+
+  .plan-tab[aria-selected="true"] {
+    background: var(--card);
+    border-color: var(--rule-2);
+    color: var(--ink);
+    box-shadow: inset 0 -2px 0 var(--tab, var(--ai));
   }
 
   .plan-title {
@@ -1998,10 +2031,10 @@
      出勤する職員の人数で動かす車が変わる。人数版ごとに、使う車両の並びを持つ。
      数字は FLEET の並び順（0〜5＝号車枠、6＝ノア、7＝リフト車）。 */
   const DEFAULT_DISPATCH = {
-    "5": { cars: [0, 1, 2, 6, 7], plan: { am: {}, pm: {} } },
-    "6": { cars: [0, 1, 2, 3, 6, 7], plan: { am: {}, pm: {} } },
-    "7": { cars: [0, 1, 2, 3, 4, 6, 7], plan: { am: {}, pm: {} } },
-    "8": { cars: [0, 1, 2, 3, 4, 5, 6, 7], plan: { am: {}, pm: {} } }
+    "5": { cars: [0, 1, 2, 6, 7], plan: null },
+    "6": { cars: [0, 1, 2, 3, 6, 7], plan: null },
+    "7": { cars: [0, 1, 2, 3, 4, 6, 7], plan: null },
+    "8": { cars: [0, 1, 2, 3, 4, 5, 6, 7], plan: null }
   };
 
   const CREW_SIZES = ["5", "6", "7", "8"];
@@ -2069,25 +2102,47 @@
   let DISPATCH = normDispatch(STORE.getJSON("dispatch"));
   let USER_BY_ID = new Map();
 
-  /* 配車は { cars: [車の並び], plan: { am: { 車: [利用者id] }, pm: {…} } }。
-     旧い「使う車の配列だけ」の形も読めるようにしておく */
+  /* 配車は { cars: [車の並び], plan: { 曜日: { 便: { 車: [利用者id] } } } }。
+     旧い「使う車の配列だけ」「便だけ（曜日なし・お迎えのみ）」の形も読めるようにしておく */
+  function normPlan(src) {
+    const legacy = src && !WEEKDAYS.some((w) => src[w]) && (src.am || src.pm);
+    const out = {};
+    WEEKDAYS.forEach((w) => {
+      out[w] = {};
+      LEGS.forEach((leg) => {
+        let from = null;
+        if (legacy) from = leg.dir === "お迎え" ? src[leg.part] : null;
+        else if (src && src[w]) from = src[w][leg.key];
+        const bucket = {};
+        if (from) Object.keys(from).forEach((k) => {
+          const list = (from[k] || []).filter(Boolean);
+          if (list.length) bucket[k] = [...list];
+        });
+        out[w][leg.key] = bucket;
+      });
+    });
+    return out;
+  }
+
   function normDispatch(raw) {
     const out = {};
     ["5", "6", "7", "8"].forEach((size) => {
       const src = raw && raw[size];
-      const fallback = DEFAULT_DISPATCH[size];
-      if (Array.isArray(src)) out[size] = { cars: [...src], plan: { am: {}, pm: {} } };
-      else if (src && Array.isArray(src.cars)) {
-        out[size] = {
-          cars: [...src.cars],
-          plan: {
-            am: { ...((src.plan && src.plan.am) || {}) },
-            pm: { ...((src.plan && src.plan.pm) || {}) }
-          }
-        };
-      } else out[size] = JSON.parse(JSON.stringify(fallback));
+      const cars = Array.isArray(src) ? [...src]
+        : (src && Array.isArray(src.cars) ? [...src.cars] : [...DEFAULT_DISPATCH[size].cars]);
+      const plan = Array.isArray(src) ? null : (src && src.plan);
+      out[size] = { cars: cars, plan: normPlan(plan) };
     });
     return out;
+  }
+
+  /* 割り当てに入っている延べ人数 */
+  function planCount(cfg) {
+    let n = 0;
+    WEEKDAYS.forEach((w) => LEGS.forEach((leg) => {
+      Object.values((cfg.plan[w] || {})[leg.key] || {}).forEach((list) => { n += list.length; });
+    }));
+    return n;
   }
 
   /* 運転手は { name, days: { 曜日: "AM"|"PM"|"終日" } }。旧い文字列だけの形も読む */
@@ -3335,9 +3390,10 @@
 
     cars.forEach((car) => applyRows(car, []));
 
-    /* まず、人数版に保存してある割り当てのとおりに乗せる */
+    /* まず、人数版に保存してある「その曜日・その便」の割り当てのとおりに乗せる */
+    const weekday = weekdayOf(currentDate);
     const placed = new Set();
-    const plan = (cfg.plan && cfg.plan[leg.part]) || {};
+    const plan = (weekday && cfg.plan && cfg.plan[weekday] && cfg.plan[weekday][leg.key]) || {};
     use.forEach((ci) => {
       (plan[ci] || []).forEach((uid) => {
         const r = byId.get(uid);
@@ -3381,7 +3437,8 @@
       notify(size + "人版の車両に収まらなかった方が " + leftovers.length + "名います。未割当の欄から乗せてください。", "warn");
     } else {
       notify(size + "人版の配車に組み直しました（" + use.length + "台"
-        + (placed.size ? "、うち保存済みの割り当て " + placed.size + "名" : "") + "）。戻すときは「一つ戻る」。");
+        + (placed.size ? "、" + (weekday || "—") + "曜 " + leg.partLabel + leg.dir + " の保存済み割り当て " + placed.size + "名" : "")
+        + "）。戻すときは「一つ戻る」。");
     }
   }
 
@@ -3430,6 +3487,8 @@
   let draftDrivers = [];
   let draftDispatch = {};
   let openPlan = null;
+  let openPlanDay = null;
+  let openPlanLeg = null;
 
   const byKana = (a, b) => String(a.kana || a.name).localeCompare(String(b.kana || b.name), "ja");
 
@@ -3653,13 +3712,13 @@
       td2.append(wrap);
 
       const td3 = document.createElement("td");
-      const planned = ["am", "pm"].reduce((n, part) =>
-        n + Object.values(cfg.plan[part] || {}).reduce((m, list) => m + list.length, 0), 0);
-      td3.append(el("span", "plan-count", planned ? "割り当て " + planned + "名" : "割り当てなし"));
+      const planned = planCount(cfg);
+      td3.append(el("span", "plan-count", planned ? "割り当て 延べ" + planned + "名" : "割り当てなし"));
       const edit = el("button", "btn", openPlan === size ? "閉じる" : "編集");
       edit.type = "button";
       edit.addEventListener("click", () => {
-        openPlan = openPlan === size ? null : size;
+        if (openPlan === size) { openPlan = null; }
+        else { openPlan = size; openPlanDay = weekdayOf(currentDate) || WEEKDAYS[0]; openPlanLeg = LEGS[0].key; }
         drawMasterTables();
       });
       td3.append(edit);
@@ -3671,110 +3730,149 @@
     });
   }
 
-  /* 人数版ごとの割り当てを手作業で組む欄 */
+  /* 人数版ごとの割り当てを手作業で組む欄。曜日 × 4便で持つ */
   function drawPlanRow(size, cfg) {
     const tr = document.createElement("tr");
     tr.className = "plan-row";
     const td = document.createElement("td");
     td.colSpan = 3;
 
+    const today = weekdayOf(currentDate);
+    if (!openPlanDay) openPlanDay = today || WEEKDAYS[0];
+    if (!openPlanLeg) openPlanLeg = LEGS[0].key;
+    const leg = LEGS.find((l) => l.key === openPlanLeg) || LEGS[0];
+    const bucket = cfg.plan[openPlanDay][leg.key];
+
     const box = el("div", "plan-box");
     box.append(el("p", "plan-lead", size + "人版の割り当て　"
-      + "送迎表で組んだ並びをそのまま取り込めます。ここに入れた方は「デフォルトに設置」で先にその車へ乗ります。"));
+      + "曜日と便ごとに保存します。ここに入れた方は「デフォルトに設置」で先にその車へ乗ります。"));
 
-    [["am", "午前"], ["pm", "午後"]].forEach(([part, label]) => {
-      const sec = el("div", "plan-part");
-      const head = el("div", "plan-head");
-      head.append(el("span", "plan-title", label));
+    /* 曜日のタブ */
+    const dayTabs = el("div", "plan-tabs");
+    WEEKDAYS.forEach((w) => {
+      const filled = LEGS.reduce((n, l) =>
+        n + Object.values(cfg.plan[w][l.key] || {}).reduce((m, list) => m + list.length, 0), 0);
+      const b = el("button", "plan-tab", w + (filled ? "・" + filled : ""));
+      b.type = "button";
+      b.setAttribute("aria-selected", String(w === openPlanDay));
+      if (w === today) b.classList.add("is-today");
+      b.title = w + "曜日" + (w === today ? "（いま開いている送迎表の曜日）" : "");
+      b.addEventListener("click", () => { openPlanDay = w; drawMasterTables(); });
+      dayTabs.append(b);
+    });
+    box.append(dayTabs);
 
-      const grab = el("button", "btn", "いまの" + label + "お迎えから取り込む");
-      grab.type = "button";
-      grab.addEventListener("click", () => {
-        const legKey = part + "-pick";
-        const section = document.getElementById("leg-" + legKey);
-        if (!section) return;
-        /* 取り込むのはこの人数版で使う車両ぶんだけ。台数は勝手に増やさない */
-        const next = {};
-        let skipped = 0;
-        [...section.querySelectorAll(".car")].forEach((car, i) => {
-          const ids = [...car.querySelectorAll(".stop:not(.head) .who")].map((x) => x.value).filter(Boolean);
-          if (!ids.length) return;
-          if (cfg.cars.includes(i)) next[i] = ids;
-          else skipped++;
-        });
-        cfg.plan[part] = next;
-        drawMasterTables();
-        if (skipped) {
-          notify(size + "人版で使わない車両が " + skipped + "台ありました。その車の方は取り込んでいません。"
-            + "先に「" + size + "人版 デフォルトに設置」で台数を合わせてから組み直してください。", "warn");
-        } else {
-          notify(label + "の並びを " + size + "人版に取り込みました。");
-        }
+    /* 便のタブ */
+    const legTabs = el("div", "plan-tabs sub");
+    LEGS.forEach((l) => {
+      const filled = Object.values(cfg.plan[openPlanDay][l.key] || {}).reduce((m, list) => m + list.length, 0);
+      const b = el("button", "plan-tab", l.partLabel + l.dir + (filled ? "・" + filled : ""));
+      b.type = "button";
+      b.setAttribute("aria-selected", String(l.key === openPlanLeg));
+      b.style.setProperty("--tab", "var(--" + l.accent + ")");
+      b.addEventListener("click", () => { openPlanLeg = l.key; drawMasterTables(); });
+      legTabs.append(b);
+    });
+    box.append(legTabs);
+
+    /* 操作 */
+    const head = el("div", "plan-head");
+    const grab = el("button", "btn", today
+      ? "いまの送迎表（" + today + "曜）の" + leg.partLabel + leg.dir + "から取り込む"
+      : "取り込みは月〜土の送迎表を開いているときだけ");
+    grab.type = "button";
+    grab.disabled = !today;
+    grab.addEventListener("click", () => {
+      const section = document.getElementById("leg-" + leg.key);
+      if (!section) return;
+      const next = {};
+      let skipped = 0;
+      [...section.querySelectorAll(".car")].forEach((car, i) => {
+        const ids = [...car.querySelectorAll(".stop:not(.head) .who")].map((x) => x.value).filter(Boolean);
+        if (!ids.length) return;
+        if (cfg.cars.includes(i)) next[i] = ids;
+        else skipped++;
       });
-      head.append(grab);
+      cfg.plan[openPlanDay][leg.key] = next;
+      drawMasterTables();
+      if (skipped) {
+        notify(size + "人版で使わない車両が " + skipped + "台ありました。その車の方は取り込んでいません。"
+          + "先に「" + size + "人版 デフォルトに設置」で台数を合わせてください。", "warn");
+      } else {
+        notify(openPlanDay + "曜 " + leg.partLabel + leg.dir + " の並びを " + size + "人版に取り込みました。");
+      }
+    });
+    head.append(grab);
 
-      const wipe = el("button", "btn danger", "消す");
-      wipe.type = "button";
-      wipe.addEventListener("click", () => { cfg.plan[part] = {}; drawMasterTables(); });
-      head.append(wipe);
-      sec.append(head);
+    const copy = el("button", "btn", "この便を全曜日へコピー");
+    copy.type = "button";
+    copy.addEventListener("click", () => {
+      WEEKDAYS.forEach((w) => {
+        cfg.plan[w][leg.key] = JSON.parse(JSON.stringify(bucket));
+      });
+      drawMasterTables();
+      notify(openPlanDay + "曜 " + leg.partLabel + leg.dir + " の割り当てを月〜土へコピーしました。");
+    });
+    head.append(copy);
 
-      cfg.cars.forEach((ci) => {
-        const car = FLEET[ci];
-        if (!car) return;
-        const row = el("div", "plan-car");
-        row.append(el("span", "plan-car-name", car.name || (ci + 1) + "号車枠"));
+    const wipe = el("button", "btn danger", "この便を消す");
+    wipe.type = "button";
+    wipe.addEventListener("click", () => { cfg.plan[openPlanDay][leg.key] = {}; drawMasterTables(); });
+    head.append(wipe);
+    box.append(head);
 
-        const chips = el("span", "plan-chips");
-        const list = cfg.plan[part][ci] || [];
-        list.forEach((uid, pos) => {
-          const u = USER_BY_ID.get(uid);
-          const chip = el("span", "plan-chip");
-          chip.append(document.createTextNode(u ? u.name : uid));
-          [["◀", -1], ["▶", 1]].forEach(([mark, d]) => {
-            const mv = el("button", "plan-mv", mark);
-            mv.type = "button";
-            mv.title = "順番を動かす";
-            mv.disabled = (d < 0 && pos === 0) || (d > 0 && pos === list.length - 1);
-            mv.addEventListener("click", () => {
-              const arr = [...list];
-              arr.splice(pos + d, 0, arr.splice(pos, 1)[0]);
-              cfg.plan[part][ci] = arr;
-              drawMasterTables();
-            });
-            chip.append(mv);
-          });
-          const x = el("button", "plan-mv", "×");
-          x.type = "button";
-          x.title = "外す";
-          x.addEventListener("click", () => {
-            cfg.plan[part][ci] = list.filter((v) => v !== uid);
+    /* 車両ごとの並び */
+    cfg.cars.forEach((ci) => {
+      const car = FLEET[ci];
+      if (!car) return;
+      const row = el("div", "plan-car");
+      row.append(el("span", "plan-car-name", car.name || (ci + 1) + "号車枠"));
+
+      const chips = el("span", "plan-chips");
+      const list = bucket[ci] || [];
+      list.forEach((uid, pos) => {
+        const u = USER_BY_ID.get(uid);
+        const chip = el("span", "plan-chip");
+        chip.append(document.createTextNode(u ? u.name : uid));
+        [["◀", -1], ["▶", 1]].forEach(([mark, d]) => {
+          const mv = el("button", "plan-mv", mark);
+          mv.type = "button";
+          mv.title = "順番を動かす";
+          mv.disabled = (d < 0 && pos === 0) || (d > 0 && pos === list.length - 1);
+          mv.addEventListener("click", () => {
+            const arr = [...list];
+            arr.splice(pos + d, 0, arr.splice(pos, 1)[0]);
+            bucket[ci] = arr;
             drawMasterTables();
           });
-          chip.append(x);
-          chips.append(chip);
+          chip.append(mv);
         });
-        if (list.length === 0) chips.append(el("span", "plan-none", "なし"));
-        row.append(chips);
-
-        const add = document.createElement("select");
-        add.className = "plan-add";
-        add.append(new Option("＋ 追加", ""));
-        draftUsers.filter((u) => !u.end).sort(byKana).forEach((u) => add.append(new Option(u.name, u.id)));
-        add.addEventListener("change", () => {
-          if (!add.value) return;
-          Object.keys(cfg.plan[part]).forEach((k) => {
-            cfg.plan[part][k] = cfg.plan[part][k].filter((v) => v !== add.value);
-          });
-          cfg.plan[part][ci] = [...(cfg.plan[part][ci] || []), add.value];
+        const x = el("button", "plan-mv", "×");
+        x.type = "button";
+        x.title = "外す";
+        x.addEventListener("click", () => {
+          bucket[ci] = list.filter((v) => v !== uid);
           drawMasterTables();
         });
-        row.append(add);
-
-        sec.append(row);
+        chip.append(x);
+        chips.append(chip);
       });
+      if (list.length === 0) chips.append(el("span", "plan-none", "なし"));
+      row.append(chips);
 
-      box.append(sec);
+      const add = document.createElement("select");
+      add.className = "plan-add";
+      add.append(new Option("＋ 追加", ""));
+      draftUsers.filter((u) => !u.end).sort(byKana).forEach((u) => add.append(new Option(u.name, u.id)));
+      add.addEventListener("change", () => {
+        if (!add.value) return;
+        Object.keys(bucket).forEach((k) => { bucket[k] = bucket[k].filter((v) => v !== add.value); });
+        bucket[ci] = [...(bucket[ci] || []), add.value];
+        drawMasterTables();
+      });
+      row.append(add);
+
+      box.append(row);
     });
 
     td.append(box);
@@ -3793,6 +3891,8 @@
     draftDrivers = DRIVERS.map((d) => ({ name: d.name, days: { ...d.days } }));
     draftDispatch = normDispatch(DISPATCH);
     openPlan = null;
+    openPlanDay = weekdayOf(currentDate) || WEEKDAYS[0];
+    openPlanLeg = LEGS[0].key;
     drawMasterTables();
     showMaster(true);
   }
