@@ -33,6 +33,12 @@
     --warn-soft: #F6E7E5;
     --ok: #3D6F52;
 
+    /* 車椅子が乗る車両／行の状態 */
+    --wc: #C43D2E;         /* 朱　　車椅子乗車の車両 */
+    --wc-soft: #FBE9E6;
+    --furikae: #5F8A28;    /* 黄緑　振替利用 */
+    --shinki: #D2731A;     /* 橙　　新規・増回 */
+
     --accent: var(--ai);
     --accent-soft: var(--ai-soft);
 
@@ -67,6 +73,10 @@
       --warn: #DE8480;
       --warn-soft: #331E1E;
       --ok: #7FB496;
+      --wc: #E88A7C;
+      --wc-soft: #33201D;
+      --furikae: #A9CC72;
+      --shinki: #E5A063;
     }
   }
 
@@ -94,6 +104,10 @@
     --warn: #DE8480;
     --warn-soft: #331E1E;
     --ok: #7FB496;
+    --wc: #E88A7C;
+    --wc-soft: #33201D;
+    --furikae: #A9CC72;
+    --shinki: #E5A063;
   }
 
   :root[data-theme="light"] {
@@ -120,6 +134,10 @@
     --warn: #9C2B2B;
     --warn-soft: #F6E7E5;
     --ok: #3D6F52;
+    --wc: #C43D2E;
+    --wc-soft: #FBE9E6;
+    --furikae: #5F8A28;
+    --shinki: #D2731A;
   }
 
   /* ── ベース ───────────────────────────────── */
@@ -359,6 +377,14 @@
     background: var(--card);
     border: 1px solid var(--rule);
     break-inside: avoid;
+    font-weight: 600;
+  }
+
+  /* 車椅子（記号「車」）が乗る車両はカードごと朱に振る */
+  .car.has-wc {
+    --accent: var(--wc);
+    --accent-soft: var(--wc-soft);
+    border-color: var(--wc);
   }
 
   @media screen and (max-width: 460px) {
@@ -466,6 +492,7 @@
   }
 
   .pip.on { background: var(--accent); }
+  .pip[hidden] { display: none; }
 
   .car.is-over .pip { border-color: var(--warn); }
   .car.is-over .pip.on { background: var(--warn); }
@@ -559,6 +586,7 @@
     padding-bottom: 3px;
     min-height: 0;
     font-size: 10px;
+    font-weight: 500;
     letter-spacing: .1em;
     color: var(--ink-3);
     background: var(--sub);
@@ -586,7 +614,7 @@
     -webkit-print-color-adjust: exact;
   }
 
-  .stop.absent .strike { opacity: 1; }
+  .stop.st-absent .strike { opacity: 1; }
   .stop.dup { background: var(--warn-soft); }
 
   .ord {
@@ -617,11 +645,15 @@
 
   .stop.dup .ord { border-color: var(--warn); background: var(--warn); }
 
+  /* 行の状態は番号の色で示す。クリックのたびに切り替わる */
+  .stop.st-absent .ord { border-color: var(--warn); background: var(--warn); color: var(--card); }
+  .stop.st-furikae .ord { border-color: var(--furikae); background: var(--furikae); color: var(--card); }
+  .stop.st-shinki .ord { border-color: var(--shinki); background: var(--shinki); color: var(--card); }
+
   /* 欠席：予定時刻は消し、赤線で立ち寄らないことを示す */
-  .stop.absent .ord { border-color: var(--warn); background: var(--warn); color: var(--card); }
-  .stop.absent .who,
-  .stop.absent .area { color: var(--ink-3); }
-  .stop.absent .tag[aria-pressed="true"] { color: var(--rule-2); }
+  .stop.st-absent .who,
+  .stop.st-absent .area { color: var(--ink-3); }
+  .stop.st-absent .tag[aria-pressed="true"] { color: var(--rule-2); }
 
   .t {
     font-size: 14px;
@@ -889,6 +921,28 @@
 
   .modal .tag-cell { display: flex; gap: 3px; }
 
+  .modal .day-cell { display: flex; gap: 2px; }
+
+  .modal .day {
+    width: 20px;
+    height: 20px;
+    display: grid;
+    place-items: center;
+    font-family: inherit;
+    font-size: 11px;
+    padding: 0;
+    border: 1px solid var(--rule-2);
+    background: transparent;
+    color: var(--ink-3);
+    cursor: pointer;
+  }
+
+  .modal .day[aria-pressed="true"] {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--card);
+  }
+
   /* ── 印刷：A4横・4便で4枚 ─────────────────── */
   @page {
     size: A4 landscape;
@@ -916,6 +970,10 @@
       --enji-soft: #F7EBEE;
       --warn: #8A1F1F;
       --warn-soft: #FAF0EF;
+      --wc: #A32A1E;
+      --wc-soft: #F9EAE7;
+      --furikae: #45681C;
+      --shinki: #9E5312;
     }
 
     body { background: #fff; font-size: 9pt; line-height: 1.3; }
@@ -1034,7 +1092,8 @@
     <span class="item">利用者名はプルダウンで選択すると、住所と記号がマスタから自動で入ります。</span>
     <span class="item">予定の時刻は事業所発の時刻と住所から換算。手入力で上書きでき、空欄にすると自動に戻ります。</span>
     <span class="item">「実績」欄は実際の到着時刻の記入用です。</span>
-    <span class="item">左端の番号をクリックすると欠席になり、予定時刻が消えて赤い取り消し線が入ります。</span>
+    <span class="item">左端の番号をクリックするたびに　欠席（赤・取り消し線）→ 振替利用（黄緑）→ 新規・増回（橙）→ 通常　と切り替わります。</span>
+    <span class="item">記号「車」の方が乗る車両はカードが朱色になり、定員が1名減ります（リフト車 6名→5名）。</span>
     <span class="item">※印は自動で入った値を手で書き換えた欄です。</span>
   </div>
 </div>
@@ -1052,12 +1111,13 @@
         <table>
           <thead>
             <tr>
-              <th style="width:14%">氏名</th>
-              <th style="width:14%">ふりがな</th>
-              <th style="width:12%">町名</th>
-              <th style="width:20%">住所</th>
-              <th style="width:12%">記号</th>
-              <th style="width:8%"></th>
+              <th style="width:13%">氏名</th>
+              <th style="width:13%">ふりがな</th>
+              <th style="width:10%">町名</th>
+              <th style="width:18%">住所</th>
+              <th style="width:10%">記号</th>
+              <th style="width:16%">利用曜日</th>
+              <th style="width:7%"></th>
             </tr>
           </thead>
           <tbody id="user-rows"></tbody>
@@ -1100,6 +1160,10 @@
     { key: "pm-drop", part: "pm", partLabel: "午後", dir: "お送り", flow: "事業所 → 自宅", departLabel: "事業所 発", arriveLabel: "事業所 帰着", depart: "16:30", accent: "enji" }
   ];
 
+  /* 行の状態。左端の番号を押すたびにこの順で回る */
+  const STATES = ["", "absent", "furikae", "shinki"];
+  const STATE_LABEL = { "": "通常", absent: "欠席", furikae: "振替利用", shinki: "新規・増回" };
+
   const TAGS = [
     { key: "車", cls: "t-wc", title: "車椅子（リフト・スロープ使用）" },
     { key: "補", cls: "t-aid", title: "歩行器・車椅子持参もしくは貸出" },
@@ -1130,68 +1194,68 @@
 
   /* ── 利用者マスタの初期値 ────────────────── */
   const DEFAULT_USERS = [
-    { id: "u01", name: "田中 ハル", kana: "たなか はる", town: "中央町", addr: "中央町3-14-2", tags: ["補"] },
-    { id: "u02", name: "鈴木 正一", kana: "すずき しょういち", town: "中央町", addr: "中央町1-8-5", tags: [] },
-    { id: "u03", name: "高橋 キヨ", kana: "たかはし きよ", town: "本町", addr: "本町5-3-11", tags: ["玄"] },
-    { id: "u04", name: "小林 節子", kana: "こばやし せつこ", town: "本町", addr: "本町2-19-4", tags: [] },
-    { id: "u05", name: "伊藤 フミ", kana: "いとう ふみ", town: "若葉台", addr: "若葉台2-6-3", tags: ["補"] },
-    { id: "u06", name: "渡部 秀夫", kana: "わたなべ ひでお", town: "若葉台", addr: "若葉台4-11-8", tags: [] },
-    { id: "u07", name: "山田 トシ子", kana: "やまだ としこ", town: "緑町", addr: "緑町1-4-16", tags: ["玄"] },
-    { id: "u08", name: "中西 幸雄", kana: "なかにし ゆきお", town: "緑町", addr: "緑町3-9-2", tags: [] },
-    { id: "u09", name: "大野 スミ", kana: "おおの すみ", town: "桜ヶ丘", addr: "桜ヶ丘1-2-7", tags: ["車"] },
-    { id: "u10", name: "藤井 康夫", kana: "ふじい やすお", town: "桜ヶ丘", addr: "桜ヶ丘3-15-1", tags: [] },
-    { id: "u11", name: "岩本 ヨシ", kana: "いわもと よし", town: "旭ヶ丘", addr: "旭ヶ丘2-7-9", tags: ["補"] },
-    { id: "u12", name: "森田 光子", kana: "もりた みつこ", town: "旭ヶ丘", addr: "旭ヶ丘5-1-12", tags: [] },
-    { id: "u13", name: "村上 三郎", kana: "むらかみ さぶろう", town: "東雲", addr: "東雲2-11-6", tags: [] },
-    { id: "u14", name: "北川 きく", kana: "きたがわ きく", town: "東雲", addr: "東雲6-3-1", tags: ["玄"] },
-    { id: "u15", name: "菅原 テル", kana: "すがわら てる", town: "川井町", addr: "川井町1-22-4", tags: ["補"] },
-    { id: "u16", name: "堀内 昌代", kana: "ほりうち まさよ", town: "富士見町", addr: "富士見町4-8-3", tags: [] },
-    { id: "u17", name: "浅野 勝治", kana: "あさの かつじ", town: "富士見町", addr: "富士見町7-2-15", tags: ["補"] },
-    { id: "u18", name: "白石 ミツ", kana: "しらいし みつ", town: "南台", addr: "南台2-5-9", tags: [] },
-    { id: "u19", name: "野口 定雄", kana: "のぐち さだお", town: "南台", addr: "南台5-13-2", tags: ["玄"] },
-    { id: "u20", name: "長沢 スエ", kana: "ながさわ すえ", town: "泉町", addr: "泉町1-9-7", tags: ["補"] },
-    { id: "u21", name: "谷口 良一", kana: "たにぐち りょういち", town: "泉町", addr: "泉町4-2-11", tags: [] },
-    { id: "u22", name: "杉本 アキ", kana: "すぎもと あき", town: "宮下", addr: "宮下2-16-5", tags: [] },
-    { id: "u23", name: "西村 タカ", kana: "にしむら たか", town: "上野原", addr: "上野原1-3-8", tags: ["車"] },
-    { id: "u24", name: "石田 正治", kana: "いしだ しょうじ", town: "上野原", addr: "上野原3-12-1", tags: [] },
-    { id: "u25", name: "内藤 ハナ", kana: "ないとう はな", town: "戸倉", addr: "戸倉2-7-14", tags: ["補"] },
-    { id: "u26", name: "平野 邦彦", kana: "ひらの くにひこ", town: "戸倉", addr: "戸倉5-1-6", tags: [] },
-    { id: "u27", name: "小島 チヨ", kana: "こじま ちよ", town: "梅林", addr: "梅林1-10-3", tags: ["玄"] },
-    { id: "u28", name: "福井 静江", kana: "ふくい しずえ", town: "梅林", addr: "梅林4-6-9", tags: [] },
-    { id: "u29", name: "尾崎 たけし", kana: "おざき たけし", town: "新町", addr: "新町2-4-17", tags: ["車"] },
-    { id: "u30", name: "上田 ノブ", kana: "うえだ のぶ", town: "新町", addr: "新町5-9-2", tags: ["補"] },
-    { id: "u31", name: "河合 秀子", kana: "かわい ひでこ", town: "曙", addr: "曙1-7-5", tags: [] },
-    { id: "u32", name: "遠藤 巌", kana: "えんどう いわお", town: "曙", addr: "曙4-2-13", tags: [] },
-    { id: "u33", name: "宮本 サダ", kana: "みやもと さだ", town: "花見川", addr: "花見川2-8-1", tags: ["玄"] },
-    { id: "u34", name: "青木 トメ", kana: "あおき とめ", town: "中央町", addr: "中央町2-5-8", tags: ["補"] },
-    { id: "u35", name: "木村 誠一", kana: "きむら せいいち", town: "中央町", addr: "中央町4-1-3", tags: [] },
-    { id: "u36", name: "佐野 ハツ", kana: "さの はつ", town: "本町", addr: "本町3-12-7", tags: ["玄"] },
-    { id: "u37", name: "早川 春夫", kana: "はやかわ はるお", town: "本町", addr: "本町7-4-2", tags: [] },
-    { id: "u38", name: "三浦 キミ", kana: "みうら きみ", town: "若葉台", addr: "若葉台1-9-11", tags: ["車"] },
-    { id: "u39", name: "秋山 三男", kana: "あきやま みつお", town: "若葉台", addr: "若葉台5-2-6", tags: [] },
-    { id: "u40", name: "大塚 ヤエ", kana: "おおつか やえ", town: "緑町", addr: "緑町2-14-1", tags: ["補"] },
-    { id: "u41", name: "荒木 敏行", kana: "あらき としゆき", town: "緑町", addr: "緑町5-6-8", tags: [] },
-    { id: "u42", name: "富田 サキ", kana: "とみた さき", town: "桜ヶ丘", addr: "桜ヶ丘2-8-4", tags: ["玄"] },
-    { id: "u43", name: "沢田 正義", kana: "さわだ まさよし", town: "桜ヶ丘", addr: "桜ヶ丘5-11-9", tags: [] },
-    { id: "u44", name: "江口 マツ", kana: "えぐち まつ", town: "旭ヶ丘", addr: "旭ヶ丘1-3-2", tags: ["補"] },
-    { id: "u45", name: "星野 幸子", kana: "ほしの さちこ", town: "東雲", addr: "東雲1-7-15", tags: [] },
-    { id: "u46", name: "横山 亀吉", kana: "よこやま かめきち", town: "東雲", addr: "東雲4-9-6", tags: ["車"] },
-    { id: "u47", name: "久保 リン", kana: "くぼ りん", town: "川井町", addr: "川井町3-2-10", tags: ["玄"] },
-    { id: "u48", name: "島田 文夫", kana: "しまだ ふみお", town: "富士見町", addr: "富士見町2-11-4", tags: [] },
-    { id: "u49", name: "岡部 ウメ", kana: "おかべ うめ", town: "富士見町", addr: "富士見町6-5-1", tags: ["補"] },
-    { id: "u50", name: "神田 光雄", kana: "かんだ みつお", town: "南台", addr: "南台1-8-12", tags: [] },
-    { id: "u51", name: "柴田 ハツエ", kana: "しばた はつえ", town: "南台", addr: "南台4-3-7", tags: ["玄"] },
-    { id: "u52", name: "藤原 修", kana: "ふじわら おさむ", town: "泉町", addr: "泉町2-6-14", tags: [] },
-    { id: "u53", name: "中山 ミヨ", kana: "なかやま みよ", town: "泉町", addr: "泉町6-1-5", tags: ["補"] },
-    { id: "u54", name: "前田 豊", kana: "まえだ ゆたか", town: "宮下", addr: "宮下1-4-9", tags: [] },
-    { id: "u55", name: "竹内 サト", kana: "たけうち さと", town: "上野原", addr: "上野原2-10-3", tags: ["玄"] },
-    { id: "u56", name: "原田 清", kana: "はらだ きよし", town: "上野原", addr: "上野原5-7-11", tags: [] },
-    { id: "u57", name: "米倉 ツネ", kana: "よねくら つね", town: "戸倉", addr: "戸倉1-2-8", tags: ["補"] },
-    { id: "u58", name: "桑原 昭夫", kana: "くわばら あきお", town: "戸倉", addr: "戸倉4-13-2", tags: [] },
-    { id: "u59", name: "志村 ハル江", kana: "しむら はるえ", town: "梅林", addr: "梅林2-5-6", tags: ["車"] },
-    { id: "u60", name: "増田 伸一", kana: "ますだ しんいち", town: "新町", addr: "新町1-11-4", tags: [] },
-    { id: "u61", name: "東 ミサヲ", kana: "あずま みさを", town: "新町", addr: "新町4-8-9", tags: ["補"] },
-    { id: "u62", name: "片山 良雄", kana: "かたやま よしお", town: "曙", addr: "曙3-1-7", tags: [] }
+    { id: "u01", name: "田中 ハル", kana: "たなか はる", town: "中央町", addr: "中央町3-14-2", tags: ["補"], days: ["月", "水", "金"] },
+    { id: "u02", name: "鈴木 正一", kana: "すずき しょういち", town: "中央町", addr: "中央町1-8-5", tags: [], days: ["火", "木", "土"] },
+    { id: "u03", name: "高橋 キヨ", kana: "たかはし きよ", town: "本町", addr: "本町5-3-11", tags: ["玄"], days: ["月", "木"] },
+    { id: "u04", name: "小林 節子", kana: "こばやし せつこ", town: "本町", addr: "本町2-19-4", tags: [], days: ["火", "金"] },
+    { id: "u05", name: "伊藤 フミ", kana: "いとう ふみ", town: "若葉台", addr: "若葉台2-6-3", tags: ["補"], days: ["水", "土"] },
+    { id: "u06", name: "渡部 秀夫", kana: "わたなべ ひでお", town: "若葉台", addr: "若葉台4-11-8", tags: [], days: ["月", "水", "金"] },
+    { id: "u07", name: "山田 トシ子", kana: "やまだ としこ", town: "緑町", addr: "緑町1-4-16", tags: ["玄"], days: ["火", "木", "土"] },
+    { id: "u08", name: "中西 幸雄", kana: "なかにし ゆきお", town: "緑町", addr: "緑町3-9-2", tags: [], days: ["月", "木"] },
+    { id: "u09", name: "大野 スミ", kana: "おおの すみ", town: "桜ヶ丘", addr: "桜ヶ丘1-2-7", tags: ["補"], days: ["火", "金"] },
+    { id: "u10", name: "藤井 康夫", kana: "ふじい やすお", town: "桜ヶ丘", addr: "桜ヶ丘3-15-1", tags: [], days: ["水", "土"] },
+    { id: "u11", name: "岩本 ヨシ", kana: "いわもと よし", town: "旭ヶ丘", addr: "旭ヶ丘2-7-9", tags: ["補"], days: ["月", "水", "金"] },
+    { id: "u12", name: "森田 光子", kana: "もりた みつこ", town: "旭ヶ丘", addr: "旭ヶ丘5-1-12", tags: [], days: ["火", "木", "土"] },
+    { id: "u13", name: "村上 三郎", kana: "むらかみ さぶろう", town: "東雲", addr: "東雲2-11-6", tags: [], days: ["月", "木"] },
+    { id: "u14", name: "北川 きく", kana: "きたがわ きく", town: "東雲", addr: "東雲6-3-1", tags: ["玄"], days: ["火", "金"] },
+    { id: "u15", name: "菅原 テル", kana: "すがわら てる", town: "川井町", addr: "川井町1-22-4", tags: ["補"], days: ["水", "土"] },
+    { id: "u16", name: "堀内 昌代", kana: "ほりうち まさよ", town: "富士見町", addr: "富士見町4-8-3", tags: [], days: ["月", "水", "金"] },
+    { id: "u17", name: "浅野 勝治", kana: "あさの かつじ", town: "富士見町", addr: "富士見町7-2-15", tags: ["補"], days: ["火", "木", "土"] },
+    { id: "u18", name: "白石 ミツ", kana: "しらいし みつ", town: "南台", addr: "南台2-5-9", tags: [], days: ["月", "木"] },
+    { id: "u19", name: "野口 定雄", kana: "のぐち さだお", town: "南台", addr: "南台5-13-2", tags: ["玄"], days: ["火", "金"] },
+    { id: "u20", name: "長沢 スエ", kana: "ながさわ すえ", town: "泉町", addr: "泉町1-9-7", tags: ["補"], days: ["水", "土"] },
+    { id: "u21", name: "谷口 良一", kana: "たにぐち りょういち", town: "泉町", addr: "泉町4-2-11", tags: [], days: ["月", "水", "金"] },
+    { id: "u22", name: "杉本 アキ", kana: "すぎもと あき", town: "宮下", addr: "宮下2-16-5", tags: [], days: ["火", "木", "土"] },
+    { id: "u23", name: "西村 タカ", kana: "にしむら たか", town: "上野原", addr: "上野原1-3-8", tags: ["補"], days: ["月", "木"] },
+    { id: "u24", name: "石田 正治", kana: "いしだ しょうじ", town: "上野原", addr: "上野原3-12-1", tags: [], days: ["火", "金"] },
+    { id: "u25", name: "内藤 ハナ", kana: "ないとう はな", town: "戸倉", addr: "戸倉2-7-14", tags: ["補"], days: ["水", "土"] },
+    { id: "u26", name: "平野 邦彦", kana: "ひらの くにひこ", town: "戸倉", addr: "戸倉5-1-6", tags: [], days: ["月", "水", "金"] },
+    { id: "u27", name: "小島 チヨ", kana: "こじま ちよ", town: "梅林", addr: "梅林1-10-3", tags: ["玄"], days: ["火", "木", "土"] },
+    { id: "u28", name: "福井 静江", kana: "ふくい しずえ", town: "梅林", addr: "梅林4-6-9", tags: [], days: ["月", "木"] },
+    { id: "u29", name: "尾崎 たけし", kana: "おざき たけし", town: "新町", addr: "新町2-4-17", tags: ["車"], days: ["火", "金"] },
+    { id: "u30", name: "上田 ノブ", kana: "うえだ のぶ", town: "新町", addr: "新町5-9-2", tags: ["補"], days: ["水", "土"] },
+    { id: "u31", name: "河合 秀子", kana: "かわい ひでこ", town: "曙", addr: "曙1-7-5", tags: [], days: ["月", "水", "金"] },
+    { id: "u32", name: "遠藤 巌", kana: "えんどう いわお", town: "曙", addr: "曙4-2-13", tags: [], days: ["火", "木", "土"] },
+    { id: "u33", name: "宮本 サダ", kana: "みやもと さだ", town: "花見川", addr: "花見川2-8-1", tags: ["玄"], days: ["月", "木"] },
+    { id: "u34", name: "青木 トメ", kana: "あおき とめ", town: "中央町", addr: "中央町2-5-8", tags: ["補"], days: ["火", "金"] },
+    { id: "u35", name: "木村 誠一", kana: "きむら せいいち", town: "中央町", addr: "中央町4-1-3", tags: [], days: ["水", "土"] },
+    { id: "u36", name: "佐野 ハツ", kana: "さの はつ", town: "本町", addr: "本町3-12-7", tags: ["玄"], days: ["月", "水", "金"] },
+    { id: "u37", name: "早川 春夫", kana: "はやかわ はるお", town: "本町", addr: "本町7-4-2", tags: [], days: ["火", "木", "土"] },
+    { id: "u38", name: "三浦 キミ", kana: "みうら きみ", town: "若葉台", addr: "若葉台1-9-11", tags: ["補"], days: ["月", "木"] },
+    { id: "u39", name: "秋山 三男", kana: "あきやま みつお", town: "若葉台", addr: "若葉台5-2-6", tags: [], days: ["火", "金"] },
+    { id: "u40", name: "大塚 ヤエ", kana: "おおつか やえ", town: "緑町", addr: "緑町2-14-1", tags: ["補"], days: ["水", "土"] },
+    { id: "u41", name: "荒木 敏行", kana: "あらき としゆき", town: "緑町", addr: "緑町5-6-8", tags: [], days: ["月", "水", "金"] },
+    { id: "u42", name: "富田 サキ", kana: "とみた さき", town: "桜ヶ丘", addr: "桜ヶ丘2-8-4", tags: ["玄"], days: ["火", "木", "土"] },
+    { id: "u43", name: "沢田 正義", kana: "さわだ まさよし", town: "桜ヶ丘", addr: "桜ヶ丘5-11-9", tags: [], days: ["月", "木"] },
+    { id: "u44", name: "江口 マツ", kana: "えぐち まつ", town: "旭ヶ丘", addr: "旭ヶ丘1-3-2", tags: ["補"], days: ["火", "金"] },
+    { id: "u45", name: "星野 幸子", kana: "ほしの さちこ", town: "東雲", addr: "東雲1-7-15", tags: [], days: ["水", "土"] },
+    { id: "u46", name: "横山 亀吉", kana: "よこやま かめきち", town: "東雲", addr: "東雲4-9-6", tags: ["補"], days: ["月", "水", "金"] },
+    { id: "u47", name: "久保 リン", kana: "くぼ りん", town: "川井町", addr: "川井町3-2-10", tags: ["玄"], days: ["火", "木", "土"] },
+    { id: "u48", name: "島田 文夫", kana: "しまだ ふみお", town: "富士見町", addr: "富士見町2-11-4", tags: [], days: ["月", "木"] },
+    { id: "u49", name: "岡部 ウメ", kana: "おかべ うめ", town: "富士見町", addr: "富士見町6-5-1", tags: ["補"], days: ["火", "金"] },
+    { id: "u50", name: "神田 光雄", kana: "かんだ みつお", town: "南台", addr: "南台1-8-12", tags: [], days: ["水", "土"] },
+    { id: "u51", name: "柴田 ハツエ", kana: "しばた はつえ", town: "南台", addr: "南台4-3-7", tags: ["玄"], days: ["月", "水", "金"] },
+    { id: "u52", name: "藤原 修", kana: "ふじわら おさむ", town: "泉町", addr: "泉町2-6-14", tags: [], days: ["火", "木", "土"] },
+    { id: "u53", name: "中山 ミヨ", kana: "なかやま みよ", town: "泉町", addr: "泉町6-1-5", tags: ["補"], days: ["月", "木"] },
+    { id: "u54", name: "前田 豊", kana: "まえだ ゆたか", town: "宮下", addr: "宮下1-4-9", tags: [], days: ["火", "金"] },
+    { id: "u55", name: "竹内 サト", kana: "たけうち さと", town: "上野原", addr: "上野原2-10-3", tags: ["玄"], days: ["水", "土"] },
+    { id: "u56", name: "原田 清", kana: "はらだ きよし", town: "上野原", addr: "上野原5-7-11", tags: [], days: ["月", "水", "金"] },
+    { id: "u57", name: "米倉 ツネ", kana: "よねくら つね", town: "戸倉", addr: "戸倉1-2-8", tags: ["補"], days: ["火", "木", "土"] },
+    { id: "u58", name: "桑原 昭夫", kana: "くわばら あきお", town: "戸倉", addr: "戸倉4-13-2", tags: [], days: ["月", "木"] },
+    { id: "u59", name: "志村 ハル江", kana: "しむら はるえ", town: "梅林", addr: "梅林2-5-6", tags: ["玄"], days: ["火", "金"] },
+    { id: "u60", name: "増田 伸一", kana: "ますだ しんいち", town: "新町", addr: "新町1-11-4", tags: ["車"], days: ["水", "土"] },
+    { id: "u61", name: "東 ミサヲ", kana: "あずま みさを", town: "新町", addr: "新町4-8-9", tags: ["補"], days: ["月", "水", "金"] },
+    { id: "u62", name: "片山 良雄", kana: "かたやま よしお", town: "曙", addr: "曙3-1-7", tags: [], days: ["火", "木", "土"] }
   ];
 
   const DEFAULT_DRIVERS = [
@@ -1269,6 +1333,7 @@
       const n = (u.addr.match(/\d+/g) || []).map(Number);
       const a = n[0] || 0, b = n[1] || 0, d = n[2] || 0;
       u.pt = { x: c.x + (((a * 7 + b) % 11) - 5) * 0.12, y: c.y + (((b * 3 + d) % 11) - 5) * 0.12 };
+      if (!Array.isArray(u.days)) u.days = [];
       u.dwell = DWELL + (u.tags.includes("車") ? 3 : 0) + (u.tags.includes("補") ? 2 : 0) + (u.tags.includes("玄") ? 1 : 0);
       USER_BY_ID.set(u.id, u);
     });
@@ -1290,6 +1355,14 @@
     if (!m) return null;
     const h = Number(m[1]), mi = Number(m[2]);
     return h > 23 || mi > 59 ? null : h * 60 + mi;
+  }
+
+  function setState(stop, st) {
+    stop.dataset.state = st;
+    STATES.forEach((s) => { if (s) stop.classList.toggle("st-" + s, s === st); });
+    const ord = stop.querySelector(".ord");
+    ord.setAttribute("aria-pressed", String(st !== ""));
+    ord.setAttribute("aria-label", "この行は" + STATE_LABEL[st] + "（クリックで切替）");
   }
 
   const el = (tag, cls, text) => {
@@ -1360,8 +1433,7 @@
     t.classList.remove("edited");
     if (!user) {
       t.textContent = "";
-      stop.classList.remove("absent");
-      stop.querySelector(".ord").setAttribute("aria-pressed", "false");
+      setState(stop, "");
     }
 
     stop.querySelectorAll(".tag").forEach((tag) => {
@@ -1376,15 +1448,16 @@
     /* 順番の数字はそのまま欠席の切替ボタン */
     const ord = el("button", "ord", String(index));
     ord.type = "button";
-    ord.title = "クリックで欠席に切替";
+    ord.title = "クリックで切替：欠席 → 振替利用 → 新規・増回 → 通常";
     ord.setAttribute("aria-pressed", "false");
     ord.addEventListener("click", () => {
       if (ord.disabled) return;
-      li.classList.toggle("absent");
-      ord.setAttribute("aria-pressed", String(li.classList.contains("absent")));
+      const cur = li.dataset.state || "";
+      setState(li, STATES[(STATES.indexOf(cur) + 1) % STATES.length]);
       refresh();
     });
     li.append(ord);
+    li.dataset.state = "";
 
     const t = el("time", "t");
     t.contentEditable = "true";
@@ -1440,6 +1513,7 @@
   function buildCar(leg, car, ids) {
     const capacity = car.seats - 1;
     const article = el("article", "car");
+    article.dataset.capacityBase = capacity;
     article.dataset.capacity = capacity;
 
     const id = el("div", "car-id");
@@ -1455,7 +1529,7 @@
     }
 
     const size = el("p", "car-size");
-    size.append(el("span", null, car.seats + "人乗り"), el("span", null, "定員 " + capacity + "名"));
+    size.append(el("span", null, car.seats + "人乗り"), el("span", "cap-label", "定員 " + capacity + "名"));
 
     const who = el("p", "car-driver");
     const dsel = el("select", "driver-select");
@@ -1537,7 +1611,8 @@
 
     const legend = el("p", "leg-legend",
       "記号　車＝車椅子（リフト・スロープ使用）／補＝歩行器・車椅子持参もしくは貸出／玄＝玄関先まで送迎　　"
-      + "■＝乗車　□＝空席（定員は運転手を除く人数）　　赤い取り消し線＝欠席　　※印＝手で書き換えた欄　　"
+      + "■＝乗車　□＝空席（定員は運転手を除く人数）　　※印＝手で書き換えた欄　　"
+      + "番号の色　赤＝欠席（取り消し線）／黄緑＝振替利用／橙＝新規・増回　　朱色の車両＝車椅子の方が乗るため定員1名減　　"
       + "「実績」欄は実際の到着時刻の記入用。予定は事業所発の時刻と住所から換算した目安です。");
 
     section.append(head, fleet, leftover, legend);
@@ -1558,7 +1633,7 @@
         const t = stop.querySelector(".t");
         const user = USER_BY_ID.get(stop.querySelector(".who").value);
 
-        if (!user || stop.classList.contains("absent")) {
+        if (!user || stop.dataset.state === "absent") {
           if (t.dataset.manual !== "true" || !user) {
             t.textContent = "";
             t.dataset.manual = "false";
@@ -1593,29 +1668,41 @@
     let running = 0;
 
     section.querySelectorAll(".car").forEach((car) => {
-      const capacity = Number(car.dataset.capacity);
+      const base = Number(car.dataset.capacityBase);
       let n = 0;
       let off = 0;
+      let hasWC = false;
 
       car.querySelectorAll(".stop:not(.head)").forEach((stop) => {
         const id = stop.querySelector(".who").value;
-        const absent = stop.classList.contains("absent");
+        const absent = stop.dataset.state === "absent";
         const ord = stop.querySelector(".ord");
 
         stop.classList.toggle("filled", !!id && !absent);
         stop.classList.toggle("empty", !id);
         ord.disabled = !id;
+        if (!id) setState(stop, "");
 
         if (id) {
           if (!seen.has(id)) seen.set(id, []);
           seen.get(id).push(stop);
           if (absent) off++; else n++;
+          if (!absent && stop.querySelector('.tag.t-wc[aria-pressed="true"]')) hasWC = true;
         }
       });
 
+      /* 車椅子が乗る車はスペースを1席使うので定員を1名減らす */
+      const capacity = Math.max(1, base - (hasWC ? 1 : 0));
+      car.dataset.capacity = capacity;
+      car.classList.toggle("has-wc", hasWC);
+      car.querySelector(".cap-label").textContent = "定員 " + capacity + "名";
+
       const over = n > capacity;
       car.classList.toggle("is-over", over);
-      car.querySelectorAll(".pip").forEach((pip, i) => pip.classList.toggle("on", i < n));
+      car.querySelectorAll(".pip").forEach((pip, i) => {
+        pip.hidden = i >= capacity;
+        pip.classList.toggle("on", i < n);
+      });
       car.querySelector(".count").textContent =
         "乗車 " + n + " / " + capacity + " 名" + (off ? "（欠席 " + off + "）" : "") + (over ? "　⚠ 定員超過" : "");
 
@@ -1627,10 +1714,10 @@
 
     let dup = 0;
     seen.forEach((stops) => {
-      const riding = stops.filter((s) => !s.classList.contains("absent"));
+      const riding = stops.filter((s) => s.dataset.state !== "absent");
       const isDup = riding.length > 1;
       if (isDup) dup++;
-      stops.forEach((stop) => stop.classList.toggle("dup", isDup && !stop.classList.contains("absent")));
+      stops.forEach((stop) => stop.classList.toggle("dup", isDup && stop.dataset.state !== "absent"));
     });
 
     const roster = ROSTER()[leg.part];
@@ -1676,7 +1763,7 @@
           a: stop.querySelector(".area").textContent,
           ae: stop.querySelector(".area").classList.contains("edited"),
           ac: stop.querySelector(".actual").textContent,
-          ab: stop.classList.contains("absent"),
+          st: stop.dataset.state || "",
           g: [...stop.querySelectorAll('.tag[aria-pressed="true"]')].map((t) => t.textContent)
         }))
       }));
@@ -1709,10 +1796,7 @@
           sel.value = USER_BY_ID.has(r.u) ? r.u : "";
           applyUser(stop, sel.value);
 
-          if (sel.value) {
-            stop.classList.toggle("absent", !!r.ab);
-            stop.querySelector(".ord").setAttribute("aria-pressed", String(!!r.ab));
-          }
+          setState(stop, sel.value ? (r.st || (r.ab ? "absent" : "")) : "");
           const t = stop.querySelector(".t");
           t.textContent = r.t || "";
           t.dataset.manual = String(!!r.m);
@@ -1851,8 +1935,11 @@
 
   /* ── マスタ編集 ───────────────────────────── */
   const modal = document.getElementById("modal-master");
+  const WEEKDAYS = ["月", "火", "水", "木", "金", "土"];
   let draftUsers = [];
   let draftDrivers = [];
+
+  const byKana = (a, b) => String(a.kana || a.name).localeCompare(String(b.kana || b.name), "ja");
 
   function townSelect(value) {
     const sel = document.createElement("select");
@@ -1905,6 +1992,24 @@
       });
       cell(tagWrap);
 
+      const dayWrap = el("span", "day-cell");
+      WEEKDAYS.forEach((d) => {
+        const b = el("button", "day", d);
+        b.type = "button";
+        b.title = d + "曜日に利用";
+        b.setAttribute("aria-pressed", String((u.days || []).includes(d)));
+        b.addEventListener("click", () => {
+          const on = b.getAttribute("aria-pressed") !== "true";
+          b.setAttribute("aria-pressed", String(on));
+          const cur = draftUsers[i].days || [];
+          draftUsers[i].days = on
+            ? WEEKDAYS.filter((w) => cur.includes(w) || w === d)
+            : cur.filter((w) => w !== d);
+        });
+        dayWrap.append(b);
+      });
+      cell(dayWrap);
+
       const del = el("button", "btn danger", "削除");
       del.type = "button";
       del.addEventListener("click", () => { draftUsers.splice(i, 1); drawMasterTables(); });
@@ -1933,7 +2038,9 @@
   }
 
   function openMaster() {
-    draftUsers = USERS.map((u) => ({ id: u.id, name: u.name, kana: u.kana, town: u.town, addr: u.addr, tags: [...u.tags] }));
+    draftUsers = USERS
+      .map((u) => ({ id: u.id, name: u.name, kana: u.kana, town: u.town, addr: u.addr, tags: [...u.tags], days: [...(u.days || [])] }))
+      .sort(byKana);
     draftDrivers = [...DRIVERS];
     drawMasterTables();
     modal.hidden = false;
@@ -1946,7 +2053,7 @@
 
   document.getElementById("add-user").addEventListener("click", () => {
     const n = draftUsers.reduce((m, u) => Math.max(m, Number(String(u.id).replace(/\D/g, "")) || 0), 0) + 1;
-    draftUsers.push({ id: "u" + String(n).padStart(2, "0"), name: "", kana: "", town: Object.keys(TOWNS)[0], addr: "", tags: [] });
+    draftUsers.push({ id: "u" + String(n).padStart(2, "0"), name: "", kana: "", town: Object.keys(TOWNS)[0], addr: "", tags: [], days: [] });
     drawMasterTables();
   });
 
@@ -1956,10 +2063,13 @@
   });
 
   document.getElementById("master-save").addEventListener("click", () => {
-    USERS = draftUsers.filter((u) => u.name.trim() !== "").map((u) => ({ ...u, tags: [...u.tags] }));
+    USERS = draftUsers
+      .filter((u) => u.name.trim() !== "")
+      .map((u) => ({ ...u, tags: [...u.tags], days: [...(u.days || [])] }))
+      .sort(byKana);
     DRIVERS = draftDrivers.map((d) => d.trim()).filter(Boolean);
     indexUsers();
-    STORE.setJSON("users", USERS.map(({ id, name, kana, town, addr, tags }) => ({ id, name, kana, town, addr, tags })));
+    STORE.setJSON("users", USERS.map(({ id, name, kana, town, addr, tags, days }) => ({ id, name, kana, town, addr, tags, days })));
     STORE.setJSON("drivers", DRIVERS);
     modal.hidden = true;
     openDay(currentDate);
