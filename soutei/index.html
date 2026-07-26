@@ -216,6 +216,41 @@
     cursor: pointer;
   }
 
+  /* 見出しがプルダウンだと分かるように印を出す */
+  .date-slot::after {
+    content: "▾";
+    font-size: 15px;
+    margin: 0 2px 0 5px;
+    color: var(--ink-3);
+  }
+
+  .masthead h1 .date-slot { margin-right: 8px; }
+
+  /* 保存済みでない日はここから開く */
+  .date-open {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    letter-spacing: .06em;
+    color: var(--ink-3);
+    cursor: pointer;
+  }
+
+  .date-open input {
+    font: inherit;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+    background: var(--card);
+    border: 1px solid var(--rule-2);
+    border-radius: 0;
+    padding: 3px 6px;
+    cursor: pointer;
+  }
+
+  .date-open:hover input { border-color: var(--accent); }
+
   .saved-note {
     font-size: 11px;
     color: var(--ink-3);
@@ -353,6 +388,8 @@
   .stat.s-total, .stat.s-total b { color: var(--accent); }
   .stat.s-away b { color: var(--ink-2); }
   .stat.s-away.on, .stat.s-away.on b { color: var(--warn); }
+  .stat.s-furikae b { color: var(--ink-2); }
+  .stat.s-furikae.on, .stat.s-furikae.on b { color: var(--furikae); }
   .stat.is-alert, .stat.is-alert b { color: var(--warn); }
 
   .print-stamp {
@@ -994,7 +1031,9 @@
     .eyebrow { font-size: 6.5pt; }
     .masthead h1 { font-size: 14pt; }
     .date-slot { border-bottom: 0; }
+    .date-slot::after { content: ""; }
     .date-slot select, .date-slot input { display: none; }
+    .date-open { display: none !important; }
 
     .leg[hidden] { display: block !important; }
     .leg { break-before: page; }
@@ -1073,11 +1112,14 @@
     <h1>
       <span class="date-slot">
         <span id="title-date"></span>
-        <select id="date-select" aria-label="運行日を選ぶ"></select>
+        <select id="date-select" aria-label="保存済みの運行日を選ぶ"></select>
       </span>送迎表
     </h1>
+    <label class="date-open">
+      <span>別の日を開く</span>
+      <input type="date" id="date-picker" aria-label="別の運行日を開く">
+    </label>
     <span class="saved-note" id="saved-note"></span>
-    <input type="date" id="date-picker" aria-label="別の運行日を開く" style="position:absolute;opacity:0;pointer-events:none;width:1px;height:1px">
   </header>
 
   <div class="controls">
@@ -1651,6 +1693,7 @@
       '<span class="stat s-total"><b data-stat="total">0</b>名 登録者</span>' +
       '<span class="stat"><b data-stat="riders">0</b>名 乗車</span>' +
       '<span class="stat s-away"><b data-stat="away">0</b>名 欠席</span>' +
+      '<span class="stat s-furikae"><b data-stat="furikae">0</b>名 振替</span>' +
       '<span class="stat"><b data-stat="left">0</b>名 未割当</span>' +
       '<span class="stat"><b data-stat="dup">0</b>件 重複</span>';
 
@@ -1728,6 +1771,7 @@
     const seen = new Map();
     let riders = 0;
     let away = 0;
+    let furikae = 0;
     let running = 0;
 
     section.querySelectorAll(".car").forEach((car) => {
@@ -1750,6 +1794,7 @@
           if (!seen.has(id)) seen.set(id, []);
           seen.get(id).push(stop);
           if (absent) off++; else n++;
+          if (stop.dataset.state === "furikae") furikae++;
           /* 定員を1名減らすのはリフト車だけ。他の車では記号は付くが席は減らさない */
           if (!absent && car.dataset.lift && stop.querySelector('.tag.t-wc[aria-pressed="true"]')) hasWC = true;
         }
@@ -1796,9 +1841,11 @@
     set("total", riders + away, false);
     set("riders", riders, false);
     set("away", away, false);
+    set("furikae", furikae, false);
     set("left", missing.length, missing.length > 0);
     set("dup", dup, dup > 0);
     section.querySelector(".s-away").classList.toggle("on", away > 0);
+    section.querySelector(".s-furikae").classList.toggle("on", furikae > 0);
 
     const leftover = section.querySelector(".leftover");
     leftover.hidden = missing.length === 0;
@@ -1918,6 +1965,7 @@
   }
 
   function refreshStamps() {
+    document.getElementById("date-picker").value = currentDate;
     const date = titleDate(currentDate);
     document.getElementById("title-date").textContent = date;
     LEGS.forEach((leg) => {
@@ -2154,15 +2202,17 @@
   dateSelect.addEventListener("change", () => {
     if (dateSelect.value === "__pick__") {
       dateSelect.value = currentDate;
-      datePicker.value = currentDate;
-      if (typeof datePicker.showPicker === "function") datePicker.showPicker();
-      else datePicker.focus();
+      datePicker.focus();
+      /* showPicker は環境によって弾かれる。失敗しても入力欄が残るので操作はできる */
+      try { datePicker.showPicker(); } catch (e) { /* 入力欄から開く */ }
       return;
     }
     openDay(dateSelect.value);
   });
 
-  datePicker.addEventListener("change", () => { if (datePicker.value) openDay(datePicker.value); });
+  datePicker.addEventListener("change", () => {
+    if (datePicker.value && datePicker.value !== currentDate) openDay(datePicker.value);
+  });
 
   /* ── ツール ───────────────────────────────── */
   document.getElementById("btn-print").addEventListener("click", () => window.print());
