@@ -1192,6 +1192,83 @@
     border-top: 1px solid var(--rule);
   }
 
+  /* ── 印刷レイアウトページ ─────────────────── */
+  .page-print[hidden] { display: none; }
+
+  .page-print {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--sub);
+  }
+
+  .pp-head {
+    position: sticky;
+    top: 0;
+    z-index: 15;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: calc(var(--step) * 4);
+    padding: calc(var(--step) * 5) calc(var(--step) * 5) calc(var(--step) * 3);
+    background: var(--paper);
+    border-bottom: 2px solid var(--ink);
+  }
+
+  .pp-head h1 {
+    margin: 2px 0 0;
+    font-family: var(--mincho);
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: .1em;
+  }
+
+  .pp-count {
+    font-family: var(--gothic);
+    font-size: 13px;
+    letter-spacing: .08em;
+    color: var(--ink-3);
+    margin-left: 12px;
+  }
+
+  .pp-lead {
+    margin: 6px 0 0;
+    font-size: 12px;
+    line-height: 1.7;
+    color: var(--ink-2);
+    max-width: 62ch;
+  }
+
+  .pp-lead b { color: var(--warn); }
+  .pp-actions { display: flex; flex-wrap: wrap; gap: calc(var(--step) * 2); }
+
+  .pp-actions .btn {
+    font: inherit;
+    font-size: 13px;
+    padding: 8px 16px;
+    background: var(--card);
+    color: var(--ink-2);
+    border: 1px solid var(--rule-2);
+    cursor: pointer;
+  }
+
+  .pp-actions .btn:hover { border-color: var(--ai); color: var(--ai); }
+  .pp-actions .btn.primary { border-color: var(--ai); color: var(--ai); font-weight: 600; }
+
+  .pp-stage {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+  }
+
+  .pp-stage iframe {
+    flex: 1 1 auto;
+    width: 100%;
+    border: 0;
+    background: #6E7480;
+  }
+
   /* ── マスタ編集ページ ─────────────────────── */
   .page-master[hidden] { display: none; }
 
@@ -1631,7 +1708,8 @@
        紙の上では通常のブロックに戻して便ごとの改ページを確実にする */
     .sheet { display: block; max-width: none; padding: 0; gap: 0; }
 
-    .controls, .modal, .saved-note, .swap-bar, .date-open, .toast, .page-master { display: none !important; }
+    .controls, .modal, .saved-note, .swap-bar, .date-open, .toast,
+    .page-master, .page-print { display: none !important; }
 
     .sticky-top {
       position: static;
@@ -1684,7 +1762,7 @@
     .fleet {
       grid-template-columns: repeat(2, minmax(0, 1fr));
       grid-template-rows: repeat(4, minmax(0, 1fr));
-      height: 152mm;
+      height: 164mm;
       gap: 1.4mm;
     }
 
@@ -1874,6 +1952,23 @@
 </div>
 
 <!-- ── マスタ編集（別ページ） ───────────────── -->
+<!-- ── 印刷レイアウト（紙のまま4枚を見せる） ───────── -->
+<div class="page-print" id="page-print" hidden>
+  <header class="pp-head">
+    <div>
+      <p class="eyebrow">通所介護事業所　デイサービス　あさひ</p>
+      <h1>印刷レイアウト<span class="pp-count" id="pp-count">全4枚</span></h1>
+      <p class="pp-lead" id="pp-lead"></p>
+    </div>
+    <div class="pp-actions">
+      <button type="button" class="btn" id="print-back">送迎表へ戻る</button>
+      <button type="button" class="btn" id="print-save">ファイルに保存</button>
+      <button type="button" class="btn primary" id="print-go">この4枚を印刷</button>
+    </div>
+  </header>
+  <div class="pp-stage" id="pp-stage"></div>
+</div>
+
 <div class="page-master" id="page-master" hidden>
   <header class="pm-head">
     <div>
@@ -3988,8 +4083,17 @@
   document.getElementById("master-cancel").addEventListener("click", closeMaster);
 
   window.addEventListener("hashchange", () => {
-    if (location.hash === "#master") { if (document.getElementById("page-master").hidden) openMaster(); }
-    else if (!document.getElementById("page-master").hidden) closeMaster();
+    const onMaster = !document.getElementById("page-master").hidden;
+    const onPrint = !document.getElementById("page-print").hidden;
+    if (location.hash === "#master") {
+      document.getElementById("page-print").hidden = true;
+      if (!onMaster) openMaster();
+    }
+    else if (location.hash === "#print") { if (onMaster) closeMaster(); if (!onPrint) openPrintPage(); }
+    else {
+      if (onMaster) closeMaster();
+      if (onPrint) showPrintPage(false);
+    }
   });
 
   /* マスタ編集ページの中のタブ */
@@ -4079,6 +4183,8 @@
   function printableHTML() {
     const srcSelects = [...document.querySelectorAll(".sheet select")];
     const sheet = document.querySelector(".sheet").cloneNode(true);
+    /* 印刷レイアウトを開いている間、元の .sheet は hidden。写しでは外す */
+    sheet.removeAttribute("hidden");
     const dstSelects = [...sheet.querySelectorAll("select")];
 
     /* select の選択は複製に乗らないので、選ばれている option に印を付け直す */
@@ -4093,20 +4199,90 @@
     sheet.querySelectorAll(".controls, .saved-note, .date-open, .swap-bar").forEach((n) => n.remove());
     sheet.querySelectorAll(".leg").forEach((n) => n.removeAttribute("hidden"));
 
+    /* 便を1枚ずつ「紙」に載せる。画面でも刷り上がりのまま並べて見せる */
+    const legs = [...sheet.querySelectorAll(".leg")];
+    const stack = document.createElement("div");
+    stack.className = "paper-stack";
+    legs.forEach((leg, i) => {
+      const paper = document.createElement("div");
+      paper.className = "paper";
+      const def = LEGS.find((l) => l.key === leg.dataset.leg);
+      const no = document.createElement("span");
+      no.className = "paper-no";
+      no.textContent = (i + 1) + " / " + legs.length + (def ? "　" + def.partLabel + def.dir : "");
+      paper.append(leg, no);
+      stack.append(paper);
+    });
+    sheet.append(stack);
+
     const css = [...document.querySelectorAll("style")].map((s) => s.textContent).join("\n");
     const title = titleDate(currentDate) + "送迎表";
 
     return '<!doctype html>\n<html lang="ja">\n<head>\n<meta charset="utf-8">\n'
+      + '<meta name="viewport" content="width=device-width, initial-scale=1.0">\n'
       + "<title>" + title + "</title>\n<style>\n" + css + "\n"
-      + ".print-lead{max-width:1260px;margin:0 auto;padding:20px 20px 0;font-family:var(--gothic);"
-      + "font-size:13px;line-height:1.7;color:var(--ink-2);}\n"
-      + ".print-lead b{color:var(--ink);}\n"
-      + "@media print{.print-lead{display:none !important;}}\n"
-      + "</style>\n</head>\n<body>\n"
-      + '<p class="print-lead">これは印刷用のページです。<b>4便＝A4横4枚</b>で出ます。'
-      + "印刷ダイアログが開かないときは <b>Ctrl / ⌘ + P</b> を押してください。</p>\n"
-      + sheet.outerHTML + "\n</body>\n</html>";
+      + PAPER_CSS + "\n/* 画面でも紙の見た目で見せる */\n" + printRules(css) + "\n" + PAPER_SCREEN_CSS
+      + "\n</style>\n</head>\n<body>\n" + sheet.outerHTML + "\n"
+      + "<script>" + PAPER_FIT + "<\/script>\n</body>\n</html>";
   }
+
+  /* @media print { … } の中身を取り出して、画面にもそのまま効かせる。
+     紙とプレビューで見た目が食い違わないように、規則は1か所だけ持つ */
+  function printRules(css) {
+    const at = css.indexOf("@media print");
+    if (at < 0) return "";
+    const open = css.indexOf("{", at);
+    if (open < 0) return "";
+    let depth = 0;
+    for (let i = open; i < css.length; i++) {
+      if (css[i] === "{") depth++;
+      else if (css[i] === "}") { depth--; if (depth === 0) return css.slice(open + 1, i); }
+    }
+    return "";
+  }
+
+  /* 紙1枚ぶんの枠。A4横・余白8mm の内寸に合わせる */
+  const PAPER_CSS = [
+    ".paper-stack{display:flex;flex-direction:column;}",
+    ".paper{position:relative;background:#fff;}",
+    ".paper .leg{break-before:auto !important;}",
+    /* 便が紙ごとに包まれると :first-of-type が紙ごとに当たるので、
+       凡例は「1枚目の紙」だけに出し直す */
+    ".paper .leg-legend{display:none !important;}",
+    ".paper:first-child .leg-legend{display:block !important;}",
+    ".paper-no{display:none;}",
+    "@page{size:A4 landscape;margin:8mm;}",
+    "@media print{",
+    "  html,body{background:#fff !important;margin:0;padding:0;}",
+    "  .paper-stack{display:block;}",
+    "  .paper{width:auto;height:auto;margin:0;padding:0;box-shadow:none;overflow:visible;",
+    "    break-before:page;break-inside:avoid;}",
+    "  .paper:first-child{break-before:auto;}",
+    "  .paper-no{display:none !important;}",
+    "}"
+  ].join("\n");
+
+  /* 画面では紙を1枚ずつ並べ、窓の幅に合わせて縮める */
+  const PAPER_SCREEN_CSS = [
+    "@media screen{",
+    "  html{background:#6E7480;}",
+    "  body{background:#6E7480;margin:0;padding:18px 0 40px;}",
+    "  .sheet{display:block;max-width:none;padding:0;gap:0;}",
+    "  .paper-stack{align-items:center;gap:18px;}",
+    "  .paper{width:277mm;height:194mm;padding:0;overflow:hidden;",
+    "    box-shadow:0 3px 14px rgba(0,0,0,.42);zoom:var(--fit,1);}",
+    "  .paper-no{display:block;position:absolute;right:4mm;bottom:2mm;",
+    "    font-family:var(--gothic);font-size:7pt;letter-spacing:.08em;color:#9AA1AA;}",
+    "}"
+  ].join("\n");
+
+  /* 紙の幅が窓に収まらないときだけ縮める（拡大はしない） */
+  const PAPER_FIT = [
+    "(function(){var W=277*96/25.4;function fit(){",
+    "var s=Math.min(1,(document.documentElement.clientWidth-32)/W);",
+    "document.documentElement.style.setProperty('--fit',s);}",
+    "fit();addEventListener('resize',fit);})();"
+  ].join("");
 
   function openPrintView() {
     let w = null;
@@ -4183,26 +4359,92 @@
       });
   }
 
-  document.getElementById("btn-print").addEventListener("click", () => {
-    /* いちばん素直な道：別タブへ出して、最上位のページとして組ませる */
+  /* ── 印刷レイアウトページ ─────────────────
+     プレビューの枠の中にいると、親ページの紙割りに巻き込まれて便が
+     用紙の途中で切られる（同じ内容でも 最上位=4枚／枠の中=5枚 になる）。
+     そこで刷り上がりの4枚をそのまま見せたうえで、
+     枠の外へ出る経路（別タブ・ファイル）から印刷してもらう。 */
+  const embedded = window.top !== window.self;
+
+  function showPrintPage(on) {
+    document.querySelector(".sheet").hidden = on;
+    document.getElementById("page-print").hidden = !on;
+    if (on && location.hash !== "#print") location.hash = "print";
+    if (!on && location.hash === "#print") history.replaceState(null, "", location.pathname + location.search);
+    window.scrollTo(0, 0);
+  }
+
+  function openPrintPage() {
+    const stage = document.getElementById("pp-stage");
+    stage.innerHTML = "";
+    const frame = document.createElement("iframe");
+    frame.id = "print-frame";
+    frame.title = "印刷レイアウト";
+    frame.srcdoc = printableHTML();
+    stage.append(frame);
+
+    document.getElementById("pp-count").textContent =
+      "全" + LEGS.length + "枚　" + titleDate(currentDate);
+    document.getElementById("pp-lead").innerHTML = embedded
+      ? "下に並んでいるのが刷り上がりの4枚です。"
+        + "<b>この枠の中から印刷すると、便が用紙の途中で切られて4枚になりません。</b>"
+        + "「この4枚を印刷」を押すと別のタブで開き、開けない場合はファイルに保存します。"
+        + "保存したファイルを開いて印刷すれば、確実に4枚で出ます。"
+      : "下に並んでいるのが刷り上がりの4枚です。"
+        + "「この4枚を印刷」で、この4枚だけを印刷します。";
+
+    showPrintPage(true);
+  }
+
+  function closePrintPage() { showPrintPage(false); }
+
+  /* 枠の外に出られないときの最後の手段。印刷レイアウトの iframe だけを刷る。
+     親の紙割りに巻き込まれる可能性が残るので、確実な経路の後に置く */
+  function printPreviewFrame() {
+    const frame = document.getElementById("print-frame");
+    if (!frame || !frame.contentWindow) return false;
+    try { frame.contentWindow.focus(); frame.contentWindow.print(); return true; }
+    catch (e) { return false; }
+  }
+
+  document.getElementById("btn-print").addEventListener("click", openPrintPage);
+  document.getElementById("print-back").addEventListener("click", closePrintPage);
+  document.getElementById("print-save").addEventListener("click", () => {
+    if (hostSave()) { saveViaHost(); return; }
+    if (downloadPrintView()) {
+      notify("印刷用のファイルを保存しました。開いて印刷すると4便＝A4横4枚で出ます。");
+      return;
+    }
+    notify("この環境ではファイルに保存できませんでした。"
+      + "送迎表を別のタブ（別ウィンドウ）で開いてから印刷してください。", "warn");
+  });
+
+  document.getElementById("print-go").addEventListener("click", () => {
+    /* いちばん確実な道：別タブへ出して、最上位のページとして組ませる */
     if (openPrintView()) {
       notify("印刷用のページを別のタブで開きました。そちらで印刷してください（4便＝A4横4枚）。");
       return;
     }
 
-    /* 埋め込みの中で印刷すると親ページの紙割りに巻き込まれ、便が
-       用紙の途中で切られる。そのままの印刷はせず、ファイルで渡す */
-    if (window.top !== window.self) {
+    if (embedded) {
       if (hostSave()) { saveViaHost(); return; }
       if (downloadPrintView()) {
-        notify("印刷用のHTMLの保存を試みました。開いて印刷すると4便＝A4横4枚で出ます。"
-          + "保存されない場合は、送迎表を別のタブで開いてから印刷してください。", "warn");
+        notify("別のタブを開けなかったので、印刷用のファイルを保存しました。"
+          + "開いて印刷すると4便＝A4横4枚で出ます。", "warn");
         return;
       }
-      notify("この枠の中から印刷すると、便が用紙の途中で切られてしまいます。"
+      if (printPreviewFrame()) {
+        notify("別のタブもファイルも使えなかったので、この枠のまま印刷を試みます。"
+          + "4枚にならない場合は、送迎表を別のタブで開いてから印刷してください。", "warn");
+        return;
+      }
+      notify("この枠の中からは印刷できません。"
         + "送迎表を別のタブ（別ウィンドウ）で開いてから印刷してください。", "warn");
       return;
     }
+
+    /* 最上位ページなら、印刷レイアウトの iframe をそのまま刷れる */
+    if (printPreviewFrame()) return;
 
     let opened = false;
     const mark = () => { opened = true; };
