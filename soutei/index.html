@@ -616,6 +616,57 @@
 
   .side-hint b { color: var(--ink-2); }
 
+  /* マスタ編集は「別の場所へ行く」操作なので、日々のツールとは見た目を分ける */
+  .side-master {
+    font: inherit;
+    display: flex;
+    align-items: center;
+    gap: calc(var(--step) * 2);
+    width: 100%;
+    padding: 9px 10px;
+    text-align: left;
+    color: var(--ink);
+    background: var(--sub);
+    border: 1px solid var(--rule-2);
+    border-radius: 9px;
+    cursor: pointer;
+    transition: border-color .12s, background-color .12s;
+  }
+
+  .side-master:hover {
+    border-color: var(--ai);
+    background: var(--ai-soft);
+  }
+
+  .sm-icon {
+    flex: 0 0 auto;
+    width: 26px;
+    height: 26px;
+    display: grid;
+    place-items: center;
+    border-radius: 7px;
+    background: var(--card);
+    border: 1px solid var(--rule-2);
+    color: var(--ai);
+  }
+
+  .sm-icon svg { width: 15px; height: 15px; }
+  .side-master:hover .sm-icon { border-color: var(--ai); }
+  .sm-text { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+  .sm-title { font-size: 13px; font-weight: 600; letter-spacing: .04em; }
+  .sm-sub { font-size: 10px; color: var(--ink-3); }
+
+  /* 事業所名はその場で直せる */
+  .eyebrow[contenteditable] {
+    border-radius: 4px;
+    padding: 1px 4px;
+    margin-left: -4px;
+    outline-offset: 1px;
+  }
+
+  .eyebrow[contenteditable]:hover { background: var(--sub); }
+  .eyebrow[contenteditable]:empty::before { content: "事業所名を入力"; color: var(--rule-2); }
+
   /* 車両カードごと受け取れるようにする（空き行を探して入れる） */
   .car.drop-car { box-shadow: inset 0 0 0 2px var(--accent); }
 
@@ -957,6 +1008,14 @@
   }
 
   .car-depart { border-bottom: 1px solid var(--rule); }
+
+  /* 午後お迎えのように事業所発を持たない便の説明 */
+  .car-depart[data-nodepart] .flow-note {
+    color: var(--accent);
+    letter-spacing: .04em;
+  }
+
+  .car-depart [hidden] { display: none !important; }
 
   .car-foot {
     justify-content: space-between;
@@ -2103,7 +2162,8 @@
 <div class="sheet">
   <div class="sticky-top" id="sticky-top">
   <header class="masthead">
-    <p class="eyebrow">通所介護事業所　デイサービス　あさひ</p>
+    <p class="eyebrow" id="office-name-top" contenteditable="true" spellcheck="false"
+       title="事業所名。ここで直すとマスタにも入り、印刷にも出ます"></p>
     <h1>
       <span class="date-slot">
         <span id="title-date"></span>
@@ -2135,7 +2195,6 @@
         <button type="button" id="btn-undo" title="一つ戻る">↶ 一つ戻る</button>
         <button type="button" id="btn-redo" title="一つ進む">↷ 一つ進む</button>
       </span>
-      <button type="button" id="btn-master">マスタ編集</button>
       <button type="button" id="btn-clear">記入をクリア</button>
       <button type="button" id="btn-print">印刷（全4便・各1枚）</button>
     </div>
@@ -2151,6 +2210,13 @@
       </div>
       <div class="side-list" id="side-list"></div>
       <p class="side-hint">名前を車両カードへ<b>ドラッグ</b>すると乗せられます。押して選ぶこともできます。</p>
+      <button type="button" class="side-master" id="btn-master">
+        <span class="sm-icon" id="sm-icon"></span>
+        <span class="sm-text">
+          <span class="sm-title">マスタ編集</span>
+          <span class="sm-sub">利用者・運転手・配車・事業所</span>
+        </span>
+      </button>
     </aside>
     <div id="sections"></div>
   </div>
@@ -2216,7 +2282,8 @@
 <div class="page-print" id="page-print" hidden>
   <header class="pp-head">
     <div>
-      <p class="eyebrow">通所介護事業所　デイサービス　あさひ</p>
+      <p class="eyebrow" id="office-name-top" contenteditable="true" spellcheck="false"
+       title="事業所名。ここで直すとマスタにも入り、印刷にも出ます"></p>
       <h1>印刷レイアウト<span class="pp-count" id="pp-count">全4枚</span></h1>
       <p class="pp-lead" id="pp-lead"></p>
     </div>
@@ -2232,7 +2299,8 @@
 <div class="page-master" id="page-master" hidden>
   <header class="pm-head">
     <div>
-      <p class="eyebrow">通所介護事業所　デイサービス　あさひ</p>
+      <p class="eyebrow" id="office-name-top" contenteditable="true" spellcheck="false"
+       title="事業所名。ここで直すとマスタにも入り、印刷にも出ます"></p>
       <h1>マスタ編集</h1>
     </div>
     <div class="pm-actions">
@@ -2348,8 +2416,10 @@
      depart は各車の事業所発の初期値で、カードごとに書き換えられる。 */
   const LEGS = [
     { key: "am-pick", part: "am", partLabel: "午前", dir: "お迎え", flow: "自宅 → 事業所", departLabel: "事業所 発", arriveLabel: "事業所 着", depart: "08:15", arriveBy: ["08:55", "09:00"], accent: "ai" },
-    { key: "am-drop", part: "am", partLabel: "午前", dir: "お送り", flow: "事業所 → 自宅", departLabel: "事業所 発", arriveLabel: "事業所 帰着", depart: "12:00", accent: "kaki" },
-    { key: "pm-pick", part: "pm", partLabel: "午後", dir: "お迎え", flow: "自宅 → 事業所", departLabel: "事業所 発", arriveLabel: "事業所 着", depart: "12:45", arriveBy: ["13:15", "13:20"], accent: "seiheki" },
+    { key: "am-drop", part: "am", partLabel: "午前", dir: "お送り", flow: "事業所 → 自宅", departLabel: "事業所 発", arriveLabel: "事業所 帰着", depart: "12:05", accent: "kaki" },
+    /* 午後お迎えは午前お送りから続けて回るので、事業所発の記入欄は置かない。
+       時刻は事業所着（13:20 まで）からの逆算だけで決まる */
+    { key: "pm-pick", part: "pm", partLabel: "午後", dir: "お迎え", flow: "自宅 → 事業所", departLabel: "午前お送りから続けて", noDepart: true, arriveLabel: "事業所 着", depart: "12:45", arriveBy: ["13:15", "13:20"], accent: "seiheki" },
     { key: "pm-drop", part: "pm", partLabel: "午後", dir: "お送り", flow: "事業所 → 自宅", departLabel: "事業所 発", arriveLabel: "事業所 帰着", depart: "16:30", accent: "enji" }
   ];
 
@@ -2382,6 +2452,10 @@
       + '<path d="M7 21h14"/>'
       + '<circle cx="16.6" cy="12" r="1.15" fill="currentColor" stroke="none"/>'
       + '<path d="M2.2 12h5.2M4.8 9.4 7.4 12l-2.6 2.6"/>'),
+    /* つまみ：マスタ編集へ。小さくても「設定」と読めるもの */
+    gear: svg('<path d="M3.4 6.4h9.2M17.6 6.4h3M3.4 12h3.4M11.8 12h8.8M3.4 17.6h9.2M17.6 17.6h3"/>'
+      + '<circle cx="15.1" cy="6.4" r="2.5"/><circle cx="9.3" cy="12" r="2.5"/>'
+      + '<circle cx="15.1" cy="17.6" r="2.5"/>'),
     /* 地図：ルートを開く口 */
     map: svg('<path d="M9 20.5 3 22.5V5.5l6-2 6 2 6-2v17l-6 2-6-2Z"/>'
       + '<path d="M9 3.5v17M15 5.5v17"/>')
@@ -3123,7 +3197,17 @@
     map.title = "この車のルートを地図で見る";
     map.setAttribute("aria-label", "この車のルートを地図で見る");
 
-    depBar.append(el("span", "lbl", leg.departLabel), dep, el("span", "lbl", "実績"), depActual, map, fold);
+    if (leg.noDepart) {
+      /* 事業所発の記入はしない。時刻は着からの逆算で決まるので、
+         .dep は計算の起点として持つだけにして画面からは隠す */
+      depBar.dataset.nodepart = "1";
+      dep.contentEditable = "false";
+      dep.hidden = true;
+      depActual.hidden = true;
+      depBar.append(el("span", "lbl flow-note", leg.departLabel), dep, depActual, map, fold);
+    } else {
+      depBar.append(el("span", "lbl", leg.departLabel), dep, el("span", "lbl", "実績"), depActual, map, fold);
+    }
     dep.addEventListener("input", refresh);
 
     const list = el("ol", "route");
@@ -3250,7 +3334,11 @@
      手入力された時刻はそこから先の起点として扱い、上書きしない。
      欠席は立ち寄らないので予定時刻を消し、以降を繰り上げる。 */
   function computeTimes(section, leg) {
-    section.querySelectorAll(".car").forEach((car) => {
+    section.querySelectorAll(".car").forEach((car, index) => {
+      /* 事業所発を持たない便（午後お迎え）は、記入で調整する口がないので
+         毎回そのときの顔ぶれで着から逆算し直す。上限を必ず内側に保つ */
+      if (leg.noDepart && leg.arriveBy) retimeCar(car, leg, index);
+
       let cursor = parseHHMM(car.querySelector(".dep").textContent);
       if (cursor === null) cursor = parseHHMM(leg.depart) || 0;
       let from = DEPOT;
@@ -5283,7 +5371,8 @@
 
   /* 事業所名を表題と印刷の見出しに流す */
   function applyOffice() {
-    document.querySelectorAll(".masthead .eyebrow").forEach((n) => { n.textContent = OFFICE.name; });
+    const top = document.getElementById("office-name-top");
+    if (top && top.textContent !== OFFICE.name) top.textContent = OFFICE.name;
     refreshStamps();
     LEGS.forEach((leg) => {
       const section = document.getElementById("leg-" + leg.key);
@@ -5291,12 +5380,34 @@
     });
   }
 
+  /* 事業所名はその場で直せる。マスタ編集の「事業所」タブと同じ中身を指す */
+  (function bindOfficeName() {
+    const top = document.getElementById("office-name-top");
+    const commit = () => {
+      const name = top.textContent.replace(/\s+$/, "").trim();
+      if (!name) { top.textContent = OFFICE.name; return; }
+      if (name === OFFICE.name) return;
+      OFFICE = Object.assign({}, OFFICE, { name });
+      STORE.setJSON("office", OFFICE);
+      refreshStamps();
+      notify("事業所名を「" + name + "」にしました。");
+    };
+    top.addEventListener("blur", commit);
+    top.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") { e.preventDefault(); top.blur(); }
+      if (e.key === "Escape") { top.textContent = OFFICE.name; top.blur(); }
+    });
+  })();
+
+  document.getElementById("sm-icon").innerHTML = ICONS.gear;
+
   /* 凡例の見本にも同じ絵を入れる */
   document.querySelectorAll(".legend .swatch[data-icon]").forEach((s) => {
     s.innerHTML = ICONS[s.dataset.icon] || "";
   });
 
   /* ── 起動 ─────────────────────────────────── */
+  applyOffice();
   renderDay(currentDate, LEGS[0].key);
   syncStickyHeight();
   if (location.hash === "#master") openMaster();
