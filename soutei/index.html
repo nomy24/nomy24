@@ -25,8 +25,8 @@
     --enji-soft: #F5E5E9;
 
     /* 記号は便によらず一定 */
-    --tag-wc: #8A5A1E;
-    --tag-aid: #2F5D8C;
+    --tag-wc: #B23A2C;
+    --tag-aid: #1B87C9;
     --tag-door: #3F6B4E;
 
     --warn: #9C2B2B;
@@ -67,8 +67,8 @@
       --seiheki-soft: #17292C;
       --enji: #D2879A;
       --enji-soft: #2E1C22;
-      --tag-wc: #D2A86A;
-      --tag-aid: #8FB2D8;
+      --tag-wc: #E88A7C;
+      --tag-aid: #6FC2EE;
       --tag-door: #86B79A;
       --warn: #DE8480;
       --warn-soft: #331E1E;
@@ -98,8 +98,8 @@
     --seiheki-soft: #17292C;
     --enji: #D2879A;
     --enji-soft: #2E1C22;
-    --tag-wc: #D2A86A;
-    --tag-aid: #8FB2D8;
+    --tag-wc: #E88A7C;
+    --tag-aid: #6FC2EE;
     --tag-door: #86B79A;
     --warn: #DE8480;
     --warn-soft: #331E1E;
@@ -128,8 +128,8 @@
     --seiheki-soft: #E1EDEE;
     --enji: #8E3B4E;
     --enji-soft: #F5E5E9;
-    --tag-wc: #8A5A1E;
-    --tag-aid: #2F5D8C;
+    --tag-wc: #B23A2C;
+    --tag-aid: #1B87C9;
     --tag-door: #3F6B4E;
     --warn: #9C2B2B;
     --warn-soft: #F6E7E5;
@@ -155,7 +155,7 @@
   .sheet[hidden] { display: none !important; }
 
   .sheet {
-    max-width: 1260px;
+    max-width: 1440px;
     margin: 0 auto;
     padding: 0 calc(var(--step) * 5) calc(var(--step) * 12);
     display: flex;
@@ -164,9 +164,9 @@
   }
 
   /* スクロールしても日付・便・操作は手元に残す */
+  /* 上に貼り付くのは便の見出しの行だけにして、作業面を広く取る */
   .sticky-top {
-    position: sticky;
-    top: 0;
+    position: relative;
     z-index: 15;
     background: var(--paper);
     padding: calc(var(--step) * 6) 0 calc(var(--step) * 3);
@@ -176,7 +176,7 @@
   }
 
   .sticky-top::after {
-    content: "";
+    content: none;
     position: absolute;
     left: 0;
     right: 0;
@@ -184,6 +184,10 @@
     height: calc(var(--step) * 3);
     background: linear-gradient(var(--paper), transparent);
     pointer-events: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
   }
 
   :focus-visible {
@@ -323,6 +327,7 @@
     align-items: center;
     gap: 2px;
     background: var(--sub);
+    border-radius: 11px;
     padding: 3px 3px 3px 10px;
   }
 
@@ -339,10 +344,12 @@
     font-size: 14px;
     padding: 7px 16px;
     border: 0;
+    border-radius: 8px;
     background: transparent;
     color: var(--ink-2);
     cursor: pointer;
     letter-spacing: .06em;
+    transition: background-color .12s, color .12s;
   }
 
   .legs button[aria-selected="true"] {
@@ -360,10 +367,12 @@
     font: inherit;
     font-size: 13px;
     padding: 7px 16px;
-    background: transparent;
+    background: var(--card);
     color: var(--ink-2);
     border: 1px solid var(--rule-2);
+    border-radius: 8px;
     cursor: pointer;
+    transition: border-color .12s, color .12s, background-color .12s;
   }
 
   .tools button:hover {
@@ -487,12 +496,141 @@
 
   .swap-none { color: var(--ink-3); }
 
+  /* ── 未割当のサイドバー ────────────────────
+     乗せ忘れは紙に出てから気づいても遅いので、常に脇に出しておく。
+     ここから車両カードへ直接ドラッグして乗せる。 */
+  .work {
+    display: grid;
+    grid-template-columns: 200px minmax(0, 1fr);
+    align-items: start;
+    gap: calc(var(--step) * 5);
+  }
+
+  .side {
+    position: sticky;
+    top: calc(var(--step) * 3);
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--step) * 3);
+    max-height: calc(100vh - var(--step) * 6);
+    padding: calc(var(--step) * 3);
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+  }
+
+  .side-legs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 3px;
+  }
+
+  .side-legs button {
+    font: inherit;
+    font-size: 11px;
+    line-height: 1.35;
+    padding: 6px 4px;
+    border: 1px solid var(--rule-2);
+    border-radius: 7px;
+    background: transparent;
+    color: var(--ink-2);
+    cursor: pointer;
+    letter-spacing: .02em;
+  }
+
+  .side-legs button:hover { border-color: var(--tab); color: var(--tab); }
+
+  .side-legs button[aria-selected="true"] {
+    border-color: var(--tab);
+    background: var(--tab);
+    color: var(--card);
+    font-weight: 600;
+  }
+
+  .side-head {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    padding-top: calc(var(--step) * 1);
+    border-top: 1px solid var(--rule);
+  }
+
+  .side-title { font-size: 12px; letter-spacing: .1em; color: var(--ink-2); }
+
+  .side-count {
+    margin-left: auto;
+    font-size: 17px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--ok);
+  }
+
+  .side.has-left .side-count { color: var(--warn); }
+
+  .side-list {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .side-name {
+    font: inherit;
+    font-size: 13px;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    padding: 5px 8px;
+    border: 1px solid var(--warn);
+    border-left-width: 3px;
+    border-radius: 7px;
+    background: var(--warn-soft);
+    color: var(--warn);
+    cursor: grab;
+  }
+
+  .side-name:active { cursor: grabbing; }
+  .side-name.dragging { opacity: .45; }
+  .side-name .sn-addr { font-size: 10px; color: var(--ink-3); font-weight: 400; }
+  .side-name:hover { background: var(--warn); color: var(--card); }
+  .side-name:hover .sn-addr { color: var(--card); }
+
+  .side-none {
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--ink-3);
+    padding: calc(var(--step) * 2) 0;
+  }
+
+  .side-hint {
+    margin: 0;
+    font-size: 10px;
+    line-height: 1.6;
+    color: var(--ink-3);
+    border-top: 1px solid var(--rule);
+    padding-top: calc(var(--step) * 2);
+  }
+
+  .side-hint b { color: var(--ink-2); }
+
+  /* 車両カードごと受け取れるようにする（空き行を探して入れる） */
+  .car.drop-car { box-shadow: inset 0 0 0 2px var(--accent); }
+
+  @media screen and (max-width: 1080px) {
+    .work { grid-template-columns: minmax(0, 1fr); }
+    .side { position: static; max-height: none; }
+    .side-list { max-height: 40vh; }
+  }
+
   /* ── 便ヘッダ ─────────────────────────────── */
   .leg[hidden] { display: none; }
 
   .leg-head {
     position: sticky;
-    top: var(--topbar-h, 120px);
+    top: 0;
     z-index: 10;
     background: var(--paper);
     display: flex;
@@ -577,8 +715,17 @@
     grid-template-columns: 116px minmax(0, 1fr);
     background: var(--card);
     border: 1px solid var(--rule);
+    border-radius: 12px;
+    overflow: hidden;
     break-inside: avoid;
     font-weight: 600;
+    box-shadow: 0 1px 2px rgba(16, 24, 32, .05);
+    transition: box-shadow .14s, border-color .14s;
+  }
+
+  @media screen {
+    .car:hover { box-shadow: 0 3px 10px rgba(16, 24, 32, .09); }
+    .car.is-over { border-color: var(--warn); }
   }
 
   /* 車椅子（記号「車」）が乗るリフト車はカードごと朱に振る */
@@ -611,6 +758,7 @@
   .no-box {
     width: 32px;
     height: 32px;
+    border-radius: 8px;
     border: 1px solid var(--accent);
     background: var(--card);
     font-family: var(--mincho);
@@ -658,6 +806,7 @@
     color: var(--ink);
     background: var(--card);
     border: 1px solid var(--accent);
+    border-radius: 6px;
   }
 
   /* 運転手：号車と同じ記入枠。プルダウンから選ぶ */
@@ -684,7 +833,7 @@
     color: var(--ink);
     background: var(--card);
     border: 1px solid var(--accent);
-    border-radius: 0;
+    border-radius: 6px;
     appearance: none;
     -webkit-appearance: none;
     cursor: pointer;
@@ -753,8 +902,9 @@
 
   .cc-expand, .car-fold {
     margin-left: auto;
-    width: 20px;
-    height: 20px;
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
     display: grid;
     place-items: center;
     padding: 0;
@@ -770,6 +920,30 @@
   .car-fold { display: none; }
   .car[data-canfold="1"] .car-fold { display: grid; }
 
+  /* 地図：カードの右上。走り出す前にルートを一度見るための口 */
+  .car-map {
+    margin-left: auto;
+    width: 22px;
+    height: 22px;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--rule-2);
+    border-radius: 6px;
+    color: var(--accent);
+    background: var(--card);
+    text-decoration: none;
+  }
+
+  .car-map svg { width: 13px; height: 13px; }
+  .car-map:hover { border-color: var(--accent); background: var(--accent-soft); }
+  .car-fold { margin-left: 0; }
+
+  .car-map[data-off] {
+    color: var(--rule-2);
+    border-style: dashed;
+    pointer-events: none;
+  }
+
   /* ── 事業所発／着のバー ───────────────────── */
   .car-depart,
   .car-foot {
@@ -783,7 +957,14 @@
   }
 
   .car-depart { border-bottom: 1px solid var(--rule); }
-  .car-foot { justify-content: space-between; }
+
+  .car-foot {
+    justify-content: space-between;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+  }
+
+  .car-foot > * { min-width: 0; }
 
   .car-depart .lbl,
   .car-foot .lbl {
@@ -862,10 +1043,10 @@
 
   .stop {
     display: grid;
-    grid-template-columns: 19px 3.2rem 3.4rem minmax(4.4rem, 1.15fr) minmax(4.4rem, 1fr) auto minmax(4.4rem, 1.05fr);
+    grid-template-columns: 19px 3rem 2.7rem minmax(3.4rem, 1.1fr) minmax(3.8rem, 1.35fr) 60px minmax(2.8rem, 0.9fr);
     align-items: center;
-    gap: calc(var(--step) * 2);
-    padding: 5px calc(var(--step) * 3);
+    gap: 7px;
+    padding: 5px calc(var(--step) * 2);
     border-bottom: 1px solid var(--rule);
     min-height: 32px;
   }
@@ -884,6 +1065,7 @@
   .stop.head .ord { visibility: hidden; }
 
   /* 行の中身は明示配置。赤線が時刻から住所まで重なれるようにする */
+  .stop > * { min-width: 0; }
   .stop > *:nth-child(1) { grid-column: 1; grid-row: 1; }
   .stop > *:nth-child(2) { grid-column: 2; grid-row: 1; }
   .stop > *:nth-child(3) { grid-column: 3; grid-row: 1; }
@@ -1028,23 +1210,32 @@
 
   .tags {
     display: flex;
-    gap: 3px;
+    gap: 2px;
     justify-content: flex-end;
   }
 
   .tag {
-    width: 17px;
-    height: 17px;
+    width: 18px;
+    height: 18px;
     display: grid;
     place-items: center;
-    font-size: 10px;
-    font-family: inherit;
     border: 1px solid currentColor;
+    border-radius: 5px;
     background: transparent;
     color: var(--rule-2);
     padding: 0;
     cursor: pointer;
     user-select: none;
+    transition: color .12s, background-color .12s;
+  }
+
+  .tag svg { width: 13px; height: 13px; display: block; }
+  .tag:hover { color: var(--ink-3); }
+
+  /* 付いている記号は塗って、走行前にひと目で拾えるようにする */
+  .tag[aria-pressed="true"] {
+    background: color-mix(in srgb, currentColor 12%, transparent);
+    border-width: 1.4px;
   }
 
   .tag[aria-pressed="true"].t-wc { color: var(--tag-wc); }
@@ -1063,6 +1254,9 @@
   }
 
   .leftover[hidden] { display: none; }
+
+  /* 画面では脇のサイドバーが担うので、帯は紙のときだけ出す */
+  @media screen { .leftover { display: none; } }
   .leftover b { font-weight: 600; }
 
   .left-name {
@@ -1073,6 +1267,7 @@
     background: var(--card);
     color: var(--warn);
     border: 1px solid var(--warn);
+    border-radius: 999px;
     cursor: pointer;
   }
 
@@ -1098,13 +1293,16 @@
   }
 
   .legend .swatch {
-    width: 15px;
-    height: 15px;
+    width: 19px;
+    height: 19px;
     display: grid;
     place-items: center;
-    font-size: 9px;
     border: 1px solid currentColor;
+    border-radius: 5px;
+    background: color-mix(in srgb, currentColor 12%, transparent);
   }
+
+  .legend .swatch svg { width: 12px; height: 12px; display: block; }
 
   .legend .s-wc { color: var(--tag-wc); }
   .legend .s-aid { color: var(--tag-aid); }
@@ -1115,6 +1313,7 @@
     position: fixed;
     left: 50%;
     bottom: 28px;
+    border-radius: 10px;
     transform: translateX(-50%);
     z-index: 40;
     max-width: min(560px, 90vw);
@@ -1145,6 +1344,9 @@
   .modal-panel {
     background: var(--paper);
     border: 1px solid var(--rule-2);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 18px 50px rgba(8, 12, 18, .3);
     width: min(1040px, 100%);
     /* グリッドの行は中身なりに伸びるので、高さは画面基準で止める */
     max-height: calc(100vh - calc(var(--step) * 10));
@@ -1276,7 +1478,7 @@
   .page-master[hidden] { display: none; }
 
   .page-master {
-    max-width: 1260px;
+    max-width: 1440px;
     margin: 0 auto;
     padding: calc(var(--step) * 8) calc(var(--step) * 5) calc(var(--step) * 12);
     display: flex;
@@ -1348,6 +1550,36 @@
     font-size: 11px;
     line-height: 1.6;
     color: var(--ink-3);
+  }
+
+  .office-form {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--step) * 5);
+    max-width: 640px;
+  }
+
+  .of-row {
+    display: grid;
+    grid-template-columns: 11rem minmax(0, 1fr);
+    align-items: baseline;
+    gap: 4px calc(var(--step) * 3);
+  }
+
+  .of-label { font-size: 12px; color: var(--ink-2); letter-spacing: .04em; }
+
+  .of-help {
+    grid-column: 2;
+    font-size: 11px;
+    line-height: 1.6;
+    color: var(--ink-3);
+  }
+
+  .of-help b { color: var(--ink-2); font-weight: 600; }
+
+  @media screen and (max-width: 560px) {
+    .of-row { grid-template-columns: minmax(0, 1fr); }
+    .of-help { grid-column: 1; }
   }
 
   .page-master tr.is-ended td { background: var(--sub); }
@@ -1554,10 +1786,12 @@
     font: inherit;
     font-size: 12px;
     padding: 5px 12px;
-    background: transparent;
+    background: var(--card);
     color: var(--ink-2);
     border: 1px solid var(--rule-2);
+    border-radius: 7px;
     cursor: pointer;
+    transition: border-color .12s, color .12s;
   }
 
   .modal .btn:hover,
@@ -1597,7 +1831,9 @@
     text-align: left;
     background: var(--card);
     border: 1px solid var(--rule-2);
+    border-radius: 9px;
     cursor: pointer;
+    transition: border-color .12s;
   }
 
   .assign-car:hover:not(:disabled) { border-color: var(--ai); }
@@ -1712,7 +1948,9 @@
     .sheet { display: block; max-width: none; padding: 0; gap: 0; }
 
     .controls, .modal, .saved-note, .swap-bar, .date-open, .toast,
-    .page-master, .page-print { display: none !important; }
+    .page-master, .page-print, .side { display: none !important; }
+
+    .work { display: block; }
 
     .sticky-top {
       position: static;
@@ -1759,14 +1997,21 @@
     .stat { font-size: 6.5pt; gap: 3px; }
     .stat b { font-size: 9.5pt; }
 
+    /* 紙は帳票なので、画面用の丸みと陰影は落とす */
+    .car { border-radius: 0; box-shadow: none; overflow: visible; }
+    .no-box, .start-box, .driver-select, .tag, .left-name { border-radius: 0; }
+
     /* 画面幅がどうであれ、紙の上では必ず2列4段の8台に組む。
        高さを mm で決め打ちして、環境ごとのフォント寸法で
        ページ数が変わらないようにする（Windows の游ゴシックは背が高い） */
+    /* 4段目はノア・リフト車（6行）。1〜3段目は5人乗り（4行）なので、
+       同じ高さに詰めると6行のほうが窮屈になる。
+       1行あたりの高さが揃うよう、4段目だけ背を高くする */
     .fleet {
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      grid-template-rows: repeat(4, minmax(0, 1fr));
-      height: 164mm;
-      gap: 1.4mm;
+      grid-template-rows: repeat(3, minmax(0, 1fr)) minmax(0, 1.34fr);
+      height: 170mm;
+      gap: 3.2mm 3.4mm;
     }
 
     .car { grid-template-columns: 21mm minmax(0, 1fr); height: 100%; min-height: 0; }
@@ -1801,7 +2046,7 @@
       min-height: 0;
       padding: 0.28mm 1.6mm;
       gap: 1.2mm;
-      grid-template-columns: 13px 2.8rem 2.9rem minmax(3.6rem, 1.1fr) minmax(3.6rem, 0.95fr) auto minmax(3.6rem, 1fr);
+      grid-template-columns: 13px 2.8rem 2.9rem minmax(3.6rem, 1.1fr) minmax(3.8rem, 1.05fr) 49px minmax(3.6rem, 0.95fr);
       line-height: 1.25;
     }
 
@@ -1819,7 +2064,8 @@
     .stop.empty .area { border-bottom: 1px dotted #BBB; }
     .who[data-empty="true"] { border-bottom: 1px dotted #BBB; }
 
-    .tag { width: 12px; height: 12px; font-size: 6.5pt; }
+    .tag { width: 14.5px; height: 14.5px; border-radius: 3px; }
+    .tag svg { width: 11px; height: 11px; stroke-width: 2.3; }
 
     /* 未割当は1行に収める。名前が多いときは画面側で確認する */
     .leftover {
@@ -1834,7 +2080,7 @@
 
     .car.collapsed > .car-collapsed { padding: 0.6mm 1.6mm; font-size: 7pt; }
     .cc-why { font-size: 6pt; }
-    .cc-expand, .car-fold { display: none !important; }
+    .cc-expand, .car-fold, .car-map { display: none !important; }
 
     .legend { display: none; }
 
@@ -1896,7 +2142,18 @@
   </div>
   </div>
 
-  <div id="sections"></div>
+  <div class="work">
+    <aside class="side" id="side" aria-label="未割当の利用者">
+      <div class="side-legs" id="side-legs" role="tablist" aria-label="便の切替"></div>
+      <div class="side-head">
+        <span class="side-title">未割当</span>
+        <span class="side-count" id="side-count">0</span>
+      </div>
+      <div class="side-list" id="side-list"></div>
+      <p class="side-hint">名前を車両カードへ<b>ドラッグ</b>すると乗せられます。押して選ぶこともできます。</p>
+    </aside>
+    <div id="sections"></div>
+  </div>
   <div class="toast" id="toast" hidden></div>
 <datalist id="end-reasons">
   <option value="入院"></option>
@@ -1908,9 +2165,9 @@
 </datalist>
 
   <div class="legend">
-    <span class="item"><span class="swatch s-wc">車</span>車椅子（リフト・スロープ使用）</span>
-    <span class="item"><span class="swatch s-aid">補</span>歩行器・車椅子持参もしくは貸出</span>
-    <span class="item"><span class="swatch s-door">玄</span>玄関先まで送迎</span>
+    <span class="item"><span class="swatch s-wc" data-icon="wc"></span>車椅子（リフト・スロープ使用）</span>
+    <span class="item"><span class="swatch s-aid" data-icon="aid"></span>歩行器・車椅子持参もしくは貸出</span>
+    <span class="item"><span class="swatch s-door" data-icon="door"></span>玄関先まで送迎</span>
     <span class="item">■＝乗車　□＝空席（定員は運転手を除く人数）</span>
     <span class="item">利用者名のプルダウンには、その曜日・その便（午前／午後）に来る方だけが並びます。選ぶと住所と記号がマスタから自動で入ります。</span>
     <span class="item">予定の時刻は事業所発の時刻と住所から換算。手入力で上書きでき、空欄にすると自動に戻ります。</span>
@@ -1988,6 +2245,7 @@
     <button type="button" role="tab" id="pmtab-users" aria-selected="true">利用者</button>
     <button type="button" role="tab" id="pmtab-drivers" aria-selected="false">運転手</button>
     <button type="button" role="tab" id="pmtab-dispatch" aria-selected="false">配車</button>
+    <button type="button" role="tab" id="pmtab-office" aria-selected="false">事業所</button>
   </nav>
 
   <div class="pm-body">
@@ -2042,6 +2300,34 @@
         <tbody id="dispatch-rows"></tbody>
       </table>
     </section>
+
+    <section class="pm-pane" id="pm-office" hidden>
+      <h3>事業所<span class="h3-note">表題と、地図でルートを開くときに使う</span></h3>
+      <div class="office-form">
+        <label class="of-row">
+          <span class="of-label">事業所名</span>
+          <input type="text" id="office-name" placeholder="通所介護事業所　デイサービス　あさひ">
+          <span class="of-help">送迎表の表題と、印刷したときの見出しに出ます。</span>
+        </label>
+        <label class="of-row">
+          <span class="of-label">事業所の住所</span>
+          <input type="text" id="office-addr" placeholder="〇〇県〇〇市〇〇町1-2-3">
+          <span class="of-help">地図のルートの<b>出発地と到着地</b>になります。空欄だと地図を開けません。</span>
+        </label>
+        <label class="of-row">
+          <span class="of-label">利用者住所の前に付ける</span>
+          <input type="text" id="office-area" placeholder="〇〇県〇〇市">
+          <span class="of-help">
+            利用者マスタの住所は「中央町3-14-2」のように町名から入れてあるので、
+            地図に渡すときはこれを前に付けて場所を特定します。
+          </span>
+        </label>
+      </div>
+      <p class="pm-note">
+        地図は Google マップの経路検索を開くだけで、住所を送る以外の通信はしません。
+        経由地は Google マップの上限に合わせて先頭9か所までです。
+      </p>
+    </section>
   </div>
 </div>
 
@@ -2077,11 +2363,46 @@
   const STATES_EMPTY = ["", "furikae", "shinki"];
   const STATE_LABEL = { "": "通常", absent: "欠席", furikae: "振替利用", shinki: "新規・増回" };
 
+  /* 記号は絵で示す。文字より速く目に入るので、走行前の確認に向く。
+     読み上げと印刷の控えのために、もとの1文字も title と data-key に残す。 */
+  const svg = (body) =>
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"'
+    + ' stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + body + "</svg>";
+
+  const ICONS = {
+    /* 車椅子：座った人と大きな車輪 */
+    wc: svg('<circle cx="15.4" cy="4.1" r="2.1" fill="currentColor" stroke="none"/>'
+      + '<path d="M13.6 8v5.5h4.9l2.3 4.6"/>'
+      + '<circle cx="11" cy="15.4" r="6.1"/>'),
+    /* 歩行器：握りの付いた枠と接地脚。小さくても「H」に見えないよう握りと脚を出す */
+    aid: svg('<path d="M4.6 4.4h3.1v11.4M19.4 4.4h-3.1v11.4M7.7 10h8.6"/>'
+      + '<circle cx="7.7" cy="18.6" r="2.2"/><circle cx="16.3" cy="18.6" r="2.2"/>'),
+    /* 玄関：扉と、そこへ向かう矢印 */
+    door: svg('<path d="M9.5 21V4.6a1 1 0 0 1 1.2-1l7.3-1.5a1 1 0 0 1 1.2 1V21"/>'
+      + '<path d="M7 21h14"/>'
+      + '<circle cx="16.6" cy="12" r="1.15" fill="currentColor" stroke="none"/>'
+      + '<path d="M2.2 12h5.2M4.8 9.4 7.4 12l-2.6 2.6"/>'),
+    /* 地図：ルートを開く口 */
+    map: svg('<path d="M9 20.5 3 22.5V5.5l6-2 6 2 6-2v17l-6 2-6-2Z"/>'
+      + '<path d="M9 3.5v17M15 5.5v17"/>')
+  };
+
   const TAGS = [
-    { key: "車", cls: "t-wc", title: "車椅子（リフト・スロープ使用）" },
-    { key: "補", cls: "t-aid", title: "歩行器・車椅子持参もしくは貸出" },
-    { key: "玄", cls: "t-door", title: "玄関先まで送迎" }
+    { key: "車", cls: "t-wc", icon: ICONS.wc, title: "車椅子（リフト・スロープ使用）" },
+    { key: "補", cls: "t-aid", icon: ICONS.aid, title: "歩行器・車椅子持参もしくは貸出" },
+    { key: "玄", cls: "t-door", icon: ICONS.door, title: "玄関先まで送迎" }
   ];
+
+  function tagButton(t, pressed) {
+    const b = el("button", "tag " + t.cls);
+    b.type = "button";
+    b.dataset.key = t.key;
+    b.title = t.key + "＝" + t.title;
+    b.setAttribute("aria-label", t.title);
+    b.setAttribute("aria-pressed", String(!!pressed));
+    b.innerHTML = t.icon;
+    return b;
+  }
 
   /* ── 走行時間の換算 ────────────────────────
      住所から所要時間を出すための簡易モデル。事業所を原点に町の位置を置き、
@@ -2267,6 +2588,17 @@
 
   /* サーバー保存につながっているか。表示の担当を分けるために持つ */
   let SYNC_LIVE = false;
+
+  /* ── 事業所の情報 ────────────────────────
+     地図でルートを開くときの起点・終点と、利用者住所の前に付ける市区町村。
+     マスタ編集の「事業所」タブから直す。 */
+  const DEFAULT_OFFICE = {
+    name: "通所介護事業所　デイサービス　あさひ",
+    addr: "",
+    area: ""
+  };
+
+  let OFFICE = Object.assign({}, DEFAULT_OFFICE, STORE.getJSON("office") || {});
 
   /* ── マスタ（保存されていればそちらを使う） ── */
   let USERS = STORE.getJSON("users") || DEFAULT_USERS.map((u) => ({ ...u, tags: [...u.tags] }));
@@ -2585,7 +2917,7 @@
     }
 
     stop.querySelectorAll(".tag").forEach((tag) => {
-      const on = !!user && user.tags.includes(tag.textContent);
+      const on = !!user && user.tags.includes(tag.dataset.key);
       tag.setAttribute("aria-pressed", String(on));
     });
   }
@@ -2636,11 +2968,8 @@
     li.append(area);
 
     const tags = el("span", "tags");
-    TAGS.forEach(({ key, cls, title }) => {
-      const b = el("button", "tag " + cls, key);
-      b.type = "button";
-      b.title = title;
-      b.setAttribute("aria-pressed", "false");
+    TAGS.forEach((t) => {
+      const b = tagButton(t, false);
       b.addEventListener("click", () => {
         b.setAttribute("aria-pressed", b.getAttribute("aria-pressed") === "true" ? "false" : "true");
       });
@@ -2785,7 +3114,16 @@
       article.dataset.forceOpen = "";
       article.classList.add("collapsed");
     });
-    depBar.append(el("span", "lbl", leg.departLabel), dep, el("span", "lbl", "実績"), depActual, fold);
+    /* 地図：事業所 → 各家（順番どおり）→ 事業所 のルートを Google マップで開く */
+    const map = document.createElement("a");
+    map.className = "car-map";
+    map.target = "_blank";
+    map.rel = "noopener noreferrer";
+    map.innerHTML = ICONS.map;
+    map.title = "この車のルートを地図で見る";
+    map.setAttribute("aria-label", "この車のルートを地図で見る");
+
+    depBar.append(el("span", "lbl", leg.departLabel), dep, el("span", "lbl", "実績"), depActual, map, fold);
     dep.addEventListener("input", refresh);
 
     const list = el("ol", "route");
@@ -2812,6 +3150,7 @@
     const body = el("div", "car-body");
     body.append(depBar, list, foot);
     article.append(bar, id, body);
+    bindCarDrop(article);
     return article;
   }
 
@@ -2957,7 +3296,10 @@
         const arrive = roundStep(cursor + travelMin(from, DEPOT));
         const limit = leg.arriveBy ? parseHHMM(leg.arriveBy[1]) : null;
         const over = limit !== null && arrive > limit;
-        eta.textContent = "目安 " + hhmm(arrive) + (over ? "　⚠ " + leg.arriveBy[1] + "超過（押すと発を早める）" : "");
+        eta.textContent = "目安 " + hhmm(arrive) + (over ? "　⚠ 超過" : "");
+        eta.title = over
+          ? leg.arriveBy[1] + " を過ぎています。押すとこの車の出発を早めて収めます。"
+          : "この車が事業所に着く見込みの時刻";
         eta.classList.toggle("over", over);
         eta.disabled = !over;
       }
@@ -3010,6 +3352,48 @@
   }
 
   /* ── 集計 ─────────────────────────────────── */
+  /* ── 地図でルートを見る ──────────────────────
+     事業所 → 各家（カードの順番どおり）→ 事業所 を Google マップの
+     経路検索に渡す。欠席の方は立ち寄らないので外す。
+     住所は「市区町村（事業所タブで設定）＋ 利用者の住所」で組む。 */
+  const mapAddr = (addr) => ((OFFICE.area || "") + (addr || "")).trim();
+
+  function routeStops(car) {
+    return [...car.querySelectorAll(".stop:not(.head)")]
+      .filter((s) => s.querySelector(".who").value && s.dataset.state !== "absent")
+      .map((s) => mapAddr(s.querySelector(".area").textContent))
+      .filter(Boolean);
+  }
+
+  function setMapLink(car, label) {
+    const link = car.querySelector(".car-map");
+    if (!link) return;
+    const stops = routeStops(car);
+    const base = (OFFICE.addr || "").trim() || (OFFICE.name || "").trim();
+
+    if (stops.length === 0 || !base) {
+      link.removeAttribute("href");
+      link.dataset.off = "1";
+      link.title = stops.length === 0
+        ? "利用者が入るとルートを開けます"
+        : "マスタ編集の「事業所」で住所を登録するとルートを開けます";
+      return;
+    }
+
+    delete link.dataset.off;
+    const q = new URLSearchParams({
+      api: "1",
+      origin: base,
+      destination: base,
+      travelmode: "driving"
+    });
+    /* 経由地は Google マップの上限に合わせて9か所まで */
+    q.set("waypoints", stops.slice(0, 9).join("|"));
+    link.href = "https://www.google.com/maps/dir/?" + q.toString();
+    link.title = label + "：事業所 → " + stops.length + "か所 → 事業所　を地図で見る"
+      + (stops.length > 9 ? "（先頭9か所まで）" : "");
+  }
+
   function recount(section, leg) {
     const seen = new Map();
     let riders = 0;
@@ -3071,6 +3455,8 @@
       car.dataset.canfold = n === 0 ? "1" : "";
       car.classList.toggle("collapsed", n === 0 && car.dataset.forceOpen !== "1");
 
+      setMapLink(car, label);
+
       /* 乗車0名の車は稼働に数えない */
       if (n > 0) running++;
       riders += n;
@@ -3120,6 +3506,65 @@
       btn.addEventListener("click", () => openAssign(leg, id));
       leftover.append(btn);
     });
+
+    if (!section.hidden) drawSide(leg, missing);
+  }
+
+  /* ── 未割当のサイドバー ──────────────────── */
+  function drawSide(leg, missing) {
+    const side = document.getElementById("side");
+    side.classList.toggle("has-left", missing.length > 0);
+    document.getElementById("side-count").textContent = missing.length;
+
+    const tabs = document.getElementById("side-legs");
+    tabs.innerHTML = "";
+    LEGS.forEach((l) => {
+      const b = el("button", null, l.partLabel + "\n" + l.dir);
+      b.type = "button";
+      b.setAttribute("role", "tab");
+      b.setAttribute("aria-selected", String(l.key === leg.key));
+      b.style.setProperty("--tab", "var(--" + l.accent + ")");
+      b.style.whiteSpace = "pre-line";
+      b.addEventListener("click", () => switchLeg(l.key));
+      tabs.append(b);
+    });
+
+    const list = document.getElementById("side-list");
+    list.innerHTML = "";
+
+    if (missing.length === 0) {
+      list.append(el("p", "side-none", "この便は全員どこかの車に乗っています。"));
+      return;
+    }
+
+    missing.forEach((id) => {
+      const user = USER_BY_ID.get(id);
+      if (!user) return;
+      const chip = el("button", "side-name");
+      chip.type = "button";
+      chip.draggable = true;
+      chip.title = user.name + "（" + user.addr + "）：車両カードへドラッグ、または押して選ぶ";
+      chip.append(document.createTextNode(user.name), el("span", "sn-addr", user.addr));
+
+      chip.addEventListener("click", () => openAssign(leg, id));
+
+      chip.addEventListener("dragstart", (e) => {
+        dragUser = id;
+        chip.classList.add("dragging");
+        if (e.dataTransfer) {
+          e.dataTransfer.effectAllowed = "copy";
+          try { e.dataTransfer.setData("text/plain", user.name); } catch (err) { /* 一部の環境向け */ }
+        }
+      });
+
+      chip.addEventListener("dragend", () => {
+        chip.classList.remove("dragging");
+        dragUser = null;
+        clearDropMarks();
+      });
+
+      list.append(chip);
+    });
   }
 
   /* ── 行の中身の出し入れ ────────────────────
@@ -3134,7 +3579,7 @@
       ae: stop.querySelector(".area").classList.contains("edited"),
       ac: stop.querySelector(".actual").textContent,
       n: stop.querySelector(".note").textContent,
-      g: [...stop.querySelectorAll('.tag[aria-pressed="true"]')].map((t) => t.textContent)
+      g: [...stop.querySelectorAll('.tag[aria-pressed="true"]')].map((t) => t.dataset.key)
     };
   }
 
@@ -3161,7 +3606,7 @@
     stop.querySelector(".note").textContent = r.n || "";
     if (r.g) {
       stop.querySelectorAll(".tag").forEach((tag) => {
-        tag.setAttribute("aria-pressed", String(r.g.includes(tag.textContent)));
+        tag.setAttribute("aria-pressed", String(r.g.includes(tag.dataset.key)));
       });
     }
     refillSelect(stop);
@@ -3183,6 +3628,7 @@
 
   /* ── 並べ替え（ドラッグ＆ドロップ） ────────── */
   let dragFrom = null;
+  let dragUser = null;   /* 未割当から持ち込んでいる利用者 */
 
   function bindDrag(stop) {
     stop.addEventListener("dragstart", (e) => {
@@ -3197,11 +3643,18 @@
 
     stop.addEventListener("dragend", () => {
       stop.classList.remove("dragging");
-      document.querySelectorAll(".drop-target").forEach((n) => n.classList.remove("drop-target"));
+      clearDropMarks();
       dragFrom = null;
     });
 
     stop.addEventListener("dragover", (e) => {
+      if (dragUser) {
+        /* 未割当からの持ち込み。車両カード側で受けるので行の印だけ付ける */
+        e.preventDefault();
+        if (e.dataTransfer) e.dataTransfer.dropEffect = "copy";
+        stop.classList.add("drop-target");
+        return;
+      }
       if (!dragFrom || dragFrom === stop) return;
       e.preventDefault();
       if (e.dataTransfer) e.dataTransfer.dropEffect = "move";
@@ -3212,11 +3665,74 @@
 
     stop.addEventListener("drop", (e) => {
       e.preventDefault();
+      e.stopPropagation();
       stop.classList.remove("drop-target");
+
+      if (dragUser) {
+        const car = stop.closest(".car");
+        const at = rowsOf(car).indexOf(stop);
+        if (insertUser(car, at, dragUser)) refresh();
+        dragUser = null;
+        clearDropMarks();
+        return;
+      }
+
       if (!dragFrom || dragFrom === stop) return;
       moveRow(dragFrom, stop);
       dragFrom = null;
       refresh();
+    });
+  }
+
+  const clearDropMarks = () => {
+    document.querySelectorAll(".drop-target").forEach((n) => n.classList.remove("drop-target"));
+    document.querySelectorAll(".drop-car").forEach((n) => n.classList.remove("drop-car"));
+  };
+
+  /* 未割当の方を、その車の指定の位置に差し込む。
+     すでに乗っている方は後ろへずれるだけで消えない */
+  function insertUser(car, index, userId) {
+    const rows = rowsOf(car);
+    const filled = rows.map(readRow).filter((r) => r.u);
+    const capacity = Number(car.dataset.capacity);
+
+    if (filled.length >= capacity) {
+      const user = USER_BY_ID.get(userId);
+      notify((user ? user.name + "さんは" : "") + "この車に乗せられません（定員 " + capacity + "名がいっぱいです）。", "warn");
+      return false;
+    }
+
+    const at = Math.max(0, Math.min(index < 0 ? filled.length : index, filled.length));
+    filled.splice(at, 0, Object.assign(emptyRow(), { u: userId }));
+    rows.forEach((row, i) => writeRow(row, filled[i] || emptyRow()));
+
+    /* 畳まれていた車なら開く */
+    car.dataset.forceOpen = "1";
+    car.classList.remove("collapsed");
+    return true;
+  }
+
+  /* 車両カードのどこに落としても、空いている末尾に入る */
+  function bindCarDrop(car) {
+    car.addEventListener("dragover", (e) => {
+      if (!dragUser) return;
+      e.preventDefault();
+      if (e.dataTransfer) e.dataTransfer.dropEffect = "copy";
+      car.classList.add("drop-car");
+    });
+
+    car.addEventListener("dragleave", (e) => {
+      if (car.contains(e.relatedTarget)) return;
+      car.classList.remove("drop-car");
+    });
+
+    car.addEventListener("drop", (e) => {
+      if (!dragUser) return;
+      e.preventDefault();
+      car.classList.remove("drop-car");
+      if (insertUser(car, -1, dragUser)) refresh();
+      dragUser = null;
+      clearDropMarks();
     });
   }
 
@@ -3271,7 +3787,7 @@
           ac: stop.querySelector(".actual").textContent,
           n: stop.querySelector(".note").textContent,
           st: stop.dataset.state || "",
-          g: [...stop.querySelectorAll('.tag[aria-pressed="true"]')].map((t) => t.textContent)
+          g: [...stop.querySelectorAll('.tag[aria-pressed="true"]')].map((t) => t.dataset.key)
         }))
       }));
     });
@@ -3337,7 +3853,7 @@
 
           if (r.g) {
             stop.querySelectorAll(".tag").forEach((tag) => {
-              tag.setAttribute("aria-pressed", String(r.g.includes(tag.textContent)));
+              tag.setAttribute("aria-pressed", String(r.g.includes(tag.dataset.key)));
             });
           }
         });
@@ -3420,6 +3936,10 @@
         document.documentElement.style.setProperty("--accent-soft", "var(--" + leg.accent + "-soft)");
       }
     });
+    /* 脇の未割当も、いま見ている便のものに入れ替える */
+    const leg = LEGS.find((l) => l.key === key);
+    const section = document.getElementById("leg-" + key);
+    if (leg && section) recount(section, leg);
   }
 
   function refreshStamps() {
@@ -3428,7 +3948,7 @@
     document.getElementById("title-date").textContent = date;
     LEGS.forEach((leg) => {
       const stamp = document.querySelector("#leg-" + leg.key + " .print-stamp");
-      if (stamp) stamp.textContent = "通所介護事業所 デイサービス あさひ　" + date + " 送迎表";
+      if (stamp) stamp.textContent = (OFFICE.name || "").replace(/\u3000/g, " ") + "　" + date + " 送迎表";
     });
   }
 
@@ -3659,6 +4179,7 @@
   let draftUsers = [];
   let draftDrivers = [];
   let draftDispatch = {};
+  let draftOffice = {};
   let openPlan = null;
   let openPlanDay = null;
   let openPlanLeg = null;
@@ -3698,17 +4219,15 @@
     cell(addrI);
 
     const tagWrap = el("span", "tag-cell");
-    TAGS.forEach(({ key, cls, title }) => {
-      const b = el("button", "tag " + cls, key);
-      b.type = "button";
-      b.title = title;
-      b.setAttribute("aria-pressed", String(u.tags.includes(key)));
+    TAGS.forEach((t) => {
+      const key = t.key;
+      const b = tagButton(t, u.tags.includes(key));
       b.addEventListener("click", () => {
         const on = b.getAttribute("aria-pressed") !== "true";
         b.setAttribute("aria-pressed", String(on));
         draftUsers[i].tags = on
           ? [...draftUsers[i].tags, key]
-          : draftUsers[i].tags.filter((t) => t !== key);
+          : draftUsers[i].tags.filter((x) => x !== key);
       });
       tagWrap.append(b);
     });
@@ -4080,6 +4599,12 @@
       .sort(byKana);
     draftDrivers = DRIVERS.map((d) => ({ name: d.name, days: { ...d.days } }));
     draftDispatch = normDispatch(DISPATCH);
+    draftOffice = Object.assign({}, DEFAULT_OFFICE, OFFICE);
+    ["name", "addr", "area"].forEach((k) => {
+      const input = document.getElementById("office-" + k);
+      input.value = draftOffice[k] || "";
+      input.oninput = () => { draftOffice[k] = input.value; };
+    });
     openPlan = null;
     openPlanDay = weekdayOf(currentDate) || WEEKDAYS[0];
     openPlanLeg = LEGS[0].key;
@@ -4116,9 +4641,9 @@
   });
 
   /* マスタ編集ページの中のタブ */
-  [["users", "pm-users"], ["drivers", "pm-drivers"], ["dispatch", "pm-dispatch"]].forEach(([key, paneId]) => {
+  ["users", "drivers", "dispatch", "office"].forEach((key) => {
     document.getElementById("pmtab-" + key).addEventListener("click", () => {
-      ["users", "drivers", "dispatch"].forEach((k) => {
+      ["users", "drivers", "dispatch", "office"].forEach((k) => {
         const on = k === key;
         document.getElementById("pmtab-" + k).setAttribute("aria-selected", String(on));
         document.getElementById("pm-" + k).hidden = !on;
@@ -4146,10 +4671,14 @@
       .sort(byKana);
     DRIVERS = draftDrivers.map((d) => ({ name: d.name.trim(), days: { ...d.days } })).filter((d) => d.name);
     DISPATCH = normDispatch(draftDispatch);
+    OFFICE = Object.assign({}, DEFAULT_OFFICE, draftOffice);
+    OFFICE.name = (OFFICE.name || "").trim() || DEFAULT_OFFICE.name;
     indexUsers();
     STORE.setJSON("users", USERS.map(({ id, name, kana, town, addr, tags, days, end }) => ({ id, name, kana, town, addr, tags, days, end })));
     STORE.setJSON("drivers", DRIVERS);
     STORE.setJSON("dispatch", DISPATCH);
+    STORE.setJSON("office", OFFICE);
+    applyOffice();
     closeMaster();
     openDay(currentDate);
     notify("マスタを保存しました（利用中 " + activeUsers().length + "名／利用終了 " + (USERS.length - activeUsers().length) + "名）。");
@@ -4215,7 +4744,7 @@
       if (picked) picked.setAttribute("selected", "");
     });
 
-    sheet.querySelectorAll(".controls, .saved-note, .date-open, .swap-bar").forEach((n) => n.remove());
+    sheet.querySelectorAll(".controls, .saved-note, .date-open, .swap-bar, .side").forEach((n) => n.remove());
     sheet.querySelectorAll(".leg").forEach((n) => n.removeAttribute("hidden"));
 
     /* 便を1枚ずつ「紙」に載せる。画面でも刷り上がりのまま並べて見せる */
@@ -4569,7 +5098,7 @@
      電波が戻ったら裏で送り、他の端末の変更も取り込む。
      サーバーが無ければ（ファイルを直接開いた場合など）これまでどおり手元だけで動く。 */
   const SYNC = (() => {
-    const SYNCED = ["users", "drivers", "dispatch"];
+    const SYNCED = ["users", "drivers", "dispatch", "office"];
     const POLL_MS = 8000;
     const PUSH_MS = 1200;
 
@@ -4744,10 +5273,28 @@
     if (u) USERS = u.map((x) => ({ ...x, tags: [...(x.tags || [])] })).sort(byKana);
     if (d) DRIVERS = normDrivers(d) || DRIVERS;
     if (p) DISPATCH = normDispatch(p);
+    const o = STORE.getJSON("office");
+    if (o) OFFICE = Object.assign({}, DEFAULT_OFFICE, o);
     indexUsers();
+    applyOffice();
     if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
     renderDay(currentDate, (LEGS.find((l) => !document.getElementById("leg-" + l.key).hidden) || LEGS[0]).key);
   }
+
+  /* 事業所名を表題と印刷の見出しに流す */
+  function applyOffice() {
+    document.querySelectorAll(".masthead .eyebrow").forEach((n) => { n.textContent = OFFICE.name; });
+    refreshStamps();
+    LEGS.forEach((leg) => {
+      const section = document.getElementById("leg-" + leg.key);
+      if (section) section.querySelectorAll(".car").forEach((car) => setMapLink(car, ""));
+    });
+  }
+
+  /* 凡例の見本にも同じ絵を入れる */
+  document.querySelectorAll(".legend .swatch[data-icon]").forEach((s) => {
+    s.innerHTML = ICONS[s.dataset.icon] || "";
+  });
 
   /* ── 起動 ─────────────────────────────────── */
   renderDay(currentDate, LEGS[0].key);
