@@ -300,6 +300,9 @@
     letter-spacing: .06em;
   }
 
+  /* サーバーに届いていないときは目立たせる（手元には残っている） */
+  .saved-note.sync-warn { color: var(--warn); }
+
   /* ── 便の切替 ─────────────────────────────── */
   .controls {
     display: flex;
@@ -2240,15 +2243,30 @@
 
     return {
       ok,
+      /* 書き込みの合図。サーバー保存を使うときだけ差し込まれる */
+      onWrite: null,
       getJSON(k) { const v = read(k); if (!v) return null; try { return JSON.parse(v); } catch (e) { return null; } },
-      setJSON(k, v) { write(k, JSON.stringify(v)); },
+      setJSON(k, v) { write(k, JSON.stringify(v)); if (this.onWrite) this.onWrite(k); },
+      /* サーバーから受け取った内容を戻すとき。書いた合図は出さない（往復を防ぐ） */
+      setQuiet(k, v) { write(k, JSON.stringify(v)); },
       days() { return this.getJSON("days") || []; },
       addDay(date) {
         const list = this.days();
         if (!list.includes(date)) { list.push(date); list.sort(); this.setJSON("days", list); }
+      },
+      /* サーバーにある日を取り込む（消さずに足すだけ） */
+      mergeDays(list) {
+        const now = this.days();
+        let added = false;
+        (list || []).forEach((d) => { if (!now.includes(d)) { now.push(d); added = true; } });
+        if (added) { now.sort(); this.setQuiet("days", now); }
+        return added;
       }
     };
   })();
+
+  /* サーバー保存につながっているか。表示の担当を分けるために持つ */
+  let SYNC_LIVE = false;
 
   /* ── マスタ（保存されていればそちらを使う） ── */
   let USERS = STORE.getJSON("users") || DEFAULT_USERS.map((u) => ({ ...u, tags: [...u.tags] }));
@@ -3416,6 +3434,7 @@
 
   function updateSavedNote() {
     const note = document.getElementById("saved-note");
+    if (SYNC_LIVE) return;   /* サーバー保存中は同期の状態を出すので触らない */
     if (!STORE.ok) { note.textContent = "※ この環境では保存できません（閉じると消えます）"; return; }
     const n = STORE.days().length;
     note.textContent = n > 1 ? "自動保存　保存済み " + n + "日分" : "自動保存";
@@ -4544,8 +4563,195 @@
 
   window.addEventListener("resize", syncStickyHeight);
 
+  /* ── サーバー保存（手元優先・あとから同期） ──────
+     事業所の PC で保存サーバーを動かしていれば、そこに置いて端末間で共有する。
+     入力はこれまでどおり先に手元へ書くので、車内で圏外になっても消えない。
+     電波が戻ったら裏で送り、他の端末の変更も取り込む。
+     サーバーが無ければ（ファイルを直接開いた場合など）これまでどおり手元だけで動く。 */
+  const SYNC = (() => {
+    const SYNCED = ["users", "drivers", "dispatch"];
+    const POLL_MS = 8000;
+    const PUSH_MS = 1200;
+
+    let live = false;         /* サーバーとつながっているか */
+    let tried = false;        /* 一度でも確かめたか */
+    let applying = false;     /* 受け取った内容を反映している最中か */
+    let revs = STORE.getJSON("__revs") || {};
+    /* 送信待ちは手元にも残す。圏外のまま閉じても、次に開いたときに送れる */
+    const dirty = new Set(STORE.getJSON("__dirty") || []);
+    let pushTimer = null;
+    let busy = false;
+    let lastError = "";
+
+    const api = (p) => new URL(p, location.href).toString();
+    const isDay = (k) => k.indexOf("day.") === 0;
+    const saveRevs = () => STORE.setQuiet("__revs", revs);
+    const saveDirty = () => STORE.setQuiet("__dirty", [...dirty]);
+
+    /* 同期する鍵かどうか。days の一覧はサーバー側が持つので送らない */
+    const wanted = (k) =>
+      k !== "days" && k !== "__revs" && k !== "__dirty" && (isDay(k) || SYNCED.indexOf(k) >= 0);
+
+    function status(text, warn) {
+      const note = document.getElementById("saved-note");
+      if (!note) return;
+      note.textContent = text;
+      note.classList.toggle("sync-warn", !!warn);
+    }
+
+    function showState() {
+      if (!live) return;
+      if (lastError) { status("サーバー保存　" + lastError, true); return; }
+      if (dirty.size) { status("サーバー保存　送信中…"); return; }
+      const n = STORE.days().length;
+      status("サーバー保存　共有中" + (n > 1 ? "　保存済み " + n + "日分" : ""));
+    }
+
+    /* 受け取った内容を画面に反映する。いま見ている日とマスタだけ建て直す。
+       反映のための書き込みを送り返すと往復し続けるので、その間は合図を止める */
+    function adopt(key, data) {
+      applying = true;
+      try {
+        STORE.setQuiet(key, data);
+        if (key === "day." + currentDate) {
+          if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
+          renderDay(currentDate, activeLegKey());
+          notify("他の端末での変更を取り込みました（" + titleDate(currentDate) + "）。", "warn");
+        } else if (SYNCED.indexOf(key) >= 0) {
+          reloadMasters();
+          notify("マスタの変更を他の端末から取り込みました。", "warn");
+        }
+      } finally { applying = false; }
+    }
+
+    function activeLegKey() {
+      const leg = LEGS.find((l) => !document.getElementById("leg-" + l.key).hidden);
+      return leg ? leg.key : LEGS[0].key;
+    }
+
+    async function pull() {
+      const res = await fetch(api("api/index"), { cache: "no-store" });
+      if (!res.ok) throw new Error("index " + res.status);
+      const body = await res.json();
+      STORE.mergeDays(body.days);
+
+      const keys = Object.keys(body.docs || {}).filter(wanted);
+      for (const key of keys) {
+        if (revs[key] === body.docs[key]) continue;      /* 変わっていない */
+        if (dirty.has(key)) continue;                     /* こちらの送信待ちが先 */
+        const one = await fetch(api("api/doc?key=" + encodeURIComponent(key)), { cache: "no-store" });
+        if (!one.ok) continue;
+        const doc = await one.json();
+        revs[key] = doc.rev;
+        adopt(key, doc.data);
+      }
+      saveRevs();
+      updateDateOptions();
+    }
+
+    async function pushOne(key) {
+      const data = STORE.getJSON(key);
+      if (data === null) { dirty.delete(key); saveDirty(); return; }
+      const res = await fetch(api("api/doc?key=" + encodeURIComponent(key)), {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ baseRev: revs[key] || 0, data })
+      });
+
+      if (res.status === 409) {
+        /* 他の端末が先に直していた。上書きせず、向こうの内容に合わせる。
+           こちらの手は「一つ戻る」に残っているので取り返せる */
+        const doc = await res.json();
+        revs[key] = doc.rev;
+        dirty.delete(key);
+        saveDirty();
+        adopt(key, doc.data);
+        return;
+      }
+      if (!res.ok) throw new Error("put " + res.status);
+      const doc = await res.json();
+      revs[key] = doc.rev;
+      dirty.delete(key);
+      saveDirty();
+    }
+
+    async function cycle() {
+      if (busy || !live) return;
+      busy = true;
+      try {
+        for (const key of [...dirty]) await pushOne(key);
+        await pull();
+        lastError = "";
+      } catch (e) {
+        lastError = "つながりません（手元に保存しています）";
+      } finally {
+        busy = false;
+        saveRevs();
+        showState();
+      }
+    }
+
+    function touch(key) {
+      if (!live || applying || !wanted(key)) return;
+      dirty.add(key);
+      saveDirty();
+      showState();
+      if (pushTimer) clearTimeout(pushTimer);
+      pushTimer = setTimeout(cycle, PUSH_MS);
+    }
+
+    /* サーバーがいるか確かめる。ファイルを直接開いた場合はここで終わり */
+    async function start() {
+      if (tried) return;
+      tried = true;
+      if (location.protocol !== "http:" && location.protocol !== "https:") return;
+      try {
+        const res = await fetch(api("api/ping"), { cache: "no-store" });
+        if (!res.ok) return;
+        const body = await res.json();
+        if (!body || body.name !== "soutei") return;
+      } catch (e) { return; }
+
+      live = true;
+      SYNC_LIVE = true;
+      showState();
+
+      /* まずサーバーの内容を取り込んで版番号を揃える。
+         送信待ち（圏外で書いたぶん）は pull が飛ばすので消えない */
+      try { await pull(); lastError = ""; }
+      catch (e) { lastError = "つながりません（手元に保存しています）"; }
+
+      /* サーバーにまだ無いものは、こちらから送る（初回の持ち込み） */
+      const mine = SYNCED.concat(STORE.days().map((d) => "day." + d));
+      mine.forEach((k) => { if (STORE.getJSON(k) !== null && !(k in revs)) dirty.add(k); });
+      saveDirty();
+
+      STORE.onWrite = touch;
+      showState();
+      await cycle();
+      setInterval(cycle, POLL_MS);
+      window.addEventListener("online", cycle);
+    }
+
+    return { start, get live() { return live; } };
+  })();
+
+  /* マスタをサーバー側の内容で読み直す */
+  function reloadMasters() {
+    const u = STORE.getJSON("users");
+    const d = STORE.getJSON("drivers");
+    const p = STORE.getJSON("dispatch");
+    if (u) USERS = u.map((x) => ({ ...x, tags: [...(x.tags || [])] })).sort(byKana);
+    if (d) DRIVERS = normDrivers(d) || DRIVERS;
+    if (p) DISPATCH = normDispatch(p);
+    indexUsers();
+    if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
+    renderDay(currentDate, (LEGS.find((l) => !document.getElementById("leg-" + l.key).hidden) || LEGS[0]).key);
+  }
+
   /* ── 起動 ─────────────────────────────────── */
   renderDay(currentDate, LEGS[0].key);
   syncStickyHeight();
   if (location.hash === "#master") openMaster();
+  SYNC.start();
 </script>

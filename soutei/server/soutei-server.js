@@ -1,0 +1,248 @@
+#!/usr/bin/env node
+/*
+ * デイサービス送迎表 保存サーバー
+ *
+ * 事業所の PC 1台で動かし、同じネットワークの端末から使う。
+ * データはこの PC の中（data フォルダ）にだけ置かれ、外には出ない。
+ *
+ * 使い方:  node soutei-server.js
+ * 停止   :  この黒い画面で Ctrl + C
+ *
+ * 追加のインストールは不要（Node.js に最初から入っている機能だけで動く）。
+ * データベースも使わない。1日ぶんの送迎表が1個のファイルになるだけ。
+ */
+
+"use strict";
+
+const http = require("http");
+const fs = require("fs");
+const path = require("path");
+const os = require("os");
+
+const PORT = Number(process.env.PORT || process.argv[2] || 8080);
+const HERE = __dirname;
+const DATA = path.join(HERE, "data");
+
+/* 送迎表の本体。サーバーと同じ場所か、1つ上の場所を見る */
+const APP_CANDIDATES = [
+  path.join(HERE, "index.html"),
+  path.join(HERE, "..", "index.html"),
+  path.join(HERE, "送迎表.html")
+];
+
+function appFile() {
+  for (const p of APP_CANDIDATES) { if (fs.existsSync(p)) return p; }
+  return null;
+}
+
+/* ── 保存 ─────────────────────────────────
+   鍵1つにつきファイル1つ。中身は { rev, updatedAt, data }。
+   rev は書き換えるたびに1つ増える番号で、
+   「他の端末が先に直していないか」の判定に使う。 */
+
+const KEY_OK = /^[A-Za-z0-9_.\-]{1,120}$/;
+const fileOf = (key) => path.join(DATA, key + ".json");
+
+function readDoc(key) {
+  try {
+    const raw = fs.readFileSync(fileOf(key), "utf8");
+    const doc = JSON.parse(raw);
+    if (!doc || typeof doc !== "object") return null;
+    return { rev: Number(doc.rev) || 0, updatedAt: doc.updatedAt || "", data: doc.data };
+  } catch (e) { return null; }
+}
+
+/* 書きかけのファイルが残らないよう、別名で書いてから置き換える */
+function writeDoc(key, doc) {
+  const target = fileOf(key);
+  const tmp = target + ".tmp-" + process.pid + "-" + Date.now();
+  fs.writeFileSync(tmp, JSON.stringify(doc), "utf8");
+  fs.renameSync(tmp, target);
+}
+
+function listDocs() {
+  const out = { docs: {}, days: [] };
+  let names = [];
+  try { names = fs.readdirSync(DATA); } catch (e) { return out; }
+  names.forEach((n) => {
+    if (!n.endsWith(".json")) return;
+    const key = n.slice(0, -5);
+    if (!KEY_OK.test(key)) return;
+    const doc = readDoc(key);
+    if (!doc) return;
+    out.docs[key] = doc.rev;
+    if (key.startsWith("day.")) out.days.push(key.slice(4));
+  });
+  out.days.sort();
+  return out;
+}
+
+/* ── HTTP ─────────────────────────────────── */
+
+function sendJSON(res, code, body) {
+  const s = JSON.stringify(body);
+  res.writeHead(code, {
+    "content-type": "application/json; charset=utf-8",
+    "content-length": Buffer.byteLength(s),
+    "cache-control": "no-store"
+  });
+  res.end(s);
+}
+
+function sendFile(res, file, type) {
+  fs.readFile(file, (err, buf) => {
+    if (err) { res.writeHead(404); res.end("not found"); return; }
+    res.writeHead(200, {
+      "content-type": type,
+      "content-length": buf.length,
+      "cache-control": "no-store"
+    });
+    res.end(buf);
+  });
+}
+
+function readBody(req, limit) {
+  return new Promise((resolve, reject) => {
+    let size = 0;
+    const chunks = [];
+    req.on("data", (c) => {
+      size += c.length;
+      if (size > limit) { reject(new Error("too large")); req.destroy(); return; }
+      chunks.push(c);
+    });
+    req.on("end", () => resolve(Buffer.concat(chunks).toString("utf8")));
+    req.on("error", reject);
+  });
+}
+
+const server = http.createServer(async (req, res) => {
+  let url;
+  try { url = new URL(req.url, "http://localhost"); }
+  catch (e) { res.writeHead(400); res.end("bad request"); return; }
+
+  const route = url.pathname;
+
+  /* 送迎表が生きているかの確認 */
+  if (route === "/api/ping") {
+    sendJSON(res, 200, { ok: true, name: "soutei", time: new Date().toISOString() });
+    return;
+  }
+
+  /* 保存されているものの一覧と、それぞれの版番号 */
+  if (route === "/api/index" && req.method === "GET") {
+    const list = listDocs();
+    sendJSON(res, 200, { ok: true, docs: list.docs, days: list.days });
+    return;
+  }
+
+  if (route === "/api/doc") {
+    const key = url.searchParams.get("key") || "";
+    if (!KEY_OK.test(key)) { sendJSON(res, 400, { ok: false, error: "bad key" }); return; }
+
+    if (req.method === "GET") {
+      const doc = readDoc(key);
+      if (!doc) { sendJSON(res, 404, { ok: false, error: "not found" }); return; }
+      sendJSON(res, 200, { ok: true, key, rev: doc.rev, updatedAt: doc.updatedAt, data: doc.data });
+      return;
+    }
+
+    if (req.method === "PUT") {
+      let body;
+      try { body = JSON.parse(await readBody(req, 8 * 1024 * 1024)); }
+      catch (e) { sendJSON(res, 400, { ok: false, error: "bad body" }); return; }
+
+      const current = readDoc(key);
+      const currentRev = current ? current.rev : 0;
+      const baseRev = Number(body.baseRev) || 0;
+
+      /* 自分が知っている版と食い違う＝他の端末が先に直している。
+         黙って上書きせず、向こうの中身を返して知らせる */
+      if (currentRev !== baseRev) {
+        sendJSON(res, 409, {
+          ok: false, conflict: true, key,
+          rev: currentRev,
+          updatedAt: current ? current.updatedAt : "",
+          data: current ? current.data : null
+        });
+        return;
+      }
+
+      const next = { rev: currentRev + 1, updatedAt: new Date().toISOString(), data: body.data };
+      try { writeDoc(key, next); }
+      catch (e) { sendJSON(res, 500, { ok: false, error: String(e && e.message) }); return; }
+      sendJSON(res, 200, { ok: true, key, rev: next.rev, updatedAt: next.updatedAt });
+      return;
+    }
+
+    sendJSON(res, 405, { ok: false, error: "method not allowed" });
+    return;
+  }
+
+  /* 送迎表そのもの */
+  if (req.method === "GET" && (route === "/" || route === "/index.html")) {
+    const app = appFile();
+    if (!app) { res.writeHead(500); res.end("index.html が見つかりません。送迎表のファイルをこのフォルダに置いてください。"); return; }
+    sendFile(res, app, "text/html; charset=utf-8");
+    return;
+  }
+
+  res.writeHead(404, { "content-type": "text/plain; charset=utf-8" });
+  res.end("not found");
+});
+
+/* ── 起動 ─────────────────────────────────── */
+
+function lanAddresses() {
+  const out = [];
+  const ifs = os.networkInterfaces();
+  Object.keys(ifs).forEach((name) => {
+    (ifs[name] || []).forEach((a) => {
+      if (a.family === "IPv4" && !a.internal) out.push(a.address);
+    });
+  });
+  return out;
+}
+
+try { fs.mkdirSync(DATA, { recursive: true }); }
+catch (e) { console.error("data フォルダを作れませんでした:", e.message); process.exit(1); }
+
+if (!appFile()) {
+  console.log("── 注意 ────────────────────────────────");
+  console.log("送迎表の index.html が見つかりません。");
+  console.log("このフォルダに index.html（送迎表）を置いてください:");
+  console.log("  " + HERE);
+  console.log("───────────────────────────────────────");
+  console.log("");
+}
+
+server.listen(PORT, "0.0.0.0", () => {
+  const list = listDocs();
+  console.log("");
+  console.log("===========================================");
+  console.log(" デイサービス送迎表　保存サーバー　起動しました");
+  console.log("===========================================");
+  console.log("");
+  console.log(" この PC からは       : http://localhost:" + PORT + "/");
+  lanAddresses().forEach((ip, i) => {
+    console.log((i === 0 ? " 他の PC・タブレットは : " : "                        ") + "http://" + ip + ":" + PORT + "/");
+  });
+  console.log("");
+  console.log(" データの置き場所      : " + DATA);
+  console.log(" 保存済みの日          : " + (list.days.length ? list.days.length + " 日ぶん" : "まだありません"));
+  console.log("");
+  console.log(" 終わるときは、この画面で Ctrl + C を押してください。");
+  console.log(" この画面を閉じるとサーバーも止まります。");
+  console.log("");
+});
+
+server.on("error", (e) => {
+  if (e.code === "EADDRINUSE") {
+    console.error("");
+    console.error("ポート " + PORT + " は他で使われています。");
+    console.error("別の番号で起動してください:  node soutei-server.js 8081");
+    console.error("");
+  } else {
+    console.error("起動できませんでした:", e.message);
+  }
+  process.exit(1);
+});
