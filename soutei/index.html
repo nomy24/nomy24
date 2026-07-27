@@ -1062,20 +1062,51 @@
 
   .eta {
     font: inherit;
-    font-size: 11px;
+    font-size: 13px;
     font-weight: inherit;
-    padding: 0;
+    min-width: 3.4rem;
+    padding: 0 3px;
     border: 0;
     background: transparent;
-    color: var(--ink-3);
+    color: var(--ink);
     font-variant-numeric: tabular-nums;
+    text-align: center;
     white-space: nowrap;
+  }
+
+  /* お迎え便は「何時に着きたいか」を書ける欄 */
+  .eta[data-target="1"] {
+    border-bottom: 1px dashed var(--rule-2);
+    cursor: text;
+  }
+
+  .eta[data-target="1"]:hover,
+  .eta[data-target="1"]:focus { border-bottom-color: var(--accent); }
+
+  /* 手で目標を入れた欄。自動のままとの違いが分かるようにする */
+  .eta.edited {
+    color: var(--accent);
+    border-bottom-style: solid;
+    border-bottom-color: var(--accent);
+  }
+  .eta[data-target="1"]:empty::before { content: "自動"; color: var(--ink-3); font-size: 11px; }
+
+  /* 目標と見込みがずれたときだけ、実際の見込みを脇に出す */
+  .eta[data-note]:not([data-note=""])::after {
+    content: "（" attr(data-note) "）";
+    font-size: 10px;
+    color: var(--ink-3);
+    margin-left: 3px;
   }
 
   .eta.over {
     color: var(--warn);
-    text-decoration: underline;
-    cursor: pointer;
+    font-weight: 700;
+  }
+
+  .eta.over::before {
+    content: "⚠ ";
+    font-size: 10px;
   }
 
   .car-foot .count { font-variant-numeric: tabular-nums; margin-left: auto; }
@@ -2099,7 +2130,9 @@
     .dep { font-size: 8.5pt; min-width: 9mm; }
     .actual-box { min-width: 11mm; font-size: 8.5pt; border-bottom-color: #999; }
     .arrive-box { min-width: 13mm; font-size: 8.5pt; border-bottom-color: #999; }
-    .eta { font-size: 6.5pt; }
+    .eta { font-size: 8.5pt; min-width: 0; padding: 0 2px; }
+    .eta[data-note]:not([data-note=""])::after { content: none; }
+    .eta[data-target="1"]:empty::before { content: ""; }
 
     .stop {
       min-height: 0;
@@ -2383,11 +2416,11 @@
           <span class="of-help">地図のルートの<b>出発地と到着地</b>になります。空欄だと地図を開けません。</span>
         </label>
         <label class="of-row">
-          <span class="of-label">利用者住所の前に付ける</span>
-          <input type="text" id="office-area" placeholder="〇〇県〇〇市">
+          <span class="of-label">都道府県</span>
+          <input type="text" id="office-area" placeholder="〇〇県">
           <span class="of-help">
-            利用者マスタの住所は「中央町3-14-2」のように町名から入れてあるので、
-            地図に渡すときはこれを前に付けて場所を特定します。
+            地図に渡すときだけ、利用者の住所の前に付けます。
+            利用者マスタの住所は<b>市区町村から</b>入れてください（例：〇〇市中央町3-14-2）。
           </span>
         </label>
       </div>
@@ -2419,7 +2452,7 @@
     { key: "am-drop", part: "am", partLabel: "午前", dir: "お送り", flow: "事業所 → 自宅", departLabel: "事業所 発", arriveLabel: "事業所 帰着", depart: "12:05", accent: "kaki" },
     /* 午後お迎えは午前お送りから続けて回るので、事業所発の記入欄は置かない。
        時刻は事業所着（13:20 まで）からの逆算だけで決まる */
-    { key: "pm-pick", part: "pm", partLabel: "午後", dir: "お迎え", flow: "自宅 → 事業所", departLabel: "午前お送りから続けて", noDepart: true, arriveLabel: "事業所 着", depart: "12:45", arriveBy: ["13:15", "13:20"], accent: "seiheki" },
+    { key: "pm-pick", part: "pm", partLabel: "午後", dir: "お迎え", flow: "自宅 → 事業所", departLabel: "午前お送りから続けて", noDepart: true, arriveLabel: "事業所 着", depart: "12:45", arriveBy: ["13:10", "13:20"], accent: "seiheki" },
     { key: "pm-drop", part: "pm", partLabel: "午後", dir: "お送り", flow: "事業所 → 自宅", departLabel: "事業所 発", arriveLabel: "事業所 帰着", depart: "16:30", accent: "enji" }
   ];
 
@@ -2826,17 +2859,38 @@
   /* お迎え便は「事業所に何時までに着きたいか」から出発時刻を逆算する。
      丸めのぶん着が後ろへずれるので、目標に収まるまで5分ずつ早める。
      目標は車ごとに1分ずつずらして、事業所が一度に混まないようにする。 */
-  function departFor(leg, index, ids) {
-    if (!leg.arriveBy || ids.length === 0) return leg.depart;
+  /* 着の目標。手で入れてあればそれを、無ければ車ごとに少しずつずらした既定を使う。
+     事業所に一度に着いて混まないよう、既定は幅の中で散らしてある。 */
+  function arriveTarget(leg, index, want) {
+    if (!leg.arriveBy) return null;
     const from = parseHHMM(leg.arriveBy[0]);
     const to = parseHHMM(leg.arriveBy[1]);
+    const manual = parseHHMM(want);
+    if (manual !== null) return { target: manual, limit: to };
     const span = Math.max(0, to - from);
-    const target = from + (span === 0 ? 0 : index % (span + 1));
+    return { target: from + (span === 0 ? 0 : index % (span + 1)), limit: to };
+  }
+
+  function departFor(leg, index, ids, want) {
+    if (!leg.arriveBy || ids.length === 0) return leg.depart;
+    const { target } = arriveTarget(leg, index, want);
     let depart = floorStep(target - routeMinutes(ids));
-    for (let i = 0; i < 12 && simulateArrival(depart, ids) > to; i++) depart -= STEP_MIN;
+    for (let i = 0; i < 12 && simulateArrival(depart, ids) > target; i++) depart -= STEP_MIN;
     return hhmm(Math.max(0, depart));
   }
   const hhmm = (m) => String(Math.floor(m / 60) % 24).padStart(2, "0") + ":" + String(m % 60).padStart(2, "0");
+
+  /* 「8:5」「1310」なども hh:mm にそろえる。空ならそのまま */
+  function normalizeTime(node) {
+    const raw = node.textContent.trim();
+    if (!raw) { node.textContent = ""; return; }
+    const digits = raw.replace(/[^\d]/g, "");
+    let m = parseHHMM(raw);
+    if (m === null && (digits.length === 3 || digits.length === 4)) {
+      m = Number(digits.slice(0, digits.length - 2)) * 60 + Number(digits.slice(-2));
+    }
+    node.textContent = m === null ? "" : hhmm(m);
+  }
 
   function parseHHMM(text) {
     const m = String(text).match(/(\d{1,2})\s*[:：]\s*(\d{1,2})/);
@@ -3225,11 +3279,32 @@
     const foot = el("div", "car-foot");
     const arriveBox = el("span", "arrive-box");
     arriveBox.contentEditable = "true";
-    const eta = el("button", "eta", "");
-    eta.type = "button";
-    eta.disabled = true;
-    eta.addEventListener("click", () => { retimeCar(article, leg, index); refresh(); });
-    foot.append(el("span", "lbl", leg.arriveLabel), eta, arriveBox, el("span", "count", ""));
+
+    /* お迎え便は「何時に着きたいか」を車ごとに書ける。
+       書けばそこから出発を逆算するので、便ごとに余裕を持たせられる。
+       お送り便は帰着の見込みなので読むだけ。 */
+    const eta = el("span", "eta");
+    if (leg.arriveBy) {
+      eta.contentEditable = "true";
+      eta.dataset.target = "1";
+      eta.title = "着きたい時刻を書けます（" + leg.arriveBy[0] + "〜" + leg.arriveBy[1]
+        + " のあいだ）。空にすると自動に戻ります。";
+      /* 打っている途中に書き換えると入力が消えるので、確定してから計算する */
+      eta.addEventListener("blur", () => { normalizeTime(eta); refresh(); });
+      eta.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") { e.preventDefault(); eta.blur(); }
+        if (e.key === "Escape") { eta.textContent = ""; eta.blur(); }
+      });
+    }
+
+    foot.append(
+      el("span", "lbl", leg.arriveLabel),
+      el("span", "lbl", leg.arriveBy ? "目標" : "目安"),
+      eta,
+      el("span", "lbl", "実績"),
+      arriveBox,
+      el("span", "count", "")
+    );
 
     const body = el("div", "car-body");
     body.append(depBar, list, foot);
@@ -3337,7 +3412,12 @@
     section.querySelectorAll(".car").forEach((car, index) => {
       /* 事業所発を持たない便（午後お迎え）は、記入で調整する口がないので
          毎回そのときの顔ぶれで着から逆算し直す。上限を必ず内側に保つ */
-      if (leg.noDepart && leg.arriveBy) retimeCar(car, leg, index);
+      if (leg.arriveBy) {
+        const eta = car.querySelector(".eta");
+        /* 目標を書いてある車と、そもそも発の記入欄がない便は、
+           そのつど着から逆算し直す */
+        if (leg.noDepart || (eta && parseHHMM(eta.textContent) !== null)) retimeCar(car, leg, index);
+      }
 
       let cursor = parseHHMM(car.querySelector(".dep").textContent);
       if (cursor === null) cursor = parseHHMM(leg.depart) || 0;
@@ -3374,22 +3454,37 @@
         riding++;
       });
 
-      /* 最後の家から事業所へ戻るまでを足して、着の目安を出す */
+      /* 最後の家から事業所へ戻るまでを足して、着の見込みを出す */
       const eta = car.querySelector(".eta");
-      if (!riding) {
-        eta.textContent = "";
+      const typing = document.activeElement === eta;   /* 記入中は触らない */
+      const want = eta.dataset.target === "1" ? eta.textContent : "";
+      const wanted = parseHHMM(want);
+      eta.classList.toggle("edited", eta.dataset.target === "1" && wanted !== null);
+
+      if (typing) {
+        /* 何もしない */
+      } else if (!riding) {
+        if (wanted === null) eta.textContent = "";
         eta.classList.remove("over");
-        eta.disabled = true;
+        eta.dataset.note = "";
       } else {
         const arrive = roundStep(cursor + travelMin(from, DEPOT));
         const limit = leg.arriveBy ? parseHHMM(leg.arriveBy[1]) : null;
         const over = limit !== null && arrive > limit;
-        eta.textContent = "目安 " + hhmm(arrive) + (over ? "　⚠ 超過" : "");
-        eta.title = over
-          ? leg.arriveBy[1] + " を過ぎています。押すとこの車の出発を早めて収めます。"
-          : "この車が事業所に着く見込みの時刻";
-        eta.classList.toggle("over", over);
-        eta.disabled = !over;
+
+        if (eta.dataset.target === "1" && wanted !== null) {
+          /* 手で入れた目標。中身は書き換えず、実際の見込みだけ脇に出す */
+          eta.dataset.note = arrive === wanted ? "" : "見込み " + hhmm(arrive);
+          eta.classList.toggle("over", wanted > (limit === null ? wanted : limit) || over);
+          eta.title = "着きたい時刻。ここから出発を逆算します。空にすると自動に戻ります。";
+        } else {
+          eta.textContent = hhmm(arrive);
+          eta.dataset.note = "";
+          eta.classList.toggle("over", over);
+          eta.title = leg.arriveBy
+            ? "着きたい時刻を書けます（" + leg.arriveBy[0] + "〜" + leg.arriveBy[1] + " のあいだ）"
+            : "この車が事業所に戻る見込みの時刻";
+        }
       }
     });
   }
@@ -3866,6 +3961,8 @@
         dep: car.querySelector(".dep").textContent,
         depActual: car.querySelector(".dep-actual").textContent,
         arrive: car.querySelector(".arrive-box").textContent,
+        /* 着の目標（お迎え便で手で入れたとき） */
+        eta: car.querySelector(".eta").dataset.target === "1" ? car.querySelector(".eta").textContent : "",
         stops: [...car.querySelectorAll(".stop:not(.head)")].map((stop) => ({
           u: stop.querySelector(".who").value,
           t: stop.querySelector(".t").textContent,
@@ -3902,6 +3999,8 @@
         if (noBox) noBox.textContent = s.no || "";
         const startBox = car.querySelector(".start-box");
         if (startBox) startBox.textContent = s.start || "";
+        const etaBox = car.querySelector(".eta");
+        if (etaBox && etaBox.dataset.target === "1") etaBox.textContent = s.eta || "";
         const dsel = car.querySelector(".driver-select");
         if (s.driver && !dsel.querySelector('option[value="' + CSS.escape(s.driver) + '"]')) {
           const g = document.createElement("optgroup");
@@ -4230,7 +4329,9 @@
       .filter((st) => st.dataset.state !== "absent")
       .map((st) => st.querySelector(".who").value)
       .filter(Boolean);
-    car.querySelector(".dep").textContent = departFor(leg, index, ids);
+    const eta = car.querySelector(".eta");
+    const want = eta && eta.dataset.target === "1" ? eta.textContent : "";
+    car.querySelector(".dep").textContent = departFor(leg, index, ids, want);
   }
 
   function retimeAll(section, leg) {
