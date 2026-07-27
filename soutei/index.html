@@ -1015,7 +1015,8 @@
     letter-spacing: .04em;
   }
 
-  .car-depart [hidden] { display: none !important; }
+  .car-depart [hidden],
+  .car-foot [hidden] { display: none !important; }
 
   .car-foot {
     justify-content: space-between;
@@ -1631,8 +1632,8 @@
   .pm-ended {
     margin-top: calc(var(--step) * 8);
     padding-top: calc(var(--step) * 3);
-    border-top: 1px solid var(--rule-2);
-    color: var(--ink-3);
+    border-top: 2px solid var(--tag-aid);
+    color: var(--tag-aid);
   }
 
   .pm-note {
@@ -1640,6 +1641,79 @@
     font-size: 11px;
     line-height: 1.6;
     color: var(--ink-3);
+  }
+
+  /* ── マスタのダイアログ ───────────────────── */
+  .user-form {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--step) * 4);
+  }
+
+  .uf-row {
+    display: grid;
+    grid-template-columns: 6.5rem minmax(0, 1fr);
+    align-items: center;
+    gap: 4px calc(var(--step) * 3);
+  }
+
+  .uf-label { font-size: 12px; color: var(--ink-2); letter-spacing: .04em; }
+
+  .uf-help {
+    grid-column: 2;
+    font-size: 11px;
+    line-height: 1.6;
+    color: var(--ink-3);
+  }
+
+  .uf-warn {
+    margin: 0;
+    padding: calc(var(--step) * 3);
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--warn);
+    background: var(--warn-soft);
+    border: 1px solid var(--warn);
+    border-radius: 9px;
+  }
+
+  .uf-warn b { display: block; margin-bottom: 2px; }
+
+  #mu-ok.danger {
+    border-color: var(--warn);
+    color: var(--card);
+    background: var(--warn);
+    font-weight: 600;
+  }
+
+  #mu-ok.danger:hover { filter: brightness(1.08); }
+
+  /* 終了は青系、削除は赤。取り違えないように色で分ける */
+  .page-master .btn.end {
+    border-color: var(--tag-aid);
+    color: var(--tag-aid);
+  }
+
+  .page-master .btn.end:hover {
+    background: var(--tag-aid);
+    border-color: var(--tag-aid);
+    color: var(--card);
+  }
+
+  .page-master .btn.danger {
+    border-color: var(--warn);
+    color: var(--warn);
+  }
+
+  .page-master .btn.danger:hover {
+    background: var(--warn);
+    border-color: var(--warn);
+    color: var(--card);
+  }
+
+  /* 利用終了の行は青系にして、削除の赤と区別する */
+  .page-master tr.is-ended td {
+    background: color-mix(in srgb, var(--tag-aid) 8%, var(--sub));
   }
 
   .office-form {
@@ -2279,6 +2353,23 @@
   </div>
 </div>
 
+<!-- ── 利用者の追加・終了・削除 ───────────── -->
+<div class="modal" id="modal-user" hidden role="dialog" aria-modal="true" aria-labelledby="mu-title">
+  <div class="modal-panel narrow">
+    <div class="modal-head">
+      <h2 id="mu-title"></h2>
+      <p id="mu-lead"></p>
+    </div>
+    <div class="modal-body">
+      <div class="user-form" id="mu-body"></div>
+    </div>
+    <div class="modal-foot">
+      <button type="button" class="btn" id="mu-cancel">やめる</button>
+      <button type="button" class="btn primary" id="mu-ok"></button>
+    </div>
+  </div>
+</div>
+
 <!-- ── 未割当の方を乗せる車両を選ぶ ───────── -->
 <div class="modal" id="modal-assign" hidden role="dialog" aria-modal="true" aria-labelledby="assign-who">
   <div class="modal-panel narrow">
@@ -2315,8 +2406,7 @@
 <div class="page-print" id="page-print" hidden>
   <header class="pp-head">
     <div>
-      <p class="eyebrow" id="office-name-top" contenteditable="true" spellcheck="false"
-       title="事業所名。ここで直すとマスタにも入り、印刷にも出ます"></p>
+      <p class="eyebrow office-name-echo"></p>
       <h1>印刷レイアウト<span class="pp-count" id="pp-count">全4枚</span></h1>
       <p class="pp-lead" id="pp-lead"></p>
     </div>
@@ -2332,8 +2422,7 @@
 <div class="page-master" id="page-master" hidden>
   <header class="pm-head">
     <div>
-      <p class="eyebrow" id="office-name-top" contenteditable="true" spellcheck="false"
-       title="事業所名。ここで直すとマスタにも入り、印刷にも出ます"></p>
+      <p class="eyebrow office-name-echo"></p>
       <h1>マスタ編集</h1>
     </div>
     <div class="pm-actions">
@@ -2358,11 +2447,11 @@
         <thead>
           <tr>
             <th style="width:13%">氏名</th>
-            <th style="width:13%">ふりがな</th>
-            <th style="width:10%">町名</th>
-            <th style="width:18%">住所</th>
-            <th style="width:10%">記号</th>
-            <th style="width:16%">利用曜日</th>
+            <th style="width:12%">ふりがな</th>
+            <th style="width:22%">住所（市区町村以下）</th>
+            <th style="width:10%">介護度</th>
+            <th style="width:9%">記号</th>
+            <th style="width:15%">利用曜日</th>
             <th style="width:12%"></th>
           </tr>
         </thead>
@@ -2449,7 +2538,7 @@
      depart は各車の事業所発の初期値で、カードごとに書き換えられる。 */
   const LEGS = [
     { key: "am-pick", part: "am", partLabel: "午前", dir: "お迎え", flow: "自宅 → 事業所", departLabel: "事業所 発", arriveLabel: "事業所 着", depart: "08:15", arriveBy: ["08:55", "09:00"], accent: "ai" },
-    { key: "am-drop", part: "am", partLabel: "午前", dir: "お送り", flow: "事業所 → 自宅", departLabel: "事業所 発", arriveLabel: "事業所 帰着", depart: "12:05", accent: "kaki" },
+    { key: "am-drop", part: "am", partLabel: "午前", dir: "お送り", flow: "事業所 → 自宅", departLabel: "事業所 発", arriveLabel: "事業所 帰着", noArrive: true, depart: "12:05", accent: "kaki" },
     /* 午後お迎えは午前お送りから続けて回るので、事業所発の記入欄は置かない。
        時刻は事業所着（13:20 まで）からの逆算だけで決まる */
     { key: "pm-pick", part: "pm", partLabel: "午後", dir: "お迎え", flow: "自宅 → 事業所", departLabel: "午前お送りから続けて", noDepart: true, arriveLabel: "事業所 着", depart: "12:45", arriveBy: ["13:10", "13:20"], accent: "seiheki" },
@@ -2530,8 +2619,16 @@
     "泉町": { x: 2.6, y: -1.2 }, "宮下": { x: 3.3, y: -0.4 },
     "上野原": { x: 1.2, y: 5.2 }, "戸倉": { x: 2.4, y: 6.1 },
     "梅林": { x: 3.6, y: 5.4 }, "新町": { x: -3.8, y: -2.6 },
-    "曙": { x: -4.6, y: -3.5 }, "花見川": { x: -5.4, y: -2.4 }
+    "曙": { x: -4.6, y: -3.5 }, "花見川": { x: -5.4, y: -2.4 },
+    /* 表に無い住所のまとめ先。時刻は事業所からの平均的な位置で見積もる */
+    "その他": { x: 0, y: 2.2 }
   };
+
+  /* 介護度。事業対象者から要介護5まで */
+  const CARE_LEVELS = [
+    "事業対象者", "要支援1", "要支援2",
+    "要介護1", "要介護2", "要介護3", "要介護4", "要介護5"
+  ];
 
   /* ── 利用者マスタの初期値 ────────────────── */
   const DEFAULT_USERS = [
@@ -2793,10 +2890,21 @@
     return o;
   }
 
+  /* 住所から町名を拾う。実際の住所を入れた場合は当てはまらないので、
+     そのときは「その他」にまとめる（時刻はあくまで目安。手入力で直せる） */
+  function deriveTown(addr, fallback) {
+    const text = String(addr || "");
+    const hit = Object.keys(TOWNS).find((t) => t !== "その他" && text.indexOf(t) >= 0);
+    if (hit) return hit;
+    if (fallback && TOWNS[fallback]) return fallback;
+    return "その他";
+  }
+
   /* 住所から地図上の位置と乗降時間を作り直す */
   function indexUsers() {
     USER_BY_ID = new Map();
     USERS.forEach((u) => {
+      u.town = deriveTown(u.addr, u.town);
       const c = TOWNS[u.town] || DEPOT;
       const n = (u.addr.match(/\d+/g) || []).map(Number);
       const a = n[0] || 0, b = n[1] || 0, d = n[2] || 0;
@@ -3297,14 +3405,21 @@
       });
     }
 
-    foot.append(
-      el("span", "lbl", leg.arriveLabel),
-      el("span", "lbl", leg.arriveBy ? "目標" : "目安"),
-      eta,
-      el("span", "lbl", "実績"),
-      arriveBox,
-      el("span", "count", "")
-    );
+    if (leg.noArrive) {
+      /* 午前お送りは事業所へ戻らずそのまま午後お迎えへ回るので、帰着の時刻は出さない。
+         念のため手書きできる点線だけ残す */
+      eta.hidden = true;
+      foot.append(el("span", "lbl", leg.arriveLabel), eta, arriveBox, el("span", "count", ""));
+    } else {
+      foot.append(
+        el("span", "lbl", leg.arriveLabel),
+        el("span", "lbl", leg.arriveBy ? "目標" : "目安"),
+        eta,
+        el("span", "lbl", "実績"),
+        arriveBox,
+        el("span", "count", "")
+      );
+    }
 
     const body = el("div", "car-body");
     body.append(depBar, list, foot);
@@ -4375,6 +4490,192 @@
 
   const byKana = (a, b) => String(a.kana || a.name).localeCompare(String(b.kana || b.name), "ja");
 
+  function careSelect(value) {
+    const sel = document.createElement("select");
+    sel.append(new Option("（未設定）", ""));
+    CARE_LEVELS.forEach((c) => sel.append(new Option(c, c)));
+    sel.value = value || "";
+    return sel;
+  }
+
+  /* ── マスタのダイアログ（追加・終了・削除） ──────
+     埋め込みでは confirm() が黙って無視されるので、確認は必ず画面の中で行う。 */
+  const muBox = document.getElementById("modal-user");
+  let muOk = null;
+
+  function closeUserDialog() {
+    muBox.hidden = true;
+    muOk = null;
+    document.getElementById("mu-body").innerHTML = "";
+  }
+
+  function openUserDialog({ title, lead, ok, danger, build, submit }) {
+    document.getElementById("mu-title").textContent = title;
+    document.getElementById("mu-lead").textContent = lead || "";
+    const body = document.getElementById("mu-body");
+    body.innerHTML = "";
+    build(body);
+
+    const okBtn = document.getElementById("mu-ok");
+    okBtn.textContent = ok;
+    okBtn.classList.toggle("danger", !!danger);
+    okBtn.classList.toggle("primary", !danger);
+    muOk = submit;
+
+    muBox.hidden = false;
+    const first = body.querySelector("input, select");
+    if (first) first.focus();
+  }
+
+  document.getElementById("mu-cancel").addEventListener("click", closeUserDialog);
+  document.getElementById("mu-ok").addEventListener("click", () => { if (muOk) muOk(); });
+  muBox.addEventListener("click", (e) => { if (e.target === muBox) closeUserDialog(); });
+  document.addEventListener("keydown", (e) => {
+    if (muBox.hidden) return;
+    if (e.key === "Escape") { e.preventDefault(); closeUserDialog(); }
+    if (e.key === "Enter" && e.target.tagName !== "BUTTON" && muOk) { e.preventDefault(); muOk(); }
+  });
+
+  /* ダイアログの中の1行 */
+  function formRow(parent, label, node, help) {
+    const row = el("label", "uf-row");
+    row.append(el("span", "uf-label", label));
+    row.append(node);
+    if (help) row.append(el("span", "uf-help", help));
+    parent.append(row);
+    return node;
+  }
+
+  /* 記号と利用曜日は表と同じ操作にそろえる */
+  function tagPicker(tags) {
+    const wrap = el("span", "tag-cell");
+    TAGS.forEach((t) => {
+      const b = tagButton(t, tags.includes(t.key));
+      b.addEventListener("click", () => {
+        const on = b.getAttribute("aria-pressed") !== "true";
+        b.setAttribute("aria-pressed", String(on));
+        if (on) { if (!tags.includes(t.key)) tags.push(t.key); }
+        else { const at = tags.indexOf(t.key); if (at >= 0) tags.splice(at, 1); }
+      });
+      wrap.append(b);
+    });
+    return wrap;
+  }
+
+  function dayPicker(days) {
+    const wrap = el("span", "day-cell");
+    const cycle = ["", "AM", "PM"];
+    WEEKDAYS.forEach((d) => {
+      const b = el("button", "day");
+      b.type = "button";
+      const label = el("span", "ap", "");
+      b.append(el("span", "d", d), label);
+      const draw = (ap) => {
+        b.dataset.ap = ap;
+        label.textContent = ap;
+        b.setAttribute("aria-pressed", String(ap !== ""));
+      };
+      draw(days[d] || "");
+      b.addEventListener("click", () => {
+        const next = cycle[(cycle.indexOf(b.dataset.ap || "") + 1) % cycle.length];
+        draw(next);
+        if (next) days[d] = next; else delete days[d];
+      });
+      wrap.append(b);
+    });
+    return wrap;
+  }
+
+  function openAddDialog() {
+    const draft = { name: "", kana: "", addr: "", care: "", tags: [], days: {} };
+    openUserDialog({
+      title: "利用者を追加",
+      lead: "氏名と住所だけでも登録できます。あとから表で直せます。",
+      ok: "追加する",
+      build(body) {
+        const name = formRow(body, "氏名", Object.assign(document.createElement("input"), { type: "text", placeholder: "山田 太郎" }));
+        const kana = formRow(body, "ふりがな", Object.assign(document.createElement("input"), { type: "text", placeholder: "やまだ たろう" }),
+          "並び順に使います（五十音順）");
+        const addr = formRow(body, "住所", Object.assign(document.createElement("input"), { type: "text", placeholder: "〇〇市中央町3-14-2" }),
+          "市区町村から入れてください。都道府県はマスタの「事業所」タブに登録します。");
+        const care = formRow(body, "介護度", careSelect(""));
+        formRow(body, "記号", tagPicker(draft.tags), "車椅子・歩行器・玄関先まで");
+        formRow(body, "利用曜日", dayPicker(draft.days), "押すたびに 空 → AM → PM と変わります");
+        body.dataset.ready = "1";
+        draft.el = { name, kana, addr, care };
+      },
+      submit() {
+        const name = draft.el.name.value.trim();
+        if (!name) { notify("氏名を入れてください。", "warn"); draft.el.name.focus(); return; }
+        const addr = draft.el.addr.value.trim();
+        draftUsers.push({
+          id: "u" + Date.now().toString(36),
+          name,
+          kana: draft.el.kana.value.trim(),
+          addr,
+          town: deriveTown(addr, ""),
+          care: draft.el.care.value,
+          tags: [...draft.tags],
+          days: { ...draft.days },
+          end: null
+        });
+        draftUsers.sort(byKana);
+        closeUserDialog();
+        drawMasterTables();
+        notify(name + " さんを追加しました。保存するまでは確定しません。");
+      }
+    });
+  }
+
+  function openEndDialog(i) {
+    const u = draftUsers[i];
+    let dateEl = null;
+    let reasonEl = null;
+    openUserDialog({
+      title: u.name + " さんを利用終了にする",
+      lead: "記録は残ります。送迎表の候補・既定の割り当て・未割当から外れます。",
+      ok: "利用終了にする",
+      build(body) {
+        dateEl = formRow(body, "終了日", Object.assign(document.createElement("input"), { type: "date", value: isoToday() }));
+        reasonEl = Object.assign(document.createElement("input"), { type: "text", placeholder: "入院・施設入所など" });
+        reasonEl.setAttribute("list", "end-reasons");
+        formRow(body, "終了理由", reasonEl, "空欄でも構いません。あとから直せます。");
+      },
+      submit() {
+        draftUsers[i].end = { d: dateEl.value || isoToday(), r: reasonEl.value.trim() };
+        closeUserDialog();
+        drawMasterTables();
+        notify(u.name + " さんを利用終了にしました。「利用中に戻す」で戻せます。");
+      }
+    });
+  }
+
+  function openDeleteDialog(i) {
+    const u = draftUsers[i];
+    openUserDialog({
+      title: u.name + " さんを削除しますか",
+      lead: "この方の記録をマスタから消します。",
+      ok: "削除する",
+      danger: true,
+      build(body) {
+        const warn = el("p", "uf-warn");
+        warn.append(
+          el("b", null, "元に戻せません。"),
+          document.createTextNode(
+            "過去の送迎表に名前が残っている場合、その行の利用者は空欄になります。"
+            + "履歴を残したいときは「削除」ではなく「終了」を使ってください。")
+        );
+        body.append(warn);
+      },
+      submit() {
+        draftUsers.splice(i, 1);
+        closeUserDialog();
+        drawMasterTables();
+        notify(u.name + " さんを削除しました。保存前なら「やめる」で戻せます。", "warn");
+      }
+    });
+  }
+
   function townSelect(value) {
     const sel = document.createElement("select");
     Object.keys(TOWNS).forEach((t) => sel.append(new Option(t, t)));
@@ -4398,14 +4699,16 @@
     kanaI.addEventListener("input", () => { draftUsers[i].kana = kanaI.value; });
     cell(kanaI);
 
-    const townI = townSelect(u.town);
-    townI.addEventListener("change", () => { draftUsers[i].town = townI.value; });
-    cell(townI);
-
     const addrI = document.createElement("input");
     addrI.type = "text"; addrI.value = u.addr;
-    addrI.addEventListener("input", () => { draftUsers[i].addr = addrI.value; });
+    addrI.placeholder = "〇〇市中央町3-14-2";
+    addrI.addEventListener("input", () => {
+      draftUsers[i].addr = addrI.value;
+      draftUsers[i].town = deriveTown(addrI.value, draftUsers[i].town);
+    });
     cell(addrI);
+
+    cell(careSelect(u.care)).addEventListener("change", function () { draftUsers[i].care = this.value; });
 
     const tagWrap = el("span", "tag-cell");
     TAGS.forEach((t) => {
@@ -4449,17 +4752,14 @@
     cell(dayWrap);
 
     const actions = el("span", "tag-cell");
-    const endBtn = el("button", "btn", "終了");
+    const endBtn = el("button", "btn end", "終了");
     endBtn.type = "button";
-    endBtn.title = "利用終了にして、送迎表の候補から外す";
-    endBtn.addEventListener("click", () => {
-      draftUsers[i].end = { d: isoToday(), r: "" };
-      drawMasterTables();
-    });
+    endBtn.title = "利用終了にして、送迎表の候補から外す（記録は残る）";
+    endBtn.addEventListener("click", () => openEndDialog(i));
     const del = el("button", "btn danger", "削除");
     del.type = "button";
     del.title = "記録ごと消す（履歴を残すなら「終了」）";
-    del.addEventListener("click", () => { draftUsers.splice(i, 1); drawMasterTables(); });
+    del.addEventListener("click", () => openDeleteDialog(i));
     actions.append(endBtn, del);
     cell(actions);
 
@@ -4781,7 +5081,7 @@
 
     draftUsers = USERS
       .map((u) => ({
-        id: u.id, name: u.name, kana: u.kana, town: u.town, addr: u.addr,
+        id: u.id, name: u.name, kana: u.kana, town: u.town, addr: u.addr, care: u.care || "",
         tags: [...u.tags], days: { ...u.days },
         end: u.end ? { d: u.end.d, r: u.end.r || "" } : null
       }))
@@ -4840,11 +5140,8 @@
     });
   });
 
-  document.getElementById("add-user").addEventListener("click", () => {
-    const n = draftUsers.reduce((m, u) => Math.max(m, Number(String(u.id).replace(/\D/g, "")) || 0), 0) + 1;
-    draftUsers.push({ id: "u" + String(n).padStart(2, "0"), name: "", kana: "", town: Object.keys(TOWNS)[0], addr: "", tags: [], days: {}, end: null });
-    drawMasterTables();
-  });
+  document.getElementById("add-user").addEventListener("click", openAddDialog);
+
 
   document.getElementById("add-driver").addEventListener("click", () => {
     const days = {};
@@ -4856,14 +5153,15 @@
   document.getElementById("master-save").addEventListener("click", () => {
     USERS = draftUsers
       .filter((u) => u.name.trim() !== "")
-      .map((u) => ({ ...u, tags: [...u.tags], days: normDays(u.days), end: u.end && u.end.d ? { d: u.end.d, r: u.end.r || "" } : null }))
+      .map((u) => ({ ...u, care: u.care || "", tags: [...u.tags], days: normDays(u.days), end: u.end && u.end.d ? { d: u.end.d, r: u.end.r || "" } : null }))
       .sort(byKana);
     DRIVERS = draftDrivers.map((d) => ({ name: d.name.trim(), days: { ...d.days } })).filter((d) => d.name);
     DISPATCH = normDispatch(draftDispatch);
     OFFICE = Object.assign({}, DEFAULT_OFFICE, draftOffice);
     OFFICE.name = (OFFICE.name || "").trim() || DEFAULT_OFFICE.name;
     indexUsers();
-    STORE.setJSON("users", USERS.map(({ id, name, kana, town, addr, tags, days, end }) => ({ id, name, kana, town, addr, tags, days, end })));
+    STORE.setJSON("users", USERS.map(({ id, name, kana, town, addr, care, tags, days, end }) =>
+      ({ id, name, kana, town, addr, care: care || "", tags, days, end })));
     STORE.setJSON("drivers", DRIVERS);
     STORE.setJSON("dispatch", DISPATCH);
     STORE.setJSON("office", OFFICE);
@@ -5474,6 +5772,8 @@
   function applyOffice() {
     const top = document.getElementById("office-name-top");
     if (top && top.textContent !== OFFICE.name) top.textContent = OFFICE.name;
+    /* 別ページの見出しにも同じ名前を出す（こちらは読むだけ） */
+    document.querySelectorAll(".office-name-echo").forEach((n) => { n.textContent = OFFICE.name; });
     refreshStamps();
     LEGS.forEach((leg) => {
       const section = document.getElementById("leg-" + leg.key);
@@ -5490,7 +5790,7 @@
       if (name === OFFICE.name) return;
       OFFICE = Object.assign({}, OFFICE, { name });
       STORE.setJSON("office", OFFICE);
-      refreshStamps();
+      applyOffice();
       notify("事業所名を「" + name + "」にしました。");
     };
     top.addEventListener("blur", commit);
