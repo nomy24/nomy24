@@ -370,6 +370,35 @@
     color: var(--accent);
   }
 
+  /* 最終確認：送迎表・業務日誌・電話連絡表の3つを刷る入口。
+     1日の締めに必ず通る場所なので、他のツールと見た目を分けて赤で立てる */
+  .tools .btn-final {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+    padding: 5px 20px 6px;
+    background: var(--warn);
+    border-color: var(--warn);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: .1em;
+  }
+
+  .tools .btn-final small {
+    font-size: 9.5px;
+    font-weight: 400;
+    letter-spacing: .04em;
+    opacity: .88;
+  }
+
+  .tools .btn-final:hover {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: #fff;
+  }
+
   .crew, .undo {
     display: flex;
     align-items: stretch;
@@ -697,35 +726,55 @@
 
   .leg-title .day-note { color: var(--warn); }
 
+  /* 人数のライン。数えるものが並ぶだけの帯だと目が滑るので、
+     ひとつずつを枠に入れて、数字を上・見出しを下に置く */
   .stats {
     display: flex;
     flex-wrap: wrap;
-    gap: calc(var(--step) * 4);
+    gap: calc(var(--step) * 2);
     margin-left: auto;
   }
 
   .stat {
     display: flex;
-    align-items: baseline;
-    gap: 4px;
-    font-size: 12px;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+    min-width: 4.6rem;
+    padding: 4px 10px 5px;
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    font-size: 11px;
+    letter-spacing: .04em;
     color: var(--ink-3);
   }
 
   .stat b {
-    font-size: 19px;
+    font-size: 20px;
     font-weight: 600;
+    line-height: 1.05;
     color: var(--ink);
     font-variant-numeric: tabular-nums;
   }
 
-  /* 登録者＝乗車＋欠席。便の見出し色でまとめの数字だと分かるようにする */
-  .stat.s-total, .stat.s-total b { color: var(--accent); }
-  .stat.s-away b { color: var(--ink-2); }
-  .stat.s-away.on, .stat.s-away.on b { color: var(--warn); }
-  .stat.s-furikae b { color: var(--ink-2); }
-  .stat.s-furikae.on, .stat.s-furikae.on b { color: var(--furikae); }
-  .stat.is-alert, .stat.is-alert b { color: var(--warn); }
+  /* 登録者＝乗車＋欠席。まとめの数字は便の色で囲って先に目が行くようにする */
+  .stat.s-total {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+
+  .stat.s-total b { color: var(--accent); }
+
+  /* 0 のあいだは静かに、1件でもあれば色が付く */
+  .stat.s-away.on, .stat.s-furikae.on, .stat.s-dup.is-alert { border-width: 1.5px; }
+  .stat.s-away.on { border-color: var(--warn); background: var(--warn-soft); color: var(--warn); }
+  .stat.s-away.on b { color: var(--warn); }
+  .stat.s-furikae.on { border-color: var(--furikae); color: var(--furikae); }
+  .stat.s-furikae.on b { color: var(--furikae); }
+  .stat.is-alert { border-color: var(--warn); background: var(--warn-soft); color: var(--warn); }
+  .stat.is-alert b { color: var(--warn); }
 
   .print-stamp {
     display: none;
@@ -1742,6 +1791,65 @@
   .pp-actions .btn:hover { border-color: var(--ai); color: var(--ai); }
   .pp-actions .btn.primary { border-color: var(--ai); color: var(--ai); font-weight: 600; }
 
+  /* 担当表はここで直に書き換える。書けばすぐ下のプレビューに出る */
+  .pp-roles {
+    padding: calc(var(--step) * 3) calc(var(--step) * 5);
+    background: var(--card);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .pp-roles[hidden] { display: none; }
+
+  .ppr-head {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: calc(var(--step) * 3);
+    margin-bottom: calc(var(--step) * 2);
+  }
+
+  .ppr-title {
+    font-family: var(--mincho);
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: .14em;
+    color: var(--enji);
+  }
+
+  .ppr-day { font-size: 13px; letter-spacing: .08em; color: var(--ink-2); }
+  .ppr-note { font-size: 11px; color: var(--ink-3); }
+
+  .ppr-grid {
+    display: grid;
+    grid-template-columns: 3.4rem repeat(5, minmax(0, 1fr));
+    gap: 4px;
+    align-items: center;
+    max-width: 1100px;
+  }
+
+  .ppr-h, .ppr-p {
+    font-size: 11px;
+    letter-spacing: .06em;
+    color: var(--enji);
+    text-align: center;
+  }
+
+  .ppr-p { font-weight: 600; }
+
+  .ppr-grid input {
+    font: inherit;
+    font-size: 14px;
+    width: 100%;
+    min-width: 0;
+    padding: 5px 8px;
+    color: var(--ink);
+    background: var(--paper);
+    border: 1px solid var(--rule-2);
+    border-radius: 6px;
+  }
+
+  .ppr-grid input:focus { border-color: var(--enji); outline: none; }
+
   .pp-stage {
     flex: 1 1 auto;
     min-height: 0;
@@ -2073,50 +2181,52 @@
     gap: 2.6mm;
   }
 
-  /* 1台ぶん。左に車の枠、右に 氏名／時刻 の2段と担当の1段 */
+  /* 1台ぶん。左に担当（運転手）、右に 氏名／お迎え時刻／覚え書き の3段 */
   .tel-car {
     flex: 1 1 0;
     min-height: 0;
     /* 台数が少ない日に1台が間延びしないよう、伸びるほうだけ止める */
-    max-height: 28mm;
+    max-height: 30mm;
     display: grid;
-    grid-template-columns: 23mm repeat(6, minmax(0, 1fr));
-    grid-template-rows: 1fr 1fr auto;
+    grid-template-columns: 26mm repeat(6, minmax(0, 1fr));
+    grid-template-rows: 1.15fr 1.15fr 1fr;
     border: 1.1pt solid #63263A;
   }
 
   .tel-tag {
     grid-column: 1;
-    grid-row: 1 / 3;
+    grid-row: 1 / 4;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 1mm;
-    padding: 0 1mm;
+    gap: 0.6mm;
+    padding: 0 1.5mm;
     background: #EFDCE2;
     border-right: 1.1pt solid #63263A;
   }
 
-  .tel-name {
-    font-family: var(--mincho);
-    font-size: 12pt;
-    font-weight: 600;
-    letter-spacing: .06em;
+  .tel-duty-lbl {
+    font-size: 8pt;
+    letter-spacing: .16em;
     color: #63263A;
+  }
+
+  .tel-driver {
+    font-family: var(--mincho);
+    font-size: 12.5pt;
+    font-weight: 600;
+    letter-spacing: .04em;
+    color: #000;
     white-space: nowrap;
+    min-height: 1.2em;
   }
 
-  .tel-nobox {
-    width: 9mm;
-    height: 9mm;
-    border: 1pt solid #63263A;
-    background: #fff;
-  }
-
-  .tel-unit { font-size: 8pt; letter-spacing: .06em; color: #63263A; }
+  .tel-carname { font-size: 8pt; letter-spacing: .06em; color: #63263A; }
 
   .tel-who,
-  .tel-when {
+  .tel-when,
+  .tel-memo {
     position: relative;
     display: flex;
     align-items: center;
@@ -2127,12 +2237,24 @@
     overflow: hidden;
   }
 
-  .tel-who { grid-row: 1; border-bottom: .5pt solid #C8CDD2; }
+  .tel-who { grid-row: 1; border-bottom: .5pt dotted #C8CDD2; }
   .tel-when { grid-row: 2; font-size: 12pt; font-variant-numeric: tabular-nums; }
-  .tel-who:nth-last-of-type(1) { border-right: 0; }
+
+  /* 3段目は「TELなし」などの覚え書き。空でも枠は残して手で書き足せるようにする */
+  .tel-memo {
+    grid-row: 3;
+    border-top: .5pt solid #C8CDD2;
+    background: #FBF7F8;
+    font-size: 8.5pt;
+    color: #2B3138;
+  }
 
   .tel-person { font-size: 11pt; letter-spacing: .02em; white-space: nowrap; }
   .tel-sama { font-size: 8.5pt; margin-left: 1.5mm; }
+
+  /* 送迎表・業務日誌と同じく、振替と新規・増回は氏名の色で見分ける */
+  .tel-who.st-furikae .tel-person, .tel-who.st-furikae .tel-sama { color: #3C5C15; font-weight: 700; }
+  .tel-who.st-shinki .tel-person, .tel-who.st-shinki .tel-sama { color: #8E480C; font-weight: 700; }
 
   /* 欠席の方も電話するので載せる。氏名を赤線で消し、時刻の桝に理由を出す */
   .tel-who.is-away .tel-person,
@@ -2149,62 +2271,68 @@
 
   .tel-when.is-away { color: #C4172A; font-size: 10.5pt; font-weight: 700; }
 
-  .tel-duty-lbl,
-  .tel-duty {
-    grid-row: 3;
-    display: flex;
-    align-items: center;
-    padding: 0.8mm 2mm;
-    border-top: .8pt solid #63263A;
-    background: #F8EEF1;
-    font-size: 9.5pt;
+  /* 担当表は紙の幅いっぱいに広げる。役割を横に並べ、午前・午後を2段で置く */
+  .tel-roles {
+    flex: 0 0 auto;
+    margin-top: 3.4mm;
+    padding-top: 2.4mm;
+    border-top: 1.2pt solid #000;
   }
 
-  .tel-duty-lbl {
-    grid-column: 1;
+  .tel-roles-head {
+    display: flex;
+    align-items: baseline;
+    gap: 3mm;
+    margin-bottom: 1.6mm;
+  }
+
+  .tel-roles-title {
+    font-family: var(--mincho);
+    font-size: 12pt;
+    font-weight: 600;
+    letter-spacing: .2em;
+    color: #63263A;
+  }
+
+  .tel-roles-day { font-size: 10pt; letter-spacing: .1em; }
+
+  .tel-roles-grid {
+    display: grid;
+    grid-template-columns: 14mm repeat(5, minmax(0, 1fr));
+    border: 1.1pt solid #63263A;
+  }
+
+  .tel-roles-grid > * {
+    display: flex;
+    align-items: center;
     justify-content: center;
-    border-right: 1.1pt solid #63263A;
+    padding: 1.2mm 1.5mm;
+    border-right: .5pt solid #8B9199;
+    border-bottom: .5pt solid #8B9199;
+    min-height: 7mm;
+    overflow: hidden;
+  }
+
+  .tel-roles-grid > *:nth-child(6n) { border-right: 0; }
+  .tel-roles-grid > *:nth-last-child(-n+6) { border-bottom: 0; }
+
+  .trh {
+    background: #EFDCE2;
+    font-weight: 700;
+    font-size: 9.5pt;
+    letter-spacing: .06em;
+    color: #63263A;
+  }
+
+  .trp {
+    background: #F8EEF1;
+    font-weight: 700;
+    font-size: 9.5pt;
     letter-spacing: .1em;
     color: #63263A;
   }
 
-  .tel-duty { grid-column: 2 / 8; font-size: 11pt; letter-spacing: .04em; }
-
-  .tel-roles {
-    flex: 0 0 auto;
-    margin-top: 3mm;
-    padding-top: 2mm;
-    border-top: 1pt solid #000;
-  }
-
-  .tel-roles-title {
-    margin: 0 0 1.4mm;
-    font-family: var(--mincho);
-    font-size: 11pt;
-    font-weight: 600;
-    letter-spacing: .2em;
-    text-align: center;
-  }
-
-  .tel-roles-grid {
-    display: grid;
-    grid-template-columns: 26mm repeat(2, 22mm);
-    justify-content: center;
-    border: 1pt solid #000;
-    width: max-content;
-    margin: 0 auto;
-  }
-
-  .tel-roles-grid > * {
-    padding: 0.9mm 2mm;
-    border-right: .5pt solid #8B9199;
-    border-bottom: .5pt solid #8B9199;
-    font-size: 9.5pt;
-    min-height: 5mm;
-  }
-
-  .trh { background: #EFDCE2; font-weight: 700; text-align: center; color: #63263A; }
-  .trl { text-align: center; letter-spacing: .04em; }
+  .trc { font-size: 11pt; letter-spacing: .02em; }
 
   /* ── マスタ編集ページ ─────────────────────── */
   .page-master[hidden] { display: none; }
@@ -2283,6 +2411,58 @@
     line-height: 1.6;
     color: var(--ink-3);
   }
+
+  /* 利用者は増えていく。名前で引くのと曜日で絞るのを表の上に置く */
+  .pm-filter {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: calc(var(--step) * 2) calc(var(--step) * 4);
+    margin-bottom: calc(var(--step) * 3);
+    padding: calc(var(--step) * 2) calc(var(--step) * 3);
+    background: var(--sub);
+    border-radius: 9px;
+  }
+
+  .pf-find { display: flex; align-items: center; gap: calc(var(--step) * 2); }
+  .pf-label { font-size: 11px; letter-spacing: .1em; color: var(--ink-3); }
+
+  .pf-find input {
+    font: inherit;
+    font-size: 14px;
+    width: 16rem;
+    padding: 6px 10px;
+    color: var(--ink);
+    background: var(--card);
+    border: 1px solid var(--rule-2);
+    border-radius: 7px;
+  }
+
+  .pf-find input:focus { border-color: var(--ai); outline: none; }
+  .pf-days { display: flex; gap: 3px; }
+
+  .pf-days button {
+    font: inherit;
+    font-size: 13px;
+    width: 2.2rem;
+    padding: 6px 0;
+    color: var(--ink-2);
+    background: var(--card);
+    border: 1px solid var(--rule-2);
+    border-radius: 7px;
+    cursor: pointer;
+  }
+
+  .pf-days button[aria-pressed="true"] {
+    border-color: var(--ai);
+    background: var(--ai);
+    color: #fff;
+    font-weight: 600;
+  }
+
+  .pf-clear { font-size: 12px; padding: 5px 12px; }
+  .pf-hit { font-size: 12px; color: var(--ink-3); margin-left: auto; }
+  .pm-none { padding: calc(var(--step) * 5); font-size: 13px; color: var(--ink-3); }
 
   .th-note {
     display: block;
@@ -2816,8 +2996,21 @@
       white-space: nowrap;
     }
 
+    /* 紙では便の色の帯に白抜きで載るので、画面の枠は外して1行に戻す */
     .stats { margin-left: 0; gap: 4mm; flex-wrap: nowrap; }
-    .stat { font-size: 6.5pt; gap: 3px; color: rgba(255, 255, 255, .82); }
+
+    .stat {
+      flex-direction: row;
+      align-items: baseline;
+      gap: 3px;
+      min-width: 0;
+      padding: 0;
+      border: 0;
+      background: none;
+      font-size: 6.5pt;
+      color: rgba(255, 255, 255, .82);
+    }
+
     .stat b { font-size: 9.5pt; color: #fff; }
     .stat.s-total, .stat.s-total b,
     .stat.s-away b, .stat.s-furikae b { color: #fff; }
@@ -3008,14 +3201,13 @@
           <option value="7">7人版</option>
           <option value="8" selected>8人版</option>
         </select>
-        <button type="button" id="btn-dispatch">デフォルトに設置</button>
+        <button type="button" id="btn-dispatch">いつもの割り当てを入れる</button>
       </span>
       <span class="undo">
         <button type="button" id="btn-undo" title="一つ戻る">↶ 一つ戻る</button>
         <button type="button" id="btn-redo" title="一つ進む">↷ 一つ進む</button>
       </span>
-      <button type="button" id="btn-clear">記入をクリア</button>
-      <button type="button" id="btn-print">送迎表を印刷（全4便・各1枚）</button>
+      <button type="button" id="btn-print" class="btn-final">最終確認<small>送迎表・業務日誌・電話連絡表</small></button>
     </div>
   </div>
   </div>
@@ -3054,6 +3246,13 @@
     <div id="sections"></div>
   </div>
   <div class="toast" id="toast" hidden></div>
+<datalist id="tel-notes">
+  <option value="TELなし"></option>
+  <option value="TEL不要"></option>
+  <option value="ご家族へ"></option>
+  <option value="携帯へ"></option>
+  <option value="留守電可"></option>
+</datalist>
 <datalist id="end-reasons">
   <option value="入院"></option>
   <option value="施設入所"></option>
@@ -3112,21 +3311,6 @@
 </div>
 
 <!-- ── どの車両の利用者を取り消すか ───────── -->
-<div class="modal" id="modal-clear" hidden role="dialog" aria-modal="true" aria-labelledby="clear-title">
-  <div class="modal-panel narrow">
-    <div class="modal-head">
-      <h2 id="clear-title">どの車両の利用者を取り消しますか</h2>
-    </div>
-    <div class="modal-body">
-      <div class="assign-cars" id="clear-cars"></div>
-      <button type="button" class="btn danger clear-all" id="clear-all">この便の全車両の利用者を取り消す</button>
-    </div>
-    <div class="modal-foot">
-      <button type="button" class="btn" id="clear-close">閉じる</button>
-    </div>
-  </div>
-</div>
-
 <!-- ── マスタ編集（別ページ） ───────────────── -->
 <!-- ── 出欠（業務日誌の1枚目） ───────────────── -->
 <div class="page-attend" id="page-attend" hidden>
@@ -3171,6 +3355,14 @@
       <button type="button" class="btn primary" id="print-go">印刷</button>
     </div>
   </header>
+  <div class="pp-roles" id="pp-roles" hidden>
+    <div class="ppr-head">
+      <span class="ppr-title">担当表</span>
+      <span class="ppr-day" id="ppr-day"></span>
+      <span class="ppr-note">ここで入れた名前がそのまま紙に出ます。曜日ごとに覚えます。</span>
+    </div>
+    <div class="ppr-grid" id="ppr-grid"></div>
+  </div>
   <div class="pp-stage" id="pp-stage"></div>
 </div>
 
@@ -3198,6 +3390,15 @@
       <h3>利用中<span class="h3-note" id="active-count"></span>
         <button type="button" class="btn" id="add-user">＋ 利用者を追加</button>
       </h3>
+      <div class="pm-filter">
+        <label class="pf-find">
+          <span class="pf-label">さがす</span>
+          <input type="search" id="user-find" placeholder="氏名・ふりがな・住所" autocomplete="off">
+        </label>
+        <div class="pf-days" id="user-days" role="group" aria-label="利用曜日で絞る"></div>
+        <button type="button" class="btn pf-clear" id="user-filter-clear" hidden>絞りを外す</button>
+        <span class="pf-hit" id="user-hit"></span>
+      </div>
       <table>
         <thead>
           <tr>
@@ -3205,10 +3406,11 @@
             <th style="width:11%">ふりがな</th>
             <th style="width:19%">住所（市区町村以下）</th>
             <th style="width:9%">介護度</th>
-            <th style="width:11%">血圧<span class="th-note">日誌の備考欄</span></th>
-            <th style="width:8%">記号</th>
-            <th style="width:14%">利用曜日</th>
-            <th style="width:11%"></th>
+            <th style="width:9%">血圧<span class="th-note">日誌の備考欄</span></th>
+            <th style="width:10%">電話<span class="th-note">連絡表の覚え書き</span></th>
+            <th style="width:7%">記号</th>
+            <th style="width:13%">利用曜日</th>
+            <th style="width:10%"></th>
           </tr>
         </thead>
         <tbody id="user-rows"></tbody>
@@ -3432,65 +3634,65 @@
   const DEFAULT_USERS = [
     { id: "u01", name: "田中 ハル", kana: "たなか はる", town: "中央町", addr: "中央町3-14-2", care: "要介護1", bp: "上腕計", tags: ["補"], days: { "月": "AM", "水": "AM", "金": "AM" } },
     { id: "u02", name: "鈴木 正一", kana: "すずき しょういち", town: "中央町", addr: "中央町1-8-5", care: "要介護2", bp: "", tags: [], days: { "火": "AM", "木": "AM", "土": "AM" } },
-    { id: "u03", name: "高橋 キヨ", kana: "たかはし きよ", town: "本町", addr: "本町5-3-11", care: "要支援2", bp: "上腕計", tags: ["玄"], days: { "月": "AM", "水": "AM", "土": "AM" } },
+    { id: "u03", name: "高橋 キヨ", kana: "たかはし きよ", town: "本町", addr: "本町5-3-11", care: "要支援2", bp: "上腕計", tel: "TELなし", tags: ["玄"], days: { "月": "AM", "水": "AM", "土": "AM" } },
     { id: "u04", name: "小林 節子", kana: "こばやし せつこ", town: "本町", addr: "本町2-19-4", care: "要介護3", bp: "実測", tags: [], days: { "火": "AM", "木": "AM", "金": "AM" } },
-    { id: "u05", name: "伊藤 フミ", kana: "いとう ふみ", town: "若葉台", addr: "若葉台2-6-3", care: "要介護1", bp: "上腕計", tags: ["補"], days: { "月": "AM", "木": "AM", "土": "AM" } },
+    { id: "u05", name: "伊藤 フミ", kana: "いとう ふみ", town: "若葉台", addr: "若葉台2-6-3", care: "要介護1", bp: "上腕計", tel: "ご家族へ", tags: ["補"], days: { "月": "AM", "木": "AM", "土": "AM" } },
     { id: "u06", name: "渡部 秀夫", kana: "わたなべ ひでお", town: "若葉台", addr: "若葉台4-11-8", care: "要介護4", bp: "", tags: [], days: { "火": "AM", "水": "AM", "金": "AM" } },
     { id: "u07", name: "山田 トシ子", kana: "やまだ としこ", town: "緑町", addr: "緑町1-4-16", care: "事業対象者", bp: "左シャント", tags: ["玄"], days: { "月": "AM", "水": "AM", "金": "AM" } },
-    { id: "u08", name: "中西 幸雄", kana: "なかにし ゆきお", town: "緑町", addr: "緑町3-9-2", care: "要介護2", bp: "上腕計", tags: [], days: { "火": "AM", "木": "AM", "土": "AM" } },
+    { id: "u08", name: "中西 幸雄", kana: "なかにし ゆきお", town: "緑町", addr: "緑町3-9-2", care: "要介護2", bp: "上腕計", tel: "携帯へ", tags: [], days: { "火": "AM", "木": "AM", "土": "AM" } },
     { id: "u09", name: "大野 スミ", kana: "おおの すみ", town: "桜ヶ丘", addr: "桜ヶ丘1-2-7", care: "要介護1", bp: "実測", tags: ["補"], days: { "月": "AM", "水": "AM", "土": "AM" } },
     { id: "u10", name: "藤井 康夫", kana: "ふじい やすお", town: "桜ヶ丘", addr: "桜ヶ丘3-15-1", care: "要支援1", bp: "上腕計", tags: [], days: { "火": "AM", "木": "AM", "金": "AM" } },
-    { id: "u11", name: "岩本 ヨシ", kana: "いわもと よし", town: "旭ヶ丘", addr: "旭ヶ丘2-7-9", care: "要介護5", bp: "", tags: ["補"], days: { "月": "AM", "木": "AM", "土": "AM" } },
+    { id: "u11", name: "岩本 ヨシ", kana: "いわもと よし", town: "旭ヶ丘", addr: "旭ヶ丘2-7-9", care: "要介護5", bp: "", tel: "TELなし", tags: ["補"], days: { "月": "AM", "木": "AM", "土": "AM" } },
     { id: "u12", name: "森田 光子", kana: "もりた みつこ", town: "旭ヶ丘", addr: "旭ヶ丘5-1-12", care: "要介護2", bp: "上腕計", tags: [], days: { "火": "AM", "水": "AM", "金": "AM" } },
     { id: "u13", name: "村上 三郎", kana: "むらかみ さぶろう", town: "東雲", addr: "東雲2-11-6", care: "要介護3", bp: "右シャント実測", tags: [], days: { "月": "AM", "水": "AM", "金": "AM" } },
     { id: "u14", name: "北川 きく", kana: "きたがわ きく", town: "東雲", addr: "東雲6-3-1", care: "要支援2", bp: "上腕計", tags: ["玄"], days: { "火": "AM", "木": "AM", "土": "AM" } },
     { id: "u15", name: "菅原 テル", kana: "すがわら てる", town: "川井町", addr: "川井町1-22-4", care: "要介護1", bp: "上腕計", tags: ["補"], days: { "月": "AM", "水": "AM", "土": "AM" } },
     { id: "u16", name: "堀内 昌代", kana: "ほりうち まさよ", town: "富士見町", addr: "富士見町4-8-3", care: "要介護2", bp: "", tags: [], days: { "火": "AM", "木": "AM", "金": "AM" } },
-    { id: "u17", name: "浅野 勝治", kana: "あさの かつじ", town: "富士見町", addr: "富士見町7-2-15", care: "要支援2", bp: "上腕計", tags: ["補"], days: { "月": "AM", "木": "AM", "土": "AM" } },
+    { id: "u17", name: "浅野 勝治", kana: "あさの かつじ", town: "富士見町", addr: "富士見町7-2-15", care: "要支援2", bp: "上腕計", tel: "TELなし", tags: ["補"], days: { "月": "AM", "木": "AM", "土": "AM" } },
     { id: "u18", name: "白石 ミツ", kana: "しらいし みつ", town: "南台", addr: "南台2-5-9", care: "要介護3", bp: "実測", tags: [], days: { "火": "AM", "水": "AM", "金": "AM" } },
-    { id: "u19", name: "野口 定雄", kana: "のぐち さだお", town: "南台", addr: "南台5-13-2", care: "要介護1", bp: "上腕計", tags: ["玄"], days: { "月": "AM", "水": "AM", "金": "AM" } },
+    { id: "u19", name: "野口 定雄", kana: "のぐち さだお", town: "南台", addr: "南台5-13-2", care: "要介護1", bp: "上腕計", tel: "ご家族へ", tags: ["玄"], days: { "月": "AM", "水": "AM", "金": "AM" } },
     { id: "u20", name: "長沢 スエ", kana: "ながさわ すえ", town: "泉町", addr: "泉町1-9-7", care: "要介護4", bp: "", tags: ["補"], days: { "火": "AM", "木": "AM", "土": "AM" } },
     { id: "u21", name: "谷口 良一", kana: "たにぐち りょういち", town: "泉町", addr: "泉町4-2-11", care: "事業対象者", bp: "左シャント", tags: [], days: { "月": "AM", "水": "AM", "土": "AM" } },
-    { id: "u22", name: "杉本 アキ", kana: "すぎもと あき", town: "宮下", addr: "宮下2-16-5", care: "要介護2", bp: "上腕計", tags: [], days: { "火": "AM", "木": "AM", "金": "AM" } },
+    { id: "u22", name: "杉本 アキ", kana: "すぎもと あき", town: "宮下", addr: "宮下2-16-5", care: "要介護2", bp: "上腕計", tel: "携帯へ", tags: [], days: { "火": "AM", "木": "AM", "金": "AM" } },
     { id: "u23", name: "西村 タカ", kana: "にしむら たか", town: "上野原", addr: "上野原1-3-8", care: "要介護1", bp: "実測", tags: ["補"], days: { "月": "AM", "木": "AM", "土": "AM" } },
     { id: "u24", name: "石田 正治", kana: "いしだ しょうじ", town: "上野原", addr: "上野原3-12-1", care: "要支援1", bp: "上腕計", tags: [], days: { "火": "AM", "水": "AM", "金": "AM" } },
-    { id: "u25", name: "内藤 ハナ", kana: "ないとう はな", town: "戸倉", addr: "戸倉2-7-14", care: "要介護5", bp: "", tags: ["補"], days: { "月": "AM", "水": "AM", "金": "AM" } },
+    { id: "u25", name: "内藤 ハナ", kana: "ないとう はな", town: "戸倉", addr: "戸倉2-7-14", care: "要介護5", bp: "", tel: "TELなし", tags: ["補"], days: { "月": "AM", "水": "AM", "金": "AM" } },
     { id: "u26", name: "平野 邦彦", kana: "ひらの くにひこ", town: "戸倉", addr: "戸倉5-1-6", care: "要介護2", bp: "上腕計", tags: [], days: { "火": "AM", "木": "AM", "土": "AM" } },
     { id: "u27", name: "小島 チヨ", kana: "こじま ちよ", town: "梅林", addr: "梅林1-10-3", care: "要介護3", bp: "右シャント実測", tags: ["玄"], days: { "月": "AM", "水": "AM", "土": "AM" } },
     { id: "u28", name: "福井 静江", kana: "ふくい しずえ", town: "梅林", addr: "梅林4-6-9", care: "要支援2", bp: "上腕計", tags: [], days: { "火": "AM", "木": "AM", "金": "AM" } },
     { id: "u29", name: "尾崎 たけし", kana: "おざき たけし", town: "新町", addr: "新町2-4-17", care: "要介護1", bp: "上腕計", tags: ["車"], days: { "月": "AM", "木": "AM", "土": "AM" } },
     { id: "u30", name: "上田 ノブ", kana: "うえだ のぶ", town: "新町", addr: "新町5-9-2", care: "要介護2", bp: "", tags: ["補"], days: { "火": "AM", "水": "AM", "金": "AM" } },
-    { id: "u31", name: "河合 秀子", kana: "かわい ひでこ", town: "曙", addr: "曙1-7-5", care: "要支援2", bp: "上腕計", tags: [], days: { "月": "AM", "水": "AM", "金": "AM" } },
+    { id: "u31", name: "河合 秀子", kana: "かわい ひでこ", town: "曙", addr: "曙1-7-5", care: "要支援2", bp: "上腕計", tel: "TELなし", tags: [], days: { "月": "AM", "水": "AM", "金": "AM" } },
     { id: "u32", name: "遠藤 巌", kana: "えんどう いわお", town: "曙", addr: "曙4-2-13", care: "要介護3", bp: "実測", tags: [], days: { "火": "AM", "木": "AM", "土": "AM" } },
-    { id: "u33", name: "宮本 サダ", kana: "みやもと さだ", town: "花見川", addr: "花見川2-8-1", care: "要介護1", bp: "上腕計", tags: ["玄"], days: { "月": "AM", "水": "AM", "土": "AM" } },
+    { id: "u33", name: "宮本 サダ", kana: "みやもと さだ", town: "花見川", addr: "花見川2-8-1", care: "要介護1", bp: "上腕計", tel: "ご家族へ", tags: ["玄"], days: { "月": "AM", "水": "AM", "土": "AM" } },
     { id: "u34", name: "青木 トメ", kana: "あおき とめ", town: "中央町", addr: "中央町2-5-8", care: "要介護4", bp: "", tags: ["補"], days: { "火": "PM", "木": "PM", "金": "PM" } },
     { id: "u35", name: "木村 誠一", kana: "きむら せいいち", town: "中央町", addr: "中央町4-1-3", care: "事業対象者", bp: "左シャント", tags: [], days: { "月": "PM", "木": "PM", "土": "PM" } },
-    { id: "u36", name: "佐野 ハツ", kana: "さの はつ", town: "本町", addr: "本町3-12-7", care: "要介護2", bp: "上腕計", tags: ["玄"], days: { "火": "PM", "水": "PM", "金": "PM" } },
+    { id: "u36", name: "佐野 ハツ", kana: "さの はつ", town: "本町", addr: "本町3-12-7", care: "要介護2", bp: "上腕計", tel: "携帯へ", tags: ["玄"], days: { "火": "PM", "水": "PM", "金": "PM" } },
     { id: "u37", name: "早川 春夫", kana: "はやかわ はるお", town: "本町", addr: "本町7-4-2", care: "要介護1", bp: "実測", tags: [], days: { "月": "PM", "水": "PM", "金": "PM" } },
     { id: "u38", name: "三浦 キミ", kana: "みうら きみ", town: "若葉台", addr: "若葉台1-9-11", care: "要支援1", bp: "上腕計", tags: ["補"], days: { "火": "PM", "木": "PM", "土": "PM" } },
-    { id: "u39", name: "秋山 三男", kana: "あきやま みつお", town: "若葉台", addr: "若葉台5-2-6", care: "要介護5", bp: "", tags: [], days: { "月": "PM", "水": "PM", "土": "PM" } },
+    { id: "u39", name: "秋山 三男", kana: "あきやま みつお", town: "若葉台", addr: "若葉台5-2-6", care: "要介護5", bp: "", tel: "TELなし", tags: [], days: { "月": "PM", "水": "PM", "土": "PM" } },
     { id: "u40", name: "大塚 ヤエ", kana: "おおつか やえ", town: "緑町", addr: "緑町2-14-1", care: "要介護2", bp: "上腕計", tags: ["補"], days: { "火": "PM", "木": "PM", "金": "PM" } },
     { id: "u41", name: "荒木 敏行", kana: "あらき としゆき", town: "緑町", addr: "緑町5-6-8", care: "要介護3", bp: "右シャント実測", tags: [], days: { "月": "PM", "木": "PM", "土": "PM" } },
     { id: "u42", name: "富田 サキ", kana: "とみた さき", town: "桜ヶ丘", addr: "桜ヶ丘2-8-4", care: "要支援2", bp: "上腕計", tags: ["玄"], days: { "火": "PM", "水": "PM", "金": "PM" } },
     { id: "u43", name: "沢田 正義", kana: "さわだ まさよし", town: "桜ヶ丘", addr: "桜ヶ丘5-11-9", care: "要介護1", bp: "上腕計", tags: [], days: { "月": "PM", "水": "PM", "金": "PM" } },
     { id: "u44", name: "江口 マツ", kana: "えぐち まつ", town: "旭ヶ丘", addr: "旭ヶ丘1-3-2", care: "要介護2", bp: "", tags: ["補"], days: { "火": "PM", "木": "PM", "土": "PM" } },
-    { id: "u45", name: "星野 幸子", kana: "ほしの さちこ", town: "東雲", addr: "東雲1-7-15", care: "要支援2", bp: "上腕計", tags: [], days: { "月": "PM", "水": "PM", "土": "PM" } },
+    { id: "u45", name: "星野 幸子", kana: "ほしの さちこ", town: "東雲", addr: "東雲1-7-15", care: "要支援2", bp: "上腕計", tel: "TELなし", tags: [], days: { "月": "PM", "水": "PM", "土": "PM" } },
     { id: "u46", name: "横山 亀吉", kana: "よこやま かめきち", town: "東雲", addr: "東雲4-9-6", care: "要介護3", bp: "実測", tags: ["補"], days: { "火": "PM", "木": "PM", "金": "PM" } },
-    { id: "u47", name: "久保 リン", kana: "くぼ りん", town: "川井町", addr: "川井町3-2-10", care: "要介護1", bp: "上腕計", tags: ["玄"], days: { "月": "PM", "木": "PM", "土": "PM" } },
+    { id: "u47", name: "久保 リン", kana: "くぼ りん", town: "川井町", addr: "川井町3-2-10", care: "要介護1", bp: "上腕計", tel: "ご家族へ", tags: ["玄"], days: { "月": "PM", "木": "PM", "土": "PM" } },
     { id: "u48", name: "島田 文夫", kana: "しまだ ふみお", town: "富士見町", addr: "富士見町2-11-4", care: "要介護4", bp: "", tags: [], days: { "火": "PM", "水": "PM", "金": "PM" } },
     { id: "u49", name: "岡部 ウメ", kana: "おかべ うめ", town: "富士見町", addr: "富士見町6-5-1", care: "事業対象者", bp: "左シャント", tags: ["補"], days: { "月": "PM", "水": "PM", "金": "PM" } },
-    { id: "u50", name: "神田 光雄", kana: "かんだ みつお", town: "南台", addr: "南台1-8-12", care: "要介護2", bp: "上腕計", tags: [], days: { "火": "PM", "木": "PM", "土": "PM" } },
+    { id: "u50", name: "神田 光雄", kana: "かんだ みつお", town: "南台", addr: "南台1-8-12", care: "要介護2", bp: "上腕計", tel: "携帯へ", tags: [], days: { "火": "PM", "木": "PM", "土": "PM" } },
     { id: "u51", name: "柴田 ハツエ", kana: "しばた はつえ", town: "南台", addr: "南台4-3-7", care: "要介護1", bp: "実測", tags: ["玄"], days: { "月": "PM", "水": "PM", "土": "PM" } },
     { id: "u52", name: "藤原 修", kana: "ふじわら おさむ", town: "泉町", addr: "泉町2-6-14", care: "要支援1", bp: "上腕計", tags: [], days: { "火": "PM", "木": "PM", "金": "PM" } },
-    { id: "u53", name: "中山 ミヨ", kana: "なかやま みよ", town: "泉町", addr: "泉町6-1-5", care: "要介護5", bp: "", tags: ["補"], days: { "月": "PM", "木": "PM", "土": "PM" } },
+    { id: "u53", name: "中山 ミヨ", kana: "なかやま みよ", town: "泉町", addr: "泉町6-1-5", care: "要介護5", bp: "", tel: "TELなし", tags: ["補"], days: { "月": "PM", "木": "PM", "土": "PM" } },
     { id: "u54", name: "前田 豊", kana: "まえだ ゆたか", town: "宮下", addr: "宮下1-4-9", care: "要介護2", bp: "上腕計", tags: [], days: { "火": "PM", "水": "PM", "金": "PM" } },
     { id: "u55", name: "竹内 サト", kana: "たけうち さと", town: "上野原", addr: "上野原2-10-3", care: "要介護3", bp: "右シャント実測", tags: ["玄"], days: { "月": "PM", "水": "PM", "金": "PM" } },
     { id: "u56", name: "原田 清", kana: "はらだ きよし", town: "上野原", addr: "上野原5-7-11", care: "要支援2", bp: "上腕計", tags: [], days: { "火": "PM", "木": "PM", "土": "PM" } },
     { id: "u57", name: "米倉 ツネ", kana: "よねくら つね", town: "戸倉", addr: "戸倉1-2-8", care: "要介護1", bp: "上腕計", tags: ["補"], days: { "月": "PM", "水": "PM", "土": "PM" } },
     { id: "u58", name: "桑原 昭夫", kana: "くわばら あきお", town: "戸倉", addr: "戸倉4-13-2", care: "要介護2", bp: "", tags: [], days: { "火": "PM", "木": "PM", "金": "PM" } },
-    { id: "u59", name: "志村 ハル江", kana: "しむら はるえ", town: "梅林", addr: "梅林2-5-6", care: "要支援2", bp: "上腕計", tags: ["玄"], days: { "月": "PM", "木": "PM", "土": "PM" } },
+    { id: "u59", name: "志村 ハル江", kana: "しむら はるえ", town: "梅林", addr: "梅林2-5-6", care: "要支援2", bp: "上腕計", tel: "TELなし", tags: ["玄"], days: { "月": "PM", "木": "PM", "土": "PM" } },
     { id: "u60", name: "増田 伸一", kana: "ますだ しんいち", town: "新町", addr: "新町1-11-4", care: "要介護3", bp: "実測", tags: ["車"], days: { "火": "PM", "水": "PM", "金": "PM" } },
-    { id: "u61", name: "東 ミサヲ", kana: "あずま みさを", town: "新町", addr: "新町4-8-9", care: "要介護1", bp: "上腕計", tags: ["補"], days: { "月": "PM", "水": "PM", "金": "PM" } },
+    { id: "u61", name: "東 ミサヲ", kana: "あずま みさを", town: "新町", addr: "新町4-8-9", care: "要介護1", bp: "上腕計", tel: "ご家族へ", tags: ["補"], days: { "月": "PM", "水": "PM", "金": "PM" } },
     { id: "u62", name: "片山 良雄", kana: "かたやま よしお", town: "曙", addr: "曙3-1-7", care: "要介護4", bp: "", tags: [], days: { "火": "PM", "木": "PM", "土": "PM" } }
   ];
 
@@ -3506,6 +3708,28 @@
     { name: "三好 陽子", days: { "月": "AM", "火": "AM", "水": "AM", "木": "AM", "金": "AM" } },
     { name: "黒田 健二", days: { "木": "PM", "金": "PM", "土": "PM" } }
   ];
+
+  /* ── 担当表 ────────────────────────────────
+     お預かりした「午後送迎案内」の下にある表。曜日ごとに、役割 × 午前午後 で
+     職員名を持つ。ファイルにあった月曜の面をそのまま初期値にしている
+     （A〜G は伏せ字のままなので、実際の職員名に書き換えて使う）。 */
+  const ROLE_NAMES = ["リーダー", "サブ", "平行棒", "歩行", "コーヒー"];
+
+  const DEFAULT_ROLES = {
+    "月": { "リーダー": ["A", "B"], "サブ": ["B", "F"], "平行棒": ["C", "A"], "歩行": ["D", "G"], "コーヒー": ["E", "C"] }
+  };
+
+  function normRoles(raw) {
+    const out = {};
+    WEEKDAYS.forEach((w) => {
+      out[w] = {};
+      ROLE_NAMES.forEach((r) => {
+        const src = (raw && raw[w] && raw[w][r]) || (DEFAULT_ROLES[w] && DEFAULT_ROLES[w][r]) || ["", ""];
+        out[w][r] = [String(src[0] || ""), String(src[1] || "")];
+      });
+    });
+    return out;
+  }
 
   /* ── 配車マスタ ────────────────────────────
      出勤する職員の人数で動かす車が変わる。人数版ごとに、使う車両の並びを持つ。
@@ -3606,6 +3830,7 @@
   let USERS = STORE.getJSON("users") || DEFAULT_USERS.map((u) => ({ ...u, tags: [...u.tags] }));
   let DRIVERS = normDrivers(STORE.getJSON("drivers")) || DEFAULT_DRIVERS.map((d) => ({ name: d.name, days: { ...d.days } }));
   let DISPATCH = normDispatch(STORE.getJSON("dispatch"));
+  let ROLES = normRoles(STORE.getJSON("roles"));
   let USER_BY_ID = new Map();
 
   /* 配車は { cars: [車の並び], plan: { 曜日: { 便: { 車: [利用者id] } } } }。
@@ -4269,8 +4494,7 @@
       '<span class="stat"><b data-stat="riders">0</b>名 乗車</span>' +
       '<span class="stat s-away"><b data-stat="away">0</b>名 欠席</span>' +
       '<span class="stat s-furikae"><b data-stat="furikae">0</b>名 振替</span>' +
-      '<span class="stat"><b data-stat="left">0</b>名 未割当</span>' +
-      '<span class="stat"><b data-stat="dup">0</b>件 重複</span>';
+      '<span class="stat s-dup"><b data-stat="dup">0</b>件 重複</span>';
 
     head.append(title, stats, el("span", "print-stamp", ""));
 
@@ -4603,7 +4827,6 @@
     set("riders", riders, false);
     set("away", away, false);
     set("furikae", furikae, false);
-    set("left", missing.length, missing.length > 0);
     set("dup", dup, dup > 0);
     section.querySelector(".s-away").classList.toggle("on", away > 0);
     section.querySelector(".s-furikae").classList.toggle("on", furikae > 0);
@@ -5386,6 +5609,42 @@
     if (e.key === "Enter" && e.target.tagName !== "BUTTON" && muOk) { e.preventDefault(); muOk(); }
   });
 
+  /* ふりがなの自動入力。
+     漢字からよみを引くのは辞書が要るので、代わりに「変換する前に打った かな」を
+     拾う。日本語入力では「たなか」と打ってから漢字に直すので、
+     変換の途中経過（compositionupdate）が そのままよみになる。
+     拾えるのは打って変換した場合だけなので、貼り付けや誤変換のときは
+     ふりがな欄を直に書き換えてもらう。 */
+  function linkKana(nameInput, kanaInput) {
+    let typing = "";
+    let touched = false;   /* ふりがなを手で直したら、以後は上書きしない */
+
+    kanaInput.addEventListener("input", () => { touched = true; });
+
+    nameInput.addEventListener("compositionstart", () => { typing = ""; });
+    nameInput.addEventListener("compositionupdate", (e) => {
+      /* 変換候補を選んでいる途中は漢字が混ざる。かなだけの間を覚えておく */
+      const v = e.data || "";
+      if (/^[\u3041-\u309f\u30a1-\u30f6ー\s\u3000]*$/.test(v)) typing = v;
+    });
+
+    nameInput.addEventListener("compositionend", () => {
+      if (touched || !typing) return;
+      const kana = typing
+        .replace(/[\u30a1-\u30f6]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0x60))
+        .replace(/\s+/g, "　");
+      kanaInput.value = (kanaInput.value + kana).replace(/^[\s\u3000]+/, "");
+      kanaInput.dispatchEvent(new Event("input", { bubbles: true }));
+      touched = false;
+      typing = "";
+    });
+
+    /* 氏名を空にしたら、ふりがなの覚えも白紙に戻す */
+    nameInput.addEventListener("input", () => {
+      if (nameInput.value === "") { kanaInput.value = ""; touched = false; }
+    });
+  }
+
   /* ダイアログの中の1行 */
   function formRow(parent, label, node, help) {
     const row = el("label", "uf-row");
@@ -5445,15 +5704,19 @@
       build(body) {
         const name = formRow(body, "氏名", Object.assign(document.createElement("input"), { type: "text", placeholder: "山田 太郎" }));
         const kana = formRow(body, "ふりがな", Object.assign(document.createElement("input"), { type: "text", placeholder: "やまだ たろう" }),
-          "並び順に使います（五十音順）");
+          "氏名を打つと、変換する前の かな が自動で入ります。違っていればここを直してください。");
+        linkKana(name, kana);
         const addr = formRow(body, "住所", Object.assign(document.createElement("input"), { type: "text", placeholder: "〇〇市中央町3-14-2" }),
           "市区町村から入れてください。都道府県はマスタの「事業所」タブに登録します。");
         const care = formRow(body, "介護度", careSelect(""));
         const bp = formRow(body, "血圧", bpSelect(""), "業務日誌の備考欄に出ます。シャントの方は赤字になります。");
+        const tel = Object.assign(document.createElement("input"), { type: "text", placeholder: "TELなし など" });
+        tel.setAttribute("list", "tel-notes");
+        formRow(body, "電話", tel, "午後お迎えの電話連絡表に出ます。空欄でも構いません。");
         formRow(body, "記号", tagPicker(draft.tags), "車椅子・歩行器・玄関先まで");
         formRow(body, "利用曜日", dayPicker(draft.days), "押すたびに 空 → AM → PM と変わります");
         body.dataset.ready = "1";
-        draft.el = { name, kana, addr, care, bp };
+        draft.el = { name, kana, addr, care, bp, tel };
       },
       submit() {
         const name = draft.el.name.value.trim();
@@ -5467,6 +5730,7 @@
           town: deriveTown(addr, ""),
           care: draft.el.care.value,
           bp: draft.el.bp.value,
+          tel: draft.el.tel.value.trim(),
           tags: [...draft.tags],
           days: { ...draft.days },
           end: null
@@ -5567,6 +5831,14 @@
       this.classList.toggle("is-shunt", isShunt(this.value));
     });
 
+    const telI = document.createElement("input");
+    telI.type = "text";
+    telI.value = u.tel || "";
+    telI.placeholder = "TELなし など";
+    telI.setAttribute("list", "tel-notes");
+    telI.addEventListener("input", () => { draftUsers[i].tel = telI.value; });
+    cell(telI);
+
     const tagWrap = el("span", "tag-cell");
     TAGS.forEach((t) => {
       const key = t.key;
@@ -5659,6 +5931,23 @@
     return tr;
   }
 
+  /* 表の絞り込み。名前で引くのと、その曜日に来る方だけにするのと */
+  let userFind = "";
+  let userDay = "";
+
+  /* 「たなか」「タナカ」「田中」のどれで打っても引けるようにそろえる */
+  const kanaKey = (v) => String(v || "")
+    .replace(/[\u30a1-\u30f6]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0x60))
+    .replace(/[\s\u3000]/g, "")
+    .toLowerCase();
+
+  function userMatches(u) {
+    if (userDay && !u.days[userDay]) return false;
+    if (!userFind) return true;
+    const q = kanaKey(userFind);
+    return [u.name, u.kana, u.addr, u.town].some((v) => kanaKey(v).indexOf(q) >= 0);
+  }
+
   function drawMasterTables() {
     const ub = document.getElementById("user-rows");
     const eb = document.getElementById("ended-rows");
@@ -5667,10 +5956,28 @@
 
     let active = 0;
     let ended = 0;
+    let shown = 0;
     draftUsers.forEach((u, i) => {
-      if (u.end) { eb.append(drawEndedRow(u, i)); ended++; }
-      else { ub.append(drawUserRow(u, i)); active++; }
+      if (u.end) { eb.append(drawEndedRow(u, i)); ended++; return; }
+      active++;
+      if (!userMatches(u)) return;
+      ub.append(drawUserRow(u, i));
+      shown++;
     });
+
+    const filtered = !!(userFind || userDay);
+    document.getElementById("user-filter-clear").hidden = !filtered;
+    document.getElementById("user-hit").textContent = filtered ? shown + " / " + active + "名" : "";
+    if (filtered && shown === 0) {
+      const tr = document.createElement("tr");
+      const td = document.createElement("td");
+      td.colSpan = 9;
+      td.className = "pm-none";
+      td.textContent = "あてはまる方はいません。";
+      tr.append(td);
+      ub.append(tr);
+    }
+
     document.getElementById("active-count").textContent = active + "名";
     document.getElementById("ended-count").textContent = ended + "名";
 
@@ -5939,7 +6246,7 @@
     draftUsers = USERS
       .map((u) => ({
         id: u.id, name: u.name, kana: u.kana, town: u.town, addr: u.addr,
-        care: u.care || "", bp: u.bp || "",
+        care: u.care || "", bp: u.bp || "", tel: u.tel || "",
         tags: [...u.tags], days: { ...u.days },
         end: u.end ? { d: u.end.d, r: u.end.r || "" } : null
       }))
@@ -5952,6 +6259,11 @@
       input.value = draftOffice[k] || "";
       input.oninput = () => { draftOffice[k] = input.value; };
     });
+    userFind = "";
+    userDay = "";
+    const find = document.getElementById("user-find");
+    if (find) find.value = "";
+    document.querySelectorAll("#user-days button").forEach((x) => x.setAttribute("aria-pressed", "false"));
     openPlan = null;
     openPlanDay = weekdayOf(currentDate) || WEEKDAYS[0];
     openPlanLeg = LEGS[0].key;
@@ -6015,6 +6327,34 @@
 
   document.getElementById("add-user").addEventListener("click", openAddDialog);
 
+  document.getElementById("user-find").addEventListener("input", function () {
+    userFind = this.value.trim();
+    drawMasterTables();
+  });
+
+  WEEKDAYS.forEach((w) => {
+    const b = el("button", null, w);
+    b.type = "button";
+    b.setAttribute("aria-pressed", "false");
+    b.title = w + "曜日に来る方だけにする";
+    b.addEventListener("click", () => {
+      userDay = userDay === w ? "" : w;
+      document.querySelectorAll("#user-days button").forEach((x) => {
+        x.setAttribute("aria-pressed", String(x.textContent === userDay));
+      });
+      drawMasterTables();
+    });
+    document.getElementById("user-days").append(b);
+  });
+
+  document.getElementById("user-filter-clear").addEventListener("click", () => {
+    userFind = "";
+    userDay = "";
+    document.getElementById("user-find").value = "";
+    document.querySelectorAll("#user-days button").forEach((x) => x.setAttribute("aria-pressed", "false"));
+    drawMasterTables();
+  });
+
 
   document.getElementById("add-driver").addEventListener("click", () => {
     const days = {};
@@ -6026,15 +6366,15 @@
   document.getElementById("master-save").addEventListener("click", () => {
     USERS = draftUsers
       .filter((u) => u.name.trim() !== "")
-      .map((u) => ({ ...u, care: u.care || "", bp: u.bp || "", tags: [...u.tags], days: normDays(u.days), end: u.end && u.end.d ? { d: u.end.d, r: u.end.r || "" } : null }))
+      .map((u) => ({ ...u, care: u.care || "", bp: u.bp || "", tel: (u.tel || "").trim(), tags: [...u.tags], days: normDays(u.days), end: u.end && u.end.d ? { d: u.end.d, r: u.end.r || "" } : null }))
       .sort(byKana);
     DRIVERS = draftDrivers.map((d) => ({ name: d.name.trim(), days: { ...d.days } })).filter((d) => d.name);
     DISPATCH = normDispatch(draftDispatch);
     OFFICE = Object.assign({}, DEFAULT_OFFICE, draftOffice);
     OFFICE.name = (OFFICE.name || "").trim() || DEFAULT_OFFICE.name;
     indexUsers();
-    STORE.setJSON("users", USERS.map(({ id, name, kana, town, addr, care, bp, tags, days, end }) =>
-      ({ id, name, kana, town, addr, care: care || "", bp: bp || "", tags, days, end })));
+    STORE.setJSON("users", USERS.map(({ id, name, kana, town, addr, care, bp, tel, tags, days, end }) =>
+      ({ id, name, kana, town, addr, care: care || "", bp: bp || "", tel: tel || "", tags, days, end })));
     STORE.setJSON("drivers", DRIVERS);
     STORE.setJSON("dispatch", DISPATCH);
     STORE.setJSON("office", OFFICE);
@@ -6666,14 +7006,14 @@
      時刻を手で書き換えていればその時刻が出る。 */
   const TEL_COLS = 6;   /* 7人乗りの定員6名に合わせる */
 
-  /* 車ごとの、その日の顔ぶれ。送迎表の面から読む */
+  /* 車ごとの、その日の顔ぶれ。送迎表の面から読む。
+     電話をかける側は号車ではなく「誰が回るか」で見るので、
+     枠の見出しは担当（運転手）にする */
   function telCars() {
     const section = document.getElementById("leg-pm-pick");
     if (!section) return [];
     return [...section.querySelectorAll(".car")].map((car) => {
       const nameEl = car.querySelector(".car-name");
-      const noBox = car.querySelector(".no-box");
-      const no = noBox ? noBox.textContent.trim() : "";
       const driver = car.querySelector(".driver-select");
 
       const riders = rowsOf(car).map((stop) => {
@@ -6684,14 +7024,15 @@
         return {
           name: u.name,
           time: (stop.querySelector(".t").textContent || "").trim(),
+          state: stop.dataset.state || "",
           away: stop.dataset.state === "absent",
-          reason: (why && why.value) || ""
+          reason: (why && why.value) || "",
+          memo: u.tel || ""            /* 「TELなし」など、連絡のときの覚え書き */
         };
       }).filter(Boolean);
 
       return {
-        label: nameEl ? nameEl.textContent : (no ? no + "号車" : ""),
-        blank: !nameEl && !no,          /* 号車が未記入なら書き入れる枠を出す */
+        car: nameEl ? nameEl.textContent : "",
         driver: driver ? driver.value : "",
         riders: riders
       };
@@ -6701,14 +7042,18 @@
   function telBlock(car) {
     const box = el("div", "tel-car");
 
+    /* 見出しは担当。送迎表の運転手のプルダウンからそのまま入る */
     const tag = el("div", "tel-tag");
-    if (car.blank) tag.append(el("span", "tel-nobox", ""), el("span", "tel-unit", "号車"));
-    else tag.append(el("span", "tel-name", car.label));
+    tag.append(el("span", "tel-duty-lbl", "担当"));
+    tag.append(el("span", "tel-driver", car.driver || ""));
+    if (car.car) tag.append(el("span", "tel-carname", car.car));
     box.append(tag);
 
     for (let i = 0; i < TEL_COLS; i++) {
       const r = car.riders[i] || null;
-      const who = el("div", "tel-who" + (r && r.away ? " is-away" : ""));
+      const st = r && r.state ? " st-" + r.state : "";
+
+      const who = el("div", "tel-who" + (r && r.away ? " is-away" : "") + st);
       who.style.gridColumn = String(i + 2);
       if (r) who.append(el("span", "tel-person", r.name), el("span", "tel-sama", "様"));
       box.append(who);
@@ -6717,22 +7062,37 @@
       when.style.gridColumn = String(i + 2);
       if (r) when.textContent = r.away ? (r.reason || "欠席") : r.time;
       box.append(when);
+
+      /* 連絡のときの覚え書き。空でも枠は出して、その場で書き足せるようにする */
+      const memo = el("div", "tel-memo");
+      memo.style.gridColumn = String(i + 2);
+      if (r && r.memo) memo.textContent = r.memo;
+      box.append(memo);
     }
 
-    box.append(el("div", "tel-duty-lbl", "担当"));
-    box.append(el("div", "tel-duty", car.driver || ""));
     return box;
   }
 
-  /* 役割表。人と車の割り当ては送迎表では持たないので、枠だけ出す */
+  /* 担当表。曜日ごとの内容を横いっぱいに出す。
+     中身は印刷レイアウトの「電話連絡表」の画面から書き換える */
   function telRoles() {
-    const wrap = el("div", "tel-roles");
-    wrap.append(el("p", "tel-roles-title", "役割表"));
-    const grid = el("div", "tel-roles-grid");
     const day = weekdayOf(currentDate);
-    ["【" + (day || "　") + "】", "AM", "PM"].forEach((h) => grid.append(el("span", "trh", h)));
-    ["リーダー", "サブ", "平行棒", "歩行", "コーヒー"].forEach((role) => {
-      grid.append(el("span", "trl", role), el("span", "trc", ""), el("span", "trc", ""));
+    const roles = (day && ROLES[day]) || null;
+
+    const wrap = el("div", "tel-roles");
+    const head = el("div", "tel-roles-head");
+    head.append(el("span", "tel-roles-title", "担当表"));
+    head.append(el("span", "tel-roles-day", "【" + (day || "　") + "】"));
+    wrap.append(head);
+
+    const grid = el("div", "tel-roles-grid");
+    grid.append(el("span", "trh trh-part", ""));
+    ROLE_NAMES.forEach((r) => grid.append(el("span", "trh", r)));
+    ["AM", "PM"].forEach((part, i) => {
+      grid.append(el("span", "trp", part));
+      ROLE_NAMES.forEach((r) => {
+        grid.append(el("span", "trc", roles ? roles[r][i] : ""));
+      });
     });
     wrap.append(grid);
     return wrap;
@@ -6752,7 +7112,7 @@
     const cars = telCars();
     cars.forEach((car) => list.append(telBlock(car)));
     /* 当日その場で足せるよう、空の枠をひとつ残す（様式にならう） */
-    list.append(telBlock({ label: "", blank: true, driver: "", riders: [] }));
+    list.append(telBlock({ car: "", driver: "", riders: [] }));
     sheet.append(list);
 
     sheet.append(telRoles());
@@ -6845,6 +7205,10 @@
     frame.srcdoc = printableHTML();
     stage.append(frame);
 
+    /* 担当表は電話連絡表のときだけ出す */
+    document.getElementById("pp-roles").hidden = printDoc !== "denwa";
+    if (printDoc === "denwa") drawRoleEditor();
+
     const n = doc.pages();
     document.getElementById("pp-count").textContent =
       doc.name + "　全" + n + "枚　" + titleDate(currentDate);
@@ -6859,6 +7223,49 @@
   }
 
   function closePrintPage() { showPrintPage(false); }
+
+  /* 担当表の書き換え。曜日ごとに持つので、その日の曜日の面を出す */
+  function drawRoleEditor() {
+    const day = weekdayOf(currentDate);
+    document.getElementById("ppr-day").textContent =
+      day ? "【" + day + "】" + titleDate(currentDate) : "この日は利用曜日の対象外です";
+
+    const grid = document.getElementById("ppr-grid");
+    grid.innerHTML = "";
+    if (!day) return;
+
+    grid.append(el("span", "ppr-h", ""));
+    ROLE_NAMES.forEach((r) => grid.append(el("span", "ppr-h", r)));
+
+    ["AM", "PM"].forEach((part, i) => {
+      grid.append(el("span", "ppr-p", part));
+      ROLE_NAMES.forEach((role) => {
+        const input = document.createElement("input");
+        input.type = "text";
+        input.value = ROLES[day][role][i];
+        input.placeholder = "職員名";
+        input.setAttribute("aria-label", day + "曜日 " + part + " " + role);
+        input.addEventListener("input", () => {
+          ROLES[day][role][i] = input.value;
+          STORE.setJSON("roles", ROLES);
+          queueRolePreview();
+        });
+        grid.append(input);
+      });
+    });
+  }
+
+  /* 打つたびに紙を組み直すと重いので、手が止まってから入れ替える */
+  let roleTimer = null;
+
+  function queueRolePreview() {
+    if (roleTimer) clearTimeout(roleTimer);
+    roleTimer = setTimeout(() => {
+      roleTimer = null;
+      const frame = document.getElementById("print-frame");
+      if (frame && printDoc === "denwa") frame.srcdoc = printableHTML("denwa");
+    }, 500);
+  }
 
   Object.keys(DOCS).forEach((k) => {
     document.getElementById("ppdoc-" + k).addEventListener("click", () => {
@@ -6929,65 +7336,6 @@
     }, 700);
   });
 
-  /* 記入のクリアは、どの車両を空にするか選んでから */
-  function clearCar(car) {
-    rowsOf(car).forEach((stop) => writeRow(stop, emptyRow()));
-  }
-
-  document.getElementById("btn-clear").addEventListener("click", () => {
-    const leg = LEGS.find((l) => !document.getElementById("leg-" + l.key).hidden);
-    if (!leg) return;
-    const section = document.getElementById("leg-" + leg.key);
-    const dialog = document.getElementById("modal-clear");
-    document.getElementById("clear-title").textContent =
-      leg.partLabel + " " + leg.dir + "　どの車両の利用者を取り消しますか";
-
-    const list = document.getElementById("clear-cars");
-    list.innerHTML = "";
-
-    section.querySelectorAll(".car").forEach((car, i) => {
-      const taken = rowsOf(car).filter((st) => st.querySelector(".who").value).length;
-      const nameEl = car.querySelector(".car-name");
-      const noBox = car.querySelector(".no-box");
-      const label = nameEl ? nameEl.textContent
-        : (noBox && noBox.textContent.trim() ? noBox.textContent.trim() + "号車" : (i + 1) + "台目");
-
-      const btn = el("button", "assign-car");
-      btn.type = "button";
-      btn.disabled = taken === 0;
-      btn.append(
-        el("span", "ac-name", label),
-        el("span", "ac-num", "乗車 " + taken + " 名"),
-        el("span", "ac-free", taken === 0 ? "取り消すものなし" : "この車両を空にする")
-      );
-      if (car.dataset.lift) btn.classList.add("is-lift");
-      btn.addEventListener("click", () => {
-        clearCar(car);
-        dialog.hidden = true;
-        refresh();
-      });
-      list.append(btn);
-    });
-
-    dialog.hidden = false;
-  });
-
-  document.getElementById("clear-all").addEventListener("click", () => {
-    const leg = LEGS.find((l) => !document.getElementById("leg-" + l.key).hidden);
-    if (!leg) return;
-    document.getElementById("leg-" + leg.key).querySelectorAll(".car").forEach(clearCar);
-    document.getElementById("modal-clear").hidden = true;
-    refresh();
-    notify(leg.partLabel + " " + leg.dir + " の全車両の利用者を取り消しました。戻すときは「一つ戻る」。");
-  });
-
-  document.getElementById("clear-close").addEventListener("click", () => {
-    document.getElementById("modal-clear").hidden = true;
-  });
-  document.getElementById("modal-clear").addEventListener("click", (e) => {
-    if (e.target.id === "modal-clear") e.target.hidden = true;
-  });
-
   document.addEventListener("input", (e) => {
     if (e.target.closest(".stop") || e.target.closest(".car-depart") || e.target.closest(".car-foot")) refresh();
     else if (e.target.closest(".no-box") || e.target.closest(".start-box")) save();
@@ -7021,7 +7369,7 @@
      電波が戻ったら裏で送り、他の端末の変更も取り込む。
      サーバーが無ければ（ファイルを直接開いた場合など）これまでどおり手元だけで動く。 */
   const SYNC = (() => {
-    const SYNCED = ["users", "drivers", "dispatch", "office"];
+    const SYNCED = ["users", "drivers", "dispatch", "office", "roles"];
     const POLL_MS = 8000;
     const PUSH_MS = 1200;
 
@@ -7198,6 +7546,8 @@
     if (p) DISPATCH = normDispatch(p);
     const o = STORE.getJSON("office");
     if (o) OFFICE = Object.assign({}, DEFAULT_OFFICE, o);
+    const r = STORE.getJSON("roles");
+    if (r) ROLES = normRoles(r);
     indexUsers();
     applyOffice();
     if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
