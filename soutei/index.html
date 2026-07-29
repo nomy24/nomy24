@@ -2602,12 +2602,6 @@
     color: var(--ink-3);
   }
 
-  .plan-part {
-    display: flex;
-    flex-direction: column;
-    gap: calc(var(--step) * 2);
-  }
-
   .plan-head {
     display: flex;
     flex-wrap: wrap;
@@ -2645,14 +2639,6 @@
     border-color: var(--rule-2);
     color: var(--ink);
     box-shadow: inset 0 -2px 0 var(--tab, var(--ai));
-  }
-
-  .plan-title {
-    font-family: var(--mincho);
-    font-size: 15px;
-    letter-spacing: .1em;
-    color: var(--ink);
-    min-width: 3em;
   }
 
   .plan-car {
@@ -2837,12 +2823,6 @@
   .assign-car.is-lift { border-color: var(--wc); }
   .ac-name { font-size: 14px; font-weight: 600; }
   .ac-num, .ac-free { font-size: 11px; color: var(--ink-3); }
-
-  .clear-all {
-    margin-top: calc(var(--step) * 4);
-    width: 100%;
-    padding: 8px;
-  }
 
   .modal .car-pick,
   .page-master .car-pick { display: flex; flex-wrap: wrap; gap: 3px; }
@@ -5792,14 +5772,10 @@
     });
   }
 
-  function townSelect(value) {
-    const sel = document.createElement("select");
-    Object.keys(TOWNS).forEach((t) => sel.append(new Option(t, t)));
-    sel.value = TOWNS[value] ? value : Object.keys(TOWNS)[0];
-    return sel;
-  }
-
   const END_REASONS = ["入院", "施設入所", "他事業所へ", "転居", "逝去", "自己都合", "その他"];
+
+  /* ── マスタの表（利用者・運転手・配車） ────
+     マスタ編集のページに出る3つの表と、配車の割り当てを組む欄。 */
 
   function drawUserRow(u, i) {
     const tr = document.createElement("tr");
