@@ -1166,7 +1166,7 @@
   .stop > *:nth-child(7) { grid-column: 7; grid-row: 1; }
 
   .strike {
-    grid-column: 2 / 6;
+    grid-column: 3 / 6;
     grid-row: 1;
     align-self: center;
     height: 0;
@@ -1223,6 +1223,30 @@
   .stop.st-absent .who,
   .stop.st-absent .area { color: var(--ink-3); }
   .stop.st-absent .tag[aria-pressed="true"] { color: var(--rule-2); }
+
+  /* 予定の時刻と欠席理由は同じ場所。欠席のときだけ入れ替わる */
+  .t-slot { min-width: 0; display: block; }
+  .t-slot .why { display: none; }
+
+  .stop.st-absent .t-slot .t { display: none; }
+
+  .stop.st-absent .t-slot .why {
+    display: block;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    width: 100%;
+    min-width: 0;
+    padding: 0;
+    color: var(--warn);
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--warn);
+    border-radius: 0;
+    appearance: none;
+    -webkit-appearance: none;
+    cursor: pointer;
+  }
 
   .t {
     font-size: 14px;
@@ -2218,6 +2242,12 @@
 
     .stop.head { font-size: 5.5pt; padding-top: 0.12mm; padding-bottom: 0.12mm; }
 
+    .stop.st-absent .t-slot .why {
+      font-size: 7.5pt;
+      border-bottom-color: var(--warn);
+      color: var(--warn);
+    }
+
     .ord { width: 13px; height: 13px; font-size: 6.5pt; }
     .t, .who { font-size: 8.5pt; }
     .actual { font-size: 8.5pt; border-bottom-color: #999; }
@@ -2551,6 +2581,9 @@
 
   /* 番号の切替。最後の clear は状態ではなく「利用者を外す」操作。
      利用者が入っていない行は、これから入れる枠として 振替 → 新規 だけを回す。 */
+  /* 欠席の理由。業務日誌と同じ区分にそろえてある */
+  const ABSENT_REASONS = ["都合", "体調", "入院", "受診"];
+
   const STATES = ["", "absent", "furikae", "shinki", "clear"];
   const STATES_EMPTY = ["", "furikae", "shinki"];
   const STATE_LABEL = { "": "通常", absent: "欠席", furikae: "振替利用", shinki: "新規・増回" };
@@ -3008,6 +3041,11 @@
   }
 
   function setState(stop, st) {
+    /* 欠席をやめたら理由も落とす。前の理由が残ると読み違えるため */
+    if (st !== "absent") {
+      const why = stop.querySelector(".why");
+      if (why) why.value = "";
+    }
     stop.dataset.state = st;
     STATES.forEach((s) => { if (s && s !== "clear") stop.classList.toggle("st-" + s, s === st); });
     const ord = stop.querySelector(".ord");
@@ -3183,11 +3221,23 @@
     li.append(ord);
     li.dataset.state = "";
 
+    /* 欠席のときは予定の時刻が空になるので、その場所に理由を出す。
+       業務日誌と同じ区分（都合・体調・入院・受診）。 */
+    const why = document.createElement("select");
+    why.className = "why";
+    why.append(new Option("理由", ""));
+    ABSENT_REASONS.forEach((r) => why.append(new Option(r, r)));
+    why.title = "欠席の理由";
+    why.addEventListener("change", save);
+
     const t = el("time", "t");
     t.contentEditable = "true";
     t.dataset.ph = "--:--";
     t.dataset.manual = "false";
-    li.append(t);
+
+    const slot = el("span", "t-slot");
+    slot.append(t, why);
+    li.append(slot);
 
     const actual = el("span", "actual");
     actual.contentEditable = "true";
@@ -3398,7 +3448,11 @@
       eta.title = "着きたい時刻を書けます（" + leg.arriveBy[0] + "〜" + leg.arriveBy[1]
         + " のあいだ）。空にすると自動に戻ります。";
       /* 打っている途中に書き換えると入力が消えるので、確定してから計算する */
-      eta.addEventListener("blur", () => { normalizeTime(eta); refresh(); });
+      eta.addEventListener("blur", () => {
+        normalizeTime(eta);
+        eta.dataset.manual = eta.textContent.trim() ? "true" : "false";
+        refresh();
+      });
       eta.addEventListener("keydown", (e) => {
         if (e.key === "Enter") { e.preventDefault(); eta.blur(); }
         if (e.key === "Escape") { eta.textContent = ""; eta.blur(); }
@@ -3531,7 +3585,7 @@
         const eta = car.querySelector(".eta");
         /* 目標を書いてある車と、そもそも発の記入欄がない便は、
            そのつど着から逆算し直す */
-        if (leg.noDepart || (eta && parseHHMM(eta.textContent) !== null)) retimeCar(car, leg, index);
+        if (leg.noDepart || (eta && eta.dataset.manual === "true")) retimeCar(car, leg, index);
       }
 
       let cursor = parseHHMM(car.querySelector(".dep").textContent);
@@ -3572,9 +3626,9 @@
       /* 最後の家から事業所へ戻るまでを足して、着の見込みを出す */
       const eta = car.querySelector(".eta");
       const typing = document.activeElement === eta;   /* 記入中は触らない */
-      const want = eta.dataset.target === "1" ? eta.textContent : "";
-      const wanted = parseHHMM(want);
-      eta.classList.toggle("edited", eta.dataset.target === "1" && wanted !== null);
+      const manual = eta.dataset.target === "1" && eta.dataset.manual === "true";
+      const wanted = manual ? parseHHMM(eta.textContent) : null;
+      eta.classList.toggle("edited", manual && wanted !== null);
 
       if (typing) {
         /* 何もしない */
@@ -3587,7 +3641,7 @@
         const limit = leg.arriveBy ? parseHHMM(leg.arriveBy[1]) : null;
         const over = limit !== null && arrive > limit;
 
-        if (eta.dataset.target === "1" && wanted !== null) {
+        if (manual && wanted !== null) {
           /* 手で入れた目標。中身は書き換えず、実際の見込みだけ脇に出す */
           eta.dataset.note = arrive === wanted ? "" : "見込み " + hhmm(arrive);
           eta.classList.toggle("over", wanted > (limit === null ? wanted : limit) || over);
@@ -3872,6 +3926,7 @@
       u: stop.querySelector(".who").value,
       st: stop.dataset.state || "",
       t: stop.querySelector(".t").textContent,
+      wr: stop.querySelector(".why").value,
       m: stop.querySelector(".t").dataset.manual === "true",
       a: stop.querySelector(".area").textContent,
       ae: stop.querySelector(".area").classList.contains("edited"),
@@ -3881,7 +3936,7 @@
     };
   }
 
-  const emptyRow = () => ({ u: "", st: "", t: "", m: false, a: "", ae: false, ac: "", n: "", g: [] });
+  const emptyRow = () => ({ u: "", st: "", t: "", wr: "", m: false, a: "", ae: false, ac: "", n: "", g: [] });
 
   function writeRow(stop, r) {
     const sel = stop.querySelector(".who");
@@ -3896,6 +3951,7 @@
     t.textContent = r.t || "";
     t.dataset.manual = String(!!r.m);
     t.classList.toggle("edited", !!r.m);
+    stop.querySelector(".why").value = r.wr || "";
 
     const area = stop.querySelector(".area");
     if (r.ae) { area.textContent = r.a || ""; area.classList.add("edited"); }
@@ -4077,10 +4133,11 @@
         depActual: car.querySelector(".dep-actual").textContent,
         arrive: car.querySelector(".arrive-box").textContent,
         /* 着の目標（お迎え便で手で入れたとき） */
-        eta: car.querySelector(".eta").dataset.target === "1" ? car.querySelector(".eta").textContent : "",
+        eta: car.querySelector(".eta").dataset.manual === "true" ? car.querySelector(".eta").textContent : "",
         stops: [...car.querySelectorAll(".stop:not(.head)")].map((stop) => ({
           u: stop.querySelector(".who").value,
           t: stop.querySelector(".t").textContent,
+      wr: stop.querySelector(".why").value,
           m: stop.querySelector(".t").dataset.manual === "true",
           a: stop.querySelector(".area").textContent,
           ae: stop.querySelector(".area").classList.contains("edited"),
@@ -4115,7 +4172,10 @@
         const startBox = car.querySelector(".start-box");
         if (startBox) startBox.textContent = s.start || "";
         const etaBox = car.querySelector(".eta");
-        if (etaBox && etaBox.dataset.target === "1") etaBox.textContent = s.eta || "";
+        if (etaBox && etaBox.dataset.target === "1") {
+          etaBox.textContent = s.eta || "";
+          etaBox.dataset.manual = s.eta ? "true" : "false";
+        }
         const dsel = car.querySelector(".driver-select");
         if (s.driver && !dsel.querySelector('option[value="' + CSS.escape(s.driver) + '"]')) {
           const g = document.createElement("optgroup");
@@ -4146,6 +4206,7 @@
           t.textContent = r.t || "";
           t.dataset.manual = String(!!r.m);
           t.classList.toggle("edited", !!r.m);
+          stop.querySelector(".why").value = r.wr || "";
 
           const area = stop.querySelector(".area");
           if (r.ae) { area.textContent = r.a || ""; area.classList.add("edited"); }
@@ -4445,7 +4506,7 @@
       .map((st) => st.querySelector(".who").value)
       .filter(Boolean);
     const eta = car.querySelector(".eta");
-    const want = eta && eta.dataset.target === "1" ? eta.textContent : "";
+    const want = eta && eta.dataset.manual === "true" ? eta.textContent : "";
     car.querySelector(".dep").textContent = departFor(leg, index, ids, want);
   }
 
