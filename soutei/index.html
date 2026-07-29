@@ -1706,8 +1706,43 @@
     max-width: 62ch;
   }
 
-  .pp-lead b { color: var(--warn); }
+  .pp-lead b { color: var(--ink); }
+  .pp-lead b.alert { color: var(--warn); }
+  .pp-lede { flex: 1 1 22rem; min-width: 0; }
   .pp-actions { display: flex; flex-wrap: wrap; gap: calc(var(--step) * 2); }
+
+  /* 刷るものの切替。送迎表と業務日誌を同じ場所から出す */
+  .pp-docs {
+    display: flex;
+    gap: 2px;
+    padding: 3px;
+    background: var(--sub);
+    align-self: flex-end;
+  }
+
+  .pp-docs button {
+    font: inherit;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    padding: 6px 18px;
+    border: 0;
+    background: transparent;
+    color: var(--ink-2);
+    cursor: pointer;
+    text-align: left;
+  }
+
+  .pp-docs .pd-name { font-size: 14px; letter-spacing: .08em; }
+  .pp-docs .pd-sub { font-size: 10px; color: var(--ink-3); }
+
+  .pp-docs button[aria-selected="true"] {
+    background: var(--card);
+    color: var(--ink);
+    box-shadow: inset 0 -2px 0 var(--ai);
+  }
+
+  .pp-docs button[aria-selected="true"] .pd-name { font-weight: 600; }
 
   .pp-actions .btn {
     font: inherit;
@@ -1734,6 +1769,233 @@
     border: 0;
     background: #6E7480;
   }
+
+  /* ── 業務日誌の紙面 ────────────────────────
+     お預かりした様式の作りに合わせる。午前・午後を左右に置き、
+     要介護（25行）と介護予防（12行）に分ける。
+     紙にしか出さない面なので、明暗の切替に振られないよう色は直に置く。 */
+  .ns {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    color: #000;
+    font-family: var(--gothic);
+    font-size: 9pt;
+    line-height: 1.2;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .ns-top {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: baseline;
+    gap: 4mm;
+    padding: 0 0 1mm;
+    margin-bottom: 1.6mm;
+    border-bottom: 1.4pt solid #000;
+  }
+
+  .ns-top h1 {
+    margin: 0;
+    font-family: var(--mincho);
+    font-size: 15pt;
+    font-weight: 600;
+    letter-spacing: .2em;
+  }
+
+  .ns-kind {
+    font-size: 9pt;
+    letter-spacing: .16em;
+    color: #fff;
+    background: #2B3138;
+    padding: 0.5mm 2mm;
+  }
+
+  .ns-date { font-size: 10pt; letter-spacing: .08em; }
+  .ns-office { margin-left: auto; font-size: 9pt; letter-spacing: .06em; color: #2B3138; }
+
+  .ns-cols {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .ns-col {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .ns-col:first-child { padding-right: 3.4mm; }
+
+  /* 様式では午前と午後のあいだが二重線。同じ切れ目を紙面にも置く */
+  .ns-col + .ns-col { padding-left: 3.4mm; border-left: 2.6pt double #000; }
+
+  .ns-cap {
+    flex: 0 0 auto;
+    margin: 0;
+    display: flex;
+    align-items: baseline;
+    gap: 4mm;
+    padding: 1mm 2mm;
+    border: 1pt solid #000;
+    border-bottom: 0;
+    background: var(--ns-band);
+  }
+
+  .ns-cap b {
+    font-family: var(--mincho);
+    font-size: 12.5pt;
+    font-weight: 600;
+    letter-spacing: .18em;
+    color: var(--ns-ink);
+  }
+
+  .ns-cap .ns-sum { margin-left: auto; font-size: 8.5pt; letter-spacing: .04em; }
+
+  .ns-cap i {
+    font-style: normal;
+    font-weight: 700;
+    font-size: 10.5pt;
+    display: inline-block;
+    min-width: 2.2em;
+    margin: 0 1px;
+    padding: 0 1px;
+    text-align: center;
+    color: var(--ns-ink);
+    border-bottom: .8pt solid var(--ns-ink);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .ns-grid {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    border: 1pt solid #000;
+  }
+
+  .ns-row {
+    flex: 1 1 0;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: var(--ns-cols);
+    border-bottom: .5pt solid #8B9199;
+  }
+
+  .ns-row > * {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    padding: 0 1.1mm;
+    border-right: .5pt solid #8B9199;
+    overflow: hidden;
+  }
+
+  .ns-row > *:last-child { border-right: 0; }
+
+  /* 目が横に流れるよう、一行おきにごく薄く敷く */
+  .ns-row.zebra { background: #F1F4F7; }
+
+  .ns-row.head {
+    flex: 0 0 auto;
+    padding: 0.5mm 0;
+    background: var(--ns-tint);
+    border-bottom: 1pt solid #000;
+    font-size: 8pt;
+    font-weight: 700;
+    letter-spacing: .06em;
+    color: var(--ns-ink);
+  }
+
+  .ns-row.head > * { justify-content: center; }
+
+  /* 要介護と介護予防の切れ目 */
+  .ns-row.band {
+    flex: 0 0 auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0.6mm 0;
+    background: var(--ns-tint);
+    border-top: 1pt solid #000;
+    border-bottom: 1pt solid #000;
+    font-size: 8.5pt;
+    font-weight: 700;
+    letter-spacing: .32em;
+    color: var(--ns-ink);
+  }
+
+  .ns-no {
+    justify-content: center;
+    font-size: 7.5pt;
+    color: #3C434A;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .ns-name { font-size: 9.5pt; letter-spacing: .02em; white-space: nowrap; }
+  .ns-slash { justify-content: center; color: #9AA1A9; font-size: 9pt; }
+  .ns-bp { font-size: 7.5pt; color: #000; white-space: nowrap; }
+  .ns-bp.is-shunt { color: #C4172A; font-weight: 700; }
+  /* 「右シャント実測」のように長いものは、様式と同じく字を落として1行に収める */
+  .ns-bp.is-long { font-size: 6.4pt; letter-spacing: -.02em; }
+  .ns-state { font-size: 9pt; font-weight: 700; color: #C4172A; letter-spacing: .06em; }
+
+  /* 欠席の行は氏名も赤に振って、離れた備考欄と取り違えないようにする */
+  .ns-row.is-away .ns-name { color: #C4172A; }
+
+  .ns-sign {
+    flex: 0 0 auto;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 21mm;
+    border: 1pt solid #000;
+    border-top: 0;
+  }
+
+  .ns-staff {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 1.1mm;
+    padding: 1.2mm 2mm;
+    font-size: 8pt;
+    letter-spacing: .04em;
+  }
+
+  .ns-staff > span { display: flex; align-items: baseline; gap: 1.5mm; white-space: nowrap; }
+  .ns-staff > span > span:not(.ns-blank) { flex: 0 0 auto; }
+  .ns-staff .lead { font-weight: 700; }
+
+  .ns-blank {
+    flex: 1 1 auto;
+    min-width: 8mm;
+    border-bottom: .6pt dotted #6E757D;
+    align-self: flex-end;
+    height: 3.2mm;
+  }
+
+  .ns-final {
+    display: flex;
+    flex-direction: column;
+    border-left: 1pt solid #000;
+  }
+
+  .ns-final .lbl {
+    padding: 0.6mm 0;
+    text-align: center;
+    font-size: 7.5pt;
+    letter-spacing: .08em;
+    background: var(--ns-tint);
+    border-bottom: .5pt solid #8B9199;
+  }
+
+  .ns-final .box { flex: 1 1 auto; }
+
+  /* 検温の面は氏名のとなりが一枠。書き込む幅を広く取る */
+  .ns-temp .ns-row > .ns-temp-cell { justify-content: flex-start; }
 
   /* ── マスタ編集ページ ─────────────────────── */
   .page-master[hidden] { display: none; }
@@ -1812,6 +2074,17 @@
     line-height: 1.6;
     color: var(--ink-3);
   }
+
+  .th-note {
+    display: block;
+    font-size: 10px;
+    font-weight: 400;
+    letter-spacing: 0;
+    color: var(--ink-3);
+  }
+
+  /* 日誌でシャントを赤字にするので、マスタでも同じ色で見せる */
+  .bp-pick.is-shunt { color: var(--warn); font-weight: 600; }
 
   /* ── マスタのダイアログ ───────────────────── */
   .user-form {
@@ -2249,30 +2522,38 @@
   }
 
   @media print {
+    /* 便の色は紙の上でこそ効く。インクを一段濃くし、下地の色も
+       家庭用プリンタで飛ばない濃さまで上げる */
     :root {
       color-scheme: light;
       --paper: #fff;
       --card: #fff;
-      --sub: #F2F2F0;
+      --sub: #EAEBE7;
       --ink: #000;
-      --ink-2: #333;
-      --ink-3: #666;
-      --rule: #B8B8B8;
-      --rule-2: #CCCCCC;
-      --ai: #1F3A5C;
-      --ai-soft: #EDF1F6;
-      --kaki: #7E3617;
-      --kaki-soft: #F7EDE7;
-      --seiheki: #1F4F57;
-      --seiheki-soft: #E8F1F2;
-      --enji: #6B2C3B;
-      --enji-soft: #F7EBEE;
-      --warn: #8A1F1F;
-      --warn-soft: #FAF0EF;
-      --wc: #A32A1E;
-      --wc-soft: #F9EAE7;
-      --furikae: #45681C;
-      --shinki: #9E5312;
+      --ink-2: #262B30;
+      --ink-3: #4A5057;
+      --rule: #9AA0A6;
+      --rule-2: #B0B6BC;
+      --ai: #163455;
+      --ai-soft: #D7E2EF;
+      --kaki: #7A3316;
+      --kaki-soft: #F0DDD1;
+      --seiheki: #17454E;
+      --seiheki-soft: #D2E3E6;
+      --enji: #63263A;
+      --enji-soft: #EDD9DF;
+      --warn: #9C1414;
+      --warn-soft: #F4DDDA;
+      --wc: #96200F;
+      --wc-soft: #F3DAD3;
+      --furikae: #3C5C15;
+      --shinki: #8E480C;
+    }
+
+    /* 下地の色を落とさずに刷る。カードの色分けはここが要 */
+    *, *::before, *::after {
+      print-color-adjust: exact;
+      -webkit-print-color-adjust: exact;
     }
 
     body { background: #fff; font-size: 9pt; line-height: 1.3; }
@@ -2303,18 +2584,21 @@
     .leg { break-before: page; break-inside: avoid; }
     .leg:first-of-type { break-before: auto; }
 
-    /* 便の見出し：便名・事業所名と日付・当日の人数を1行に収める */
+    /* 便の見出し：便の色を敷いた帯にして、どの便の紙か一目で分かるようにする。
+       ここは書き入れる欄がないので、濃い地に白抜きでよい */
     .leg-head {
       flex-wrap: nowrap;
       align-items: baseline;
-      padding: 0 0 0.8mm;
-      margin-bottom: 1mm;
+      padding: 1.1mm 2.6mm;
+      margin-bottom: 1.6mm;
       gap: 4mm;
-      border-bottom: 1.2pt solid var(--ink);
+      background: var(--accent);
+      border-bottom: 0;
+      color: #fff;
     }
 
-    .leg-title { font-size: 12pt; letter-spacing: .1em; }
-    .leg-title small { font-size: 7pt; margin-left: 5px; }
+    .leg-title { font-size: 12.5pt; letter-spacing: .12em; color: #fff; }
+    .leg-title small { font-size: 7pt; margin-left: 5px; color: rgba(255, 255, 255, .88); }
     .leg-title .day-note { display: none; }
 
     .print-stamp {
@@ -2323,16 +2607,63 @@
       margin-left: auto;
       font-size: 7.5pt;
       letter-spacing: .06em;
-      color: var(--ink);
+      color: #fff;
       white-space: nowrap;
     }
 
     .stats { margin-left: 0; gap: 4mm; flex-wrap: nowrap; }
-    .stat { font-size: 6.5pt; gap: 3px; }
-    .stat b { font-size: 9.5pt; }
+    .stat { font-size: 6.5pt; gap: 3px; color: rgba(255, 255, 255, .82); }
+    .stat b { font-size: 9.5pt; color: #fff; }
+    .stat.s-total, .stat.s-total b,
+    .stat.s-away b, .stat.s-furikae b { color: #fff; }
+    .stat.s-away.on, .stat.s-away.on b,
+    .stat.s-furikae.on, .stat.s-furikae.on b,
+    .stat.is-alert, .stat.is-alert b { color: #FFD9C8; }
 
-    /* 紙は帳票なので、画面用の丸みと陰影は落とす */
-    .car { border-radius: 0; box-shadow: none; overflow: visible; }
+    /* 紙は帳票なので、画面用の丸みと陰影は落とす。
+       そのぶん、便の色をカードの縁と左袖に回して1台ずつを見分けやすくする */
+    .car {
+      border-radius: 0;
+      box-shadow: none;
+      overflow: visible;
+      border: 1.1pt solid var(--accent);
+      background: #F7F9FB;
+      background: color-mix(in srgb, var(--accent-soft) 26%, #fff);
+    }
+
+    .car-id {
+      background: var(--accent-soft);
+      border-right: 1pt solid var(--accent);
+      border-left: 2.2mm solid var(--accent);
+    }
+
+    .car-depart {
+      background: #EDF1F5;
+      background: color-mix(in srgb, var(--accent-soft) 62%, #fff);
+      border-bottom: .8pt solid var(--accent);
+    }
+
+    .car-foot {
+      background: var(--accent-soft);
+      border-top: .8pt solid var(--accent);
+    }
+
+    .car-depart .lbl, .car-foot .lbl { color: var(--accent); font-weight: 600; }
+
+    .stop.head {
+      background: #EDF1F5;
+      background: color-mix(in srgb, var(--accent-soft) 62%, #fff);
+      color: var(--accent);
+      border-bottom: .6pt solid var(--accent);
+    }
+
+    /* 一行おきに便の色をごく薄く敷いて、名前から備考まで目が流れるようにする */
+    .stop:not(.head):nth-child(even) {
+      background: #EFF3F7;
+      background: color-mix(in srgb, var(--accent-soft) 52%, #fff);
+    }
+
+
     .no-box, .start-box, .driver-select, .tag, .left-name { border-radius: 0; }
 
     /* 画面幅がどうであれ、紙の上では必ず2列4段の8台に組む。
@@ -2372,8 +2703,8 @@
 
     .car-depart, .car-foot { padding: 0.22mm 1.6mm; font-size: 6.5pt; gap: 1.4mm; line-height: 1.15; }
     .dep { font-size: 8.5pt; min-width: 9mm; }
-    .actual-box { min-width: 11mm; font-size: 8.5pt; border-bottom-color: #999; }
-    .arrive-box { min-width: 13mm; font-size: 8.5pt; border-bottom-color: #999; }
+    .actual-box { min-width: 11mm; font-size: 8.5pt; border-bottom-color: #7C838A; }
+    .arrive-box { min-width: 13mm; font-size: 8.5pt; border-bottom-color: #7C838A; }
     .eta { font-size: 8.5pt; min-width: 0; padding: 0 2px; }
     .eta[data-note]:not([data-note=""])::after { content: none; }
     .eta[data-target="1"]:empty::before { content: ""; }
@@ -2396,15 +2727,15 @@
 
     .ord { width: 13px; height: 13px; font-size: 6.5pt; }
     .t, .who { font-size: 8.5pt; }
-    .actual { font-size: 8.5pt; border-bottom-color: #999; }
+    .actual { font-size: 8.5pt; border-bottom-color: #7C838A; }
     .area { font-size: 7.5pt; }
-    .note { font-size: 7.5pt; border-bottom-color: #BBB; }
+    .note { font-size: 7.5pt; border-bottom-color: #8B9199; }
     [contenteditable]:empty::before { content: ""; }
 
     /* 空欄は手書きできるよう罫線を残す */
-    .stop.empty .t { border-bottom: 1px dotted #BBB; }
-    .stop.empty .area { border-bottom: 1px dotted #BBB; }
-    .who[data-empty="true"] { border-bottom: 1px dotted #BBB; }
+    .stop.empty .t { border-bottom: 1px dotted #9AA0A6; }
+    .stop.empty .area { border-bottom: 1px dotted #9AA0A6; }
+    .who[data-empty="true"] { border-bottom: 1px dotted #9AA0A6; }
 
     .tag { width: 14.5px; height: 14.5px; border-radius: 3px; }
     .tag svg { width: 11px; height: 11px; stroke-width: 2.3; }
@@ -2432,7 +2763,7 @@
     .leg:first-of-type .leg-legend {
       display: block;
       margin: 0.5mm 0 0;
-      padding-top: 0.4mm;
+      padding: 0.4mm 2.6mm 0;
       border-top: 1px solid var(--rule);
       font-size: 6pt;
       line-height: 1.25;
@@ -2479,7 +2810,7 @@
         <button type="button" id="btn-redo" title="一つ進む">↷ 一つ進む</button>
       </span>
       <button type="button" id="btn-clear">記入をクリア</button>
-      <button type="button" id="btn-print">印刷（全4便・各1枚）</button>
+      <button type="button" id="btn-print">送迎表を印刷（全4便・各1枚）</button>
     </div>
   </div>
   </div>
@@ -2498,6 +2829,13 @@
         <span class="sm-text">
           <span class="sm-title">出欠</span>
           <span class="sm-sub">業務日誌の状態欄と同じ</span>
+        </span>
+      </button>
+      <button type="button" class="side-master" id="btn-nisshi">
+        <span class="sm-icon" id="sn-icon"></span>
+        <span class="sm-text">
+          <span class="sm-title">業務日誌</span>
+          <span class="sm-sub">出欠から組んで印刷する</span>
         </span>
       </button>
       <button type="button" class="side-master" id="btn-master">
@@ -2603,18 +2941,26 @@
   <div class="pa-parts" id="pa-parts"></div>
 </div>
 
-<!-- ── 印刷レイアウト（紙のまま4枚を見せる） ───────── -->
+<!-- ── 印刷レイアウト（紙のまま見せる。送迎表と業務日誌） ───────── -->
 <div class="page-print" id="page-print" hidden>
   <header class="pp-head">
-    <div>
+    <div class="pp-lede">
       <p class="eyebrow office-name-echo"></p>
-      <h1>印刷レイアウト<span class="pp-count" id="pp-count">全4枚</span></h1>
+      <h1>印刷レイアウト<span class="pp-count" id="pp-count"></span></h1>
       <p class="pp-lead" id="pp-lead"></p>
+    </div>
+    <div class="pp-docs" role="tablist" aria-label="刷るもの">
+      <button type="button" role="tab" id="ppdoc-soutei" aria-selected="true">
+        <span class="pd-name">送迎表</span><span class="pd-sub">A4横・4便で4枚</span>
+      </button>
+      <button type="button" role="tab" id="ppdoc-nisshi" aria-selected="false">
+        <span class="pd-name">業務日誌</span><span class="pd-sub">A4横・日誌と検温で2枚</span>
+      </button>
     </div>
     <div class="pp-actions">
       <button type="button" class="btn" id="print-back">送迎表へ戻る</button>
       <button type="button" class="btn" id="print-save">ファイルに保存</button>
-      <button type="button" class="btn primary" id="print-go">この4枚を印刷</button>
+      <button type="button" class="btn primary" id="print-go">印刷</button>
     </div>
   </header>
   <div class="pp-stage" id="pp-stage"></div>
@@ -2647,13 +2993,14 @@
       <table>
         <thead>
           <tr>
-            <th style="width:13%">氏名</th>
-            <th style="width:12%">ふりがな</th>
-            <th style="width:22%">住所（市区町村以下）</th>
-            <th style="width:10%">介護度</th>
-            <th style="width:9%">記号</th>
-            <th style="width:15%">利用曜日</th>
-            <th style="width:12%"></th>
+            <th style="width:12%">氏名</th>
+            <th style="width:11%">ふりがな</th>
+            <th style="width:19%">住所（市区町村以下）</th>
+            <th style="width:9%">介護度</th>
+            <th style="width:11%">血圧<span class="th-note">日誌の備考欄</span></th>
+            <th style="width:8%">記号</th>
+            <th style="width:14%">利用曜日</th>
+            <th style="width:11%"></th>
           </tr>
         </thead>
         <tbody id="user-rows"></tbody>
@@ -2799,7 +3146,11 @@
       + '<path d="M16.4 18.6 18.2 20.4 21.6 17"/>'),
     /* 地図：ルートを開く口 */
     map: svg('<path d="M9 20.5 3 22.5V5.5l6-2 6 2 6-2v17l-6 2-6-2Z"/>'
-      + '<path d="M9 3.5v17M15 5.5v17"/>')
+      + '<path d="M9 3.5v17M15 5.5v17"/>'),
+    /* 業務日誌：綴じた帳面に罫が引いてある */
+    book: svg('<path d="M4 3.4h11.2a2.4 2.4 0 0 1 2.4 2.4V21H6.4A2.4 2.4 0 0 1 4 18.6Z"/>'
+      + '<path d="M17.6 7.6H20v13.8H8.6"/>'
+      + '<path d="M7.2 8h7M7.2 11.6h7M7.2 15.2h4.4"/>')
   };
 
   const TAGS = [
@@ -2849,70 +3200,88 @@
     "要介護1", "要介護2", "要介護3", "要介護4", "要介護5"
   ];
 
+  /* 業務日誌の備考欄。血圧をどう測るかを書く欄なので、
+     その方に付いて回る事柄としてマスタに持つ。
+     シャントのある方だけ赤字にして、測る腕を間違えないようにする */
+  const BP_NOTES = [
+    "上腕計", "実測", "左シャント", "右シャント",
+    "左シャント実測", "右シャント実測"
+  ];
+
+  const isShunt = (bp) => String(bp || "").indexOf("シャント") >= 0;
+
+  /* 介護度から日誌の区分へ。未設定は空で返し、呼ぶ側で扱いを決める */
+  const careGroupOf = (u) => {
+    const c = (u && u.care) || "";
+    if (c.indexOf("要介護") === 0) return "要介護";
+    if (c === "事業対象者" || c.indexOf("要支援") === 0) return "介護予防";
+    return "";
+  };
+
   /* ── 利用者マスタの初期値 ────────────────── */
   const DEFAULT_USERS = [
-    { id: "u01", name: "田中 ハル", kana: "たなか はる", town: "中央町", addr: "中央町3-14-2", tags: ["補"], days: { "月": "AM", "水": "AM", "金": "AM" } },
-    { id: "u02", name: "鈴木 正一", kana: "すずき しょういち", town: "中央町", addr: "中央町1-8-5", tags: [], days: { "火": "AM", "木": "AM", "土": "AM" } },
-    { id: "u03", name: "高橋 キヨ", kana: "たかはし きよ", town: "本町", addr: "本町5-3-11", tags: ["玄"], days: { "月": "AM", "水": "AM", "土": "AM" } },
-    { id: "u04", name: "小林 節子", kana: "こばやし せつこ", town: "本町", addr: "本町2-19-4", tags: [], days: { "火": "AM", "木": "AM", "金": "AM" } },
-    { id: "u05", name: "伊藤 フミ", kana: "いとう ふみ", town: "若葉台", addr: "若葉台2-6-3", tags: ["補"], days: { "月": "AM", "木": "AM", "土": "AM" } },
-    { id: "u06", name: "渡部 秀夫", kana: "わたなべ ひでお", town: "若葉台", addr: "若葉台4-11-8", tags: [], days: { "火": "AM", "水": "AM", "金": "AM" } },
-    { id: "u07", name: "山田 トシ子", kana: "やまだ としこ", town: "緑町", addr: "緑町1-4-16", tags: ["玄"], days: { "月": "AM", "水": "AM", "金": "AM" } },
-    { id: "u08", name: "中西 幸雄", kana: "なかにし ゆきお", town: "緑町", addr: "緑町3-9-2", tags: [], days: { "火": "AM", "木": "AM", "土": "AM" } },
-    { id: "u09", name: "大野 スミ", kana: "おおの すみ", town: "桜ヶ丘", addr: "桜ヶ丘1-2-7", tags: ["補"], days: { "月": "AM", "水": "AM", "土": "AM" } },
-    { id: "u10", name: "藤井 康夫", kana: "ふじい やすお", town: "桜ヶ丘", addr: "桜ヶ丘3-15-1", tags: [], days: { "火": "AM", "木": "AM", "金": "AM" } },
-    { id: "u11", name: "岩本 ヨシ", kana: "いわもと よし", town: "旭ヶ丘", addr: "旭ヶ丘2-7-9", tags: ["補"], days: { "月": "AM", "木": "AM", "土": "AM" } },
-    { id: "u12", name: "森田 光子", kana: "もりた みつこ", town: "旭ヶ丘", addr: "旭ヶ丘5-1-12", tags: [], days: { "火": "AM", "水": "AM", "金": "AM" } },
-    { id: "u13", name: "村上 三郎", kana: "むらかみ さぶろう", town: "東雲", addr: "東雲2-11-6", tags: [], days: { "月": "AM", "水": "AM", "金": "AM" } },
-    { id: "u14", name: "北川 きく", kana: "きたがわ きく", town: "東雲", addr: "東雲6-3-1", tags: ["玄"], days: { "火": "AM", "木": "AM", "土": "AM" } },
-    { id: "u15", name: "菅原 テル", kana: "すがわら てる", town: "川井町", addr: "川井町1-22-4", tags: ["補"], days: { "月": "AM", "水": "AM", "土": "AM" } },
-    { id: "u16", name: "堀内 昌代", kana: "ほりうち まさよ", town: "富士見町", addr: "富士見町4-8-3", tags: [], days: { "火": "AM", "木": "AM", "金": "AM" } },
-    { id: "u17", name: "浅野 勝治", kana: "あさの かつじ", town: "富士見町", addr: "富士見町7-2-15", tags: ["補"], days: { "月": "AM", "木": "AM", "土": "AM" } },
-    { id: "u18", name: "白石 ミツ", kana: "しらいし みつ", town: "南台", addr: "南台2-5-9", tags: [], days: { "火": "AM", "水": "AM", "金": "AM" } },
-    { id: "u19", name: "野口 定雄", kana: "のぐち さだお", town: "南台", addr: "南台5-13-2", tags: ["玄"], days: { "月": "AM", "水": "AM", "金": "AM" } },
-    { id: "u20", name: "長沢 スエ", kana: "ながさわ すえ", town: "泉町", addr: "泉町1-9-7", tags: ["補"], days: { "火": "AM", "木": "AM", "土": "AM" } },
-    { id: "u21", name: "谷口 良一", kana: "たにぐち りょういち", town: "泉町", addr: "泉町4-2-11", tags: [], days: { "月": "AM", "水": "AM", "土": "AM" } },
-    { id: "u22", name: "杉本 アキ", kana: "すぎもと あき", town: "宮下", addr: "宮下2-16-5", tags: [], days: { "火": "AM", "木": "AM", "金": "AM" } },
-    { id: "u23", name: "西村 タカ", kana: "にしむら たか", town: "上野原", addr: "上野原1-3-8", tags: ["補"], days: { "月": "AM", "木": "AM", "土": "AM" } },
-    { id: "u24", name: "石田 正治", kana: "いしだ しょうじ", town: "上野原", addr: "上野原3-12-1", tags: [], days: { "火": "AM", "水": "AM", "金": "AM" } },
-    { id: "u25", name: "内藤 ハナ", kana: "ないとう はな", town: "戸倉", addr: "戸倉2-7-14", tags: ["補"], days: { "月": "AM", "水": "AM", "金": "AM" } },
-    { id: "u26", name: "平野 邦彦", kana: "ひらの くにひこ", town: "戸倉", addr: "戸倉5-1-6", tags: [], days: { "火": "AM", "木": "AM", "土": "AM" } },
-    { id: "u27", name: "小島 チヨ", kana: "こじま ちよ", town: "梅林", addr: "梅林1-10-3", tags: ["玄"], days: { "月": "AM", "水": "AM", "土": "AM" } },
-    { id: "u28", name: "福井 静江", kana: "ふくい しずえ", town: "梅林", addr: "梅林4-6-9", tags: [], days: { "火": "AM", "木": "AM", "金": "AM" } },
-    { id: "u29", name: "尾崎 たけし", kana: "おざき たけし", town: "新町", addr: "新町2-4-17", tags: ["車"], days: { "月": "AM", "木": "AM", "土": "AM" } },
-    { id: "u30", name: "上田 ノブ", kana: "うえだ のぶ", town: "新町", addr: "新町5-9-2", tags: ["補"], days: { "火": "AM", "水": "AM", "金": "AM" } },
-    { id: "u31", name: "河合 秀子", kana: "かわい ひでこ", town: "曙", addr: "曙1-7-5", tags: [], days: { "月": "AM", "水": "AM", "金": "AM" } },
-    { id: "u32", name: "遠藤 巌", kana: "えんどう いわお", town: "曙", addr: "曙4-2-13", tags: [], days: { "火": "AM", "木": "AM", "土": "AM" } },
-    { id: "u33", name: "宮本 サダ", kana: "みやもと さだ", town: "花見川", addr: "花見川2-8-1", tags: ["玄"], days: { "月": "AM", "水": "AM", "土": "AM" } },
-    { id: "u34", name: "青木 トメ", kana: "あおき とめ", town: "中央町", addr: "中央町2-5-8", tags: ["補"], days: { "火": "PM", "木": "PM", "金": "PM" } },
-    { id: "u35", name: "木村 誠一", kana: "きむら せいいち", town: "中央町", addr: "中央町4-1-3", tags: [], days: { "月": "PM", "木": "PM", "土": "PM" } },
-    { id: "u36", name: "佐野 ハツ", kana: "さの はつ", town: "本町", addr: "本町3-12-7", tags: ["玄"], days: { "火": "PM", "水": "PM", "金": "PM" } },
-    { id: "u37", name: "早川 春夫", kana: "はやかわ はるお", town: "本町", addr: "本町7-4-2", tags: [], days: { "月": "PM", "水": "PM", "金": "PM" } },
-    { id: "u38", name: "三浦 キミ", kana: "みうら きみ", town: "若葉台", addr: "若葉台1-9-11", tags: ["補"], days: { "火": "PM", "木": "PM", "土": "PM" } },
-    { id: "u39", name: "秋山 三男", kana: "あきやま みつお", town: "若葉台", addr: "若葉台5-2-6", tags: [], days: { "月": "PM", "水": "PM", "土": "PM" } },
-    { id: "u40", name: "大塚 ヤエ", kana: "おおつか やえ", town: "緑町", addr: "緑町2-14-1", tags: ["補"], days: { "火": "PM", "木": "PM", "金": "PM" } },
-    { id: "u41", name: "荒木 敏行", kana: "あらき としゆき", town: "緑町", addr: "緑町5-6-8", tags: [], days: { "月": "PM", "木": "PM", "土": "PM" } },
-    { id: "u42", name: "富田 サキ", kana: "とみた さき", town: "桜ヶ丘", addr: "桜ヶ丘2-8-4", tags: ["玄"], days: { "火": "PM", "水": "PM", "金": "PM" } },
-    { id: "u43", name: "沢田 正義", kana: "さわだ まさよし", town: "桜ヶ丘", addr: "桜ヶ丘5-11-9", tags: [], days: { "月": "PM", "水": "PM", "金": "PM" } },
-    { id: "u44", name: "江口 マツ", kana: "えぐち まつ", town: "旭ヶ丘", addr: "旭ヶ丘1-3-2", tags: ["補"], days: { "火": "PM", "木": "PM", "土": "PM" } },
-    { id: "u45", name: "星野 幸子", kana: "ほしの さちこ", town: "東雲", addr: "東雲1-7-15", tags: [], days: { "月": "PM", "水": "PM", "土": "PM" } },
-    { id: "u46", name: "横山 亀吉", kana: "よこやま かめきち", town: "東雲", addr: "東雲4-9-6", tags: ["補"], days: { "火": "PM", "木": "PM", "金": "PM" } },
-    { id: "u47", name: "久保 リン", kana: "くぼ りん", town: "川井町", addr: "川井町3-2-10", tags: ["玄"], days: { "月": "PM", "木": "PM", "土": "PM" } },
-    { id: "u48", name: "島田 文夫", kana: "しまだ ふみお", town: "富士見町", addr: "富士見町2-11-4", tags: [], days: { "火": "PM", "水": "PM", "金": "PM" } },
-    { id: "u49", name: "岡部 ウメ", kana: "おかべ うめ", town: "富士見町", addr: "富士見町6-5-1", tags: ["補"], days: { "月": "PM", "水": "PM", "金": "PM" } },
-    { id: "u50", name: "神田 光雄", kana: "かんだ みつお", town: "南台", addr: "南台1-8-12", tags: [], days: { "火": "PM", "木": "PM", "土": "PM" } },
-    { id: "u51", name: "柴田 ハツエ", kana: "しばた はつえ", town: "南台", addr: "南台4-3-7", tags: ["玄"], days: { "月": "PM", "水": "PM", "土": "PM" } },
-    { id: "u52", name: "藤原 修", kana: "ふじわら おさむ", town: "泉町", addr: "泉町2-6-14", tags: [], days: { "火": "PM", "木": "PM", "金": "PM" } },
-    { id: "u53", name: "中山 ミヨ", kana: "なかやま みよ", town: "泉町", addr: "泉町6-1-5", tags: ["補"], days: { "月": "PM", "木": "PM", "土": "PM" } },
-    { id: "u54", name: "前田 豊", kana: "まえだ ゆたか", town: "宮下", addr: "宮下1-4-9", tags: [], days: { "火": "PM", "水": "PM", "金": "PM" } },
-    { id: "u55", name: "竹内 サト", kana: "たけうち さと", town: "上野原", addr: "上野原2-10-3", tags: ["玄"], days: { "月": "PM", "水": "PM", "金": "PM" } },
-    { id: "u56", name: "原田 清", kana: "はらだ きよし", town: "上野原", addr: "上野原5-7-11", tags: [], days: { "火": "PM", "木": "PM", "土": "PM" } },
-    { id: "u57", name: "米倉 ツネ", kana: "よねくら つね", town: "戸倉", addr: "戸倉1-2-8", tags: ["補"], days: { "月": "PM", "水": "PM", "土": "PM" } },
-    { id: "u58", name: "桑原 昭夫", kana: "くわばら あきお", town: "戸倉", addr: "戸倉4-13-2", tags: [], days: { "火": "PM", "木": "PM", "金": "PM" } },
-    { id: "u59", name: "志村 ハル江", kana: "しむら はるえ", town: "梅林", addr: "梅林2-5-6", tags: ["玄"], days: { "月": "PM", "木": "PM", "土": "PM" } },
-    { id: "u60", name: "増田 伸一", kana: "ますだ しんいち", town: "新町", addr: "新町1-11-4", tags: ["車"], days: { "火": "PM", "水": "PM", "金": "PM" } },
-    { id: "u61", name: "東 ミサヲ", kana: "あずま みさを", town: "新町", addr: "新町4-8-9", tags: ["補"], days: { "月": "PM", "水": "PM", "金": "PM" } },
-    { id: "u62", name: "片山 良雄", kana: "かたやま よしお", town: "曙", addr: "曙3-1-7", tags: [], days: { "火": "PM", "木": "PM", "土": "PM" } }
+    { id: "u01", name: "田中 ハル", kana: "たなか はる", town: "中央町", addr: "中央町3-14-2", care: "要介護1", bp: "上腕計", tags: ["補"], days: { "月": "AM", "水": "AM", "金": "AM" } },
+    { id: "u02", name: "鈴木 正一", kana: "すずき しょういち", town: "中央町", addr: "中央町1-8-5", care: "要介護2", bp: "", tags: [], days: { "火": "AM", "木": "AM", "土": "AM" } },
+    { id: "u03", name: "高橋 キヨ", kana: "たかはし きよ", town: "本町", addr: "本町5-3-11", care: "要支援2", bp: "上腕計", tags: ["玄"], days: { "月": "AM", "水": "AM", "土": "AM" } },
+    { id: "u04", name: "小林 節子", kana: "こばやし せつこ", town: "本町", addr: "本町2-19-4", care: "要介護3", bp: "実測", tags: [], days: { "火": "AM", "木": "AM", "金": "AM" } },
+    { id: "u05", name: "伊藤 フミ", kana: "いとう ふみ", town: "若葉台", addr: "若葉台2-6-3", care: "要介護1", bp: "上腕計", tags: ["補"], days: { "月": "AM", "木": "AM", "土": "AM" } },
+    { id: "u06", name: "渡部 秀夫", kana: "わたなべ ひでお", town: "若葉台", addr: "若葉台4-11-8", care: "要介護4", bp: "", tags: [], days: { "火": "AM", "水": "AM", "金": "AM" } },
+    { id: "u07", name: "山田 トシ子", kana: "やまだ としこ", town: "緑町", addr: "緑町1-4-16", care: "事業対象者", bp: "左シャント", tags: ["玄"], days: { "月": "AM", "水": "AM", "金": "AM" } },
+    { id: "u08", name: "中西 幸雄", kana: "なかにし ゆきお", town: "緑町", addr: "緑町3-9-2", care: "要介護2", bp: "上腕計", tags: [], days: { "火": "AM", "木": "AM", "土": "AM" } },
+    { id: "u09", name: "大野 スミ", kana: "おおの すみ", town: "桜ヶ丘", addr: "桜ヶ丘1-2-7", care: "要介護1", bp: "実測", tags: ["補"], days: { "月": "AM", "水": "AM", "土": "AM" } },
+    { id: "u10", name: "藤井 康夫", kana: "ふじい やすお", town: "桜ヶ丘", addr: "桜ヶ丘3-15-1", care: "要支援1", bp: "上腕計", tags: [], days: { "火": "AM", "木": "AM", "金": "AM" } },
+    { id: "u11", name: "岩本 ヨシ", kana: "いわもと よし", town: "旭ヶ丘", addr: "旭ヶ丘2-7-9", care: "要介護5", bp: "", tags: ["補"], days: { "月": "AM", "木": "AM", "土": "AM" } },
+    { id: "u12", name: "森田 光子", kana: "もりた みつこ", town: "旭ヶ丘", addr: "旭ヶ丘5-1-12", care: "要介護2", bp: "上腕計", tags: [], days: { "火": "AM", "水": "AM", "金": "AM" } },
+    { id: "u13", name: "村上 三郎", kana: "むらかみ さぶろう", town: "東雲", addr: "東雲2-11-6", care: "要介護3", bp: "右シャント実測", tags: [], days: { "月": "AM", "水": "AM", "金": "AM" } },
+    { id: "u14", name: "北川 きく", kana: "きたがわ きく", town: "東雲", addr: "東雲6-3-1", care: "要支援2", bp: "上腕計", tags: ["玄"], days: { "火": "AM", "木": "AM", "土": "AM" } },
+    { id: "u15", name: "菅原 テル", kana: "すがわら てる", town: "川井町", addr: "川井町1-22-4", care: "要介護1", bp: "上腕計", tags: ["補"], days: { "月": "AM", "水": "AM", "土": "AM" } },
+    { id: "u16", name: "堀内 昌代", kana: "ほりうち まさよ", town: "富士見町", addr: "富士見町4-8-3", care: "要介護2", bp: "", tags: [], days: { "火": "AM", "木": "AM", "金": "AM" } },
+    { id: "u17", name: "浅野 勝治", kana: "あさの かつじ", town: "富士見町", addr: "富士見町7-2-15", care: "要支援2", bp: "上腕計", tags: ["補"], days: { "月": "AM", "木": "AM", "土": "AM" } },
+    { id: "u18", name: "白石 ミツ", kana: "しらいし みつ", town: "南台", addr: "南台2-5-9", care: "要介護3", bp: "実測", tags: [], days: { "火": "AM", "水": "AM", "金": "AM" } },
+    { id: "u19", name: "野口 定雄", kana: "のぐち さだお", town: "南台", addr: "南台5-13-2", care: "要介護1", bp: "上腕計", tags: ["玄"], days: { "月": "AM", "水": "AM", "金": "AM" } },
+    { id: "u20", name: "長沢 スエ", kana: "ながさわ すえ", town: "泉町", addr: "泉町1-9-7", care: "要介護4", bp: "", tags: ["補"], days: { "火": "AM", "木": "AM", "土": "AM" } },
+    { id: "u21", name: "谷口 良一", kana: "たにぐち りょういち", town: "泉町", addr: "泉町4-2-11", care: "事業対象者", bp: "左シャント", tags: [], days: { "月": "AM", "水": "AM", "土": "AM" } },
+    { id: "u22", name: "杉本 アキ", kana: "すぎもと あき", town: "宮下", addr: "宮下2-16-5", care: "要介護2", bp: "上腕計", tags: [], days: { "火": "AM", "木": "AM", "金": "AM" } },
+    { id: "u23", name: "西村 タカ", kana: "にしむら たか", town: "上野原", addr: "上野原1-3-8", care: "要介護1", bp: "実測", tags: ["補"], days: { "月": "AM", "木": "AM", "土": "AM" } },
+    { id: "u24", name: "石田 正治", kana: "いしだ しょうじ", town: "上野原", addr: "上野原3-12-1", care: "要支援1", bp: "上腕計", tags: [], days: { "火": "AM", "水": "AM", "金": "AM" } },
+    { id: "u25", name: "内藤 ハナ", kana: "ないとう はな", town: "戸倉", addr: "戸倉2-7-14", care: "要介護5", bp: "", tags: ["補"], days: { "月": "AM", "水": "AM", "金": "AM" } },
+    { id: "u26", name: "平野 邦彦", kana: "ひらの くにひこ", town: "戸倉", addr: "戸倉5-1-6", care: "要介護2", bp: "上腕計", tags: [], days: { "火": "AM", "木": "AM", "土": "AM" } },
+    { id: "u27", name: "小島 チヨ", kana: "こじま ちよ", town: "梅林", addr: "梅林1-10-3", care: "要介護3", bp: "右シャント実測", tags: ["玄"], days: { "月": "AM", "水": "AM", "土": "AM" } },
+    { id: "u28", name: "福井 静江", kana: "ふくい しずえ", town: "梅林", addr: "梅林4-6-9", care: "要支援2", bp: "上腕計", tags: [], days: { "火": "AM", "木": "AM", "金": "AM" } },
+    { id: "u29", name: "尾崎 たけし", kana: "おざき たけし", town: "新町", addr: "新町2-4-17", care: "要介護1", bp: "上腕計", tags: ["車"], days: { "月": "AM", "木": "AM", "土": "AM" } },
+    { id: "u30", name: "上田 ノブ", kana: "うえだ のぶ", town: "新町", addr: "新町5-9-2", care: "要介護2", bp: "", tags: ["補"], days: { "火": "AM", "水": "AM", "金": "AM" } },
+    { id: "u31", name: "河合 秀子", kana: "かわい ひでこ", town: "曙", addr: "曙1-7-5", care: "要支援2", bp: "上腕計", tags: [], days: { "月": "AM", "水": "AM", "金": "AM" } },
+    { id: "u32", name: "遠藤 巌", kana: "えんどう いわお", town: "曙", addr: "曙4-2-13", care: "要介護3", bp: "実測", tags: [], days: { "火": "AM", "木": "AM", "土": "AM" } },
+    { id: "u33", name: "宮本 サダ", kana: "みやもと さだ", town: "花見川", addr: "花見川2-8-1", care: "要介護1", bp: "上腕計", tags: ["玄"], days: { "月": "AM", "水": "AM", "土": "AM" } },
+    { id: "u34", name: "青木 トメ", kana: "あおき とめ", town: "中央町", addr: "中央町2-5-8", care: "要介護4", bp: "", tags: ["補"], days: { "火": "PM", "木": "PM", "金": "PM" } },
+    { id: "u35", name: "木村 誠一", kana: "きむら せいいち", town: "中央町", addr: "中央町4-1-3", care: "事業対象者", bp: "左シャント", tags: [], days: { "月": "PM", "木": "PM", "土": "PM" } },
+    { id: "u36", name: "佐野 ハツ", kana: "さの はつ", town: "本町", addr: "本町3-12-7", care: "要介護2", bp: "上腕計", tags: ["玄"], days: { "火": "PM", "水": "PM", "金": "PM" } },
+    { id: "u37", name: "早川 春夫", kana: "はやかわ はるお", town: "本町", addr: "本町7-4-2", care: "要介護1", bp: "実測", tags: [], days: { "月": "PM", "水": "PM", "金": "PM" } },
+    { id: "u38", name: "三浦 キミ", kana: "みうら きみ", town: "若葉台", addr: "若葉台1-9-11", care: "要支援1", bp: "上腕計", tags: ["補"], days: { "火": "PM", "木": "PM", "土": "PM" } },
+    { id: "u39", name: "秋山 三男", kana: "あきやま みつお", town: "若葉台", addr: "若葉台5-2-6", care: "要介護5", bp: "", tags: [], days: { "月": "PM", "水": "PM", "土": "PM" } },
+    { id: "u40", name: "大塚 ヤエ", kana: "おおつか やえ", town: "緑町", addr: "緑町2-14-1", care: "要介護2", bp: "上腕計", tags: ["補"], days: { "火": "PM", "木": "PM", "金": "PM" } },
+    { id: "u41", name: "荒木 敏行", kana: "あらき としゆき", town: "緑町", addr: "緑町5-6-8", care: "要介護3", bp: "右シャント実測", tags: [], days: { "月": "PM", "木": "PM", "土": "PM" } },
+    { id: "u42", name: "富田 サキ", kana: "とみた さき", town: "桜ヶ丘", addr: "桜ヶ丘2-8-4", care: "要支援2", bp: "上腕計", tags: ["玄"], days: { "火": "PM", "水": "PM", "金": "PM" } },
+    { id: "u43", name: "沢田 正義", kana: "さわだ まさよし", town: "桜ヶ丘", addr: "桜ヶ丘5-11-9", care: "要介護1", bp: "上腕計", tags: [], days: { "月": "PM", "水": "PM", "金": "PM" } },
+    { id: "u44", name: "江口 マツ", kana: "えぐち まつ", town: "旭ヶ丘", addr: "旭ヶ丘1-3-2", care: "要介護2", bp: "", tags: ["補"], days: { "火": "PM", "木": "PM", "土": "PM" } },
+    { id: "u45", name: "星野 幸子", kana: "ほしの さちこ", town: "東雲", addr: "東雲1-7-15", care: "要支援2", bp: "上腕計", tags: [], days: { "月": "PM", "水": "PM", "土": "PM" } },
+    { id: "u46", name: "横山 亀吉", kana: "よこやま かめきち", town: "東雲", addr: "東雲4-9-6", care: "要介護3", bp: "実測", tags: ["補"], days: { "火": "PM", "木": "PM", "金": "PM" } },
+    { id: "u47", name: "久保 リン", kana: "くぼ りん", town: "川井町", addr: "川井町3-2-10", care: "要介護1", bp: "上腕計", tags: ["玄"], days: { "月": "PM", "木": "PM", "土": "PM" } },
+    { id: "u48", name: "島田 文夫", kana: "しまだ ふみお", town: "富士見町", addr: "富士見町2-11-4", care: "要介護4", bp: "", tags: [], days: { "火": "PM", "水": "PM", "金": "PM" } },
+    { id: "u49", name: "岡部 ウメ", kana: "おかべ うめ", town: "富士見町", addr: "富士見町6-5-1", care: "事業対象者", bp: "左シャント", tags: ["補"], days: { "月": "PM", "水": "PM", "金": "PM" } },
+    { id: "u50", name: "神田 光雄", kana: "かんだ みつお", town: "南台", addr: "南台1-8-12", care: "要介護2", bp: "上腕計", tags: [], days: { "火": "PM", "木": "PM", "土": "PM" } },
+    { id: "u51", name: "柴田 ハツエ", kana: "しばた はつえ", town: "南台", addr: "南台4-3-7", care: "要介護1", bp: "実測", tags: ["玄"], days: { "月": "PM", "水": "PM", "土": "PM" } },
+    { id: "u52", name: "藤原 修", kana: "ふじわら おさむ", town: "泉町", addr: "泉町2-6-14", care: "要支援1", bp: "上腕計", tags: [], days: { "火": "PM", "木": "PM", "金": "PM" } },
+    { id: "u53", name: "中山 ミヨ", kana: "なかやま みよ", town: "泉町", addr: "泉町6-1-5", care: "要介護5", bp: "", tags: ["補"], days: { "月": "PM", "木": "PM", "土": "PM" } },
+    { id: "u54", name: "前田 豊", kana: "まえだ ゆたか", town: "宮下", addr: "宮下1-4-9", care: "要介護2", bp: "上腕計", tags: [], days: { "火": "PM", "水": "PM", "金": "PM" } },
+    { id: "u55", name: "竹内 サト", kana: "たけうち さと", town: "上野原", addr: "上野原2-10-3", care: "要介護3", bp: "右シャント実測", tags: ["玄"], days: { "月": "PM", "水": "PM", "金": "PM" } },
+    { id: "u56", name: "原田 清", kana: "はらだ きよし", town: "上野原", addr: "上野原5-7-11", care: "要支援2", bp: "上腕計", tags: [], days: { "火": "PM", "木": "PM", "土": "PM" } },
+    { id: "u57", name: "米倉 ツネ", kana: "よねくら つね", town: "戸倉", addr: "戸倉1-2-8", care: "要介護1", bp: "上腕計", tags: ["補"], days: { "月": "PM", "水": "PM", "土": "PM" } },
+    { id: "u58", name: "桑原 昭夫", kana: "くわばら あきお", town: "戸倉", addr: "戸倉4-13-2", care: "要介護2", bp: "", tags: [], days: { "火": "PM", "木": "PM", "金": "PM" } },
+    { id: "u59", name: "志村 ハル江", kana: "しむら はるえ", town: "梅林", addr: "梅林2-5-6", care: "要支援2", bp: "上腕計", tags: ["玄"], days: { "月": "PM", "木": "PM", "土": "PM" } },
+    { id: "u60", name: "増田 伸一", kana: "ますだ しんいち", town: "新町", addr: "新町1-11-4", care: "要介護3", bp: "実測", tags: ["車"], days: { "火": "PM", "水": "PM", "金": "PM" } },
+    { id: "u61", name: "東 ミサヲ", kana: "あずま みさを", town: "新町", addr: "新町4-8-9", care: "要介護1", bp: "上腕計", tags: ["補"], days: { "月": "PM", "水": "PM", "金": "PM" } },
+    { id: "u62", name: "片山 良雄", kana: "かたやま よしお", town: "曙", addr: "曙3-1-7", care: "要介護4", bp: "", tags: [], days: { "火": "PM", "木": "PM", "土": "PM" } }
   ];
 
   const DEFAULT_DRIVERS = [
@@ -4757,6 +5126,18 @@
     return sel;
   }
 
+  /* 血圧の測り方。日誌の備考欄にそのまま出る */
+  function bpSelect(value) {
+    const sel = document.createElement("select");
+    sel.className = "bp-pick";
+    sel.append(new Option("（なし）", ""));
+    BP_NOTES.forEach((c) => sel.append(new Option(c, c)));
+    if (value && !BP_NOTES.includes(value)) sel.append(new Option(value, value));
+    sel.value = value || "";
+    sel.classList.toggle("is-shunt", isShunt(value));
+    return sel;
+  }
+
   /* ── マスタのダイアログ（追加・終了・削除） ──────
      埋め込みでは confirm() が黙って無視されるので、確認は必ず画面の中で行う。 */
   const muBox = document.getElementById("modal-user");
@@ -4858,10 +5239,11 @@
         const addr = formRow(body, "住所", Object.assign(document.createElement("input"), { type: "text", placeholder: "〇〇市中央町3-14-2" }),
           "市区町村から入れてください。都道府県はマスタの「事業所」タブに登録します。");
         const care = formRow(body, "介護度", careSelect(""));
+        const bp = formRow(body, "血圧", bpSelect(""), "業務日誌の備考欄に出ます。シャントの方は赤字になります。");
         formRow(body, "記号", tagPicker(draft.tags), "車椅子・歩行器・玄関先まで");
         formRow(body, "利用曜日", dayPicker(draft.days), "押すたびに 空 → AM → PM と変わります");
         body.dataset.ready = "1";
-        draft.el = { name, kana, addr, care };
+        draft.el = { name, kana, addr, care, bp };
       },
       submit() {
         const name = draft.el.name.value.trim();
@@ -4874,6 +5256,7 @@
           addr,
           town: deriveTown(addr, ""),
           care: draft.el.care.value,
+          bp: draft.el.bp.value,
           tags: [...draft.tags],
           days: { ...draft.days },
           end: null
@@ -4968,6 +5351,11 @@
     cell(addrI);
 
     cell(careSelect(u.care)).addEventListener("change", function () { draftUsers[i].care = this.value; });
+
+    cell(bpSelect(u.bp)).addEventListener("change", function () {
+      draftUsers[i].bp = this.value;
+      this.classList.toggle("is-shunt", isShunt(this.value));
+    });
 
     const tagWrap = el("span", "tag-cell");
     TAGS.forEach((t) => {
@@ -5340,7 +5728,8 @@
 
     draftUsers = USERS
       .map((u) => ({
-        id: u.id, name: u.name, kana: u.kana, town: u.town, addr: u.addr, care: u.care || "",
+        id: u.id, name: u.name, kana: u.kana, town: u.town, addr: u.addr,
+        care: u.care || "", bp: u.bp || "",
         tags: [...u.tags], days: { ...u.days },
         end: u.end ? { d: u.end.d, r: u.end.r || "" } : null
       }))
@@ -5374,22 +5763,29 @@
   document.getElementById("btn-master").addEventListener("click", openMaster);
   document.getElementById("master-cancel").addEventListener("click", closeMaster);
 
+  /* 戻る・進むでも画面とハッシュが食い違わないように、行き先は1か所で決める */
   window.addEventListener("hashchange", () => {
+    const where = location.hash.replace("#", "");
     const onMaster = !document.getElementById("page-master").hidden;
     const onPrint = !document.getElementById("page-print").hidden;
     const onAttend = !document.getElementById("page-attend").hidden;
-    if (location.hash === "#attend") {
+    const doc = Object.values(DOCS).find((d) => d.hash === where);
+
+    if (where === "attend") {
       document.getElementById("page-print").hidden = true;
       if (onMaster) closeMaster();
       if (!onAttend) openAttendPage();
       return;
     }
     if (onAttend) document.getElementById("page-attend").hidden = true;
-    if (location.hash === "#master") {
+    if (where === "master") {
       document.getElementById("page-print").hidden = true;
       if (!onMaster) openMaster();
     }
-    else if (location.hash === "#print") { if (onMaster) closeMaster(); if (!onPrint) openPrintPage(); }
+    else if (doc) {
+      if (onMaster) closeMaster();
+      if (!onPrint || printDoc !== doc.key) openPrintPage(doc.key);
+    }
     else {
       if (onMaster) closeMaster();
       if (onPrint) showPrintPage(false);
@@ -5420,15 +5816,15 @@
   document.getElementById("master-save").addEventListener("click", () => {
     USERS = draftUsers
       .filter((u) => u.name.trim() !== "")
-      .map((u) => ({ ...u, care: u.care || "", tags: [...u.tags], days: normDays(u.days), end: u.end && u.end.d ? { d: u.end.d, r: u.end.r || "" } : null }))
+      .map((u) => ({ ...u, care: u.care || "", bp: u.bp || "", tags: [...u.tags], days: normDays(u.days), end: u.end && u.end.d ? { d: u.end.d, r: u.end.r || "" } : null }))
       .sort(byKana);
     DRIVERS = draftDrivers.map((d) => ({ name: d.name.trim(), days: { ...d.days } })).filter((d) => d.name);
     DISPATCH = normDispatch(draftDispatch);
     OFFICE = Object.assign({}, DEFAULT_OFFICE, draftOffice);
     OFFICE.name = (OFFICE.name || "").trim() || DEFAULT_OFFICE.name;
     indexUsers();
-    STORE.setJSON("users", USERS.map(({ id, name, kana, town, addr, care, tags, days, end }) =>
-      ({ id, name, kana, town, addr, care: care || "", tags, days, end })));
+    STORE.setJSON("users", USERS.map(({ id, name, kana, town, addr, care, bp, tags, days, end }) =>
+      ({ id, name, kana, town, addr, care: care || "", bp: bp || "", tags, days, end })));
     STORE.setJSON("drivers", DRIVERS);
     STORE.setJSON("dispatch", DISPATCH);
     STORE.setJSON("office", OFFICE);
@@ -5482,7 +5878,8 @@
      無視され、用紙の高さで機械的に切られる（便が途中で割れて枚数も合わない）。
      枠の中からは親の紙割りに手が出せないので、印刷は別タブへ出して
      最上位のページとして組ませる。 */
-  function printableHTML() {
+  /* 送迎表の紙面。いま画面に出ている表をそのまま写し、便ごとに1枚へ載せる */
+  function souteiPapers() {
     const srcSelects = [...document.querySelectorAll(".sheet select")];
     const sheet = document.querySelector(".sheet").cloneNode(true);
     /* 印刷レイアウトを開いている間、元の .sheet は hidden。写しでは外す */
@@ -5501,30 +5898,40 @@
     sheet.querySelectorAll(".controls, .saved-note, .date-open, .swap-bar, .side").forEach((n) => n.remove());
     sheet.querySelectorAll(".leg").forEach((n) => n.removeAttribute("hidden"));
 
-    /* 便を1枚ずつ「紙」に載せる。画面でも刷り上がりのまま並べて見せる */
-    const legs = [...sheet.querySelectorAll(".leg")];
-    const stack = document.createElement("div");
-    stack.className = "paper-stack";
-    legs.forEach((leg, i) => {
-      const paper = document.createElement("div");
-      paper.className = "paper";
+    const pages = [...sheet.querySelectorAll(".leg")].map((leg) => {
       const def = LEGS.find((l) => l.key === leg.dataset.leg);
-      const no = document.createElement("span");
-      no.className = "paper-no";
-      no.textContent = (i + 1) + " / " + legs.length + (def ? "　" + def.partLabel + def.dir : "");
-      paper.append(leg, no);
+      return { node: leg, label: def ? def.partLabel + def.dir : "" };
+    });
+    return { root: sheet, pages: pages };
+  }
+
+  /* 紙をひと山に積む。画面でも刷り上がりのまま並べて見せる */
+  function stackPapers(root, pages) {
+    const stack = el("div", "paper-stack");
+    pages.forEach((page, i) => {
+      const paper = el("div", "paper");
+      const no = el("span", "paper-no",
+        (i + 1) + " / " + pages.length + (page.label ? "　" + page.label : ""));
+      paper.append(page.node, no);
       stack.append(paper);
     });
-    sheet.append(stack);
+    root.append(stack);
+    return root;
+  }
+
+  function printableHTML(kind) {
+    const doc = DOCS[kind || printDoc];
+    const built = doc.build();
+    const root = stackPapers(built.root, built.pages);
 
     const css = [...document.querySelectorAll("style")].map((s) => s.textContent).join("\n");
-    const title = titleDate(currentDate) + "送迎表";
+    const title = doc.file();
 
     return '<!doctype html>\n<html lang="ja">\n<head>\n<meta charset="utf-8">\n'
       + '<meta name="viewport" content="width=device-width, initial-scale=1.0">\n'
       + "<title>" + title + "</title>\n<style>\n" + css + "\n"
       + PAPER_CSS + "\n/* 画面でも紙の見た目で見せる */\n" + printRules(css) + "\n" + PAPER_SCREEN_CSS
-      + "\n</style>\n</head>\n<body>\n" + sheet.outerHTML + "\n"
+      + "\n</style>\n</head>\n<body>\n" + root.outerHTML + "\n"
       + "<script>" + PAPER_FIT + "<\/script>\n</body>\n</html>";
   }
 
@@ -5607,7 +6014,7 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = titleDate(currentDate) + "送迎表.html";
+      a.download = DOCS[printDoc].file() + ".html";
       document.body.append(a);
       a.click();
       a.remove();
@@ -5626,12 +6033,14 @@
     const dl = hostSave();
     if (!dl) return;
     const html = printableHTML();
-    const base = titleDate(currentDate) + "送迎表";
+    const doc = DOCS[printDoc];
+    const base = doc.file();
+    const sheets = "（" + doc.sheets() + "）";
     const guide = "この枠の中からは印刷できないため、印刷用のページをファイルにしました。";
 
     dl.save({ filename: base + ".html", data: html })
       .then(() => {
-        notify(guide + "保存した「" + base + ".html」を開いて印刷してください（4便＝A4横4枚）。");
+        notify(guide + "保存した「" + base + ".html」を開いて印刷してください" + sheets + "。");
       })
       .catch((err) => {
         const code = err && err.code;
@@ -5648,7 +6057,7 @@
           dl.save({ filename: base + ".html.txt", data: html })
             .then(() => {
               notify(guide + "保存した「" + base + '.html.txt」の末尾の「.txt」を消して '
-                + "「.html」にすると、開いて印刷できます（4便＝A4横4枚）。", "warn");
+                + "「.html」にすると、開いて印刷できます" + sheets + "。", "warn");
             })
             .catch(() => {
               notify("この枠の中からは印刷も保存もできませんでした。"
@@ -5742,12 +6151,7 @@
     box.innerHTML = "";
 
     /* 介護度で要介護と介護予防に分ける（日誌の作りに合わせる） */
-    const careGroup = (u) => {
-      const c = u.care || "";
-      if (c.indexOf("要介護") === 0) return "要介護";
-      if (c === "事業対象者" || c.indexOf("要支援") === 0) return "介護予防";
-      return "介護度 未設定";
-    };
+    const careGroup = (u) => careGroupOf(u) || "介護度 未設定";
 
     [["am", "午前", "ai"], ["pm", "午後", "seiheki"]].forEach(([part, label, accent]) => {
       const panel = el("section", "pa-part");
@@ -5819,6 +6223,174 @@
 
   document.getElementById("attend-back").addEventListener("click", () => showAttendPage(false));
 
+  /* ── 業務日誌 ─────────────────────────────
+     お預かりした様式の作りをそのまま紙に起こす。
+     名前と状態は出欠から、備考（血圧の測り方）は利用者マスタから引く。
+     血圧・脈・体温・SPO2 は当日その場で書き入れる欄なので空けておく。 */
+  const NISSHI_CARE_ROWS = 25;   /* 要介護のうち欄（様式の6〜30行） */
+  const NISSHI_PREV_ROWS = 12;   /* 介護予防のうち欄（様式の32〜43行） */
+
+  /* 列幅は様式の比を基にしつつ、「右シャント実測」が折り返さないよう
+     氏名から備考へ少し回している */
+  const NISSHI_COLS = "3.1fr 11fr 5.7fr 10.7fr 7fr 7.5fr 7fr 13fr 11fr";
+  const KENON_COLS = "3.1fr 15.1fr 59.4fr";
+
+  const NISSHI_PARTS = [
+    { part: "am", label: "午前", ink: "#1B3557", band: "#D7E3F1", tint: "#EBF1F8" },
+    { part: "pm", label: "午後", ink: "#17454E", band: "#D2E4E7", tint: "#E8F2F3" }
+  ];
+
+  /* 日誌は要介護と介護予防の2段。介護度が未設定の方は要介護の段に置く
+     （様式に置き場がないため）。数え違いに気付けるよう画面側で知らせる */
+  function nisshiRoster(part) {
+    const roster = attendRoster(part);
+    return {
+      care: roster.filter((u) => careGroupOf(u) !== "介護予防"),
+      prev: roster.filter((u) => careGroupOf(u) === "介護予防"),
+      unset: roster.filter((u) => careGroupOf(u) === "").length
+    };
+  }
+
+  /* その日の状態（欠席・振替など）。出欠で選んだ語をそのまま出す */
+  const attendCode = (part, id) => ATTEND[part][id] || "";
+
+  function nisshiCell(cls, text) {
+    const c = el("span", cls);
+    if (text) c.textContent = text;
+    return c;
+  }
+
+  /* 名簿の1行。空欄の行も同じ形で出して、手書きで足せるようにする */
+  function nisshiRow(kind, part, u, no, zebra) {
+    const row = el("div", "ns-row" + (zebra ? " zebra" : ""));
+    const code = u ? attendCode(part, u.id) : "";
+    if (codeState(code) === "absent") row.classList.add("is-away");
+
+    row.append(nisshiCell("ns-no", no ? String(no) : ""));
+    row.append(nisshiCell("ns-name", u ? u.name : ""));
+
+    if (kind === "temp") {
+      row.append(nisshiCell("ns-temp-cell", ""));
+      return row;
+    }
+
+    row.append(nisshiCell("ns-move", ""));            /* 運動 */
+    row.append(nisshiCell("ns-slash", u ? "／" : "")); /* 血圧：上／下を書き入れる */
+    row.append(nisshiCell("ns-pulse", ""));           /* 脈 */
+    row.append(nisshiCell("ns-temp2", ""));           /* 体温 */
+    row.append(nisshiCell("ns-spo", ""));             /* SPO2 */
+
+    const bp = (u && u.bp) || "";
+    const note = nisshiCell("ns-bp", bp);
+    if (isShunt(bp)) note.classList.add("is-shunt");
+    if (bp.length >= 6) note.classList.add("is-long");
+    row.append(note);
+
+    row.append(nisshiCell("ns-state", code));
+    return row;
+  }
+
+  function nisshiBlock(kind, part, list, rows, startNo) {
+    const out = [];
+    let no = startNo;
+    for (let i = 0; i < rows; i++) {
+      const u = list[i] || null;
+      if (u) no += 1;
+      out.push(nisshiRow(kind, part, u, u ? no : 0, i % 2 === 1));
+    }
+    return { rows: out, next: no };
+  }
+
+  /* 午前・午後それぞれの一面 */
+  function nisshiColumn(kind, def) {
+    const col = el("section", "ns-col");
+    col.style.setProperty("--ns-ink", def.ink);
+    col.style.setProperty("--ns-band", def.band);
+    col.style.setProperty("--ns-tint", def.tint);
+    col.style.setProperty("--ns-cols", kind === "temp" ? KENON_COLS : NISSHI_COLS);
+
+    const { care, prev } = nisshiRoster(def.part);
+    const here = (u) => codeState(attendCode(def.part, u.id)) !== "absent";
+    const nCare = care.filter(here).length;
+    const nPrev = prev.filter(here).length;
+
+    const cap = el("p", "ns-cap");
+    cap.append(el("b", null, def.label));
+    const sum = el("span", "ns-sum");
+    sum.innerHTML = "利用者数：<i>" + (nCare + nPrev) + "</i>名"
+      + "（要介護者<i>" + nCare + "</i>名　要支援者<i>" + nPrev + "</i>名）";
+    cap.append(sum);
+    col.append(cap);
+
+    const grid = el("div", "ns-grid");
+    const head = el("div", "ns-row head");
+    const heads = kind === "temp"
+      ? ["", "氏名", "来所前　検温"]
+      : ["", "氏名", "運動", "血圧", "脈", "体温", "SPO2", "備考", "状態"];
+    heads.forEach((h) => head.append(nisshiCell(null, h)));
+    grid.append(head);
+
+    const top = nisshiBlock(kind, def.part, care, NISSHI_CARE_ROWS, 0);
+    top.rows.forEach((r) => grid.append(r));
+
+    grid.append(el("div", "ns-row band", kind === "temp" ? "予　防" : "介護予防"));
+
+    nisshiBlock(kind, def.part, prev, NISSHI_PREV_ROWS, top.next)
+      .rows.forEach((r) => grid.append(r));
+
+    col.append(grid);
+    col.append(nisshiSign());
+    return col;
+  }
+
+  /* 勤務者と最終確認。様式の下3行にあたる */
+  function nisshiSign() {
+    const box = el("div", "ns-sign");
+    const staff = el("div", "ns-staff");
+
+    const line = (parts) => {
+      const row = el("span");
+      parts.forEach((p) => {
+        if (p.lead) row.append(el("span", "lead", p.lead));
+        else if (p.text) row.append(el("span", null, p.text));
+        else row.append(el("span", "ns-blank"));
+      });
+      staff.append(row);
+    };
+
+    line([{ lead: "勤務者" }, { text: "生活相談員：" }, {}, { text: "看護師：" }, {}]);
+    line([{ text: "看護師：" }, {}, { text: "機能訓練指導員　個別イ：" }, {}, { text: "個別ロ：" }, {}]);
+    line([{ text: "介護職員：" }, {}]);
+
+    const final = el("div", "ns-final");
+    final.append(el("span", "lbl", "最終確認"), el("span", "box"));
+    box.append(staff, final);
+    return box;
+  }
+
+  /* 日誌と検温の2枚。どちらも A4 横1枚に収める */
+  function nisshiPapers() {
+    const root = el("div", "nisshi-doc");
+    const pages = [
+      { kind: "log", label: "業務日誌" },
+      { kind: "temp", label: "来所前 検温" }
+    ].map((page) => {
+      const sheet = el("div", "ns" + (page.kind === "temp" ? " ns-temp" : ""));
+      const top = el("div", "ns-top");
+      top.append(el("h1", null, "業務日誌"));
+      if (page.kind === "temp") top.append(el("span", "ns-kind", "来所前　検温"));
+      top.append(el("span", "ns-date", titleDate(currentDate)));
+      top.append(el("span", "ns-office", OFFICE.name || ""));
+      sheet.append(top);
+
+      const cols = el("div", "ns-cols");
+      NISSHI_PARTS.forEach((def) => cols.append(nisshiColumn(page.kind, def)));
+      sheet.append(cols);
+      return { node: sheet, label: page.label };
+    });
+    return { root: root, pages: pages };
+  }
+
   /* ── 印刷レイアウトページ ─────────────────
      プレビューの枠の中にいると、親ページの紙割りに巻き込まれて便が
      用紙の途中で切られる（同じ内容でも 最上位=4枚／枠の中=5枚 になる）。
@@ -5826,37 +6398,89 @@
      枠の外へ出る経路（別タブ・ファイル）から印刷してもらう。 */
   const embedded = window.top !== window.self;
 
+  /* 刷るものの一覧。紙の組み方だけを差し替えれば増やせる */
+  const DOCS = {
+    soutei: {
+      key: "soutei",
+      hash: "print",
+      name: "送迎表",
+      build: souteiPapers,
+      pages: () => LEGS.length,
+      sheets: () => LEGS.length + "便＝A4横" + LEGS.length + "枚",
+      file: () => titleDate(currentDate) + "送迎表",
+      lead: () => "1便＝1枚。号車・運転手・実績の欄は空けてあるので、走る前に書き入れてください。"
+    },
+    nisshi: {
+      key: "nisshi",
+      hash: "nisshi",
+      name: "業務日誌",
+      build: nisshiPapers,
+      pages: () => 2,
+      sheets: () => "日誌と検温＝A4横2枚",
+      file: () => titleDate(currentDate) + "業務日誌",
+      lead: () => {
+        /* 介護度が抜けていると要介護の段に入ってしまう。刷る前に気付けるようにする */
+        const unset = nisshiRoster("am").unset + nisshiRoster("pm").unset;
+        return "1枚目が業務日誌、2枚目が来所前の検温です。"
+          + "氏名と状態は<b>出欠</b>から、備考は<b>利用者マスタの血圧</b>から入ります。"
+          + "血圧・脈・体温・SPO2 は当日その場で書き入れる欄なので空けてあります。"
+          + (unset
+            ? '<b class="alert">介護度が未設定の方が延べ' + unset + "名います。要介護の段に入れて数えているので、"
+              + "マスタ編集の「利用者」で介護度を入れてください。</b>"
+            : "");
+      }
+    }
+  };
+
+  let printDoc = "soutei";
+
   function showPrintPage(on) {
+    const hash = DOCS[printDoc].hash;
     document.querySelector(".sheet").hidden = on;
     document.getElementById("page-print").hidden = !on;
-    if (on && location.hash !== "#print") location.hash = "print";
-    if (!on && location.hash === "#print") history.replaceState(null, "", location.pathname + location.search);
+    if (on && location.hash !== "#" + hash) location.hash = hash;
+    if (!on && (location.hash === "#print" || location.hash === "#nisshi")) {
+      history.replaceState(null, "", location.pathname + location.search);
+    }
     window.scrollTo(0, 0);
   }
 
-  function openPrintPage() {
+  function openPrintPage(kind) {
+    printDoc = DOCS[kind] ? kind : "soutei";
+    const doc = DOCS[printDoc];
+
+    Object.keys(DOCS).forEach((k) => {
+      document.getElementById("ppdoc-" + k).setAttribute("aria-selected", String(k === printDoc));
+    });
+
     const stage = document.getElementById("pp-stage");
     stage.innerHTML = "";
     const frame = document.createElement("iframe");
     frame.id = "print-frame";
-    frame.title = "印刷レイアウト";
+    frame.title = doc.name + "の印刷レイアウト";
     frame.srcdoc = printableHTML();
     stage.append(frame);
 
+    const n = doc.pages();
     document.getElementById("pp-count").textContent =
-      "全" + LEGS.length + "枚　" + titleDate(currentDate);
-    document.getElementById("pp-lead").innerHTML = embedded
-      ? "下に並んでいるのが刷り上がりの4枚です。"
-        + "<b>この枠の中から印刷すると、便が用紙の途中で切られて4枚になりません。</b>"
-        + "「この4枚を印刷」を押すと別のタブで開き、開けない場合はファイルに保存します。"
-        + "保存したファイルを開いて印刷すれば、確実に4枚で出ます。"
-      : "下に並んでいるのが刷り上がりの4枚です。"
-        + "「この4枚を印刷」で、この4枚だけを印刷します。";
+      doc.name + "　全" + n + "枚　" + titleDate(currentDate);
+    document.getElementById("print-go").textContent = "この" + n + "枚を印刷";
+    document.getElementById("pp-lead").innerHTML = doc.lead()
+      + (embedded
+        ? '<b class="alert">この枠の中から印刷すると、用紙の途中で切られて' + n + "枚になりません。</b>"
+          + "「この" + n + "枚を印刷」を押すと別のタブで開き、開けない場合はファイルに保存します。"
+        : "「この" + n + "枚を印刷」で、この" + n + "枚だけを印刷します。");
 
     showPrintPage(true);
   }
 
   function closePrintPage() { showPrintPage(false); }
+
+  Object.keys(DOCS).forEach((k) => {
+    document.getElementById("ppdoc-" + k).addEventListener("click", () => {
+      if (printDoc !== k) openPrintPage(k);
+    });
+  });
 
   /* 枠の外に出られないときの最後の手段。印刷レイアウトの iframe だけを刷る。
      親の紙割りに巻き込まれる可能性が残るので、確実な経路の後に置く */
@@ -5867,12 +6491,13 @@
     catch (e) { return false; }
   }
 
-  document.getElementById("btn-print").addEventListener("click", openPrintPage);
+  document.getElementById("btn-print").addEventListener("click", () => openPrintPage("soutei"));
+  document.getElementById("btn-nisshi").addEventListener("click", () => openPrintPage("nisshi"));
   document.getElementById("print-back").addEventListener("click", closePrintPage);
   document.getElementById("print-save").addEventListener("click", () => {
     if (hostSave()) { saveViaHost(); return; }
     if (downloadPrintView()) {
-      notify("印刷用のファイルを保存しました。開いて印刷すると4便＝A4横4枚で出ます。");
+      notify("印刷用のファイルを保存しました。開いて印刷すると" + DOCS[printDoc].sheets() + "で出ます。");
       return;
     }
     notify("この環境ではファイルに保存できませんでした。"
@@ -5880,9 +6505,11 @@
   });
 
   document.getElementById("print-go").addEventListener("click", () => {
+    const doc = DOCS[printDoc];
+
     /* いちばん確実な道：別タブへ出して、最上位のページとして組ませる */
     if (openPrintView()) {
-      notify("印刷用のページを別のタブで開きました。そちらで印刷してください（4便＝A4横4枚）。");
+      notify("印刷用のページを別のタブで開きました。そちらで印刷してください（" + doc.sheets() + "）。");
       return;
     }
 
@@ -5890,12 +6517,12 @@
       if (hostSave()) { saveViaHost(); return; }
       if (downloadPrintView()) {
         notify("別のタブを開けなかったので、印刷用のファイルを保存しました。"
-          + "開いて印刷すると4便＝A4横4枚で出ます。", "warn");
+          + "開いて印刷すると" + doc.sheets() + "で出ます。", "warn");
         return;
       }
       if (printPreviewFrame()) {
         notify("別のタブもファイルも使えなかったので、この枠のまま印刷を試みます。"
-          + "4枚にならない場合は、送迎表を別のタブで開いてから印刷してください。", "warn");
+          + doc.pages() + "枚にならない場合は、送迎表を別のタブで開いてから印刷してください。", "warn");
         return;
       }
       notify("この枠の中からは印刷できません。"
@@ -6227,6 +6854,7 @@
 
   document.getElementById("sm-icon").innerHTML = ICONS.gear;
   document.getElementById("sa-icon").innerHTML = ICONS.check;
+  document.getElementById("sn-icon").innerHTML = ICONS.book;
   document.getElementById("btn-attend").addEventListener("click", openAttendPage);
 
   /* 凡例の見本にも同じ絵を入れる */
@@ -6239,5 +6867,10 @@
   renderDay(currentDate, LEGS[0].key);
   syncStickyHeight();
   if (location.hash === "#master") openMaster();
+  else if (location.hash === "#attend") openAttendPage();
+  else {
+    const boot = Object.values(DOCS).find((d) => "#" + d.hash === location.hash);
+    if (boot) openPrintPage(boot.key);
+  }
   SYNC.start();
 </script>
