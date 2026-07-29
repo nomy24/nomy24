@@ -14,14 +14,11 @@
     --rule: #D9DED6;
     --rule-2: #C3CABE;
 
-    /* 便ごとの色：寒色＝お迎え／暖色＝お送り */
-    --ai: #2C4F7C;        /* 藍　　午前 お迎え */
+    /* 午前＝藍、午後＝臙脂。お迎えとお送りは色を分けず、
+       便の名と「自宅 → 事業所」の向きで見分ける */
+    --ai: #2C4F7C;        /* 藍　　午前 */
     --ai-soft: #E6EDF5;
-    --kaki: #A84B23;      /* 柿渋　午前 お送り */
-    --kaki-soft: #F6E8E0;
-    --seiheki: #2E6B75;   /* 青碧　午後 お迎え */
-    --seiheki-soft: #E1EDEE;
-    --enji: #8E3B4E;      /* 臙脂　午後 お送り */
+    --enji: #8E3B4E;      /* 臙脂　午後 */
     --enji-soft: #F5E5E9;
 
     /* 記号は便によらず一定 */
@@ -61,10 +58,6 @@
       --rule-2: #3A444E;
       --ai: #8FB2D8;
       --ai-soft: #1D2937;
-      --kaki: #D68C64;
-      --kaki-soft: #31241C;
-      --seiheki: #79B4BC;
-      --seiheki-soft: #17292C;
       --enji: #D2879A;
       --enji-soft: #2E1C22;
       --tag-wc: #E88A7C;
@@ -92,10 +85,6 @@
     --rule-2: #3A444E;
     --ai: #8FB2D8;
     --ai-soft: #1D2937;
-    --kaki: #D68C64;
-    --kaki-soft: #31241C;
-    --seiheki: #79B4BC;
-    --seiheki-soft: #17292C;
     --enji: #D2879A;
     --enji-soft: #2E1C22;
     --tag-wc: #E88A7C;
@@ -122,10 +111,6 @@
     --rule-2: #C3CABE;
     --ai: #2C4F7C;
     --ai-soft: #E6EDF5;
-    --kaki: #A84B23;
-    --kaki-soft: #F6E8E0;
-    --seiheki: #2E6B75;
-    --seiheki-soft: #E1EDEE;
     --enji: #8E3B4E;
     --enji-soft: #F5E5E9;
     --tag-wc: #B23A2C;
@@ -1774,8 +1759,11 @@
      お預かりした様式の作りに合わせる。午前・午後を左右に置き、
      要介護（25行）と介護予防（12行）に分ける。
      紙にしか出さない面なので、明暗の切替に振られないよう色は直に置く。 */
+  /* 高さは mm で決め打ちする。紙の上では包みの「紙」に高さが無いので、
+     100% にすると中身なりに潰れて、37行が数ミリの帯になってしまう。
+     A4横・余白8mm の内寸は 194mm。刷り上がりが2枚に割れないよう少し引く */
   .ns {
-    height: 100%;
+    height: 192mm;
     display: flex;
     flex-direction: column;
     background: #fff;
@@ -2515,7 +2503,7 @@
   .modal .day[data-ap="AM"],
   .page-master .day[data-ap="AM"] { border-color: var(--ai); background: var(--ai); color: #fff; }
   .modal .day[data-ap="PM"],
-  .page-master .day[data-ap="PM"] { border-color: var(--kaki); background: var(--kaki); color: #fff; }
+  .page-master .day[data-ap="PM"] { border-color: var(--enji); background: var(--enji); color: #fff; }
   .modal .day[data-ap="終日"],
   .page-master .day[data-ap="終日"] { border-color: var(--furikae); background: var(--furikae); color: #fff; }
   .modal .day[data-ap="終日"] .ap,
@@ -2542,10 +2530,6 @@
       --rule-2: #B0B6BC;
       --ai: #163455;
       --ai-soft: #D7E2EF;
-      --kaki: #7A3316;
-      --kaki-soft: #F0DDD1;
-      --seiheki: #17454E;
-      --seiheki-soft: #D2E3E6;
       --enji: #63263A;
       --enji-soft: #EDD9DF;
       --warn: #9C1414;
@@ -3089,13 +3073,15 @@
 
   /* ── 便 ────────────────────────────────────
      午前・午後それぞれに お迎え／お送り の2便。印刷すると1便＝1ページ。
-     depart は各車の事業所発の初期値で、カードごとに書き換えられる。 */
+     depart は各車の事業所発の初期値で、カードごとに書き換えられる。
+     色は午前＝藍、午後＝臙脂の2色だけ。お迎えとお送りは便の名と
+     「自宅 → 事業所」の向きで見分けるので、色は午前午後の区別に振っている。 */
   const LEGS = [
     { key: "am-pick", part: "am", partLabel: "午前", dir: "お迎え", flow: "自宅 → 事業所", departLabel: "事業所 発", arriveLabel: "事業所 着", depart: "08:15", arriveBy: ["08:55", "09:00"], accent: "ai" },
-    { key: "am-drop", part: "am", partLabel: "午前", dir: "お送り", flow: "事業所 → 自宅", departLabel: "事業所 発", arriveLabel: "事業所 帰着", noArrive: true, depart: "12:05", accent: "kaki" },
+    { key: "am-drop", part: "am", partLabel: "午前", dir: "お送り", flow: "事業所 → 自宅", departLabel: "事業所 発", arriveLabel: "事業所 帰着", noArrive: true, depart: "12:05", accent: "ai" },
     /* 午後お迎えは午前お送りから続けて回るので、事業所発の記入欄は置かない。
        時刻は事業所着（13:20 まで）からの逆算だけで決まる */
-    { key: "pm-pick", part: "pm", partLabel: "午後", dir: "お迎え", flow: "自宅 → 事業所", departLabel: "午前お送りから続けて", noDepart: true, arriveLabel: "事業所 着", depart: "12:45", arriveBy: ["13:10", "13:20"], accent: "seiheki" },
+    { key: "pm-pick", part: "pm", partLabel: "午後", dir: "お迎え", flow: "自宅 → 事業所", departLabel: "午前お送りから続けて", noDepart: true, arriveLabel: "事業所 着", depart: "12:45", arriveBy: ["13:10", "13:20"], accent: "enji" },
     { key: "pm-drop", part: "pm", partLabel: "午後", dir: "お送り", flow: "事業所 → 自宅", departLabel: "事業所 発", arriveLabel: "事業所 帰着", depart: "16:30", accent: "enji" }
   ];
 
@@ -6159,7 +6145,7 @@
     /* 介護度で要介護と介護予防に分ける（日誌の作りに合わせる） */
     const careGroup = (u) => careGroupOf(u) || "介護度 未設定";
 
-    [["am", "午前", "ai"], ["pm", "午後", "seiheki"]].forEach(([part, label, accent]) => {
+    [["am", "午前", "ai"], ["pm", "午後", "enji"]].forEach(([part, label, accent]) => {
       const panel = el("section", "pa-part");
       panel.style.setProperty("--accent", "var(--" + accent + ")");
       panel.style.setProperty("--accent-soft", "var(--" + accent + "-soft)");
@@ -6242,9 +6228,10 @@
   const NISSHI_COLS = "3.1fr 11fr 5.7fr 10.7fr 7fr 7.5fr 7fr 13fr 11fr";
   const KENON_COLS = "3.1fr 15.1fr 59.4fr";
 
+  /* 送迎表と同じ午前＝藍・午後＝臙脂で通す */
   const NISSHI_PARTS = [
     { part: "am", label: "午前", ink: "#1B3557", band: "#D7E3F1", tint: "#EBF1F8" },
-    { part: "pm", label: "午後", ink: "#17454E", band: "#D2E4E7", tint: "#E8F2F3" }
+    { part: "pm", label: "午後", ink: "#63263A", band: "#EDD9DF", tint: "#F6EBEF" }
   ];
 
   /* 日誌は要介護と介護予防の2段。介護度が未設定の方は要介護の段に置く
