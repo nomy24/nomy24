@@ -1512,6 +1512,152 @@
     border-top: 1px solid var(--rule);
   }
 
+  /* ── 出欠ページ ───────────────────────────
+     業務日誌の1枚目にあたる。午前・午後を左右に並べ、
+     要介護と介護予防で分ける（日誌の作りに合わせている）。 */
+  .page-attend[hidden] { display: none; }
+
+  .page-attend {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: calc(var(--step) * 8) calc(var(--step) * 5) calc(var(--step) * 12);
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--step) * 5);
+  }
+
+  .pa-head {
+    position: sticky;
+    top: 0;
+    z-index: 15;
+    background: var(--paper);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: calc(var(--step) * 4);
+    padding-bottom: calc(var(--step) * 3);
+    border-bottom: 2px solid var(--ink);
+  }
+
+  .pa-head h1 {
+    margin: 2px 0 0;
+    font-family: var(--mincho);
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: .1em;
+  }
+
+  .pa-date {
+    font-family: var(--gothic);
+    font-size: 14px;
+    letter-spacing: .06em;
+    color: var(--ink-2);
+    margin-left: 14px;
+  }
+
+  .pa-lead {
+    margin: 6px 0 0;
+    font-size: 12px;
+    line-height: 1.7;
+    color: var(--ink-3);
+    max-width: 60ch;
+  }
+
+  .pa-lead b { color: var(--ink-2); }
+  .pa-actions .btn { font-size: 13px; padding: 8px 16px; }
+
+  .pa-parts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: calc(var(--step) * 5);
+    align-items: start;
+  }
+
+  @media screen and (max-width: 1080px) {
+    .pa-parts { grid-template-columns: minmax(0, 1fr); }
+  }
+
+  .pa-part {
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .pa-part-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px calc(var(--step) * 3);
+    padding: calc(var(--step) * 3) calc(var(--step) * 4);
+    background: var(--accent-soft);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .pa-part-name {
+    font-family: var(--mincho);
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: .1em;
+    color: var(--accent);
+  }
+
+  .pa-counts {
+    margin-left: auto;
+    font-size: 12px;
+    color: var(--ink-2);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .pa-counts b { font-size: 15px; color: var(--ink); margin: 0 2px; }
+
+  .pa-group {
+    padding: calc(var(--step) * 2) calc(var(--step) * 3) 0;
+    font-size: 11px;
+    letter-spacing: .12em;
+    color: var(--ink-3);
+  }
+
+  .pa-row {
+    display: grid;
+    grid-template-columns: 2.1rem minmax(0, 1fr) 7.5rem;
+    align-items: center;
+    gap: calc(var(--step) * 2);
+    padding: 4px calc(var(--step) * 4) 4px calc(var(--step) * 3);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .pa-no {
+    font-size: 11px;
+    color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+  }
+
+  .pa-name { font-size: 14px; font-weight: 600; }
+  .pa-name small { font-weight: 400; font-size: 11px; color: var(--ink-3); margin-left: 6px; }
+
+  .pa-pick {
+    font: inherit;
+    font-size: 13px;
+    width: 100%;
+    padding: 3px 4px;
+    color: var(--ink);
+    background: var(--card);
+    border: 1px solid var(--rule-2);
+    border-radius: 6px;
+  }
+
+  /* 日誌と同じく、状態が付いた行は赤字で目立たせる */
+  .pa-row[data-state="absent"] { background: var(--warn-soft); }
+  .pa-row[data-state="absent"] .pa-name { color: var(--warn); }
+  .pa-row[data-state="absent"] .pa-pick { color: var(--warn); border-color: var(--warn); font-weight: 600; }
+  .pa-row[data-state="furikae"] .pa-pick { color: var(--furikae); border-color: var(--furikae); font-weight: 600; }
+  .pa-row[data-state="shinki"] .pa-pick { color: var(--shinki); border-color: var(--shinki); font-weight: 600; }
+
+  .pa-none { padding: calc(var(--step) * 4); font-size: 12px; color: var(--ink-3); }
+
   /* ── 印刷レイアウトページ ─────────────────── */
   .page-print[hidden] { display: none; }
 
@@ -2136,7 +2282,7 @@
     .sheet { display: block; max-width: none; padding: 0; gap: 0; }
 
     .controls, .modal, .saved-note, .swap-bar, .date-open, .toast,
-    .page-master, .page-print, .side { display: none !important; }
+    .page-master, .page-print, .page-attend, .side { display: none !important; }
 
     .work { display: block; }
 
@@ -2347,6 +2493,13 @@
       </div>
       <div class="side-list" id="side-list"></div>
       <p class="side-hint">名前を車両カードへ<b>ドラッグ</b>すると乗せられます。押して選ぶこともできます。</p>
+      <button type="button" class="side-master" id="btn-attend">
+        <span class="sm-icon" id="sa-icon"></span>
+        <span class="sm-text">
+          <span class="sm-title">出欠</span>
+          <span class="sm-sub">業務日誌の状態欄と同じ</span>
+        </span>
+      </button>
       <button type="button" class="side-master" id="btn-master">
         <span class="sm-icon" id="sm-icon"></span>
         <span class="sm-text">
@@ -2432,6 +2585,24 @@
 </div>
 
 <!-- ── マスタ編集（別ページ） ───────────────── -->
+<!-- ── 出欠（業務日誌の1枚目） ───────────────── -->
+<div class="page-attend" id="page-attend" hidden>
+  <header class="pa-head">
+    <div>
+      <p class="eyebrow office-name-echo"></p>
+      <h1>出欠<span class="pa-date" id="pa-date"></span></h1>
+      <p class="pa-lead">
+        業務日誌の状態欄と同じ区分です。ここで付けると<b>送迎表にそのまま出ます</b>（逆も同じ）。
+      </p>
+    </div>
+    <div class="pa-actions">
+      <button type="button" class="btn" id="attend-back">送迎表へ戻る</button>
+    </div>
+  </header>
+
+  <div class="pa-parts" id="pa-parts"></div>
+</div>
+
 <!-- ── 印刷レイアウト（紙のまま4枚を見せる） ───────── -->
 <div class="page-print" id="page-print" hidden>
   <header class="pp-head">
@@ -2581,8 +2752,18 @@
 
   /* 番号の切替。最後の clear は状態ではなく「利用者を外す」操作。
      利用者が入っていない行は、これから入れる枠として 振替 → 新規 だけを回す。 */
-  /* 欠席の理由。業務日誌と同じ区分にそろえてある */
-  const ABSENT_REASONS = ["都合", "体調", "入院", "受診"];
+  /* 業務日誌の状態欄（I列・S列）と同じ語をそのまま使う。
+     日誌のプルダウン：体調・受診・都合・入院・SS・新規・増回・再開・振替 */
+  const STATUS_CODES = ["体調", "受診", "都合", "入院", "SS", "新規", "増回", "再開", "振替"];
+
+  /* 送迎表の行の状態への割り当て */
+  const CODE_TO_STATE = {
+    "": "", "体調": "absent", "受診": "absent", "都合": "absent", "入院": "absent", "SS": "absent",
+    "振替": "furikae", "新規": "shinki", "増回": "shinki", "再開": "shinki"
+  };
+
+  /* 欠席のときだけ、行に理由を出す */
+  const ABSENT_REASONS = STATUS_CODES.filter((c) => CODE_TO_STATE[c] === "absent");
 
   const STATES = ["", "absent", "furikae", "shinki", "clear"];
   const STATES_EMPTY = ["", "furikae", "shinki"];
@@ -2611,6 +2792,11 @@
     gear: svg('<path d="M3.4 6.4h9.2M17.6 6.4h3M3.4 12h3.4M11.8 12h8.8M3.4 17.6h9.2M17.6 17.6h3"/>'
       + '<circle cx="15.1" cy="6.4" r="2.5"/><circle cx="9.3" cy="12" r="2.5"/>'
       + '<circle cx="15.1" cy="17.6" r="2.5"/>'),
+    /* 出欠：名簿に印を付ける */
+    check: svg('<path d="M4 5.5h9M4 12h9M4 18.5h9"/>'
+      + '<path d="M16.4 5.6 18.2 7.4 21.6 4"/>'
+      + '<path d="M16.4 12.1 18.2 13.9 21.6 10.5"/>'
+      + '<path d="M16.4 18.6 18.2 20.4 21.6 17"/>'),
     /* 地図：ルートを開く口 */
     map: svg('<path d="M9 20.5 3 22.5V5.5l6-2 6 2 6-2v17l-6 2-6-2Z"/>'
       + '<path d="M9 3.5v17M15 5.5v17"/>')
@@ -3215,6 +3401,7 @@
       } else {
         setState(li, next);
       }
+      noteAttendFromRow(li);
       refillSelect(li);
       refresh();
     });
@@ -3228,7 +3415,7 @@
     why.append(new Option("理由", ""));
     ABSENT_REASONS.forEach((r) => why.append(new Option(r, r)));
     why.title = "欠席の理由";
-    why.addEventListener("change", save);
+    why.addEventListener("change", () => { noteAttendFromRow(li); save(); });
 
     const t = el("time", "t");
     t.contentEditable = "true";
@@ -3278,7 +3465,7 @@
     sel.value = userId && USER_BY_ID.has(userId) ? userId : "";
     applyUser(li, sel.value);
 
-    sel.addEventListener("change", () => { applyUser(li, sel.value); refresh(); });
+    sel.addEventListener("change", () => { applyUser(li, sel.value); pullAttendForRow(li); refresh(); });
 
     /* 右クリックで空欄に戻す */
     sel.addEventListener("contextmenu", (e) => {
@@ -4122,7 +4309,11 @@
 
   /* ── 保存する形にまとめる／戻す ────────────── */
   function captureDay() {
-    const data = { legs: {}, swap: { am: [...SWAP.am], pm: [...SWAP.pm] } };
+    const data = {
+      legs: {},
+      swap: { am: [...SWAP.am], pm: [...SWAP.pm] },
+      attend: { am: { ...ATTEND.am }, pm: { ...ATTEND.pm } }
+    };
     LEGS.forEach((leg) => {
       const section = document.getElementById("leg-" + leg.key);
       data.legs[leg.key] = [...section.querySelectorAll(".car")].map((car) => ({
@@ -4159,6 +4350,7 @@
         pm: (data.swap.pm || []).filter((id) => USER_BY_ID.has(id))
       };
     }
+    ATTEND = { am: { ...((data.attend || {}).am || {}) }, pm: { ...((data.attend || {}).pm || {}) } };
     if (!data.legs) return;
     LEGS.forEach((leg) => {
       const saved = data.legs[leg.key];
@@ -4226,6 +4418,10 @@
 
   /* ── 状態のまわし方 ───────────────────────── */
   let SWAP = { am: [], pm: [] };   /* その日の振替利用者 */
+
+  /* その日の出欠。業務日誌の状態欄と同じ語を、利用者ごと・午前午後ごとに持つ。
+     送迎表の行の状態はここから作る（行で変えればここにも戻る）。 */
+  let ATTEND = { am: {}, pm: {} };
   let currentDate = isoToday();
   let saveTimer = null;
 
@@ -4342,6 +4538,7 @@
   function renderDay(date, activeLeg) {
     currentDate = date;
     SWAP = { am: [], pm: [] };
+    ATTEND = { am: {}, pm: {} };
     const sections = document.getElementById("sections");
     sections.innerHTML = "";
     LEGS.forEach((leg) => sections.append(buildLeg(leg)));
@@ -4350,6 +4547,7 @@
     if (saved) applyDay(saved);
     drawSwapChips();
 
+    applyAttendToRows();
     switchLeg(activeLeg || LEGS[0].key);
     refreshStamps();
     LEGS.forEach((leg) => {
@@ -5179,6 +5377,14 @@
   window.addEventListener("hashchange", () => {
     const onMaster = !document.getElementById("page-master").hidden;
     const onPrint = !document.getElementById("page-print").hidden;
+    const onAttend = !document.getElementById("page-attend").hidden;
+    if (location.hash === "#attend") {
+      document.getElementById("page-print").hidden = true;
+      if (onMaster) closeMaster();
+      if (!onAttend) openAttendPage();
+      return;
+    }
+    if (onAttend) document.getElementById("page-attend").hidden = true;
     if (location.hash === "#master") {
       document.getElementById("page-print").hidden = true;
       if (!onMaster) openMaster();
@@ -5454,6 +5660,164 @@
           + "送迎表を別のタブ（別ウィンドウ）で開いてから印刷してください。", "warn");
       });
   }
+
+  /* ── 出欠 ─────────────────────────────────
+     業務日誌の状態欄をそのまま持つ。送迎表の行の状態はここから作り、
+     行で変えればここへ戻す。乗る車が決まっていない方も扱えるよう、
+     車両カードではなく利用者ごとに持つ。 */
+  const codeState = (code) => CODE_TO_STATE[code] || "";
+
+  /* その日・その便に来る予定の方（振替で受け付けた方も含む） */
+  function attendRoster(part) {
+    const base = rosterFor(part, weekdayOf(currentDate));
+    return [...new Set([...base, ...SWAP[part]])]
+      .map((id) => USER_BY_ID.get(id))
+      .filter(Boolean)
+      .sort(byKana);
+  }
+
+  /* 利用者を入れ替えたら、その方の出欠に合わせる */
+  function pullAttendForRow(stop) {
+    const section = stop.closest(".leg");
+    const leg = section && LEGS.find((l) => l.key === section.dataset.leg);
+    const id = stop.querySelector(".who").value;
+    if (!leg || !id) return;
+    const code = ATTEND[leg.part][id] || "";
+    setState(stop, codeState(code));
+    const why = stop.querySelector(".why");
+    if (why) why.value = codeState(code) === "absent" ? code : "";
+  }
+
+  /* 出欠を送迎表の行へ流す */
+  function applyAttendToRows() {
+    LEGS.forEach((leg) => {
+      const section = document.getElementById("leg-" + leg.key);
+      if (!section) return;
+      section.querySelectorAll(".stop:not(.head)").forEach((stop) => {
+        const id = stop.querySelector(".who").value;
+        if (!id) return;
+        const code = ATTEND[leg.part][id] || "";
+        setState(stop, codeState(code));
+        const why = stop.querySelector(".why");
+        if (why) why.value = codeState(code) === "absent" ? code : "";
+      });
+    });
+  }
+
+  /* 行で変えた状態を出欠へ戻す */
+  function noteAttendFromRow(stop) {
+    const section = stop.closest(".leg");
+    if (!section) return;
+    const leg = LEGS.find((l) => l.key === section.dataset.leg);
+    const id = stop.querySelector(".who").value;
+    if (!leg || !id) return;
+
+    const st = stop.dataset.state || "";
+    const why = stop.querySelector(".why");
+    let code = "";
+    if (st === "absent") code = (why && why.value) || "都合";
+    else if (st === "furikae") code = "振替";
+    else if (st === "shinki") {
+      const now = ATTEND[leg.part][id];
+      code = (now === "増回" || now === "再開") ? now : "新規";
+    }
+
+    if (code) ATTEND[leg.part][id] = code;
+    else delete ATTEND[leg.part][id];
+  }
+
+  function showAttendPage(on) {
+    document.querySelector(".sheet").hidden = on;
+    document.getElementById("page-attend").hidden = !on;
+    if (on && location.hash !== "#attend") location.hash = "attend";
+    if (!on && location.hash === "#attend") history.replaceState(null, "", location.pathname + location.search);
+    window.scrollTo(0, 0);
+  }
+
+  function openAttendPage() { drawAttend(); showAttendPage(true); }
+
+  function drawAttend() {
+    document.getElementById("pa-date").textContent = titleDate(currentDate);
+    const box = document.getElementById("pa-parts");
+    box.innerHTML = "";
+
+    /* 介護度で要介護と介護予防に分ける（日誌の作りに合わせる） */
+    const careGroup = (u) => {
+      const c = u.care || "";
+      if (c.indexOf("要介護") === 0) return "要介護";
+      if (c === "事業対象者" || c.indexOf("要支援") === 0) return "介護予防";
+      return "介護度 未設定";
+    };
+
+    [["am", "午前", "ai"], ["pm", "午後", "seiheki"]].forEach(([part, label, accent]) => {
+      const panel = el("section", "pa-part");
+      panel.style.setProperty("--accent", "var(--" + accent + ")");
+      panel.style.setProperty("--accent-soft", "var(--" + accent + "-soft)");
+
+      const roster = attendRoster(part);
+      const head = el("div", "pa-part-head");
+      head.append(el("span", "pa-part-name", label));
+
+      const counts = el("span", "pa-counts");
+      head.append(counts);
+      panel.append(head);
+
+      if (roster.length === 0) {
+        panel.append(el("p", "pa-none", "この便に来る予定の方はいません。"));
+        box.append(panel);
+        return;
+      }
+
+      let n = 0;
+      /* 日誌の見出しに合わせ、出席している方だけを区分ごとに数える */
+      const tally = { "要介護": 0, "介護予防": 0, "介護度 未設定": 0, "欠席": 0 };
+
+      ["要介護", "介護予防", "介護度 未設定"].forEach((group) => {
+        const list = roster.filter((u) => careGroup(u) === group);
+        if (list.length === 0) return;
+        panel.append(el("p", "pa-group", group));
+
+        list.forEach((u) => {
+          n += 1;
+          const row = el("div", "pa-row");
+          const code = ATTEND[part][u.id] || "";
+          row.dataset.state = codeState(code);
+
+          row.append(el("span", "pa-no", String(n)));
+          const name = el("span", "pa-name", u.name);
+          if (u.care) name.append(el("small", null, u.care));
+          row.append(name);
+
+          const pick = document.createElement("select");
+          pick.className = "pa-pick";
+          pick.append(new Option("出席", ""));
+          STATUS_CODES.forEach((c) => pick.append(new Option(c, c)));
+          pick.value = code;
+          pick.addEventListener("change", () => {
+            if (pick.value) ATTEND[part][u.id] = pick.value;
+            else delete ATTEND[part][u.id];
+            applyAttendToRows();
+            refresh();
+            drawAttend();
+          });
+          row.append(pick);
+          panel.append(row);
+
+          if (codeState(code) === "absent") tally["欠席"] += 1;
+          else tally[group] += 1;
+        });
+      });
+
+      counts.innerHTML =
+        "利用者数 <b>" + (n - tally["欠席"]) + "</b>名"
+        + "（要介護 <b>" + tally["要介護"] + "</b>　要支援 <b>" + tally["介護予防"] + "</b>"
+        + (tally["介護度 未設定"] ? "　未設定 <b>" + tally["介護度 未設定"] + "</b>" : "")
+        + "　欠席 <b>" + tally["欠席"] + "</b>）";
+      box.append(panel);
+    });
+  }
+
+  document.getElementById("attend-back").addEventListener("click", () => showAttendPage(false));
 
   /* ── 印刷レイアウトページ ─────────────────
      プレビューの枠の中にいると、親ページの紙割りに巻き込まれて便が
@@ -5862,6 +6226,8 @@
   })();
 
   document.getElementById("sm-icon").innerHTML = ICONS.gear;
+  document.getElementById("sa-icon").innerHTML = ICONS.check;
+  document.getElementById("btn-attend").addEventListener("click", openAttendPage);
 
   /* 凡例の見本にも同じ絵を入れる */
   document.querySelectorAll(".legend .swatch[data-icon]").forEach((s) => {
