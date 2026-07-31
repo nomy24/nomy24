@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="赤ちゃんの写真をやさしく並べる、成長記録フォトアルバム。">
+  <meta name="theme-color" content="#FDF2F8">
+  <title>すくすくアルバム | 赤ちゃんの写真</title>
+  <link rel="icon" href="../illustrations/cute-baby.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Webフォントは描画をブロックしないように後読み（読み込めなくても和文フォールバックで表示） -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" media="print" onload="this.media='all'"
+        href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700&family=Varela+Round&display=swap">
+  <noscript>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700&family=Varela+Round&display=swap">
+  </noscript>
+</head>
+<body>
+  <a class="skip-link" href="#gallery">本文へスキップ</a>
+
+  <header class="site-header">
+    <div class="container">
+      <p class="eyebrow">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l8.8 8.8 8.8-8.8a5.5 5.5 0 0 0 0-7.8z"/>
+        </svg>
+        FAMILY ALBUM
+      </p>
+      <h1>すくすくアルバム</h1>
+      <p>はじめての笑顔も、寝顔も、小さな手も。<br>大きくなるまえの「今」をそっと残しておく写真アルバムです。</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="cover" aria-labelledby="cover-title">
+      <figure class="cover-figure">
+        <img src="../illustrations/cute-baby.svg" alt="水色のロンパースを着て手を振っている赤ちゃんのイラスト" width="400" height="420">
+      </figure>
+      <div>
+        <h2 id="cover-title">ゆめちゃんの１年</h2>
+        <p>生まれた日から今日まで。ゆっくり見返せるように、月ごとに並べています。</p>
+        <ul class="cover-meta">
+          <li>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
+            </svg>
+            <span>誕生日 <b>2025年4月12日</b></span>
+          </li>
+          <li>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M3 7h4l2-3h6l2 3h4v13H3z"/><circle cx="12" cy="13" r="4"/>
+            </svg>
+            <span>写真 <b id="total-count">8</b> 枚</span>
+          </li>
+          <li>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>
+            </svg>
+            <span>最終更新 <b>2026年7月31日</b></span>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="gallery" aria-labelledby="gallery-title">
+      <div class="section-head">
+        <h2 id="gallery-title">おもいでリスト</h2>
+        <p class="count" id="result-count" role="status">8枚を表示中</p>
+      </div>
+
+      <div class="filters" role="group" aria-label="タグでしぼりこむ">
+        <button type="button" class="chip" data-filter="all" aria-pressed="true">すべて</button>
+        <button type="button" class="chip" data-filter="hajimete" aria-pressed="false">はじめて</button>
+        <button type="button" class="chip" data-filter="nenne" aria-pressed="false">ねんね</button>
+        <button type="button" class="chip" data-filter="warau" aria-pressed="false">わらう</button>
+        <button type="button" class="chip" data-filter="odekake" aria-pressed="false">おでかけ</button>
+      </div>
+
+      <!--
+        写真を入れるときは .card-photo の中身をこの1行に置きかえてください:
+        <img src="photos/01.jpg" alt="ベビーベッドで眠っている赤ちゃん" width="800" height="1000" loading="lazy" decoding="async">
+        width / height を必ず入れるとレイアウトのガタつき（CLS）を防げます。
+      -->
+      <ul class="grid" id="photo-grid">
+        <li class="reveal" data-tag="hajimete" style="--i:0">
+          <button type="button" class="card" data-title="はじめまして" data-date="2025年4月12日" data-caption="生まれたばかりの、いちばん最初の1枚。" data-theme="a">
+            <div class="card-photo card-photo--a" role="img" aria-label="はじめまして（写真プレースホルダー）">
+              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3 7h4l2-3h6l2 3h4v13H3z"/><circle cx="12" cy="13" r="4"/>
+              </svg>
+              <span class="ph-label">写真をここに</span>
+            </div>
+            <div class="card-body">
+              <h3>はじめまして</h3>
+              <time datetime="2025-04-12">2025年4月12日</time>
+              <span class="tag">はじめて</span>
+            </div>
+          </button>
+        </li>
+
+        <li class="reveal" data-tag="nenne" style="--i:1">
+          <button type="button" class="card" data-title="おひるねタイム" data-date="2025年5月3日" data-caption="ちいさな手をぎゅっとにぎって、すやすや。" data-theme="b">
+            <div class="card-photo card-photo--b" role="img" aria-label="おひるねタイム（写真プレースホルダー）">
+              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3 7h4l2-3h6l2 3h4v13H3z"/><circle cx="12" cy="13" r="4"/>
+              </svg>
+              <span class="ph-label">写真をここに</span>
+            </div>
+            <div class="card-body">
+              <h3>おひるねタイム</h3>
+              <time datetime="2025-05-03">2025年5月3日</time>
+              <span class="tag">ねんね</span>
+            </div>
+          </button>
+        </li>
+
+        <li class="reveal" data-tag="warau" style="--i:2">
+          <button type="button" class="card" data-title="はじめての笑顔" data-date="2025年6月20日" data-caption="カメラを向けたら、にっこり。" data-theme="c">
+            <div class="card-photo card-photo--c" role="img" aria-label="はじめての笑顔（写真プレースホルダー）">
+              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3 7h4l2-3h6l2 3h4v13H3z"/><circle cx="12" cy="13" r="4"/>
+              </svg>
+              <span class="ph-label">写真をここに</span>
+            </div>
+            <div class="card-body">
+              <h3>はじめての笑顔</h3>
+              <time datetime="2025-06-20">2025年6月20日</time>
+              <span class="tag">わらう</span>
+            </div>
+          </button>
+        </li>
+
+        <li class="reveal" data-tag="odekake" style="--i:3">
+          <button type="button" class="card" data-title="こうえんデビュー" data-date="2025年7月14日" data-caption="ベビーカーで、はじめてのおさんぽ。" data-theme="d">
+            <div class="card-photo card-photo--d" role="img" aria-label="こうえんデビュー（写真プレースホルダー）">
+              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3 7h4l2-3h6l2 3h4v13H3z"/><circle cx="12" cy="13" r="4"/>
+              </svg>
+              <span class="ph-label">写真をここに</span>
+            </div>
+            <div class="card-body">
+              <h3>こうえんデビュー</h3>
+              <time datetime="2025-07-14">2025年7月14日</time>
+              <span class="tag">おでかけ</span>
+            </div>
+          </button>
+        </li>
+
+        <li class="reveal" data-tag="hajimete" style="--i:4">
+          <button type="button" class="card" data-title="はじめての離乳食" data-date="2025年10月2日" data-caption="スプーンを見つめて、ちょっとびっくり顔。" data-theme="e">
+            <div class="card-photo card-photo--e" role="img" aria-label="はじめての離乳食（写真プレースホルダー）">
+              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3 7h4l2-3h6l2 3h4v13H3z"/><circle cx="12" cy="13" r="4"/>
+              </svg>
+              <span class="ph-label">写真をここに</span>
+            </div>
+            <div class="card-body">
+              <h3>はじめての離乳食</h3>
+              <time datetime="2025-10-02">2025年10月2日</time>
+              <span class="tag">はじめて</span>
+            </div>
+          </button>
+        </li>
+
+        <li class="reveal" data-tag="warau" style="--i:5">
+          <button type="button" class="card" data-title="いないいないばあ" data-date="2025年12月8日" data-caption="なんど やっても 大うけ。" data-theme="a">
+            <div class="card-photo card-photo--a" role="img" aria-label="いないいないばあ（写真プレースホルダー）">
+              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3 7h4l2-3h6l2 3h4v13H3z"/><circle cx="12" cy="13" r="4"/>
+              </svg>
+              <span class="ph-label">写真をここに</span>
+            </div>
+            <div class="card-body">
+              <h3>いないいないばあ</h3>
+              <time datetime="2025-12-08">2025年12月8日</time>
+              <span class="tag">わらう</span>
+            </div>
+          </button>
+        </li>
+
+        <li class="reveal" data-tag="nenne" style="--i:6">
+          <button type="button" class="card" data-title="おふとんでごろごろ" data-date="2026年2月11日" data-caption="ねがえりを おぼえた日。" data-theme="b">
+            <div class="card-photo card-photo--b" role="img" aria-label="おふとんでごろごろ（写真プレースホルダー）">
+              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3 7h4l2-3h6l2 3h4v13H3z"/><circle cx="12" cy="13" r="4"/>
+              </svg>
+              <span class="ph-label">写真をここに</span>
+            </div>
+            <div class="card-body">
+              <h3>おふとんでごろごろ</h3>
+              <time datetime="2026-02-11">2026年2月11日</time>
+              <span class="tag">ねんね</span>
+            </div>
+          </button>
+        </li>
+
+        <li class="reveal" data-tag="odekake" style="--i:7">
+          <button type="button" class="card" data-title="1歳のおたんじょうび" data-date="2026年4月12日" data-caption="ケーキの前で、はいポーズ。" data-theme="c">
+            <div class="card-photo card-photo--c" role="img" aria-label="1歳のおたんじょうび（写真プレースホルダー）">
+              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3 7h4l2-3h6l2 3h4v13H3z"/><circle cx="12" cy="13" r="4"/>
+              </svg>
+              <span class="ph-label">写真をここに</span>
+            </div>
+            <div class="card-body">
+              <h3>1歳のおたんじょうび</h3>
+              <time datetime="2026-04-12">2026年4月12日</time>
+              <span class="tag">おでかけ</span>
+            </div>
+          </button>
+        </li>
+      </ul>
+
+      <p class="empty-state" id="empty-state" hidden>このタグの写真はまだありません。</p>
+    </section>
+  </main>
+
+  <dialog class="lightbox" id="lightbox" aria-labelledby="lightbox-title">
+    <div class="lightbox-inner">
+      <div class="lightbox-photo" id="lightbox-photo" role="img" aria-label="写真プレースホルダー">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 7h4l2-3h6l2 3h4v13H3z"/><circle cx="12" cy="13" r="4"/>
+        </svg>
+        <span class="ph-label">写真をここに</span>
+      </div>
+      <button type="button" class="icon-btn icon-btn--close" id="lightbox-close">
+        <span class="visually-hidden">とじる</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+          <path d="M18 6 6 18M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+    <div class="lightbox-body">
+      <div>
+        <h2 id="lightbox-title">はじめまして</h2>
+        <p id="lightbox-caption">生まれたばかりの、いちばん最初の1枚。</p>
+        <time id="lightbox-date" datetime="">2025年4月12日</time>
+      </div>
+      <div class="lightbox-controls">
+        <button type="button" class="icon-btn" id="lightbox-prev">
+          <span class="visually-hidden">まえの写真</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="m15 18-6-6 6-6"/>
+          </svg>
+        </button>
+        <button type="button" class="icon-btn" id="lightbox-next">
+          <span class="visually-hidden">つぎの写真</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="m9 18 6-6-6-6"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </dialog>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>すくすくアルバム — 写真は <code>baby-album/photos/</code> に入れてください。</p>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
