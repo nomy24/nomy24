@@ -1,0 +1,7 @@
+# Python bytecode cache (generated when running .claude/skills scripts)
+__pycache__/
+*.py[cod]
+
+# OS files
+.DS_Store
+Thumbs.db
