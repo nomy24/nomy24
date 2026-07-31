@@ -2464,6 +2464,69 @@
   .pf-hit { font-size: 12px; color: var(--ink-3); margin-left: auto; }
   .pm-none { padding: calc(var(--step) * 5); font-size: 13px; color: var(--ink-3); }
 
+  /* ── 取り込み・保存 ─────────────────────── */
+  .io-card {
+    padding: calc(var(--step) * 4);
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    margin-bottom: calc(var(--step) * 6);
+  }
+
+  .io-lead {
+    margin: 0 0 calc(var(--step) * 4);
+    max-width: 64ch;
+    font-size: 13px;
+    line-height: 1.8;
+    color: var(--ink-2);
+  }
+
+  .io-lead b { color: var(--ink); }
+  .io-acts { display: flex; flex-wrap: wrap; gap: calc(var(--step) * 2); }
+
+  .io-warn {
+    margin: calc(var(--step) * 3) 0 0;
+    font-size: 12px;
+    color: var(--ink-3);
+  }
+
+  .io-warn b { color: var(--warn); }
+
+  .io-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    gap: calc(var(--step) * 2);
+  }
+
+  .io-row {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--step) * 2);
+    padding: calc(var(--step) * 2) calc(var(--step) * 3);
+    background: var(--sub);
+    border-radius: 8px;
+  }
+
+  .io-name {
+    flex: 1 1 auto;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: .06em;
+  }
+
+  /* ファイルを選ぶ口はボタンの見た目にそろえる */
+  .io-pick { cursor: pointer; }
+
+  .io-note {
+    margin: calc(var(--step) * 4) 0 0;
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--ok);
+    min-height: 1.2em;
+  }
+
+  .io-note.is-warn { color: var(--warn); }
+
   .th-note {
     display: block;
     font-size: 10px;
@@ -3378,6 +3441,7 @@
     <button type="button" role="tab" id="pmtab-drivers" aria-selected="false">運転手</button>
     <button type="button" role="tab" id="pmtab-dispatch" aria-selected="false">配車</button>
     <button type="button" role="tab" id="pmtab-office" aria-selected="false">事業所</button>
+    <button type="button" role="tab" id="pmtab-io" aria-selected="false">取り込み・保存</button>
   </nav>
 
   <div class="pm-body">
@@ -3442,6 +3506,33 @@
         <thead><tr><th style="width:10%">人数版</th><th>使う車両</th><th style="width:22%">割り当て</th></tr></thead>
         <tbody id="dispatch-rows"></tbody>
       </table>
+    </section>
+
+    <section class="pm-pane" id="pm-io" hidden>
+      <h3>まるごとバックアップ<span class="h3-note">マスタと、保存した日の送迎表を1つのファイルに</span></h3>
+      <div class="io-card">
+        <p class="io-lead">
+          利用者・運転手・配車・担当表・事業所と、<b>保存済みの日の送迎表すべて</b>を1つのファイルにします。
+          PC を入れ替えるとき、この1つを持っていけばそのまま続きから使えます。
+          月に一度など、決めた日に取っておくと安心です。
+        </p>
+        <div class="io-acts">
+          <button type="button" class="btn primary" id="io-backup">バックアップを保存</button>
+          <label class="btn io-pick">バックアップから戻す<input type="file" id="io-restore" accept=".json,application/json" hidden></label>
+        </div>
+        <p class="io-warn">「戻す」を押すと<b>いまの内容はすべて置き換わります</b>。確認の画面が出ます。</p>
+      </div>
+
+      <h3>表ごとの受け渡し<span class="h3-note">Excel で開ける CSV。名簿をまとめて入れ替えるときに</span></h3>
+      <div class="io-card">
+        <p class="io-lead">
+          Excel でそのまま開けます（文字化けしません）。編集して取り込み直せば、まとめて書き換えられます。
+          <b>取り込んだ内容は、上の「保存して送迎表へ戻る」を押すまで確定しません。</b>
+          取り込んだあと表を見て、おかしければ「変更を破棄して戻る」でやり直せます。
+        </p>
+        <div class="io-grid" id="io-tables"></div>
+        <p class="io-note" id="io-result"></p>
+      </div>
     </section>
 
     <section class="pm-pane" id="pm-office" hidden>
@@ -5925,6 +6016,247 @@
 
   const END_REASONS = ["入院", "施設入所", "他事業所へ", "転居", "逝去", "自己都合", "その他"];
 
+  /* ── 取り込み・保存 ────────────────────────
+     マスタを CSV でやりとりし、全体を1つのファイルにバックアップする。
+     どちらもこの PC の中だけで完結する（外へは出さない）。 */
+
+  /* Excel で開いたときに文字化けしないよう、UTF-8 の目印を先頭に付ける。
+     Excel は目印が無いと日本語を Shift_JIS だと思い込む */
+  const BOM = "\uFEFF";
+
+  const csvCell = (v) => {
+    const t = String(v == null ? "" : v);
+    return /[",\r\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t;
+  };
+
+  const toCSV = (rows) => BOM + rows.map((r) => r.map(csvCell).join(",")).join("\r\n") + "\r\n";
+
+  /* 引用符の中の改行やカンマも読めるようにする */
+  function parseCSV(text) {
+    const rows = [];
+    let row = [];
+    let cell = "";
+    let quoted = false;
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i];
+      if (quoted) {
+        if (c === '"') {
+          if (text[i + 1] === '"') { cell += '"'; i++; }
+          else quoted = false;
+        } else cell += c;
+        continue;
+      }
+      if (c === '"') { quoted = true; continue; }
+      if (c === ",") { row.push(cell); cell = ""; continue; }
+      if (c === "\r") continue;
+      if (c === "\n") { row.push(cell); rows.push(row); row = []; cell = ""; continue; }
+      cell += c;
+    }
+    if (cell !== "" || row.length) { row.push(cell); rows.push(row); }
+    return rows.filter((r) => r.some((x) => String(x).trim() !== ""));
+  }
+
+  /* Excel が Shift_JIS で保存した CSV も読めるようにする。
+     UTF-8 として読んで化けていたら、Shift_JIS で読み直す */
+  function decodeText(buf) {
+    const bytes = new Uint8Array(buf);
+    if (bytes[0] === 0xEF && bytes[1] === 0xBB && bytes[2] === 0xBF) {
+      return new TextDecoder("utf-8").decode(bytes.subarray(3));
+    }
+    const utf8 = new TextDecoder("utf-8", { fatal: false }).decode(bytes);
+    if (utf8.indexOf("\uFFFD") < 0) return utf8;
+    try { return new TextDecoder("shift_jis").decode(bytes); }
+    catch (e) { return utf8; }
+  }
+
+  /* ファイルにして渡す。埋め込みの枠の中では claude.ai の保存の口を使う */
+  function saveFile(name, text, mime) {
+    const dl = hostSave();
+    if (dl) {
+      dl.save({ filename: name, data: text })
+        .then(() => notify("「" + name + "」を保存しました。"))
+        .catch(() => notify("保存できませんでした。別のタブで開いてからお試しください。", "warn"));
+      return;
+    }
+    try {
+      const blob = new Blob([text], { type: mime + ";charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = name;
+      document.body.append(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
+      notify("「" + name + "」を保存しました。");
+    } catch (e) {
+      notify("保存できませんでした。別のタブで開いてからお試しください。", "warn");
+    }
+  }
+
+  const stamp = () => {
+    const d = new Date();
+    const p2 = (n) => String(n).padStart(2, "0");
+    return d.getFullYear() + p2(d.getMonth() + 1) + p2(d.getDate());
+  };
+
+  /* ── 表ごとの CSV ────────────────────────
+     並びは「人が Excel で見て分かる順」。いちばん右の id は
+     取り込み直したときに同じ人だと分かるための印で、消してもよい。 */
+  const CSV_TABLES = {
+    users: {
+      name: "利用者",
+      head: ["氏名", "ふりがな", "郵便番号", "住所", "介護度", "血圧", "電話", "記号",
+        "月", "火", "水", "木", "金", "土", "終了日", "終了理由", "id"],
+      rows() {
+        return draftUsers.map((u) => [
+          u.name, u.kana, "", u.addr, u.care || "", u.bp || "", u.tel || "",
+          (u.tags || []).join("/"),
+          ...WEEKDAYS.map((w) => u.days[w] || ""),
+          u.end ? u.end.d : "", u.end ? (u.end.r || "") : "", u.id
+        ]);
+      },
+      take(rows) {
+        const head = rows[0].map((h) => String(h).trim());
+        const at = (n) => head.indexOf(n);
+        const body = rows.slice(1);
+        const byId = new Map(draftUsers.map((u, i) => [u.id, i]));
+        const byName = new Map(draftUsers.map((u, i) => [u.name.trim() + "\u0000" + (u.kana || "").trim(), i]));
+        let added = 0, changed = 0, skipped = 0;
+
+        body.forEach((r) => {
+          const get = (n) => { const i = at(n); return i < 0 ? "" : String(r[i] == null ? "" : r[i]).trim(); };
+          const name = get("氏名");
+          if (!name) { skipped++; return; }
+
+          /* 住所が空なら郵便番号から起こす */
+          let addr = get("住所");
+          if (!addr) {
+            const hit = zipLookup(get("郵便番号"));
+            if (hit) addr = hit;
+          }
+
+          const days = {};
+          WEEKDAYS.forEach((w) => {
+            const v = get(w).toUpperCase().replace(/[^A-Z]/g, "");
+            if (v === "AM" || v === "PM") days[w] = v;
+          });
+
+          const endDay = get("終了日");
+          const rec = {
+            name: name,
+            kana: get("ふりがな"),
+            addr: addr,
+            town: deriveTown(addr, ""),
+            care: CARE_LEVELS.includes(get("介護度")) ? get("介護度") : "",
+            bp: get("血圧"),
+            tel: get("電話"),
+            tags: get("記号").split(/[\/／、,・\s]+/).filter((t) => TAGS.some((x) => x.key === t)),
+            days: days,
+            end: endDay ? { d: endDay, r: get("終了理由") } : null
+          };
+
+          const id = get("id");
+          const key = name + "\u0000" + rec.kana;
+          const at2 = id && byId.has(id) ? byId.get(id) : (byName.has(key) ? byName.get(key) : -1);
+          if (at2 >= 0) {
+            draftUsers[at2] = Object.assign({}, draftUsers[at2], rec);
+            changed++;
+          } else {
+            const fresh = Object.assign({ id: id || ("u" + Date.now().toString(36) + added) }, rec);
+            draftUsers.push(fresh);
+            byId.set(fresh.id, draftUsers.length - 1);
+            byName.set(key, draftUsers.length - 1);
+            added++;
+          }
+        });
+        draftUsers.sort(byKana);
+        return { added, changed, skipped };
+      }
+    },
+
+    drivers: {
+      name: "運転手",
+      head: ["氏名", "月", "火", "水", "木", "金", "土"],
+      rows() { return draftDrivers.map((d) => [d.name, ...WEEKDAYS.map((w) => d.days[w] || "")]); },
+      take(rows) {
+        const head = rows[0].map((h) => String(h).trim());
+        const at = (n) => head.indexOf(n);
+        let added = 0, changed = 0, skipped = 0;
+        rows.slice(1).forEach((r) => {
+          const get = (n) => { const i = at(n); return i < 0 ? "" : String(r[i] == null ? "" : r[i]).trim(); };
+          const name = get("氏名");
+          if (!name) { skipped++; return; }
+          const days = {};
+          WEEKDAYS.forEach((w) => {
+            const v = get(w).toUpperCase().replace(/\s/g, "");
+            if (v === "AM" || v === "PM" || v === "終日") days[w] = v === "終日" ? "終日" : v;
+          });
+          const i = draftDrivers.findIndex((d) => d.name.trim() === name);
+          if (i >= 0) { draftDrivers[i].days = days; changed++; }
+          else { draftDrivers.push({ name: name, days: days }); added++; }
+        });
+        return { added, changed, skipped };
+      }
+    },
+
+    roles: {
+      name: "担当表",
+      head: ["曜日", "役割", "午前", "午後"],
+      rows() {
+        const out = [];
+        WEEKDAYS.forEach((w) => ROLE_NAMES.forEach((r) => out.push([w, r, ROLES[w][r][0], ROLES[w][r][1]])));
+        return out;
+      },
+      take(rows) {
+        const head = rows[0].map((h) => String(h).trim());
+        const at = (n) => head.indexOf(n);
+        let changed = 0, skipped = 0;
+        rows.slice(1).forEach((r) => {
+          const get = (n) => { const i = at(n); return i < 0 ? "" : String(r[i] == null ? "" : r[i]).trim(); };
+          const w = get("曜日").replace("曜日", "");
+          const role = get("役割");
+          if (WEEKDAYS.indexOf(w) < 0 || ROLE_NAMES.indexOf(role) < 0) { skipped++; return; }
+          ROLES[w][role] = [get("午前"), get("午後")];
+          changed++;
+        });
+        STORE.setJSON("roles", ROLES);
+        return { added: 0, changed, skipped };
+      }
+    }
+  };
+
+  /* ── まるごとバックアップ ────────────────── */
+  function backupAll() {
+    const days = {};
+    STORE.days().forEach((d) => {
+      const one = STORE.getJSON("day." + d);
+      if (one) days[d] = one;
+    });
+    return {
+      kind: "soutei-backup",
+      version: 1,
+      savedAt: new Date().toISOString(),
+      office: OFFICE,
+      users: USERS,
+      drivers: DRIVERS,
+      dispatch: DISPATCH,
+      roles: ROLES,
+      days: days
+    };
+  }
+
+  function restoreAll(dump) {
+    if (dump.users) STORE.setJSON("users", dump.users);
+    if (dump.drivers) STORE.setJSON("drivers", dump.drivers);
+    if (dump.dispatch) STORE.setJSON("dispatch", dump.dispatch);
+    if (dump.roles) STORE.setJSON("roles", dump.roles);
+    if (dump.office) STORE.setJSON("office", dump.office);
+    const days = Object.keys(dump.days || {});
+    days.forEach((d) => { STORE.setJSON("day." + d, dump.days[d]); STORE.addDay(d); });
+    return days.length;
+  }
+
   /* ── マスタの表（利用者・運転手・配車） ────
      マスタ編集のページに出る3つの表と、配車の割り当てを組む欄。 */
 
@@ -6442,9 +6774,9 @@
   });
 
   /* マスタ編集ページの中のタブ */
-  ["users", "drivers", "dispatch", "office"].forEach((key) => {
+  ["users", "drivers", "dispatch", "office", "io"].forEach((key) => {
     document.getElementById("pmtab-" + key).addEventListener("click", () => {
-      ["users", "drivers", "dispatch", "office"].forEach((k) => {
+      ["users", "drivers", "dispatch", "office", "io"].forEach((k) => {
         const on = k === key;
         document.getElementById("pmtab-" + k).setAttribute("aria-selected", String(on));
         document.getElementById("pm-" + k).hidden = !on;
@@ -6453,6 +6785,108 @@
   });
 
   document.getElementById("add-user").addEventListener("click", openAddDialog);
+
+  /* ── 取り込み・保存のボタン ────────────── */
+  function ioSay(text, warn) {
+    const box = document.getElementById("io-result");
+    box.textContent = text;
+    box.classList.toggle("is-warn", !!warn);
+  }
+
+  Object.keys(CSV_TABLES).forEach((key) => {
+    const def = CSV_TABLES[key];
+    const card = el("div", "io-row");
+    card.append(el("span", "io-name", def.name));
+
+    const out = el("button", "btn", "書き出す");
+    out.type = "button";
+    out.addEventListener("click", () => {
+      saveFile(def.name + "_" + stamp() + ".csv", toCSV([def.head, ...def.rows()]), "text/csv");
+      ioSay(def.name + " を書き出しました（" + def.rows().length + "件）。");
+    });
+
+    const pick = el("label", "btn io-pick", "取り込む");
+    const file = document.createElement("input");
+    file.type = "file";
+    file.accept = ".csv,text/csv";
+    file.hidden = true;
+    file.addEventListener("change", () => {
+      const f = file.files && file.files[0];
+      if (!f) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const rows = parseCSV(decodeText(reader.result));
+          if (rows.length < 2) { ioSay("中身が読み取れませんでした。1行目が見出しの CSV を選んでください。", true); return; }
+          const r = def.take(rows);
+          drawMasterTables();
+          ioSay(def.name + " を取り込みました。追加 " + r.added + "件／書き換え " + r.changed + "件"
+            + (r.skipped ? "／読み飛ばし " + r.skipped + "件" : "")
+            + "。上の「保存して送迎表へ戻る」で確定します。");
+        } catch (e) {
+          ioSay("読み込めませんでした（" + (e && e.message) + "）。", true);
+        }
+        file.value = "";
+      };
+      reader.onerror = () => { ioSay("ファイルを開けませんでした。", true); file.value = ""; };
+      reader.readAsArrayBuffer(f);
+    });
+    pick.append(file);
+
+    card.append(out, pick);
+    document.getElementById("io-tables").append(card);
+  });
+
+  document.getElementById("io-backup").addEventListener("click", () => {
+    const dump = backupAll();
+    saveFile("送迎表バックアップ_" + stamp() + ".json", JSON.stringify(dump), "application/json");
+    ioSay("マスタと、保存済み " + Object.keys(dump.days).length + "日分の送迎表を書き出しました。");
+  });
+
+  document.getElementById("io-restore").addEventListener("change", function () {
+    const f = this.files && this.files[0];
+    if (!f) return;
+    const input = this;
+    const reader = new FileReader();
+    reader.onload = () => {
+      let dump = null;
+      try { dump = JSON.parse(decodeText(reader.result)); }
+      catch (e) { ioSay("バックアップとして読めませんでした。", true); input.value = ""; return; }
+      if (!dump || dump.kind !== "soutei-backup") {
+        ioSay("この送迎表のバックアップではないようです。", true);
+        input.value = "";
+        return;
+      }
+
+      const n = Object.keys(dump.days || {}).length;
+      const when = dump.savedAt ? String(dump.savedAt).slice(0, 10) : "不明";
+      openUserDialog({
+        title: "バックアップから戻しますか",
+        lead: when + " に保存されたものです（利用者 " + (dump.users || []).length + "名／送迎表 " + n + "日分）。",
+        ok: "戻す",
+        danger: true,
+        build(body) {
+          const warn = el("p", "uf-warn");
+          warn.append(
+            el("b", null, "いまの内容はすべて置き換わります。"),
+            document.createTextNode("戻す前の状態には戻せません。"
+              + "念のため、先に「バックアップを保存」で今のぶんを取っておくことをおすすめします。")
+          );
+          body.append(warn);
+        },
+        submit() {
+          const days = restoreAll(dump);
+          closeUserDialog();
+          reloadMasters();
+          closeMaster();
+          notify("バックアップから戻しました（利用者 " + USERS.length + "名／送迎表 " + days + "日分）。");
+        }
+      });
+      input.value = "";
+    };
+    reader.onerror = () => { ioSay("ファイルを開けませんでした。", true); input.value = ""; };
+    reader.readAsArrayBuffer(f);
+  });
 
   document.getElementById("user-find").addEventListener("input", function () {
     userFind = this.value.trim();
