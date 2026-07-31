@@ -1168,7 +1168,7 @@
 
   .stop {
     display: grid;
-    grid-template-columns: 19px 3rem 2.7rem minmax(3.4rem, 1.1fr) minmax(3.8rem, 1.35fr) 60px minmax(2.8rem, 0.9fr);
+    grid-template-columns: 19px 3rem 2.7rem 60px minmax(3.4rem, 1.1fr) minmax(3.8rem, 1.35fr) minmax(2.8rem, 0.9fr);
     align-items: center;
     gap: 7px;
     padding: 5px calc(var(--step) * 2);
@@ -1200,7 +1200,7 @@
   .stop > *:nth-child(7) { grid-column: 7; grid-row: 1; }
 
   .strike {
-    grid-column: 3 / 6;
+    grid-column: 3 / 7;
     grid-row: 1;
     align-self: center;
     height: 0;
@@ -2983,13 +2983,19 @@
     /* 紙では便の色の帯に白抜きで載るので、画面の枠は外して1行に戻す */
     .stats { margin-left: 0; gap: 4mm; flex-wrap: nowrap; }
 
-    .stat {
+    .stat,
+    .stat.s-total,
+    .stat.s-away.on,
+    .stat.s-furikae.on,
+    .stat.s-dup.is-alert,
+    .stat.is-alert {
       flex-direction: row;
       align-items: baseline;
       gap: 3px;
       min-width: 0;
       padding: 0;
       border: 0;
+      border-radius: 0;
       background: none;
       font-size: 6.5pt;
       color: rgba(255, 255, 255, .82);
@@ -3091,13 +3097,18 @@
     .eta[data-note]:not([data-note=""])::after { content: none; }
     .eta[data-target="1"]:empty::before { content: ""; }
 
+    /* 紙では備考を出さない（画面で書いた覚え書きは走行前の控え）。
+       そのぶんを氏名と住所に回して、7桝を6桝に詰める */
     .stop {
       min-height: 0;
       padding: 0.28mm 1.6mm;
       gap: 1.2mm;
-      grid-template-columns: 13px 2.8rem 2.9rem minmax(3.6rem, 1.1fr) minmax(3.8rem, 1.05fr) 49px minmax(3.6rem, 0.95fr);
+      grid-template-columns: 13px 2.8rem 2.9rem 49px minmax(4.2rem, 1.15fr) minmax(4.4rem, 1.1fr);
       line-height: 1.25;
     }
+
+    .stop > *:nth-child(7) { display: none; }
+    .strike { grid-column: 3 / 7; }
 
     .stop.head { font-size: 5.5pt; padding-top: 0.12mm; padding-bottom: 0.12mm; }
 
@@ -4314,16 +4325,7 @@
     actual.contentEditable = "true";
     li.append(actual);
 
-    const sel = buildUserSelect(part, weekday);
-    sel.dataset.part = part;
-    if (weekday) sel.dataset.weekday = weekday;
-    li.append(sel);
-
-    /* 住所はマスタからの自動表示。編集しない（行をつかむ余地を広げる） */
-    const area = el("span", "area");
-    area.title = "住所はマスタから自動表示（変更は備考へ）";
-    li.append(area);
-
+    /* 記号は氏名の手前。名前を読むより先に、車椅子か歩行器かが目に入る */
     const tags = el("span", "tags");
     TAGS.forEach((t) => {
       const b = tagButton(t, false);
@@ -4333,6 +4335,16 @@
       tags.append(b);
     });
     li.append(tags);
+
+    const sel = buildUserSelect(part, weekday);
+    sel.dataset.part = part;
+    if (weekday) sel.dataset.weekday = weekday;
+    li.append(sel);
+
+    /* 住所はマスタからの自動表示。編集しない（行をつかむ余地を広げる） */
+    const area = el("span", "area");
+    area.title = "住所はマスタから自動表示（変更は備考へ）";
+    li.append(area);
 
     const note = el("span", "note");
     note.contentEditable = "true";
@@ -4497,7 +4509,7 @@
     const head = el("li", "stop head");
     head.append(
       el("span", "ord", ""), el("span", null, "予定"), el("span", null, "実績"),
-      el("span", null, "利用者名"), el("span", null, "住所"), el("span", null, "記号"),
+      el("span", null, "記号"), el("span", null, "利用者名"), el("span", null, "住所"),
       el("span", null, "備考")
     );
     list.append(head);
@@ -4637,7 +4649,7 @@
       "記号　車＝車椅子（リフト・スロープ使用）／補＝歩行器・車椅子持参もしくは貸出／玄＝玄関先まで送迎　　"
       + "■＝乗車　□＝空席（定員は運転手を除く人数）　　※印＝手で書き換えた欄　　"
       + "番号の色　赤＝欠席（取り消し線）／黄緑＝振替利用／橙＝新規・増回　　朱色の車両＝車椅子の方が乗るため定員1名減　　"
-      + "「実績」欄は実際の到着時刻、「備考」欄は玄関先の目印や部屋番号の記入用です。");
+      + "「実績」欄は実際の到着時刻の記入用です。");
 
     section.append(head, fleet, leftover, legend);
     return section;
@@ -5345,16 +5357,29 @@
     updateHistButtons();
   }
 
+  function commitDay() {
+    saveTimer = null;
+    const snapshot = captureDay();
+    STORE.setJSON("day." + currentDate, snapshot);
+    STORE.addDay(currentDate);
+    pushHistory(snapshot);
+    updateDateOptions();
+    updateSavedNote();
+  }
+
   function save() {
     if (saveTimer) clearTimeout(saveTimer);
-    saveTimer = setTimeout(() => {
-      const snapshot = captureDay();
-      STORE.setJSON("day." + currentDate, snapshot);
-      STORE.addDay(currentDate);
-      pushHistory(snapshot);
-      updateDateOptions();
-      updateSavedNote();
-    }, 250);
+    saveTimer = setTimeout(commitDay, 250);
+  }
+
+  /* 書きかけの控えを、待たずにその場で確定させる。
+     サーバーの内容を取り込む直前に呼ぶ。そうしないと、
+     打ち終わってから控えに落ちるまでの一瞬に取り込みが重なったとき、
+     まだ控えに無い一手が黙って消える。 */
+  function flushSave() {
+    if (!saveTimer) return;
+    clearTimeout(saveTimer);
+    commitDay();
   }
 
   function refresh() {
@@ -7479,6 +7504,9 @@
     let tried = false;        /* 一度でも確かめたか */
     let applying = false;     /* 受け取った内容を反映している最中か */
     let revs = STORE.getJSON("__revs") || {};
+    /* 送ったとき・取り込んだときの中身。ぶつかったときのつき合わせに使う。
+       開いている日のぶんだけ持てばよいので、控えには残さない */
+    const base = {};
     /* 送信待ちは手元にも残す。圏外のまま閉じても、次に開いたときに送れる */
     const dirty = new Set(STORE.getJSON("__dirty") || []);
     let pushTimer = null;
@@ -7511,19 +7539,66 @@
 
     /* 受け取った内容を画面に反映する。いま見ている日とマスタだけ建て直す。
        反映のための書き込みを送り返すと往復し続けるので、その間は合図を止める */
-    function adopt(key, data) {
+    function adopt(key, data, note) {
       applying = true;
       try {
         STORE.setQuiet(key, data);
         if (key === "day." + currentDate) {
           if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
           renderDay(currentDate, activeLegKey());
-          notify("他の端末での変更を取り込みました（" + titleDate(currentDate) + "）。", "warn");
+          if (note !== false) notify(note || ("他の端末での変更を取り込みました（" + titleDate(currentDate) + "）。"), "warn");
         } else if (SYNCED.indexOf(key) >= 0) {
           reloadMasters();
           notify("マスタの変更を他の端末から取り込みました。", "warn");
         }
       } finally { applying = false; }
+    }
+
+    /* ── ぶつかったときのつき合わせ ────────────
+       1日ぶんをまるごと1件で持っているので、そのまま上書きすると
+       どちらかの手が丸ごと消える。そこで、送る前の控え（base）を覚えておき、
+       「もと」「こちら」「向こう」の3つを突き合わせる。
+       見るのは車1台ごとなので、別々の車を触っているかぎり両方残る。
+       同じ車を同時に触ったときだけ、こちらを立てて向こうを引っ込める。 */
+    const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+
+    function mergeCars(baseCars, mineCars, theirCars) {
+      const n = Math.max(baseCars.length, mineCars.length, theirCars.length);
+      const out = [];
+      let taken = 0;
+      for (let i = 0; i < n; i++) {
+        const bs = baseCars[i], me = mineCars[i], you = theirCars[i];
+        if (me !== undefined && !same(me, bs)) { out.push(me); taken++; }
+        else out.push(you !== undefined ? you : me);
+      }
+      return { cars: out, taken: taken };
+    }
+
+    /* 出欠と振替は利用者ごとに見る。触った人のぶんだけこちらを立てる */
+    function mergeByKey(bs, me, you) {
+      const out = Object.assign({}, you);
+      Object.keys(Object.assign({}, bs, me)).forEach((k) => {
+        if (me[k] === bs[k]) return;                 /* こちらは触っていない */
+        if (me[k] === undefined) delete out[k];
+        else out[k] = me[k];
+      });
+      return out;
+    }
+
+    function mergeDay(bs, me, you) {
+      const out = { legs: {}, swap: {}, attend: {} };
+      let taken = 0;
+      LEGS.forEach((leg) => {
+        const r = mergeCars((bs.legs || {})[leg.key] || [], (me.legs || {})[leg.key] || [], (you.legs || {})[leg.key] || []);
+        out.legs[leg.key] = r.cars;
+        taken += r.taken;
+      });
+      ["am", "pm"].forEach((part) => {
+        const b0 = (bs.swap || {})[part] || [], m0 = (me.swap || {})[part] || [], y0 = (you.swap || {})[part] || [];
+        out.swap[part] = same(m0, b0) ? y0 : m0;
+        out.attend[part] = mergeByKey((bs.attend || {})[part] || {}, (me.attend || {})[part] || {}, (you.attend || {})[part] || {});
+      });
+      return { data: out, taken: taken };
     }
 
     function activeLegKey() {
@@ -7544,7 +7619,15 @@
         const one = await fetch(api("api/doc?key=" + encodeURIComponent(key)), { cache: "no-store" });
         if (!one.ok) continue;
         const doc = await one.json();
+
+        /* 取りに行っているあいだにも手は動く。書きかけを先に確定させ、
+           こちらが先に書いていたらそちらを優先する（送るのは次の回）。
+           ここを飛ばすと、版番号だけ進んで一手が消える */
+        flushSave();
+        if (dirty.has(key)) continue;
+
         revs[key] = doc.rev;
+        base[key] = doc.data;
         adopt(key, doc.data);
       }
       saveRevs();
@@ -7561,18 +7644,35 @@
       });
 
       if (res.status === 409) {
-        /* 他の端末が先に直していた。上書きせず、向こうの内容に合わせる。
-           こちらの手は「一つ戻る」に残っているので取り返せる */
-        const doc = await res.json();
-        revs[key] = doc.rev;
+        /* 他の端末が先に直していた。黙って上書きも、黙って取り下げもしない */
+        const conflict = await res.json();
+        revs[key] = conflict.rev;
+
+        /* 1日ぶんは車ごとに突き合わせて、どちらの手も残す。
+           もとの控えが無いとき（開いた直後など）は向こうに合わせる */
+        if (isDay(key) && base[key] && conflict.data) {
+          const merged = mergeDay(base[key], data, conflict.data);
+          base[key] = merged.data;
+          adopt(key, merged.data,
+            merged.taken
+              ? "他の端末と同時に直したので、車ごとに突き合わせました（" + titleDate(currentDate) + "）。"
+              : false);
+          /* 突き合わせた結果をもう一度送る。次の回で片づく */
+          saveDirty();
+          return;
+        }
+
+        base[key] = conflict.data;
         dirty.delete(key);
         saveDirty();
-        adopt(key, doc.data);
+        adopt(key, conflict.data,
+          "他の端末が先に直していたので、そちらに合わせました（" + titleDate(currentDate) + "）。");
         return;
       }
       if (!res.ok) throw new Error("put " + res.status);
       const doc = await res.json();
       revs[key] = doc.rev;
+      base[key] = data;
       dirty.delete(key);
       saveDirty();
     }
