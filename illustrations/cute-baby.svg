@@ -1,0 +1,123 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 420" width="400" height="420" role="img" aria-labelledby="title desc">
+  <title id="title">かわいい赤ちゃんのイラスト</title>
+  <desc id="desc">水色のロンパースを着て、手を振っているほっぺの赤い赤ちゃん</desc>
+
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="45%" r="70%">
+      <stop offset="0%" stop-color="#FFF6FA"/>
+      <stop offset="100%" stop-color="#FFE9F1"/>
+    </radialGradient>
+    <linearGradient id="skin" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFE7D4"/>
+      <stop offset="100%" stop-color="#FFD2B6"/>
+    </linearGradient>
+    <linearGradient id="suit" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#B7E5E8"/>
+      <stop offset="100%" stop-color="#8FCBD3"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 背景 -->
+  <rect width="400" height="420" fill="url(#bg)"/>
+  <circle cx="200" cy="212" r="176" fill="#FFFFFF" opacity="0.55"/>
+
+  <!-- 背景のきらきら -->
+  <g fill="#FFC8DC">
+    <path d="M64 96 Q68 108 80 112 Q68 116 64 128 Q60 116 48 112 Q60 108 64 96 Z"/>
+    <path d="M336 300 Q339 309 348 312 Q339 315 336 324 Q333 315 324 312 Q333 309 336 300 Z"/>
+  </g>
+  <g fill="#BFE3E8">
+    <path d="M330 92 Q334 104 346 108 Q334 112 330 124 Q326 112 314 108 Q326 104 330 92 Z"/>
+    <path d="M58 296 Q61 305 70 308 Q61 311 58 320 Q55 311 46 308 Q55 305 58 296 Z"/>
+  </g>
+  <g fill="#FFD9E4">
+    <circle cx="106" cy="58" r="6"/>
+    <circle cx="300" cy="56" r="8"/>
+    <circle cx="42" cy="200" r="7"/>
+    <circle cx="360" cy="196" r="6"/>
+    <circle cx="150" cy="392" r="6"/>
+    <circle cx="256" cy="396" r="5"/>
+  </g>
+
+  <!-- 影 -->
+  <ellipse cx="200" cy="374" rx="126" ry="20" fill="#F2C9D6" opacity="0.45"/>
+
+  <!-- 首 -->
+  <rect x="180" y="228" width="40" height="42" rx="18" fill="#FFD2B6"/>
+
+  <!-- 足 -->
+  <g stroke="url(#suit)" stroke-width="36" stroke-linecap="round" fill="none">
+    <path d="M172 330 C164 352 146 362 130 360"/>
+    <path d="M228 330 C236 352 254 362 270 360"/>
+  </g>
+  <g fill="url(#skin)">
+    <ellipse cx="118" cy="358" rx="22" ry="17" transform="rotate(-8 118 358)"/>
+    <ellipse cx="282" cy="358" rx="22" ry="17" transform="rotate(8 282 358)"/>
+  </g>
+  <g fill="#FFB59A">
+    <circle cx="106" cy="350" r="3.4"/>
+    <circle cx="102" cy="357" r="3.4"/>
+    <circle cx="105" cy="364" r="3.2"/>
+    <circle cx="294" cy="350" r="3.4"/>
+    <circle cx="298" cy="357" r="3.4"/>
+    <circle cx="295" cy="364" r="3.2"/>
+  </g>
+
+  <!-- 腕 -->
+  <g stroke="url(#suit)" stroke-width="32" stroke-linecap="round" fill="none">
+    <path d="M162 276 C136 270 118 252 114 236"/>
+    <path d="M238 280 C264 282 278 296 282 310"/>
+  </g>
+  <circle cx="110" cy="226" r="18" fill="url(#skin)"/>
+  <circle cx="288" cy="318" r="18" fill="url(#skin)"/>
+
+  <!-- からだ（ロンパース） -->
+  <path d="M154 250 C144 292 146 326 158 340 C184 354 216 354 242 340 C254 326 256 292 246 250 Z" fill="url(#suit)"/>
+  <path d="M158 336 C184 350 216 350 242 336 C240 344 236 348 232 350 C214 358 186 358 168 350 C164 348 160 344 158 336 Z" fill="#FFF6EC"/>
+
+  <!-- 胸のハート -->
+  <path d="M200 320 C178 305 170 292 178 283 C186 275 197 279 200 288 C203 279 214 275 222 283 C230 292 222 305 200 320 Z" fill="#FF9DB4"/>
+
+  <!-- えり -->
+  <ellipse cx="200" cy="266" rx="46" ry="18" fill="#FFF6EC"/>
+
+  <!-- 髪の毛（あたまの後ろ側） -->
+  <path d="M212 88 C220 66 246 70 242 88" fill="none" stroke="#8A6142" stroke-width="9" stroke-linecap="round"/>
+
+  <!-- 耳 -->
+  <ellipse cx="108" cy="180" rx="15" ry="21" fill="url(#skin)"/>
+  <ellipse cx="292" cy="180" rx="15" ry="21" fill="url(#skin)"/>
+  <ellipse cx="110" cy="181" rx="7" ry="11" fill="#F7B99B"/>
+  <ellipse cx="290" cy="181" rx="7" ry="11" fill="#F7B99B"/>
+
+  <!-- 顔 -->
+  <ellipse cx="200" cy="168" rx="92" ry="86" fill="url(#skin)"/>
+
+  <!-- くるんとした髪 -->
+  <path d="M196 88 C188 60 226 50 230 74 C232 87 215 91 212 80" fill="none" stroke="#8A6142" stroke-width="10" stroke-linecap="round"/>
+
+  <!-- まゆげ -->
+  <g fill="none" stroke="#C79A78" stroke-width="5" stroke-linecap="round">
+    <path d="M152 149 q16 -9 31 -2"/>
+    <path d="M217 147 q16 -7 31 2"/>
+  </g>
+
+  <!-- 目 -->
+  <ellipse cx="168" cy="178" rx="13" ry="15.5" fill="#4A3A34"/>
+  <ellipse cx="232" cy="178" rx="13" ry="15.5" fill="#4A3A34"/>
+  <circle cx="163" cy="172" r="5" fill="#FFFFFF"/>
+  <circle cx="227" cy="172" r="5" fill="#FFFFFF"/>
+  <circle cx="173" cy="185" r="2.6" fill="#FFFFFF" opacity="0.85"/>
+  <circle cx="237" cy="185" r="2.6" fill="#FFFFFF" opacity="0.85"/>
+
+  <!-- ほっぺ -->
+  <ellipse cx="138" cy="206" rx="20" ry="13" fill="#FF93A9" opacity="0.45"/>
+  <ellipse cx="262" cy="206" rx="20" ry="13" fill="#FF93A9" opacity="0.45"/>
+
+  <!-- はな -->
+  <path d="M193 192 q7 7 14 0" fill="none" stroke="#E8A184" stroke-width="5" stroke-linecap="round"/>
+
+  <!-- くち -->
+  <path d="M185 206 q15 20 30 0 Z" fill="#DE6260"/>
+  <path d="M192 215 q8 10 16 0 Z" fill="#FF8E93"/>
+</svg>
