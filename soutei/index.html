@@ -2951,6 +2951,160 @@
   .modal .day[data-ap="終日"] .ap,
   .page-master .day[data-ap="終日"] .ap { font-size: 7px; }
 
+  /* ── 携帯・タブレットの画面 ────────────────
+     車内で開くのは携帯なので、指で押せて、名前と時刻が読めることを先に置く。
+     幅が足りないぶんは、桝を横に詰めるのではなく段に折り返して逃がす。 */
+  @media screen and (max-width: 760px) {
+    .sheet { padding: calc(var(--step) * 3) calc(var(--step) * 3) calc(var(--step) * 10); }
+
+    /* 表題は2行に折れてよい。日付の操作は指で押せる大きさに */
+    .title { font-size: 22px; }
+    .masthead { gap: calc(var(--step) * 2) calc(var(--step) * 3); }
+    .date-open { flex-wrap: wrap; }
+    .date-step { min-width: 40px; min-height: 40px; }
+    #date-picker { min-height: 40px; }
+
+    /* ツール列。文字が縦に1字ずつ折れないよう、縮ませずに折り返す */
+    .controls { gap: calc(var(--step) * 3); }
+    .tools { flex-wrap: wrap; width: 100%; }
+
+    .tools button,
+    .crew select {
+      flex: 0 0 auto;
+      min-height: 44px;
+      white-space: nowrap;
+    }
+
+    .tools .btn-final { flex: 1 1 100%; min-height: 52px; }
+    .crew, .undo { flex: 1 1 auto; }
+    .crew select { flex: 0 1 7rem; }
+    .undo button { flex: 1 1 0; }
+
+    /* 便の切替は上の1か所だけ。脇のぶんは重なるので出さない */
+    .side-legs { display: none; }
+    .legs { width: 100%; }
+    .leg-group { flex: 1 1 auto; }
+    .leg-group button { flex: 1 1 0; min-height: 44px; }
+
+    /* 未割当と各ページへの入口は、車両カードの下に回す */
+    .work { gap: calc(var(--step) * 4); }
+    #sections { order: 1; }
+    .side { order: 2; }
+    .side-list { max-height: none; }
+
+    /* 車両カードは号車の枠を上に、乗る人を下に */
+    .car { grid-template-columns: minmax(0, 1fr); }
+
+    .car-id {
+      flex-direction: row;
+      flex-wrap: wrap;
+      align-items: center;
+      border-right: 0;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .car-start, .car-driver { flex: 1 1 8rem; }
+    .pips { margin-top: 0; margin-left: auto; }
+
+    /* 行は1段に収まらないので段に折る。
+       上＝時刻と記号、中＝氏名、下＝住所、いちばん下＝備考 */
+    .stop {
+      grid-template-columns: 30px minmax(3.6rem, auto) minmax(3.2rem, auto) minmax(0, 1fr);
+      row-gap: 2px;
+      column-gap: 6px;
+      padding: 7px calc(var(--step) * 2);
+      min-height: 0;
+    }
+
+    .stop > *:nth-child(1) { grid-column: 1; grid-row: 1 / 5; align-self: start; }
+    .stop > *:nth-child(2) { grid-column: 2; grid-row: 1; }
+    .stop > *:nth-child(3) { grid-column: 3; grid-row: 1; }
+    .stop > *:nth-child(4) { grid-column: 4; grid-row: 1; justify-self: end; }
+    .stop > *:nth-child(5) { grid-column: 2 / -1; grid-row: 2; }
+    .stop > *:nth-child(6) { grid-column: 2 / -1; grid-row: 3; }
+    .stop > *:nth-child(7) { grid-column: 2 / -1; grid-row: 4; }
+
+    .stop.head { display: none; }
+    .strike { grid-column: 2 / -1; grid-row: 2; }
+    .route::before { display: none; }
+
+    .who { font-size: 16px; }
+    .area { font-size: 13px; white-space: normal; }
+    .note { font-size: 13px; }
+    .t { font-size: 16px; }
+
+    /* 指で押す的は大きく取る */
+    .ord { width: 28px; height: 28px; font-size: 13px; }
+    .tag { width: 30px; height: 30px; }
+    .tag svg { width: 17px; height: 17px; }
+    .stop.filled { cursor: default; }
+
+    /* 事業所発・着のバーも折り返してよい */
+    .car-depart, .car-foot { flex-wrap: wrap; row-gap: 2px; }
+    .car-foot { justify-content: flex-start; }
+    .car-foot .count { margin-left: 0; }
+
+    /* 振替の受付 */
+    .swap-bar { flex-wrap: wrap; }
+
+    /* 便の見出しと人数 */
+    .leg-head { gap: calc(var(--step) * 2); }
+    .leg-title { font-size: 17px; }
+    .stats { margin-left: 0; width: 100%; }
+    .stat { flex: 1 1 4.2rem; min-width: 0; }
+
+    /* マスタ編集・出欠・印刷のページ */
+    .page-master, .page-attend { padding-left: calc(var(--step) * 3); padding-right: calc(var(--step) * 3); }
+    .pm-head, .pa-head, .pp-head { gap: calc(var(--step) * 3); }
+    .pm-head h1, .pa-head h1, .pp-head h1 { font-size: 20px; }
+    .pm-tabs { overflow-x: auto; align-self: stretch; }
+    .pm-tabs button { white-space: nowrap; padding: 9px 14px; }
+    .pm-actions, .pa-actions, .pp-actions { width: 100%; }
+    .pm-actions .btn, .pa-actions .btn, .pp-actions .btn { flex: 1 1 auto; min-height: 44px; }
+    .pp-docs { align-self: stretch; overflow-x: auto; }
+    .pp-docs button { white-space: nowrap; }
+    .ppr-grid { grid-template-columns: 3rem repeat(2, minmax(0, 1fr)); }
+
+    .pm-filter { gap: calc(var(--step) * 2); }
+    .pf-label { white-space: nowrap; }
+    .pf-find { flex: 1 1 100%; }
+    .pf-find input { width: 100%; }
+    .pf-days { flex: 1 1 auto; }
+    .pf-days button { flex: 1 1 0; min-height: 40px; }
+    .pf-hit { margin-left: 0; }
+
+    .io-grid { grid-template-columns: minmax(0, 1fr); }
+    .io-acts .btn, .io-row .btn { min-height: 44px; }
+
+    .pa-row { grid-template-columns: 1.8rem minmax(0, 1fr) 6.5rem; }
+    .pa-pick { min-height: 40px; }
+
+    .modal { padding: calc(var(--step) * 3); align-items: flex-start; }
+    .uf-row { grid-template-columns: minmax(0, 1fr); }
+    .uf-label { font-weight: 600; }
+    .uf-help { grid-column: 1; }
+  }
+
+  /* 表は画面より広い。指で横に送れるようにする（PC でも同じ） */
+  .pm-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  @media screen and (max-width: 760px) {
+    .pm-scroll table { min-width: 52rem; }
+  }
+
+  /* 指で使う端末は、画面の広さによらず押す的を大きく取る（タブレットも同じ）。
+     ドラッグは指では効かないので、押して選ぶ道を前に出す（案内文は起動時に差し替え） */
+  @media (hover: none) {
+    .stop.filled { cursor: default; }
+    .ord { width: 28px; height: 28px; font-size: 13px; }
+    .tag { width: 30px; height: 30px; }
+    .tag svg { width: 17px; height: 17px; }
+    .side-name { min-height: 40px; }
+    .tools button, .leg-group button, .btn { min-height: 44px; }
+    .date-step { min-width: 40px; min-height: 40px; }
+    .car-fold, .cc-expand, .car-map { width: 32px; height: 32px; }
+  }
+
   /* ── 印刷：A4横・4便で4枚 ─────────────────── */
   @page {
     size: A4 landscape;
@@ -3458,54 +3612,62 @@
         <button type="button" class="btn pf-clear" id="user-filter-clear" hidden>絞りを外す</button>
         <span class="pf-hit" id="user-hit"></span>
       </div>
-      <table>
-        <thead>
-          <tr>
-            <th style="width:12%">氏名</th>
-            <th style="width:11%">ふりがな</th>
-            <th style="width:19%">住所（市区町村以下）</th>
-            <th style="width:9%">介護度</th>
-            <th style="width:9%">血圧<span class="th-note">日誌の備考欄</span></th>
-            <th style="width:10%">電話<span class="th-note">連絡表の覚え書き</span></th>
-            <th style="width:7%">記号</th>
-            <th style="width:13%">利用曜日</th>
-            <th style="width:10%"></th>
-          </tr>
-        </thead>
-        <tbody id="user-rows"></tbody>
-      </table>
+      <div class="pm-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:12%">氏名</th>
+              <th style="width:11%">ふりがな</th>
+              <th style="width:19%">住所（市区町村以下）</th>
+              <th style="width:9%">介護度</th>
+              <th style="width:9%">血圧<span class="th-note">日誌の備考欄</span></th>
+              <th style="width:10%">電話<span class="th-note">連絡表の覚え書き</span></th>
+              <th style="width:7%">記号</th>
+              <th style="width:13%">利用曜日</th>
+              <th style="width:10%"></th>
+            </tr>
+          </thead>
+          <tbody id="user-rows"></tbody>
+        </table>
+      </div>
 
       <h3 class="pm-ended">利用終了<span class="h3-note" id="ended-count"></span></h3>
-      <table>
-        <thead>
-          <tr>
-            <th style="width:16%">氏名</th>
-            <th style="width:16%">ふりがな</th>
-            <th style="width:14%">終了日</th>
-            <th style="width:30%">理由</th>
-            <th style="width:14%"></th>
-          </tr>
-        </thead>
-        <tbody id="ended-rows"></tbody>
-      </table>
+      <div class="pm-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:16%">氏名</th>
+              <th style="width:16%">ふりがな</th>
+              <th style="width:14%">終了日</th>
+              <th style="width:30%">理由</th>
+              <th style="width:14%"></th>
+            </tr>
+          </thead>
+          <tbody id="ended-rows"></tbody>
+        </table>
+      </div>
       <p class="pm-note">終了にした方は、送迎表の利用者プルダウン・既定の割り当て・未割当から外れます。
         すでに表に入っている過去の日付では、そのまま残ります。</p>
     </section>
 
     <section class="pm-pane" id="pm-drivers" hidden>
       <h3>運転手<button type="button" class="btn" id="add-driver">＋ 運転手を追加</button></h3>
-      <table>
-        <thead><tr><th style="width:22%">氏名</th><th style="width:22%">出勤日</th><th></th></tr></thead>
-        <tbody id="driver-rows"></tbody>
-      </table>
+      <div class="pm-scroll">
+        <table>
+          <thead><tr><th style="width:22%">氏名</th><th style="width:22%">出勤日</th><th></th></tr></thead>
+          <tbody id="driver-rows"></tbody>
+        </table>
+      </div>
     </section>
 
     <section class="pm-pane" id="pm-dispatch" hidden>
       <h3>配車<span class="h3-note">出勤人数ごとに、動かす車両を選ぶ</span></h3>
-      <table>
-        <thead><tr><th style="width:10%">人数版</th><th>使う車両</th><th style="width:22%">割り当て</th></tr></thead>
-        <tbody id="dispatch-rows"></tbody>
-      </table>
+      <div class="pm-scroll">
+        <table>
+          <thead><tr><th style="width:10%">人数版</th><th>使う車両</th><th style="width:22%">割り当て</th></tr></thead>
+          <tbody id="dispatch-rows"></tbody>
+        </table>
+      </div>
     </section>
 
     <section class="pm-pane" id="pm-io" hidden>
@@ -8224,6 +8386,15 @@
 
   document.getElementById("sm-icon").innerHTML = ICONS.gear;
   document.getElementById("sa-icon").innerHTML = ICONS.check;
+
+  /* 指で使う端末ではドラッグができない。案内を「押して選ぶ」に差し替える */
+  if (window.matchMedia && window.matchMedia("(hover: none)").matches) {
+    const hint = document.querySelector(".side-hint");
+    if (hint) {
+      hint.innerHTML = "名前を<b>押す</b>と、乗せる車を選べます。"
+        + "乗っている方を別の車へ移すときは、行の<b>番号を押して空欄にしてから</b>選び直してください。";
+    }
+  }
   document.getElementById("sn-icon").innerHTML = ICONS.book;
   document.getElementById("btn-attend").addEventListener("click", openAttendPage);
 
