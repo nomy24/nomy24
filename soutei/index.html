@@ -7197,7 +7197,7 @@
     const built = doc.build();
     const root = stackPapers(built.root, built.pages);
 
-    const css = [...document.querySelectorAll("style")].map((s) => s.textContent).join("\n");
+    const css = stripScreenRules([...document.querySelectorAll("style")].map((s) => s.textContent).join("\n"));
     const title = doc.file();
 
     const size = doc.paper || PAPER.landscape;
@@ -7208,6 +7208,36 @@
       + paperCSS(size) + "\n/* 画面でも紙の見た目で見せる */\n" + printRules(css) + "\n" + paperScreenCSS(size)
       + "\n</style>\n</head>\n<body>\n" + root.outerHTML + "\n"
       + "<script>" + paperFit(size) + "<\/script>\n</body>\n</html>";
+  }
+
+  /* 紙は折り返さない。A4の1枚をそのまま縮めて見せるだけなので、
+     画面の幅で切り替える決まりを持ち込むと、携帯で開いたプレビューだけ
+     行が段に折れて重なってしまう。刷るための写しからは外しておく。
+     指の端末かどうかで切り替える決まりも同じ理由で外す
+     （携帯から直に印刷したとき、紙にまで大きな押し的が出てしまうため）。 */
+  function stripScreenRules(css) {
+    let out = "";
+    let i = 0;
+    while (i < css.length) {
+      const at = css.indexOf("@media", i);
+      if (at < 0) { out += css.slice(i); break; }
+      const open = css.indexOf("{", at);
+      if (open < 0) { out += css.slice(i); break; }
+
+      let depth = 0;
+      let end = css.length - 1;
+      for (let k = open; k < css.length; k++) {
+        if (css[k] === "{") depth++;
+        else if (css[k] === "}") { depth--; if (depth === 0) { end = k; break; } }
+      }
+
+      const cond = css.slice(at + 6, open);
+      const drop = !/print/.test(cond) && /max-width|hover\s*:\s*none/.test(cond);
+      out += css.slice(i, at);
+      if (!drop) out += css.slice(at, end + 1);
+      i = end + 1;
+    }
+    return out;
   }
 
   /* @media print { … } の中身を取り出して、画面にもそのまま効かせる。
