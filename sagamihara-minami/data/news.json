@@ -1,0 +1,18 @@
+{
+  "generatedAt": null,
+  "source": "相模原市公式ホームページ",
+  "sourceUrl": "https://www.city.sagamihara.kanagawa.jp/",
+  "counts": { "total": 0, "minami": 0, "citywide": 0, "addedThisRun": 0 },
+  "categories": [
+    { "id": "bousai", "label": "防災・防犯", "icon": "shield" },
+    { "id": "kosodate", "label": "子育て・教育", "icon": "child" },
+    { "id": "kenko", "label": "健康・福祉", "icon": "heart" },
+    { "id": "event", "label": "イベント", "icon": "sparkles" },
+    { "id": "gomi", "label": "ごみ・環境", "icon": "recycle" },
+    { "id": "kurashi", "label": "くらし・手続き", "icon": "home" },
+    { "id": "shisei", "label": "市政・お知らせ", "icon": "megaphone" }
+  ],
+  "feeds": [],
+  "items": [],
+  "revision": null
+}

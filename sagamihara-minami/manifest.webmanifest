@@ -1,0 +1,20 @@
+{
+  "name": "南区インフォ｜相模原市南区の新着情報",
+  "short_name": "南区インフォ",
+  "description": "相模原市南区の新着情報をまとめて確認できるアプリ。新しいお知らせは通知マークでお知らせします。",
+  "lang": "ja",
+  "dir": "ltr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f2f8fa",
+  "theme_color": "#f2f8fa",
+  "categories": ["news", "government", "lifestyle"],
+  "icons": [
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

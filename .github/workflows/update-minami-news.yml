@@ -1,0 +1,51 @@
+name: Update Sagamihara Minami news
+
+on:
+  schedule:
+    # 毎日 7:00 と 19:00（日本時間）に更新する
+    - cron: '0 22,10 * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'config/sources.json'
+      - 'scripts/**'
+      - '.github/workflows/update-minami-news.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-minami-news
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 相模原市の新着情報を取得する
+        run: node scripts/fetch-news.mjs
+
+      - name: 変更があればコミットする
+        run: |
+          if git diff --quiet -- sagamihara-minami/data/news.json config/sources.json; then
+            echo "更新はありませんでした。"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add sagamihara-minami/data/news.json config/sources.json
+          count=$(node -e "console.log(require('./sagamihara-minami/data/news.json').counts.total)")
+          git commit -m "chore: 南区の新着情報を更新（${count}件）"
+          for attempt in 1 2 3 4; do
+            git pull --rebase origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && exit 0
+            echo "push に失敗しました。${attempt} 回目の再試行を待機します。"
+            sleep $((2 ** attempt))
+          done
+          exit 1

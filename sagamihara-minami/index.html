@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>南区インフォ｜相模原市南区の新着情報</title>
+<meta name="description" content="相模原市南区の新着情報をまとめて確認できるアプリ。新しいお知らせは通知マークでお知らせします。">
+<meta name="theme-color" content="#f4f9fa" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0e1b2a" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="南区インフォ">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<a class="skip-link" href="#main">本文へ移動</a>
+
+<header class="appbar">
+  <div class="appbar__inner">
+    <div class="appbar__title">
+      <span class="appbar__eyebrow">相模原市</span>
+      <h1 class="appbar__name">南区インフォ</h1>
+    </div>
+    <button id="bell" class="bell" type="button" aria-label="新着のお知らせを見る">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M12 3a5.5 5.5 0 0 0-5.5 5.5v3.2L5 15.4h14l-1.5-3.7V8.5A5.5 5.5 0 0 0 12 3Z"/>
+        <path d="M9.6 18a2.4 2.4 0 0 0 4.8 0"/>
+      </svg>
+      <span id="bellBadge" class="bell__badge" hidden>0</span>
+    </button>
+  </div>
+</header>
+
+<main id="main" class="screens">
+
+  <!-- ホーム -->
+  <section class="screen is-active" id="screen-home" aria-labelledby="statusHeading">
+    <div class="status" id="status">
+      <div class="status__headline">
+        <span id="statusNumber" class="status__number">–</span>
+        <h2 class="status__label" id="statusHeading">読み込み中</h2>
+      </div>
+      <p class="status__meta">
+        <span id="statusUpdated">情報を取得しています</span>
+        <button id="refresh" class="status__refresh" type="button">更新する</button>
+      </p>
+      <button id="markAllRead" class="status__markread" type="button" hidden>すべて既読にする</button>
+    </div>
+
+    <div class="filters">
+      <div class="filters__scope" role="group" aria-label="表示する地域">
+        <button class="scope" type="button" data-scope="minami" aria-pressed="true">南区</button>
+        <button class="scope" type="button" data-scope="all" aria-pressed="false">市全体</button>
+      </div>
+      <div class="filters__search">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="filters__icon">
+          <circle cx="11" cy="11" r="6"/><path d="m20 20-4.4-4.4"/>
+        </svg>
+        <input id="search" type="search" inputmode="search" placeholder="キーワードで探す" aria-label="キーワードで探す" autocomplete="off">
+      </div>
+      <div class="chips" id="chips" role="group" aria-label="カテゴリで絞り込む"></div>
+    </div>
+
+    <div id="homeList" class="list"></div>
+  </section>
+
+  <!-- 保存 -->
+  <section class="screen" id="screen-saved" aria-labelledby="savedHeading" hidden>
+    <div class="pagehead">
+      <h2 id="savedHeading" class="pagehead__title">保存したお知らせ</h2>
+      <p class="pagehead__note">気になるお知らせは、カードの旗マークで保存できます。</p>
+    </div>
+    <div id="savedList" class="list"></div>
+  </section>
+
+  <!-- 設定 -->
+  <section class="screen" id="screen-settings" aria-labelledby="settingsHeading" hidden>
+    <div class="pagehead">
+      <h2 id="settingsHeading" class="pagehead__title">設定</h2>
+    </div>
+
+    <div class="card-group">
+      <h3 class="card-group__title">通知</h3>
+      <label class="row">
+        <span class="row__text">
+          <span class="row__label">新着をお知らせする</span>
+          <span class="row__desc" id="notifyDesc">端末の通知で新しいお知らせを受け取ります。</span>
+        </span>
+        <input id="notifyToggle" class="switch" type="checkbox">
+      </label>
+      <label class="row">
+        <span class="row__text">
+          <span class="row__label">重要なお知らせだけ通知する</span>
+          <span class="row__desc">警報・避難・臨時休止など、急ぎの内容にしぼります。</span>
+        </span>
+        <input id="importantOnlyToggle" class="switch" type="checkbox">
+      </label>
+      <label class="row">
+        <span class="row__text">
+          <span class="row__label">更新を確認する間隔</span>
+          <span class="row__desc">アプリを開いている間、この間隔で新着を確認します。</span>
+        </span>
+        <select id="intervalSelect" class="select">
+          <option value="15">15分ごと</option>
+          <option value="30" selected>30分ごと</option>
+          <option value="60">1時間ごと</option>
+          <option value="180">3時間ごと</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="card-group">
+      <h3 class="card-group__title">表示</h3>
+      <label class="row">
+        <span class="row__text">
+          <span class="row__label">文字を大きくする</span>
+          <span class="row__desc">本文と見出しを一回り大きく表示します。</span>
+        </span>
+        <input id="largeTextToggle" class="switch" type="checkbox">
+      </label>
+    </div>
+
+    <div class="card-group">
+      <h3 class="card-group__title">情報について</h3>
+      <p class="note" id="sourceNote">情報の取得元を読み込んでいます。</p>
+      <p class="note">このアプリは市が運営するものではありません。内容は必ず取得元の公式ページでご確認ください。</p>
+      <button id="clearCache" class="ghost-btn" type="button">保存データを消去する</button>
+    </div>
+  </section>
+</main>
+
+<nav class="tabbar" aria-label="画面の切り替え">
+  <button class="tab is-active" type="button" data-screen="home" aria-current="page">
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 11 12 4l8 7"/><path d="M6 10v9h12v-9"/></svg>
+    <span>新着</span>
+  </button>
+  <button class="tab" type="button" data-screen="saved">
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 4h10v16l-5-4-5 4Z"/></svg>
+    <span>保存</span>
+  </button>
+  <button class="tab" type="button" data-screen="settings">
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7h10m4 0h2M4 12h3m4 0h9M4 17h8m4 0h4"/><circle cx="16" cy="7" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="14" cy="17" r="2"/></svg>
+    <span>設定</span>
+  </button>
+</nav>
+
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="app.js"></script>
+</body>
+</html>
