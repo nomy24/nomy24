@@ -30,7 +30,7 @@ GitHub Pages を有効にすると、そのまま公開できます。
 
 `.github/workflows/update-minami-news.yml` が定期的に `scripts/fetch-news.mjs` を実行し、
 `sagamihara-minami/data/news.json` に変更があるときだけコミットします。
-初回は **Actions › Update Sagamihara Minami news › Run workflow** から手動で実行してください。
+すぐに更新したいときは **Actions › Update Sagamihara Minami news › Run workflow** から手動で実行できます。
 
 ### 手動で実行する
 
@@ -63,13 +63,19 @@ Node.js 20 以上が必要です。外部パッケージは使っていません
 
 ### 南区の記事の選び方
 
-`config/sources.json` の `areas` に地名のキーワードを並べてあります。
+市が配信しているのは市全体の更新情報1本だけで、南区固有の記事はそのうち10件前後です。
+そのため初期表示は「すべて」（市全体をふくむ）にしてあります。
+南区に直接関わるものだけを見たいときは「南区の話題」に切り替えてください。
 
-- 南区の地名を含む記事 → `scope: "minami"`（「南区」表示に出る）
-- どの区の地名も含まない全市向けの記事 → `scope: "citywide"`（「市全体」表示に出る）
+`config/sources.json` の `areas`（地名キーワード）と `pathRules.areas`（URLのパス）で判定します。
+
+- 南区の地名を含む、または URL が `/minamiku/` 以下 → `scope: "minami"`（「南区の話題」に出る）
+- どの区にも当てはまらない全市向けの記事 → `scope: "citywide"`（「すべて」に出る）
 - 中央区・緑区だけに関わる記事 → 取り込まない
 
 警報・避難など `importantKeywords` に当たる記事は、地域の絞り込みに関わらず必ず表示します。
+
+実際の内訳（2026年8月時点）は、取得255件のうち 南区9件・全市229件・他区のみ17件（除外）でした。
 
 地名やカテゴリを増やしたいときは `config/sources.json` を編集してください。次回の実行から反映されます。
 
