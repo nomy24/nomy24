@@ -1,55 +1,49 @@
 #!/usr/bin/env node
 /**
- * 一時的な調査スクリプト。相模原市サイトの構造を調べて標準出力に出す。
- * 取得元の場所が確定したら削除する。
+ * 一時的な検証スクリプト。実際のRSSに対して取得と分類を通し、内訳を表示する。
+ * 取り込みが安定したら削除する。
  */
 
-import { fetchText, absoluteUrl } from './lib/http.mjs';
-import { parseFeed, extractLinkedItems, stripHtml } from './lib/feed.mjs';
+import { readFile } from 'node:fs/promises';
+import { loadFeed } from './lib/feed.mjs';
+import { classifyItem, minamiRelevance } from './lib/classify.mjs';
 
-const ORIGIN = 'https://www.city.sagamihara.kanagawa.jp';
+const config = JSON.parse(await readFile(new URL('../config/sources.json', import.meta.url), 'utf8'));
 
-function section(title) {
-  console.log(`\n${'='.repeat(70)}\n${title}\n${'='.repeat(70)}`);
-}
+for (const feed of config.feeds) {
+  const result = await loadFeed(feed.url);
+  console.log(`\n${feed.url}`);
+  console.log(`取得: ${result.ok ? 'OK' : `NG (${result.error})`} / ${result.items.length}件`);
+  if (!result.ok) continue;
 
-// --- 1. RSS 本体 -------------------------------------------------------
-section('/rss.rss');
-const rss = await fetchText(`${ORIGIN}/rss.rss`);
-console.log('status:', rss.status, '| content-type:', rss.contentType, '| 文字数:', rss.body.length);
-if (rss.ok) {
-  console.log('--- 先頭1200文字 ---');
-  console.log(rss.body.slice(0, 1200));
-  const parsed = parseFeed(rss.body, rss.url);
-  console.log('--- parseFeed の結果 ---');
-  console.log('タイトル:', parsed && parsed.title, '| 件数:', parsed ? parsed.items.length : 0);
-  if (parsed) console.log(JSON.stringify(parsed.items.slice(0, 5), null, 1));
-}
+  const byCategory = new Map();
+  const byScope = new Map();
+  const minami = [];
 
-// --- 2. RSS 配信一覧ページ ---------------------------------------------
-section('/about/rss.html にあるフィード一覧');
-const rssPage = await fetchText(`${ORIGIN}/about/rss.html`);
-console.log('status:', rssPage.status, '| 文字数:', rssPage.body.length);
-if (rssPage.ok) {
-  for (const m of rssPage.body.matchAll(/<a\b[^>]*href\s*=\s*["']([^"']+)["'][^>]*>([\s\S]{0,120}?)<\/a>/gi)) {
-    if (!/\.(rss|rdf|xml)(\?|$)/i.test(m[1])) continue;
-    console.log(`${stripHtml(m[2], 60).padEnd(30)} -> ${absoluteUrl(m[1], rssPage.url)}`);
+  for (const item of result.items) {
+    const meta = classifyItem(item, config);
+    const scope = minamiRelevance(meta.areas);
+    byCategory.set(meta.categoryLabel, (byCategory.get(meta.categoryLabel) || 0) + 1);
+    byScope.set(scope, (byScope.get(scope) || 0) + 1);
+    if (scope === 'minami') minami.push({ ...item, ...meta });
   }
-}
 
-// --- 3. 更新情報ページ -------------------------------------------------
-for (const path of ['/news.html', '/minamiku/index.html']) {
-  section(`${path} からの記事抽出`);
-  const res = await fetchText(`${ORIGIN}${path}`);
-  console.log('status:', res.status, '| 文字数:', res.body.length);
-  if (!res.ok) continue;
-  const items = extractLinkedItems(res.body, res.url);
-  console.log('抽出件数:', items.length);
-  console.log(JSON.stringify(items.slice(0, 8), null, 1));
+  console.log('\n--- 地域の内訳 ---');
+  for (const [scope, n] of [...byScope].sort((a, b) => b[1] - a[1])) console.log(`${String(n).padStart(4)}  ${scope}`);
 
-  const marker = res.body.search(/新着|更新情報|お知らせ/);
-  if (marker !== -1) {
-    console.log('--- 「新着/更新情報」付近の生HTML（1500文字）---');
-    console.log(res.body.slice(marker - 200, marker + 1300));
+  console.log('\n--- カテゴリの内訳 ---');
+  for (const [label, n] of [...byCategory].sort((a, b) => b[1] - a[1])) console.log(`${String(n).padStart(4)}  ${label}`);
+
+  console.log(`\n--- 南区と判定された記事（最大25件）---`);
+  for (const item of minami.slice(0, 25)) {
+    console.log(`[${item.categoryLabel}] ${item.title}`);
+    console.log(`      手がかり: ${item.areaHits.join('・') || '(なし)'} / ${item.url}`);
+  }
+
+  console.log(`\n--- 全市と判定された記事の例（先頭15件）---`);
+  for (const item of result.items.slice(0, 15)) {
+    const meta = classifyItem(item, config);
+    if (minamiRelevance(meta.areas) !== 'citywide') continue;
+    console.log(`[${meta.categoryLabel}]${meta.important ? '[重要]' : ''} ${item.title}`);
   }
 }

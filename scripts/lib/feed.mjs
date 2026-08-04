@@ -146,7 +146,8 @@ export function findFeedLinks(html, baseUrl) {
   const anchor = /<a\b[^>]*href\s*=\s*("([^"]*)"|'([^']*)'|([^\s"'>]+))[^>]*>/gi;
   while ((m = anchor.exec(html)) !== null) {
     const value = m[2] || m[3] || m[4] || '';
-    if (!/\.(rdf|xml)(\?|$)/i.test(value) && !/\/(rss|feed|atom)(\/|\?|$)/i.test(value)) continue;
+    // 相模原市は /rss.rss を使うため、.rss 拡張子も対象に含める
+    if (!/\.(rdf|xml|rss)(\?|$)/i.test(value) && !/\/(rss|feed|atom)(\/|\?|$)/i.test(value)) continue;
     if (/sitemap/i.test(value)) continue;
     const abs = absoluteUrl(decodeEntities(value), baseUrl);
     if (abs) found.add(abs);

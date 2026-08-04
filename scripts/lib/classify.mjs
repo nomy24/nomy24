@@ -20,17 +20,36 @@ function countHits(haystack, keywords) {
   return { hits, matched };
 }
 
+/** URL のパスに含まれる区分（/kosodate/ など）を数える。 */
+function pathScore(url, patterns) {
+  if (!url || !Array.isArray(patterns)) return 0;
+  let path;
+  try {
+    path = new URL(url).pathname.toLowerCase();
+  } catch {
+    path = String(url).toLowerCase();
+  }
+  // パスはタイトルの単語より確実な手がかりなので重みを大きくする
+  return patterns.filter((pattern) => path.includes(pattern.toLowerCase())).length * 2;
+}
+
 /**
  * 記事1件を分類する。
+ *
+ * 相模原市のRSSは description が空なので、タイトルに加えて
+ * URL のパス（/kosodate/、/minamiku/ など）も手がかりに使う。
+ *
  * @returns {{category:string, categoryLabel:string, areas:string[], areaHits:string[], important:boolean}}
  */
 export function classifyItem(item, config) {
-  const haystack = normalize(`${item.title} ${item.summary || ''} ${item.url || ''}`);
+  const haystack = normalize(`${item.title} ${item.summary || ''}`);
+  const pathRules = config.pathRules || {};
 
   let best = { id: 'shisei', label: 'お知らせ', score: 0 };
   for (const category of config.categories) {
     const { hits } = countHits(haystack, category.keywords);
-    if (hits > best.score) best = { id: category.id, label: category.label, score: hits };
+    const score = hits + pathScore(item.url, (pathRules.categories || {})[category.id]);
+    if (score > best.score) best = { id: category.id, label: category.label, score };
   }
   if (best.score === 0) {
     const fallback = config.categories.find((c) => c.id === 'shisei');
@@ -41,9 +60,13 @@ export function classifyItem(item, config) {
   const areaHits = [];
   for (const [areaId, area] of Object.entries(config.areas || {})) {
     const { hits, matched } = countHits(haystack, area.keywords);
-    if (hits > 0) {
+    const fromPath = pathScore(item.url, (pathRules.areas || {})[areaId]) > 0;
+    if (hits > 0 || fromPath) {
       areas.push(areaId);
-      if (areaId === 'minami') areaHits.push(...matched);
+      if (areaId === 'minami') {
+        areaHits.push(...matched);
+        if (fromPath && matched.length === 0) areaHits.push(area.label);
+      }
     }
   }
 
