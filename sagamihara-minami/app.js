@@ -11,7 +11,7 @@
     readIds: [],          // 個別に開いた記事
     knownIds: [],         // 前回チェック時点で存在していた記事
     savedIds: [],         // 保存した記事
-    scope: 'minami',      // 'minami' | 'all'
+    scope: 'all',         // 'all' = 市全体もふくむ / 'minami' = 南区の話題だけ
     category: 'all',
     notify: false,
     importantOnly: false,

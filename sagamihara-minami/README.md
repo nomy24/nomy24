@@ -44,11 +44,19 @@ Node.js 20 以上が必要です。外部パッケージは使っていません
 
 ### 取得のしくみ
 
+取得元は相模原市公式ホームページの RSS **<https://www.city.sagamihara.kanagawa.jp/rss.rss>** です
+（市の [RSS配信ページ](https://www.city.sagamihara.kanagawa.jp/about/rss.html) で案内されている唯一のフィードで、
+市全体の更新情報が約250件入っています）。
+
 1. `config/sources.json` の `feeds` を読みに行く
 2. `feeds` が空、または全部失敗したら、市サイトを走査して RSS を自動的に探し、
    見つかった URL を `config/sources.json` に書き戻す（次回からはそれを使う）
-3. RSS がまったく取れないときは、新着一覧ページの HTML から「日付＋リンク」を拾う
+3. RSS がまったく取れないときは、更新情報ページの HTML から「日付＋リンク」を拾う
 4. 前回の `news.json` と突き合わせ、初回に見つけた時刻（`firstSeenAt`）を保ったまま出力する
+
+このフィードは `description` が空で、判断材料がタイトルと URL しかありません。
+そのため記事の URL のパス（`/minamiku/`、`/kosodate/`、`/kurashi/1026529/bousai/` など）も
+地域・カテゴリの手がかりとして使っています（`config/sources.json` の `pathRules`）。
 
 一時的にサイトへつながらなくても、既存のデータは消えません。
 すべて失敗した実行は、ファイルを書き換えずに終了コード 1 で終わります。
