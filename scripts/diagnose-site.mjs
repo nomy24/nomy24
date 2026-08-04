@@ -4,8 +4,8 @@
  * 取得元の場所が確定したら削除する。
  */
 
-import { fetchText } from './lib/http.mjs';
-import { absoluteUrl } from './lib/http.mjs';
+import { fetchText, absoluteUrl } from './lib/http.mjs';
+import { parseFeed, extractLinkedItems, stripHtml } from './lib/feed.mjs';
 
 const ORIGIN = 'https://www.city.sagamihara.kanagawa.jp';
 
@@ -13,61 +13,43 @@ function section(title) {
   console.log(`\n${'='.repeat(70)}\n${title}\n${'='.repeat(70)}`);
 }
 
-async function probe(paths) {
-  for (const path of paths) {
-    const url = absoluteUrl(path, ORIGIN);
-    const res = await fetchText(url, { retries: 0, timeoutMs: 15000 });
-    const head = res.body.slice(0, 120).replace(/\s+/g, ' ');
-    console.log(`${String(res.status).padEnd(4)} ${(res.contentType || '-').padEnd(40)} ${url}`);
-    if (res.ok) console.log(`      先頭: ${head}`);
+// --- 1. RSS 本体 -------------------------------------------------------
+section('/rss.rss');
+const rss = await fetchText(`${ORIGIN}/rss.rss`);
+console.log('status:', rss.status, '| content-type:', rss.contentType, '| 文字数:', rss.body.length);
+if (rss.ok) {
+  console.log('--- 先頭1200文字 ---');
+  console.log(rss.body.slice(0, 1200));
+  const parsed = parseFeed(rss.body, rss.url);
+  console.log('--- parseFeed の結果 ---');
+  console.log('タイトル:', parsed && parsed.title, '| 件数:', parsed ? parsed.items.length : 0);
+  if (parsed) console.log(JSON.stringify(parsed.items.slice(0, 5), null, 1));
+}
+
+// --- 2. RSS 配信一覧ページ ---------------------------------------------
+section('/about/rss.html にあるフィード一覧');
+const rssPage = await fetchText(`${ORIGIN}/about/rss.html`);
+console.log('status:', rssPage.status, '| 文字数:', rssPage.body.length);
+if (rssPage.ok) {
+  for (const m of rssPage.body.matchAll(/<a\b[^>]*href\s*=\s*["']([^"']+)["'][^>]*>([\s\S]{0,120}?)<\/a>/gi)) {
+    if (!/\.(rss|rdf|xml)(\?|$)/i.test(m[1])) continue;
+    console.log(`${stripHtml(m[2], 60).padEnd(30)} -> ${absoluteUrl(m[1], rssPage.url)}`);
   }
 }
 
-const top = await fetchText(ORIGIN);
-section('トップページ');
-console.log('status:', top.status, '| content-type:', top.contentType, '| 最終URL:', top.url, '| 文字数:', top.body.length);
+// --- 3. 更新情報ページ -------------------------------------------------
+for (const path of ['/news.html', '/minamiku/index.html']) {
+  section(`${path} からの記事抽出`);
+  const res = await fetchText(`${ORIGIN}${path}`);
+  console.log('status:', res.status, '| 文字数:', res.body.length);
+  if (!res.ok) continue;
+  const items = extractLinkedItems(res.body, res.url);
+  console.log('抽出件数:', items.length);
+  console.log(JSON.stringify(items.slice(0, 8), null, 1));
 
-section('<link rel="alternate"> など head 内のリンク');
-for (const m of top.body.matchAll(/<link\b[^>]*>/gi)) {
-  if (/alternate|rss|rdf|atom|feed/i.test(m[0])) console.log(m[0].replace(/\s+/g, ' '));
+  const marker = res.body.search(/新着|更新情報|お知らせ/);
+  if (marker !== -1) {
+    console.log('--- 「新着/更新情報」付近の生HTML（1500文字）---');
+    console.log(res.body.slice(marker - 200, marker + 1300));
+  }
 }
-
-section('rss / rdf / feed / xml を含む href');
-const feedish = new Set();
-for (const m of top.body.matchAll(/href\s*=\s*["']([^"']+)["']/gi)) {
-  if (/(rss|rdf|feed|\.xml)/i.test(m[1])) feedish.add(m[1]);
-}
-console.log([...feedish].join('\n') || '(なし)');
-
-section('「新着」「更新」を含むリンク');
-for (const m of top.body.matchAll(/<a\b[^>]*href\s*=\s*["']([^"']+)["'][^>]*>([\s\S]{0,80}?)<\/a>/gi)) {
-  const text = m[2].replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
-  if (/新着|更新情報|お知らせ|報道|広報/.test(text)) console.log(`${text}  ->  ${m[1]}`);
-}
-
-section('日付らしき文字列の出現例（最初の12件）');
-let shown = 0;
-for (const m of top.body.matchAll(/\d{4}\s*年\s*\d{1,2}\s*月\s*\d{1,2}\s*日|\d{4}[-/]\d{1,2}[-/]\d{1,2}/g)) {
-  const around = top.body.slice(Math.max(0, m.index - 160), m.index + 160).replace(/\s+/g, ' ');
-  console.log(`--- ${m[0]}\n${around}`);
-  if (++shown >= 12) break;
-}
-
-section('内部リンクの一覧（先頭60件）');
-const links = new Set();
-for (const m of top.body.matchAll(/href\s*=\s*["']([^"']+)["']/gi)) {
-  const abs = absoluteUrl(m[1], top.url);
-  if (abs && abs.startsWith(ORIGIN)) links.add(abs);
-}
-console.log([...links].slice(0, 60).join('\n'));
-
-section('候補パスの応答');
-await probe([
-  '/rss.xml', '/rss/index.xml', '/index.rdf', '/feed', '/atom.xml',
-  '/sitemap.xml', '/whatsnew/index.html', '/shinchaku.html', '/site/rss.html',
-  '/kurashi/index.html', '/minamiku/index.html', '/shisei/index.html',
-]);
-
-section('sitemap.xml の中身（あれば先頭2000文字）');
-const sitemap = await fetchText(`${ORIGIN}/sitemap.xml`, { retries: 0 });
-console.log(sitemap.ok ? sitemap.body.slice(0, 2000) : `取得できません: ${sitemap.error || sitemap.status}`);
