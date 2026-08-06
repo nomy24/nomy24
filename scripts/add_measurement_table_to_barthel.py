@@ -39,9 +39,10 @@ HEADERS = [
     ("FRT", "cm", 0.083, []),
     ("身長", "cm", 0.083, []),
     ("体重", "kg", 0.081, []),
-    ("義歯", "", 0.220, ["自歯", "一部義歯", "全義歯"]),
+    ("義歯", "", 0.220, ["自歯のみ", "一部義歯", "全義歯"]),
 ]
-SUB_W_RATIO = {"義歯": [0.29, 0.42, 0.29]}
+SUB_W_RATIO = {"義歯": [0.35, 0.35, 0.30]}
+CHECKBOX_SIZE = 8.0  # 小見出しを持つ列の記入欄に置くチェックボックスの一辺
 
 DATA_ROWS = 1
 HEADER_H = 26.0  # 見出し＋単位の 2 行分
@@ -111,7 +112,7 @@ def build_table_overlay(x0, x1, content_top_pdf):
     for x in xs:
         c.line(x, table_top, x, table_bottom)
 
-    # 小見出しを持つ列の内部罫線
+    # 小見出しを持つ列の内部罫線とチェックボックス
     for i, (label, _unit, _ratio, subs) in enumerate(HEADERS):
         if not subs:
             continue
@@ -121,6 +122,23 @@ def build_table_overlay(x0, x1, content_top_pdf):
         for r in sub_ratio[:-1]:
             sx += widths[i] * r
             c.line(sx, header_mid, sx, table_bottom)
+
+        c.setLineWidth(LINE_W * 0.9)
+        for row in range(DATA_ROWS):
+            row_center = header_bottom - ROW_H * row - ROW_H / 2
+            sx = xs[i]
+            for r in sub_ratio:
+                sw = widths[i] * r
+                c.rect(
+                    sx + sw / 2 - CHECKBOX_SIZE / 2,
+                    row_center - CHECKBOX_SIZE / 2,
+                    CHECKBOX_SIZE,
+                    CHECKBOX_SIZE,
+                    stroke=1,
+                    fill=0,
+                )
+                sx += sw
+        c.setLineWidth(LINE_W)
 
     # 見出し文字（列幅に収まるようにフォントサイズを自動調整）
     label_size_base = 9.0
