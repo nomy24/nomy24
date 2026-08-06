@@ -27,20 +27,21 @@ CONTENT_BOTTOM = 771.45  # 下端（上原点）
 
 SCALE = 0.94
 
-# (見出し, 単位) — 単位のない列は空文字
+# (見出し, 単位, 幅比率, 小見出し) — 単位・小見出しのない列は空
+# 小見出しを持つ列は見出し行が上下 2 段に分かれ、記入欄も小見出しの数だけ分割される
 HEADERS = [
-    ("Ｎｏ", ""),
-    ("氏名", ""),
-    ("握力(右)", "kg"),
-    ("握力(左)", "kg"),
-    ("5m歩行", "秒"),
-    ("TUG", "秒"),
-    ("FRT", "cm"),
-    ("身長", "cm"),
-    ("体重", "kg"),
-    ("義歯", ""),
+    ("Ｎｏ", "", 0.050, []),
+    ("氏名", "", 0.130, []),
+    ("握力(右)", "kg", 0.090, []),
+    ("握力(左)", "kg", 0.090, []),
+    ("5m歩行", "秒", 0.090, []),
+    ("TUG", "秒", 0.083, []),
+    ("FRT", "cm", 0.083, []),
+    ("身長", "cm", 0.083, []),
+    ("体重", "kg", 0.081, []),
+    ("義歯", "", 0.220, ["自歯", "一部義歯", "全義歯"]),
 ]
-COL_W_RATIO = [0.058, 0.150, 0.100, 0.100, 0.100, 0.092, 0.092, 0.092, 0.092, 0.124]
+SUB_W_RATIO = {"義歯": [0.29, 0.42, 0.29]}
 
 DATA_ROWS = 1
 HEADER_H = 26.0  # 見出し＋単位の 2 行分
@@ -81,7 +82,7 @@ def build_table_overlay(x0, x1, content_top_pdf):
             f"表が元コンテンツに重なります (表下端 {table_bottom:.1f} < 本文上端 {content_top_pdf:.1f})"
         )
 
-    widths = [table_w * r for r in COL_W_RATIO]
+    widths = [table_w * col[2] for col in HEADERS]
     # 丸め誤差を最終列で吸収
     widths[-1] += table_w - sum(widths)
 
@@ -89,17 +90,20 @@ def build_table_overlay(x0, x1, content_top_pdf):
     for w in widths:
         xs.append(xs[-1] + w)
 
+    header_mid = table_top - HEADER_H / 2
+    header_bottom = table_top - HEADER_H
+
     # 見出し行の背景色
     c.setFillColor(HEADER_FILL)
-    c.rect(x0, table_top - HEADER_H, table_w, HEADER_H, stroke=0, fill=1)
+    c.rect(x0, header_bottom, table_w, HEADER_H, stroke=0, fill=1)
 
     c.setLineWidth(LINE_W)
     c.setStrokeColorRGB(0, 0, 0)
 
     # 横罫線
-    ys = [table_top, table_top - HEADER_H]
+    ys = [table_top, header_bottom]
     for i in range(DATA_ROWS):
-        ys.append(table_top - HEADER_H - ROW_H * (i + 1))
+        ys.append(header_bottom - ROW_H * (i + 1))
     for y in ys:
         c.line(x0, y, x1, y)
 
@@ -107,23 +111,52 @@ def build_table_overlay(x0, x1, content_top_pdf):
     for x in xs:
         c.line(x, table_top, x, table_bottom)
 
+    # 小見出しを持つ列の内部罫線
+    for i, (label, _unit, _ratio, subs) in enumerate(HEADERS):
+        if not subs:
+            continue
+        c.line(xs[i], header_mid, xs[i + 1], header_mid)
+        sub_ratio = SUB_W_RATIO[label]
+        sx = xs[i]
+        for r in sub_ratio[:-1]:
+            sx += widths[i] * r
+            c.line(sx, header_mid, sx, table_bottom)
+
     # 見出し文字（列幅に収まるようにフォントサイズを自動調整）
     label_size_base = 9.0
+    sub_size_base = 7.0
     unit_size = 7.0
-    c.setFillColor(HEADER_TEXT)
-    for i, (label, unit) in enumerate(HEADERS):
-        size = label_size_base
-        while pdfmetrics.stringWidth(label, FONT, size) > widths[i] - 6 and size > 5:
+    lower_baseline = header_bottom + 4.8
+
+    def fitted_size(text, avail, base, floor=4.5):
+        size = base
+        while pdfmetrics.stringWidth(text, FONT, size) > avail and size > floor:
             size -= 0.25
+        return size
+
+    c.setFillColor(HEADER_TEXT)
+    for i, (label, unit, _ratio, subs) in enumerate(HEADERS):
         cx = xs[i] + widths[i] / 2
-        if unit:
+        size = fitted_size(label, widths[i] - 6, label_size_base)
+        if subs:
+            c.setFont(FONT, size)
+            c.drawCentredString(cx, header_mid + 3.6, label)
+            sub_ratio = SUB_W_RATIO[label]
+            sx = xs[i]
+            for sub, r in zip(subs, sub_ratio):
+                sw = widths[i] * r
+                ssize = fitted_size(sub, sw - 3, sub_size_base)
+                c.setFont(FONT, ssize)
+                c.drawCentredString(sx + sw / 2, lower_baseline, sub)
+                sx += sw
+        elif unit:
             c.setFont(FONT, size)
             c.drawCentredString(cx, table_top - HEADER_H * 0.42, label)
             c.setFont(FONT, unit_size)
-            c.drawCentredString(cx, table_top - HEADER_H + 5.0, f"({unit})")
+            c.drawCentredString(cx, lower_baseline, f"({unit})")
         else:
             c.setFont(FONT, size)
-            c.drawCentredString(cx, table_top - HEADER_H / 2 - size * 0.36, label)
+            c.drawCentredString(cx, header_mid - size * 0.36, label)
     c.save()
     buf.seek(0)
     return buf
