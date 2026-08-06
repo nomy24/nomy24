@@ -1,11 +1,12 @@
 """バーセルインデックス評価書の上余白に測定値記入表を追加する。
 
-元のフォームを 90% に縮小して下方向へ寄せ、空いた上部に 9 列の表を描画する。
+元のフォームを 94% に縮小して下方向へ寄せ、空いた上部に 9 列の表を描画する。
 """
 
 import io
 
 from pypdf import PdfReader, PdfWriter, Transformation
+from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
@@ -24,17 +25,30 @@ CONTENT_X0, CONTENT_X1 = 51.24, 533.70
 CONTENT_TOP = 59.70      # 上端（上原点）
 CONTENT_BOTTOM = 771.45  # 下端（上原点）
 
-SCALE = 0.90
+SCALE = 0.94
 
-HEADERS = ["Ｎｏ", "握力(右)", "握力(左)", "5m歩行", "TUG", "FRT", "身長", "体重", "義歯"]
+# (見出し, 単位) — 単位のない列は空文字
+HEADERS = [
+    ("Ｎｏ", ""),
+    ("握力(右)", "kg"),
+    ("握力(左)", "kg"),
+    ("5m歩行", "秒"),
+    ("TUG", "秒"),
+    ("FRT", "cm"),
+    ("身長", "cm"),
+    ("体重", "kg"),
+    ("義歯", ""),
+]
 COL_W_RATIO = [0.078, 0.120, 0.120, 0.120, 0.110, 0.110, 0.110, 0.110, 0.122]
 
-DATA_ROWS = 3
-HEADER_H = 20.0
-ROW_H = 20.0
+DATA_ROWS = 1
+HEADER_H = 26.0  # 見出し＋単位の 2 行分
+ROW_H = 26.0
 TABLE_TOP_MARGIN = 38.0  # ページ上端から表の上辺まで
 
 LINE_W = 0.8
+HEADER_FILL = colors.HexColor("#DCE6F1")  # 見出し行の背景色（淡い青）
+HEADER_TEXT = colors.HexColor("#1F3864")  # 見出しの文字色（濃紺）
 
 
 def transformed_content_box():
@@ -70,6 +84,14 @@ def build_table_overlay(x0, x1, content_top_pdf):
     # 丸め誤差を最終列で吸収
     widths[-1] += table_w - sum(widths)
 
+    xs = [x0]
+    for w in widths:
+        xs.append(xs[-1] + w)
+
+    # 見出し行の背景色
+    c.setFillColor(HEADER_FILL)
+    c.rect(x0, table_top - HEADER_H, table_w, HEADER_H, stroke=0, fill=1)
+
     c.setLineWidth(LINE_W)
     c.setStrokeColorRGB(0, 0, 0)
 
@@ -81,22 +103,26 @@ def build_table_overlay(x0, x1, content_top_pdf):
         c.line(x0, y, x1, y)
 
     # 縦罫線
-    xs = [x0]
-    for w in widths:
-        xs.append(xs[-1] + w)
     for x in xs:
         c.line(x, table_top, x, table_bottom)
 
     # 見出し文字（列幅に収まるようにフォントサイズを自動調整）
-    base_size = 9.0
-    for i, label in enumerate(HEADERS):
-        size = base_size
+    label_size_base = 9.0
+    unit_size = 7.0
+    c.setFillColor(HEADER_TEXT)
+    for i, (label, unit) in enumerate(HEADERS):
+        size = label_size_base
         while pdfmetrics.stringWidth(label, FONT, size) > widths[i] - 6 and size > 5:
             size -= 0.25
-        c.setFont(FONT, size)
         cx = xs[i] + widths[i] / 2
-        cy = table_top - HEADER_H / 2 - size * 0.36
-        c.drawCentredString(cx, cy, label)
+        if unit:
+            c.setFont(FONT, size)
+            c.drawCentredString(cx, table_top - HEADER_H * 0.42, label)
+            c.setFont(FONT, unit_size)
+            c.drawCentredString(cx, table_top - HEADER_H + 5.0, f"({unit})")
+        else:
+            c.setFont(FONT, size)
+            c.drawCentredString(cx, table_top - HEADER_H / 2 - size * 0.36, label)
     c.save()
     buf.seek(0)
     return buf
