@@ -50,7 +50,7 @@ ROW_H = 26.0
 TABLE_TOP_MARGIN = 38.0  # ページ上端から表の上辺まで
 
 LINE_W = 0.8
-HEADER_FILL = colors.HexColor("#DCE6F1")  # 見出し行の背景色（淡い青）
+HEADER_FILL = colors.HexColor("#B4C7E7")  # 見出し行の背景色（青）
 HEADER_TEXT = colors.HexColor("#1F3864")  # 見出しの文字色（濃紺）
 
 
