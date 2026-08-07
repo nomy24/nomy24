@@ -1789,6 +1789,19 @@
   }
 
   .pp-actions .btn:hover { border-color: var(--ai); color: var(--ai); }
+
+  /* Esc でも戻れることを、ボタンの脇に小さく添える */
+  .btn-key {
+    margin-left: 7px;
+    padding: 1px 5px 2px;
+    font-size: 10px;
+    letter-spacing: .06em;
+    color: var(--ink-3);
+    border: 1px solid var(--rule-2);
+    border-radius: 4px;
+  }
+
+  @media (hover: none) { .btn-key { display: none; } }
   .pp-actions .btn.primary { border-color: var(--ai); color: var(--ai); font-weight: 600; }
 
   /* 担当表はここで直に書き換える。書けばすぐ下のプレビューに出る */
@@ -3562,7 +3575,7 @@
       </button>
     </div>
     <div class="pp-actions">
-      <button type="button" class="btn" id="print-back">送迎表へ戻る</button>
+      <button type="button" class="btn" id="print-back" title="Esc キーでも戻れます">送迎表へ戻る<small class="btn-key">Esc</small></button>
       <button type="button" class="btn" id="print-save">ファイルに保存</button>
       <button type="button" class="btn primary" id="print-go">印刷</button>
     </div>
@@ -7936,7 +7949,8 @@
     document.querySelector(".sheet").hidden = on;
     document.getElementById("page-print").hidden = !on;
     if (on && location.hash !== "#" + hash) location.hash = hash;
-    if (!on && (location.hash === "#print" || location.hash === "#nisshi")) {
+    /* 閉じるときは、どの刷りものの印であっても外す */
+    if (!on && Object.values(DOCS).some((d) => location.hash === "#" + d.hash)) {
       history.replaceState(null, "", location.pathname + location.search);
     }
     window.scrollTo(0, 0);
@@ -7956,6 +7970,15 @@
     frame.id = "print-frame";
     frame.title = doc.name + "の印刷レイアウト";
     frame.srcdoc = printableHTML();
+    /* 紙をひと目見てから閉じることが多い。枠の中を押したあとでも
+       Escape で戻れるよう、枠の中にも同じ耳を付ける（同じ生まれのページなので届く） */
+    frame.addEventListener("load", () => {
+      try {
+        frame.contentDocument.addEventListener("keydown", (e) => {
+          if (e.key === "Escape") { e.preventDefault(); closePrintPage(); }
+        });
+      } catch (e) { /* 枠の中に手が届かない環境では、外の耳だけで動く */ }
+    });
     stage.append(frame);
 
     /* 担当表は電話連絡表のときだけ出す */
@@ -8034,6 +8057,17 @@
     try { frame.contentWindow.focus(); frame.contentWindow.print(); return true; }
     catch (e) { return false; }
   }
+
+  /* 印刷レイアウトは見て閉じるだけの画面なので、Escape で送迎表へ戻す。
+     ダイアログが開いているときは、そちらの Escape が先（重ねて閉じない）。
+     マスタ編集には付けない。書きかけを黙って捨ててしまうため */
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape") return;
+    if (!muBox.hidden) return;
+    if (document.getElementById("page-print").hidden) return;
+    e.preventDefault();
+    closePrintPage();
+  });
 
   document.getElementById("btn-print").addEventListener("click", () => openPrintPage("soutei"));
   document.getElementById("btn-nisshi").addEventListener("click", () => openPrintPage("nisshi"));
