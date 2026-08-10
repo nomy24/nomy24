@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-08-09T22:32:02.194Z",
+  "generatedAt": "2026-08-10T22:37:51.608Z",
   "source": "相模原市公式ホームページ",
   "sourceUrl": "https://www.city.sagamihara.kanagawa.jp",
   "counts": {
-    "total": 343,
+    "total": 344,
     "minami": 16,
-    "citywide": 327,
-    "addedThisRun": 17
+    "citywide": 328,
+    "addedThisRun": 1
   },
   "categories": [
     {
@@ -55,6 +55,62 @@
     }
   ],
   "items": [
+    {
+      "id": "474179ecd14d",
+      "title": "7月",
+      "url": "https://www.city.sagamihara.kanagawa.jp/kankou/1026674/camera/kisetsu/1011141.html",
+      "summary": "",
+      "category": "event",
+      "categoryLabel": "イベント",
+      "scope": "citywide",
+      "areaHits": [],
+      "important": false,
+      "source": "相模原市 更新情報",
+      "publishedAt": "2026-08-10T15:05:03.000Z",
+      "firstSeenAt": "2026-08-10T22:37:51.608Z"
+    },
+    {
+      "id": "9fca3dd68612",
+      "title": "会員登録について",
+      "url": "https://www.city.sagamihara.kanagawa.jp/kosodate/1026602/kosodate/1026606/family_support/1006914.html",
+      "summary": "",
+      "category": "kosodate",
+      "categoryLabel": "子育て・教育",
+      "scope": "citywide",
+      "areaHits": [],
+      "important": false,
+      "source": "相模原市 更新情報",
+      "publishedAt": "2026-08-10T05:23:40.000Z",
+      "firstSeenAt": "2026-08-07T01:30:06.605Z"
+    },
+    {
+      "id": "bac5f298cef6",
+      "title": "発表資料 令和8年8月分",
+      "url": "https://www.city.sagamihara.kanagawa.jp/shisei/1026875/koho/1026878/houdo/1035920.html",
+      "summary": "",
+      "category": "shisei",
+      "categoryLabel": "市政・お知らせ",
+      "scope": "citywide",
+      "areaHits": [],
+      "important": false,
+      "source": "相模原市 更新情報",
+      "publishedAt": "2026-08-10T04:02:44.000Z",
+      "firstSeenAt": "2026-08-04T04:16:43.500Z"
+    },
+    {
+      "id": "5b3a82dfd34b",
+      "title": "市長の1日（令和8年7月1日～）",
+      "url": "https://www.city.sagamihara.kanagawa.jp/shisei/1026709/mayor/day/1022448.html",
+      "summary": "",
+      "category": "shisei",
+      "categoryLabel": "市政・お知らせ",
+      "scope": "citywide",
+      "areaHits": [],
+      "important": false,
+      "source": "相模原市 更新情報",
+      "publishedAt": "2026-08-09T22:56:48.000Z",
+      "firstSeenAt": "2026-08-04T04:16:43.500Z"
+    },
     {
       "id": "0e3f1274b24a",
       "title": "出張理美容サービス",
@@ -424,20 +480,6 @@
       "firstSeenAt": "2026-08-04T04:16:43.500Z"
     },
     {
-      "id": "bac5f298cef6",
-      "title": "発表資料 令和8年8月分",
-      "url": "https://www.city.sagamihara.kanagawa.jp/shisei/1026875/koho/1026878/houdo/1035920.html",
-      "summary": "",
-      "category": "shisei",
-      "categoryLabel": "市政・お知らせ",
-      "scope": "citywide",
-      "areaHits": [],
-      "important": false,
-      "source": "相模原市 更新情報",
-      "publishedAt": "2026-08-07T04:53:29.000Z",
-      "firstSeenAt": "2026-08-04T04:16:43.500Z"
-    },
-    {
       "id": "2298eb2714c8",
       "title": "助成団体による文化財の支援情報",
       "url": "https://www.city.sagamihara.kanagawa.jp/kankou/bunka/1022295/bunkazai/1035951.html",
@@ -592,20 +634,6 @@
       "firstSeenAt": "2026-08-07T01:30:06.605Z"
     },
     {
-      "id": "5b3a82dfd34b",
-      "title": "市長の1日（令和8年7月1日～）",
-      "url": "https://www.city.sagamihara.kanagawa.jp/shisei/1026709/mayor/day/1022448.html",
-      "summary": "",
-      "category": "shisei",
-      "categoryLabel": "市政・お知らせ",
-      "scope": "citywide",
-      "areaHits": [],
-      "important": false,
-      "source": "相模原市 更新情報",
-      "publishedAt": "2026-08-06T15:05:04.000Z",
-      "firstSeenAt": "2026-08-04T04:16:43.500Z"
-    },
-    {
       "id": "62f11bc1f7ec",
       "title": "社会福祉審議会の会議録",
       "url": "https://www.city.sagamihara.kanagawa.jp/shisei/1026896/shikumi/1026898/1005653/1005674.html",
@@ -710,20 +738,6 @@
       "summary": "",
       "category": "event",
       "categoryLabel": "イベント",
-      "scope": "citywide",
-      "areaHits": [],
-      "important": false,
-      "source": "相模原市 更新情報",
-      "publishedAt": "2026-08-06T15:05:04.000Z",
-      "firstSeenAt": "2026-08-07T01:30:06.605Z"
-    },
-    {
-      "id": "9fca3dd68612",
-      "title": "会員登録について",
-      "url": "https://www.city.sagamihara.kanagawa.jp/kosodate/1026602/kosodate/1026606/family_support/1006914.html",
-      "summary": "",
-      "category": "kosodate",
-      "categoryLabel": "子育て・教育",
       "scope": "citywide",
       "areaHits": [],
       "important": false,
@@ -4891,5 +4905,5 @@
       "firstSeenAt": "2026-08-04T04:16:43.500Z"
     }
   ],
-  "revision": "b2b87bb02eb7"
+  "revision": "616518b3665c"
 }
