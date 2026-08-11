@@ -1,0 +1,256 @@
+:root {
+  --green: #2f6f4f;
+  --green-dark: #1f4f37;
+  --green-light: #e6f2ec;
+  --red: #c0392b;
+  --gray-text: #5a6a63;
+  --border: #dbe6e0;
+  --bg: #f5f8f6;
+  --card-bg: #ffffff;
+  font-size: 16px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Hiragino Sans", "Yu Gothic", "Noto Sans JP", system-ui, sans-serif;
+  background: var(--bg);
+  color: #1f2b25;
+  min-height: 100vh;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.app-header {
+  background: var(--green);
+  color: #fff;
+  padding: 1.1rem 1.2rem 1.4rem;
+  border-radius: 0 0 18px 18px;
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+.app-sub {
+  margin: 0.25rem 0 0;
+  font-size: 0.85rem;
+  opacity: 0.85;
+}
+
+.app-main {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 1rem 1rem 3rem;
+}
+
+.add-card {
+  background: var(--card-bg);
+  border-radius: 14px;
+  padding: 1rem;
+  margin-top: -1.1rem;
+  box-shadow: 0 4px 14px rgba(31, 79, 55, 0.12);
+}
+
+#task-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+#task-title,
+#task-assignee,
+#task-due {
+  width: 100%;
+  padding: 0.65rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 1rem;
+  background: #fff;
+  color: #1f2b25;
+}
+
+.field-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.field-row select {
+  flex: 1.2;
+}
+
+.field-row input[type="date"] {
+  flex: 1;
+}
+
+#submit-btn {
+  background: var(--green);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 0.75rem;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+#submit-btn:active {
+  background: var(--green-dark);
+}
+
+#submit-btn:disabled {
+  opacity: 0.6;
+}
+
+.filter-tabs {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 1.1rem;
+}
+
+.tab {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid var(--border);
+  background: #fff;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  color: var(--gray-text);
+  cursor: pointer;
+}
+
+.tab.active {
+  background: var(--green);
+  border-color: var(--green);
+  color: #fff;
+  font-weight: 700;
+}
+
+.assignee-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.7rem;
+}
+
+.chip {
+  padding: 0.4rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: #fff;
+  font-size: 0.8rem;
+  color: var(--gray-text);
+  cursor: pointer;
+}
+
+.chip.active {
+  background: var(--green-light);
+  border-color: var(--green);
+  color: var(--green-dark);
+  font-weight: 700;
+}
+
+.status-message {
+  margin-top: 0.9rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 10px;
+  background: #fdecea;
+  color: var(--red);
+  font-size: 0.85rem;
+}
+
+.task-list {
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.task-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 0.75rem 0.8rem;
+  box-shadow: 0 2px 8px rgba(31, 79, 55, 0.07);
+}
+
+.task-check {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+  accent-color: var(--green);
+}
+
+.task-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.task-title {
+  font-size: 0.98rem;
+  font-weight: 600;
+  word-break: break-word;
+}
+
+.task-item.done .task-title {
+  text-decoration: line-through;
+  color: #8a988f;
+  font-weight: 500;
+}
+
+.task-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.35rem;
+}
+
+.badge {
+  font-size: 0.72rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background: var(--green-light);
+  color: var(--green-dark);
+}
+
+.badge.due {
+  background: #eef1ee;
+  color: var(--gray-text);
+}
+
+.badge.overdue {
+  background: #fdecea;
+  color: var(--red);
+  font-weight: 700;
+}
+
+.delete-btn {
+  background: none;
+  border: none;
+  color: #b3bdb6;
+  font-size: 1.3rem;
+  line-height: 1;
+  padding: 0.2rem 0.3rem;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.delete-btn:active {
+  color: var(--red);
+}
+
+.empty-message {
+  text-align: center;
+  color: var(--gray-text);
+  margin-top: 2.5rem;
+  font-size: 0.9rem;
+}

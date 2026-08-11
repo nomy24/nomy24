@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2f6f4f">
+<title>職員Todo</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="app-header">
+  <h1>職員Todo</h1>
+  <p class="app-sub">4名で共有するタスクリスト</p>
+</header>
+
+<main class="app-main">
+  <section class="add-card" id="add-card">
+    <form id="task-form" autocomplete="off">
+      <input
+        type="text"
+        id="task-title"
+        placeholder="タスク内容を入力"
+        maxlength="120"
+        required
+      >
+      <div class="field-row">
+        <select id="task-assignee">
+          <option value="">担当者を選択</option>
+        </select>
+        <input type="date" id="task-due">
+      </div>
+      <button type="submit" id="submit-btn">追加する</button>
+    </form>
+  </section>
+
+  <nav class="filter-tabs" id="filter-tabs">
+    <button class="tab active" data-filter="all">すべて</button>
+    <button class="tab" data-filter="open">未完了</button>
+    <button class="tab" data-filter="done">完了</button>
+  </nav>
+
+  <div class="assignee-filter" id="assignee-filter">
+    <button class="chip active" data-assignee="all">全員</button>
+  </div>
+
+  <p id="status-message" class="status-message" hidden></p>
+
+  <ul id="task-list" class="task-list"></ul>
+
+  <p id="empty-message" class="empty-message" hidden>タスクはまだありません。</p>
+</main>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
