@@ -2238,6 +2238,12 @@
 
   .tel-carname { font-size: 8pt; letter-spacing: .06em; color: #63263A; }
 
+  /* 車が決まっていない方の枠。担当の枠と取り違えないよう朱に振る */
+  .tel-car.is-left { border-color: #96200F; }
+  .tel-car.is-left .tel-tag { background: #F3DAD3; border-right-color: #96200F; }
+  .tel-car.is-left .tel-duty-lbl { color: #96200F; font-size: 9.5pt; font-weight: 700; }
+  .tel-car.is-left .tel-carname { color: #96200F; }
+
   .tel-who,
   .tel-when,
   .tel-memo {
@@ -7806,14 +7812,40 @@
     }).filter((c) => c.riders.length > 0);
   }
 
+  /* 車に乗っていない方。欠席の方を車から降ろすと、ここに残る。
+     電話はかけるので、担当が決まっていなくても紙には載せる */
+  function telLeftover() {
+    const seated = new Set(
+      [...document.querySelectorAll("#leg-pm-pick .who")].map((s) => s.value).filter(Boolean)
+    );
+    return attendRoster("pm")
+      .filter((u) => !seated.has(u.id))
+      .map((u) => {
+        const code = attendCode("pm", u.id);
+        return {
+          name: u.name,
+          time: "",
+          state: codeState(code),
+          away: codeState(code) === "absent",
+          reason: code,
+          memo: u.tel || ""
+        };
+      });
+  }
+
   function telBlock(car) {
-    const box = el("div", "tel-car");
+    const box = el("div", "tel-car" + (car.leftover ? " is-left" : ""));
 
     /* 見出しは担当。送迎表の運転手のプルダウンからそのまま入る */
     const tag = el("div", "tel-tag");
-    tag.append(el("span", "tel-duty-lbl", "担当"));
-    tag.append(el("span", "tel-driver", car.driver || ""));
-    if (car.car) tag.append(el("span", "tel-carname", car.car));
+    if (car.leftover) {
+      tag.append(el("span", "tel-duty-lbl", "未割当"));
+      tag.append(el("span", "tel-carname", "担当未定"));
+    } else {
+      tag.append(el("span", "tel-duty-lbl", "担当"));
+      tag.append(el("span", "tel-driver", car.driver || ""));
+      if (car.car) tag.append(el("span", "tel-carname", car.car));
+    }
     box.append(tag);
 
     for (let i = 0; i < TEL_COLS; i++) {
@@ -7876,8 +7908,15 @@
     sheet.append(top);
 
     const list = el("div", "tel-list");
-    const cars = telCars();
-    cars.forEach((car) => list.append(telBlock(car)));
+    telCars().forEach((car) => list.append(telBlock(car)));
+
+    /* どの車にも乗っていない方。欠席で車から降ろした方がここに来る。
+       6名を超えたら枠を足す */
+    const left = telLeftover();
+    for (let i = 0; i < left.length; i += TEL_COLS) {
+      list.append(telBlock({ car: "", driver: "", leftover: true, riders: left.slice(i, i + TEL_COLS) }));
+    }
+
     /* 当日その場で足せるよう、空の枠をひとつ残す（様式にならう） */
     list.append(telBlock({ car: "", driver: "", riders: [] }));
     sheet.append(list);
