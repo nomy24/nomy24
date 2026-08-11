@@ -211,22 +211,33 @@ function setScreen(name) {
 document.querySelectorAll(".tab").forEach((btn) => btn.addEventListener("click", () => setScreen(btn.dataset.screen)));
 
 // 下にスクロールしたらヘッダーを隠して一覧の表示領域を広げ、上に戻したら再表示する。
+// タッチ/トラックパッドのスクロールはフレームごとの移動量が一定でなく、
+// 逆向きに数px揺れ戻ることがよくあるため、しきい値を超えるまとまった移動量が
+// 出るまでは向き判定の基準点を動かさない（小さな揺れを無視して蓄積させる）。
 (function setupHeaderAutoHide() {
   const HIDE_AFTER = 40; // このスクロール量までは常時表示する
+  const DELTA_THRESHOLD = 10; // これ未満の移動は揺れとみなして無視する
   let lastY = window.scrollY;
+  let hidden = false;
   let ticking = false;
+
+  function setHidden(next) {
+    if (next === hidden) return;
+    hidden = next;
+    document.body.classList.toggle("header-hidden", hidden);
+  }
 
   function update() {
     ticking = false;
     const y = Math.max(0, window.scrollY);
-    const goingDown = y > lastY;
     if (y <= HIDE_AFTER) {
-      document.body.classList.remove("header-hidden");
-    } else if (goingDown) {
-      document.body.classList.add("header-hidden");
-    } else {
-      document.body.classList.remove("header-hidden");
+      setHidden(false);
+      lastY = y;
+      return;
     }
+    const delta = y - lastY;
+    if (Math.abs(delta) <= DELTA_THRESHOLD) return; // 揺れ: 基準点はそのままにして次のフレームへ持ち越す
+    setHidden(delta > 0);
     lastY = y;
   }
 
