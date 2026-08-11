@@ -3548,7 +3548,8 @@
     <span class="item">利用者名のプルダウンには、その曜日・その便（午前／午後）に来る方だけが並びます。選ぶと住所と記号がマスタから自動で入ります。</span>
     <span class="item">予定の時刻は事業所発の時刻と住所から換算。手入力で上書きでき、空欄にすると自動に戻ります。</span>
     <span class="item">「実績」欄は実際の到着時刻の記入用です。</span>
-    <span class="item">左端の番号をクリックするたびに　欠席（赤・取り消し線）→ 振替利用（黄緑）→ 新規・増回（橙）→ 空白（利用者を外す）　と切り替わります。</span>
+    <span class="item">左端の番号をクリックするたびに　通常（便の色）→ 欠席（赤・取り消し線）→ 振替利用（黄緑）→ 新規・増回（橙）→ 通常　と一周します。押し間違えても押し続ければ通常に戻ります。</span>
+    <span class="item">左端の番号を<b>長押し（右クリック）</b>すると、その行の利用者だけを外して空欄にできます。他の車へ移すときに使えます。</span>
     <span class="item">乗車0名の車両カードは自動で畳まれます。<b>＋</b>で開き、<b>−</b>で畳み直せます。</span>
     <span class="item">記号「車」の方が乗る車両はカードが朱色になり、定員が1名減ります（リフト車 6名→5名）。</span>
     <span class="item">※印は自動で入った時刻を手で書き換えた欄です。住所はマスタからの自動表示で、当日の変更は「備考」に書いてください。</span>
@@ -3860,7 +3861,9 @@
   /* 欠席のときだけ、行に理由を出す */
   const ABSENT_REASONS = STATUS_CODES.filter((c) => CODE_TO_STATE[c] === "absent");
 
-  const STATES = ["", "absent", "furikae", "shinki", "clear"];
+  /* 番号を押すたびに回る順。最後まで行ったら通常（便の色）へ戻る。
+     「利用者を外す」は回り道に置かず、長押し・右クリックの別操作にしてある */
+  const STATES = ["", "absent", "furikae", "shinki"];
   const STATES_EMPTY = ["", "furikae", "shinki"];
   const STATE_LABEL = { "": "通常", absent: "欠席", furikae: "振替利用", shinki: "新規・増回" };
 
@@ -4469,7 +4472,7 @@
       if (why) why.value = "";
     }
     stop.dataset.state = st;
-    STATES.forEach((s) => { if (s && s !== "clear") stop.classList.toggle("st-" + s, s === st); });
+    STATES.forEach((s) => { if (s) stop.classList.toggle("st-" + s, s === st); });
     const ord = stop.querySelector(".ord");
     ord.setAttribute("aria-pressed", String(st !== ""));
     ord.setAttribute("aria-label", "この行は" + STATE_LABEL[st] + "（クリックで切替）");
@@ -4624,31 +4627,41 @@
     /* 順番の数字はそのまま欠席の切替ボタン */
     const ord = el("button", "ord", String(index));
     ord.type = "button";
-    ord.title = "クリックで切替：欠席 → 振替利用 → 新規・増回 → 空白（利用者を外す）";
+    ord.title = "クリックで切替：通常 → 欠席 → 振替利用 → 新規・増回 → 通常\n長押し（右クリック）で利用者を外す";
     ord.setAttribute("aria-pressed", "false");
+
+    /* 状態の切替。通常（便の色）まで一周して戻るので、
+       間違えて欠席や新規にしても押し続ければ元に戻せる */
+    let held = false;
     ord.addEventListener("click", () => {
+      if (held) { held = false; return; }
       const cur = li.dataset.state || "";
       const cycle = li.querySelector(".who").value ? STATES : STATES_EMPTY;
-      const next = cycle[(cycle.indexOf(cur) + 1) % cycle.length];
-
-      /* 一周のはじめに、その方の出欠を控えておく。
-         「外す」まで押し続けたときは、途中で通り過ぎただけの
-         欠席・振替・新規を残さず、押す前の出欠へ戻すため */
-      if (!("attendBefore" in li.dataset)) li.dataset.attendBefore = attendCodeOf(li);
-
-      if (next === "clear") {
-        /* 他の車に移すとき用。行を空にして次の選択に備える */
-        restoreAttendForRow(li);
-        li.querySelector(".who").value = "";
-        applyUser(li, "");
-      } else {
-        setState(li, next);
-        noteAttendFromRow(li);
-      }
-      if (next === "clear" || next === "") delete li.dataset.attendBefore;
+      setState(li, cycle[(cycle.indexOf(cur) + 1) % cycle.length]);
+      noteAttendFromRow(li);
       refillSelect(li);
       refresh();
     });
+
+    /* 他の車へ移すときに、その場で行を空ける。
+       状態の切替と混ぜると通常へ戻せなくなるので、別の押し方にしてある。
+       携帯は長押し、PC は右クリック。出欠の控えはそのまま残す */
+    const emptyRowNow = () => {
+      if (!li.querySelector(".who").value) return;
+      li.querySelector(".who").value = "";
+      applyUser(li, "");
+      refillSelect(li);
+      refresh();
+    };
+    let holdTimer = null;
+    const holdOff = () => { if (holdTimer) { clearTimeout(holdTimer); holdTimer = null; } };
+    ord.addEventListener("pointerdown", () => {
+      held = false;
+      holdOff();
+      holdTimer = setTimeout(() => { held = true; holdTimer = null; emptyRowNow(); }, 550);
+    });
+    ["pointerup", "pointerleave", "pointercancel"].forEach((ev) => ord.addEventListener(ev, holdOff));
+    ord.addEventListener("contextmenu", (e) => { e.preventDefault(); holdOff(); emptyRowNow(); });
     li.append(ord);
     li.dataset.state = "";
 
@@ -7551,24 +7564,6 @@
     return (section && LEGS.find((l) => l.key === section.dataset.leg)) || null;
   }
 
-  /* いまその行に乗っている方の出欠（控えを取るときに使う） */
-  function attendCodeOf(stop) {
-    const leg = legOfRow(stop);
-    const id = stop.querySelector(".who").value;
-    return (leg && id) ? (ATTEND[leg.part][id] || "") : "";
-  }
-
-  /* 番号を「外す」まで回したとき、控えておいた出欠へ戻す。
-     車から降ろしただけの方が新規や欠席のまま残らないようにする */
-  function restoreAttendForRow(stop) {
-    const leg = legOfRow(stop);
-    const id = stop.querySelector(".who").value;
-    if (!leg || !id) return;
-    const before = stop.dataset.attendBefore || "";
-    if (before) ATTEND[leg.part][id] = before;
-    else delete ATTEND[leg.part][id];
-  }
-
   /* 利用者を入れ替えたら、その方の出欠に合わせる */
   function pullAttendForRow(stop) {
     const leg = legOfRow(stop);
@@ -8703,7 +8698,7 @@
     const hint = document.querySelector(".side-hint");
     if (hint) {
       hint.innerHTML = "名前を<b>押す</b>と、乗せる車を選べます。"
-        + "乗っている方を別の車へ移すときは、行の<b>番号を押して空欄にしてから</b>選び直してください。";
+        + "乗っている方を別の車へ移すときは、行の<b>番号を長押しして空欄にしてから</b>選び直してください。";
     }
   }
   document.getElementById("sn-icon").innerHTML = ICONS.book;
