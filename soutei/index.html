@@ -2581,6 +2581,42 @@
     color: var(--ink-3);
   }
 
+  /* 刷る前の確かめ：未割当の方の名前を便ごとに並べる */
+  .left-warn { display: flex; flex-direction: column; gap: calc(var(--step) * 3); }
+
+  .lw-row {
+    display: grid;
+    grid-template-columns: 7rem minmax(0, 1fr);
+    align-items: baseline;
+    gap: calc(var(--step) * 2);
+  }
+
+  .lw-leg {
+    font-size: 12px;
+    letter-spacing: .06em;
+    color: var(--warn);
+    font-weight: 600;
+  }
+
+  .lw-names { display: flex; flex-wrap: wrap; gap: 4px; }
+
+  .lw-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .lw-note {
+    margin: 0;
+    font-size: 11px;
+    line-height: 1.7;
+    color: var(--ink-3);
+  }
+
+  @media screen and (max-width: 760px) {
+    .lw-row { grid-template-columns: minmax(0, 1fr); }
+  }
+
   .uf-zip { font-weight: 600; }
   .uf-zip.is-hit { color: var(--ok); }
   .uf-zip.is-miss { color: var(--warn); }
@@ -8122,7 +8158,59 @@
       + "送迎表を別のタブ（別ウィンドウ）で開いてから印刷してください。", "warn");
   });
 
-  document.getElementById("print-go").addEventListener("click", () => {
+  /* 刷る前に、乗る車が決まっていない方がいないか見る。
+     欠席の方は乗らなくてよいので数えない（車から降ろすと未割当になるため、
+     入れてしまうと毎回出て読み飛ばされる）。
+     業務日誌は名簿をそのまま並べる紙なので、割り当てとは関わりがない。 */
+  function unassignedFor(kind) {
+    const legs = kind === "denwa" ? LEGS.filter((l) => l.key === "pm-pick")
+      : kind === "soutei" ? LEGS : [];
+    const weekday = weekdayOf(currentDate);
+
+    return legs.map((leg) => {
+      const section = document.getElementById("leg-" + leg.key);
+      if (!section) return null;
+      const seated = new Set([...section.querySelectorAll(".who")].map((s) => s.value).filter(Boolean));
+      const roster = [...new Set([...rosterFor(leg.part, weekday), ...SWAP[leg.part]])];
+      const names = roster
+        .filter((id) => !seated.has(id))
+        .filter((id) => codeState(ATTEND[leg.part][id] || "") !== "absent")
+        .map((id) => (USER_BY_ID.get(id) || {}).name)
+        .filter(Boolean);
+      return names.length ? { leg: leg.partLabel + " " + leg.dir, names: names } : null;
+    }).filter(Boolean);
+  }
+
+  /* 未割当の方がいたら、刷る前に名前を出して確かめる */
+  function askBeforePrint(run) {
+    const left = unassignedFor(printDoc);
+    if (!left.length) { run(); return; }
+
+    const total = left.reduce((n, x) => n + x.names.length, 0);
+    openUserDialog({
+      title: "未割当の方がいます",
+      lead: "乗る車が決まっていない方が " + total + "名います。このまま印刷しますか。",
+      ok: "このまま印刷する",
+      build(body) {
+        const wrap = el("div", "left-warn");
+        left.forEach((x) => {
+          const row = el("div", "lw-row");
+          row.append(el("span", "lw-leg", x.leg));
+          const box = el("span", "lw-names");
+          x.names.forEach((n) => box.append(el("span", "lw-name", "【" + n + " 様】")));
+          row.append(box);
+          wrap.append(row);
+        });
+        wrap.append(el("p", "lw-note",
+          "「やめる」で戻ると、未割当の方は画面の左（携帯では下）に出ています。"
+          + "名前を押すと乗せる車を選べます。欠席の方はここには出ません。"));
+        body.append(wrap);
+      },
+      submit() { closeUserDialog(); run(); }
+    });
+  }
+
+  document.getElementById("print-go").addEventListener("click", () => askBeforePrint(() => {
     const doc = DOCS[printDoc];
 
     /* いちばん確実な道：別タブへ出して、最上位のページとして組ませる */
@@ -8161,7 +8249,7 @@
         notify("印刷ダイアログを開けませんでした。ブラウザの印刷（Ctrl / ⌘ + P）をお使いください。", "warn");
       }
     }, 700);
-  });
+  }));
 
   document.addEventListener("input", (e) => {
     if (e.target.closest(".stop") || e.target.closest(".car-depart") || e.target.closest(".car-foot")) refresh();
