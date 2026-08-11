@@ -199,8 +199,8 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
   content: ""; position: absolute; inset: -2px; border-radius: 50%;
   border: 2px solid var(--color-primary); opacity: 0; pointer-events: none;
 }
-.check.is-checking { animation: check-pop 320ms cubic-bezier(.34, 1.56, .64, 1); }
-.check.is-checking::after { animation: check-ring 420ms ease-out; }
+.check.is-checking { animation: check-pop 380ms cubic-bezier(.34, 1.56, .64, 1); }
+.check.is-checking::after { animation: check-ring 520ms ease-out; }
 .check.is-checking svg {
   opacity: 1; stroke-dasharray: 20; stroke-dashoffset: 20;
   animation: check-draw 220ms ease-out 60ms forwards;
@@ -208,22 +208,75 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 
 @keyframes check-pop {
   0% { transform: scale(1); }
-  40% { transform: scale(1.3); }
-  65% { transform: scale(0.92); }
+  40% { transform: scale(1.4); }
+  65% { transform: scale(0.88); }
   100% { transform: scale(1); }
 }
 @keyframes check-ring {
-  0% { transform: scale(0.5); opacity: 0.6; }
-  100% { transform: scale(1.8); opacity: 0; }
+  0% { transform: scale(0.5); opacity: 0.7; border-color: var(--color-accent); }
+  60% { border-color: var(--color-primary); }
+  100% { transform: scale(2.4); opacity: 0; }
 }
 @keyframes check-draw {
   to { stroke-dashoffset: 0; }
 }
 
+/* きらきら弾ける粒子 */
+.spark {
+  position: absolute; top: 50%; left: 50%; width: 6px; height: 6px; border-radius: 1.5px;
+  transform: translate(-50%, -50%) scale(0) rotate(20deg);
+  pointer-events: none;
+  animation: spark-fly 620ms ease-out both;
+  animation-delay: var(--delay, 0ms);
+}
+@keyframes spark-fly {
+  0% { transform: translate(-50%, -50%) scale(0) rotate(10deg); opacity: 0; }
+  20% { transform: translate(-50%, -50%) scale(1.2) rotate(70deg); opacity: 1; }
+  100% {
+    transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(0.2) rotate(210deg);
+    opacity: 0;
+  }
+}
+
+/* カード全体がグラデーションで光る演出 */
+.card { position: relative; }
+.card.is-completing { animation: card-glow-pulse 650ms ease-out; }
+.card.is-completing::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(115deg,
+    transparent 0%,
+    color-mix(in srgb, var(--color-primary) 45%, transparent) 42%,
+    color-mix(in srgb, var(--color-accent) 45%, transparent) 58%,
+    transparent 100%);
+  background-size: 250% 100%;
+  background-position: 160% 0;
+  opacity: 0;
+  animation: card-sheen 650ms ease-out;
+}
+
+@keyframes card-sheen {
+  0% { background-position: 160% 0; opacity: 0; }
+  22% { opacity: 0.9; }
+  60% { opacity: 0.45; }
+  100% { background-position: -60% 0; opacity: 0; }
+}
+@keyframes card-glow-pulse {
+  0% { box-shadow: var(--shadow-card); }
+  28% {
+    box-shadow:
+      0 0 0 3px color-mix(in srgb, var(--color-primary) 35%, transparent),
+      0 12px 26px -8px color-mix(in srgb, var(--color-accent) 55%, transparent);
+  }
+  100% { box-shadow: var(--shadow-card); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .check.is-checking,
   .check.is-checking::after,
-  .check.is-checking svg { animation: none; }
+  .check.is-checking svg,
+  .spark,
+  .card.is-completing,
+  .card.is-completing::before { animation: none; }
 }
 
 .card__body { flex: 1; min-width: 0; }

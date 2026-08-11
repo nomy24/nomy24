@@ -14,10 +14,28 @@ function prefersReducedMotion() {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
-const CHECK_ANIM_MS = 260;
+const CHECK_ANIM_MS = 620;
+const SPARK_COLORS = ["var(--color-primary)", "var(--color-accent)", "var(--color-warning)"];
+
+function spawnSparkles(btn) {
+  const count = 10;
+  const frag = document.createDocumentFragment();
+  for (let i = 0; i < count; i++) {
+    const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.5;
+    const dist = 20 + Math.random() * 18;
+    const spark = document.createElement("span");
+    spark.className = "spark";
+    spark.style.setProperty("--dx", `${(Math.cos(angle) * dist).toFixed(1)}px`);
+    spark.style.setProperty("--dy", `${(Math.sin(angle) * dist).toFixed(1)}px`);
+    spark.style.setProperty("--delay", `${Math.round(Math.random() * 70)}ms`);
+    spark.style.background = SPARK_COLORS[i % SPARK_COLORS.length];
+    frag.appendChild(spark);
+  }
+  btn.appendChild(frag);
+}
 
 // 完了ボタンを押した瞬間にアニメーションを見せてから、実際の状態更新を確定する。
-// 更新は同期的に一覧を再描画してボタンごと作り直してしまうため、
+// 更新は同期的に一覧を再描画してカードごと作り直してしまうため、
 // アニメーションが目に入るよう一呼吸だけ遅らせている。
 function animateCheck(btn, commit) {
   if (prefersReducedMotion()) {
@@ -26,6 +44,8 @@ function animateCheck(btn, commit) {
   }
   btn.classList.add("is-checking");
   btn.disabled = true;
+  spawnSparkles(btn);
+  btn.closest(".card")?.classList.add("is-completing");
   setTimeout(commit, CHECK_ANIM_MS);
 }
 
