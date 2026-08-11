@@ -604,10 +604,15 @@ function renderStaffPicker() {
     return;
   }
   el.innerHTML = state.staff.map((s) => `
-    <button type="button" class="staff-chip ${s.id === state.meId ? "is-active" : ""}" data-id="${s.id}">
-      <span class="staff-chip__dot" style="background:${s.color || AVATAR_COLORS[0]}">${escapeHtml(s.name.slice(0, 1))}</span>
-      ${escapeHtml(s.name)}
-    </button>`).join("");
+    <div class="staff-row">
+      <button type="button" class="staff-chip ${s.id === state.meId ? "is-active" : ""}" data-id="${s.id}">
+        <span class="staff-chip__dot" style="background:${s.color || AVATAR_COLORS[0]}">${escapeHtml(s.name.slice(0, 1))}</span>
+        ${escapeHtml(s.name)}
+      </button>
+      <button type="button" class="staff-chip__edit" data-edit-id="${s.id}" aria-label="${escapeHtml(s.name)}を編集する">
+        <svg viewBox="0 0 24 24"><path d="M4 20h4l10.5-10.5a2 2 0 0 0 0-2.8l-1.2-1.2a2 2 0 0 0-2.8 0L4 16v4Z"/></svg>
+      </button>
+    </div>`).join("");
   el.querySelectorAll(".staff-chip").forEach((btn) => {
     btn.addEventListener("click", () => {
       state.meId = btn.dataset.id;
@@ -615,6 +620,11 @@ function renderStaffPicker() {
       renderStaffPicker();
       renderYouBadge();
       toast(`${meStaff().name}として利用します`);
+    });
+  });
+  el.querySelectorAll("[data-edit-id]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      openStaffSheet(state.staff.find((s) => s.id === btn.dataset.editId));
     });
   });
 }
