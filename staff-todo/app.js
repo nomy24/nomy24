@@ -203,39 +203,10 @@ function setScreen(name) {
     t.classList.toggle("is-active", active);
     if (active) t.setAttribute("aria-current", "page"); else t.removeAttribute("aria-current");
   });
-  window.scrollTo(0, 0);
-  document.body.classList.remove("header-hidden");
   renderScreen(name);
 }
 
 document.querySelectorAll(".tab").forEach((btn) => btn.addEventListener("click", () => setScreen(btn.dataset.screen)));
-
-// 下にスクロールしたらヘッダーを隠して一覧の表示領域を広げ、上に戻したら再表示する。
-(function setupHeaderAutoHide() {
-  const HIDE_AFTER = 40; // このスクロール量までは常時表示する
-  let lastY = window.scrollY;
-  let ticking = false;
-
-  function update() {
-    ticking = false;
-    const y = Math.max(0, window.scrollY);
-    const goingDown = y > lastY;
-    if (y <= HIDE_AFTER) {
-      document.body.classList.remove("header-hidden");
-    } else if (goingDown) {
-      document.body.classList.add("header-hidden");
-    } else {
-      document.body.classList.remove("header-hidden");
-    }
-    lastY = y;
-  }
-
-  window.addEventListener("scroll", () => {
-    if (ticking) return;
-    ticking = true;
-    requestAnimationFrame(update);
-  }, { passive: true });
-})();
 
 function renderScreen(name) {
   if (name === "todo") renderTodoList();
