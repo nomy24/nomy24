@@ -487,6 +487,13 @@
     align-items: center;
   }
 
+  .swap-from {
+    margin-left: 5px;
+    font-size: 10px;
+    font-weight: 400;
+    opacity: .85;
+  }
+
   .swap-chip {
     display: inline-flex;
     align-items: center;
@@ -2095,6 +2102,9 @@
     letter-spacing: .06em;
     white-space: nowrap;
   }
+
+  /* 「20日分 振替」のように長いものは、字を落として1行に収める */
+  .ns-state.is-long { font-size: calc(var(--ns-name-size, 9.5pt) * 0.78); letter-spacing: -.01em; }
 
   /* 欠席の行は氏名も赤に振って、離れた備考欄と取り違えないようにする */
   .ns-row.is-away .ns-name { color: #C4172A; }
@@ -3825,6 +3835,28 @@
     "振替": "furikae", "新規": "shinki", "増回": "shinki", "再開": "shinki"
   };
 
+  /* ── 振替の受付 ────────────────────────────
+     振替は「いつのぶんを振り替えたか」まで持つ。業務日誌にその日付を出すため。
+     古い保存（利用者の id だけを並べた形）も読めるようにしておく */
+  function normSwapList(raw) {
+    return (raw || []).map((v) => (typeof v === "string" ? { id: v, from: "" } : {
+      id: String((v && v.id) || ""),
+      from: String((v && v.from) || "")
+    })).filter((x) => x.id);
+  }
+
+  const swapIds = (part) => SWAP[part].map((x) => x.id);
+  const swapEntry = (part, id) => SWAP[part].find((x) => x.id === id) || null;
+
+  /* 「20日分」の形にする。月をまたぐぶんは月から書く */
+  function swapLabel(from) {
+    if (!from) return "";
+    const m = String(from).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!m) return String(from);
+    const sameMonth = String(currentDate).slice(0, 7) === m[1] + "-" + m[2];
+    return (sameMonth ? "" : Number(m[2]) + "月") + Number(m[3]) + "日分";
+  }
+
   /* 欠席のときだけ、行に理由を出す */
   const ABSENT_REASONS = STATUS_CODES.filter((c) => CODE_TO_STATE[c] === "absent");
 
@@ -4521,7 +4553,7 @@
     sel.append(new Option("", ""));
 
     const pool = swap
-      ? SWAP[part].map((id) => USER_BY_ID.get(id)).filter(Boolean)
+      ? swapIds(part).map((id) => USER_BY_ID.get(id)).filter(Boolean)
       : (weekday ? activeUsers().filter((u) => u.days[weekday] === PART_CODE[part]) : activeUsers());
 
     const towns = [];
@@ -4937,11 +4969,34 @@
       if (!name) return;
       const user = activeUsers().find((u) => u.name === name || u.kana === name);
       if (!user) { notify("「" + name + "」は利用者マスタに見つかりません。", "warn"); return; }
-      if (!SWAP[leg.part].includes(user.id)) SWAP[leg.part].push(user.id);
-      input.value = "";
-      drawSwapChips();
-      document.querySelectorAll('.stop.st-furikae').forEach(refillSelect);
-      refresh();
+      if (swapEntry(leg.part, user.id)) { notify(user.name + " さんはもう振替に入っています。", "warn"); return; }
+
+      /* いつのぶんの振替かを聞く。業務日誌に「20日分 振替」と出るので、
+         あとから思い出せなくならないよう、受け付けるときに一度だけ尋ねる */
+      let dayEl = null;
+      openUserDialog({
+        title: user.name + " さんの振替",
+        lead: leg.partLabel + "の振替として受け付けます。いつのぶんの振替ですか。",
+        ok: "振替に追加",
+        build(body) {
+          dayEl = formRow(body, "振替元の日",
+            Object.assign(document.createElement("input"), { type: "date", value: currentDate }),
+            "業務日誌の状態欄に「20日分 振替」の形で出ます。分からなければ空欄のままで構いません。");
+        },
+        submit() {
+          SWAP[leg.part].push({ id: user.id, from: dayEl.value || "" });
+          /* 出欠にも入れる。車に乗せたときに緑になり、人数にも入る */
+          ATTEND[leg.part][user.id] = "振替";
+          closeUserDialog();
+          input.value = "";
+          drawSwapChips();
+          applyAttendToRows();
+          document.querySelectorAll(".stop.st-furikae").forEach(refillSelect);
+          refresh();
+          notify(user.name + " さんを" + leg.partLabel + "の振替に追加しました"
+            + (dayEl.value ? "（" + swapLabel(dayEl.value) + "）" : "") + "。");
+        }
+      });
     };
     addBtn.addEventListener("click", addSwap);
     input.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); addSwap(); } });
@@ -5055,20 +5110,40 @@
       const wrap = document.querySelector("#leg-" + leg.key + " .swap-chips");
       if (!wrap) return;
       wrap.innerHTML = "";
-      SWAP[leg.part].forEach((id) => {
-        const user = USER_BY_ID.get(id);
+      SWAP[leg.part].forEach((entry) => {
+        const user = USER_BY_ID.get(entry.id);
         if (!user) return;
         const chip = el("span", "swap-chip");
         const x = el("button", "swap-x", "×");
         x.type = "button";
-        x.title = "振替から外す";
+        x.title = "振替から外す（車に乗っていれば降ろします）";
         x.addEventListener("click", () => {
-          SWAP[leg.part] = SWAP[leg.part].filter((v) => v !== id);
+          SWAP[leg.part] = SWAP[leg.part].filter((v) => v.id !== entry.id);
+          /* 車に乗せたあとで外すこともある。行に残ったままだと
+             名簿にいない方が乗っていることになるので、そこも空ける */
+          let seated = 0;
+          LEGS.filter((l) => l.part === leg.part).forEach((l) => {
+            const section = document.getElementById("leg-" + l.key);
+            if (!section) return;
+            section.querySelectorAll(".stop:not(.head)").forEach((stop) => {
+              const sel = stop.querySelector(".who");
+              if (sel.value !== entry.id) return;
+              sel.value = "";
+              applyUser(stop, "");
+              setState(stop, "");
+              seated += 1;
+            });
+          });
+          if (ATTEND[leg.part][entry.id] === "振替") delete ATTEND[leg.part][entry.id];
           drawSwapChips();
           document.querySelectorAll(".stop.st-furikae").forEach(refillSelect);
           refresh();
+          notify(user.name + " さんを振替から外しました"
+            + (seated ? "（乗っていた " + seated + "件の行も空けました）" : "") + "。");
         });
-        chip.append(document.createTextNode(user.name), x);
+        chip.append(document.createTextNode(user.name));
+        if (entry.from) chip.append(el("small", "swap-from", swapLabel(entry.from)));
+        chip.append(x);
         wrap.append(chip);
       });
       if (SWAP[leg.part].length === 0) wrap.append(el("span", "swap-none", "登録なし"));
@@ -5215,7 +5290,7 @@
     });
 
     /* その曜日の名簿に、その日に受け付けた振替の方を足して突き合わせる */
-    const roster = [...new Set([...rosterFor(leg.part, weekdayOf(currentDate)), ...SWAP[leg.part]])];
+    const roster = [...new Set([...rosterFor(leg.part, weekdayOf(currentDate)), ...swapIds(leg.part)])];
     const missing = roster.filter((id) => !seen.has(id));
 
     const set = (name, value, alert) => {
@@ -5327,6 +5402,16 @@
   }
 
   const emptyRow = () => ({ u: "", st: "", t: "", wr: "", m: false, a: "", ae: false, ac: "", n: "", g: [] });
+
+  /* 未割当の方を車に乗せるときの行。
+     その方の出欠に「振替」「新規」などが入っていれば、その色のまま乗せる */
+  function seatRowFor(car, userId) {
+    const section = car.closest(".leg");
+    const leg = section && LEGS.find((l) => l.key === section.dataset.leg);
+    const code = leg ? (ATTEND[leg.part][userId] || "") : "";
+    const st = codeState(code);
+    return Object.assign(emptyRow(), { u: userId, st, wr: st === "absent" ? code : "" });
+  }
 
   function writeRow(stop, r) {
     const sel = stop.querySelector(".who");
@@ -5447,7 +5532,7 @@
     }
 
     const at = Math.max(0, Math.min(index < 0 ? filled.length : index, filled.length));
-    filled.splice(at, 0, Object.assign(emptyRow(), { u: userId }));
+    filled.splice(at, 0, seatRowFor(car, userId));
     rows.forEach((row, i) => writeRow(row, filled[i] || emptyRow()));
 
     /* 畳まれていた車なら開く */
@@ -5514,7 +5599,7 @@
   function captureDay() {
     const data = {
       legs: {},
-      swap: { am: [...SWAP.am], pm: [...SWAP.pm] },
+      swap: { am: SWAP.am.map((x) => ({ ...x })), pm: SWAP.pm.map((x) => ({ ...x })) },
       attend: { am: { ...ATTEND.am }, pm: { ...ATTEND.pm } }
     };
     LEGS.forEach((leg) => {
@@ -5549,8 +5634,8 @@
     if (!data) return;
     if (data.swap) {
       SWAP = {
-        am: (data.swap.am || []).filter((id) => USER_BY_ID.has(id)),
-        pm: (data.swap.pm || []).filter((id) => USER_BY_ID.has(id))
+        am: normSwapList(data.swap.am).filter((x) => USER_BY_ID.has(x.id)),
+        pm: normSwapList(data.swap.pm).filter((x) => USER_BY_ID.has(x.id))
       };
     }
     ATTEND = { am: { ...((data.attend || {}).am || {}) }, pm: { ...((data.attend || {}).pm || {}) } };
@@ -5820,9 +5905,7 @@
       );
       if (car.dataset.lift) btn.classList.add("is-lift");
       btn.addEventListener("click", () => {
-        const payload = emptyRow();
-        payload.u = userId;
-        if (!seatInto(car, payload)) { notify("空きがありません。", "warn"); return; }
+        if (!seatInto(car, seatRowFor(car, userId))) { notify("空きがありません。", "warn"); return; }
         car.dataset.forceOpen = "1";
         car.classList.remove("collapsed");
         dialog.hidden = true;
@@ -7448,7 +7531,7 @@
   /* その日・その便に来る予定の方（振替で受け付けた方も含む） */
   function attendRoster(part) {
     const base = rosterFor(part, weekdayOf(currentDate));
-    return [...new Set([...base, ...SWAP[part]])]
+    return [...new Set([...base, ...swapIds(part)])]
       .map((id) => USER_BY_ID.get(id))
       .filter(Boolean)
       .sort(byKana);
@@ -7691,7 +7774,15 @@
     if (bp.length >= 6) note.classList.add("is-long");
     row.append(note);
 
-    row.append(nisshiCell("ns-state", code));
+    /* 振替は「いつのぶんか」まで書く。様式でも日付を添えていた */
+    let state = code;
+    if (code === "振替" && u) {
+      const entry = swapEntry(part, u.id);
+      if (entry && entry.from) state = swapLabel(entry.from) + " " + code;
+    }
+    const st = nisshiCell("ns-state", state);
+    if (state.length >= 6) st.classList.add("is-long");
+    row.append(st);
     /* 欠席を消す赤線。桝の上に重ねるので、桝をすべて置いたあとに足す */
     row.append(nisshiCell("ns-strike", ""));
     return row;
@@ -8170,7 +8261,7 @@
       const section = document.getElementById("leg-" + leg.key);
       if (!section) return null;
       const seated = new Set([...section.querySelectorAll(".who")].map((s) => s.value).filter(Boolean));
-      const roster = [...new Set([...rosterFor(leg.part, weekday), ...SWAP[leg.part]])];
+      const roster = [...new Set([...rosterFor(leg.part, weekday), ...swapIds(leg.part)])];
       const names = roster
         .filter((id) => !seated.has(id))
         .filter((id) => codeState(ATTEND[leg.part][id] || "") !== "absent")
