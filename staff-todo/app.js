@@ -109,18 +109,37 @@ let sheetSubmitHandler = null;
 function openSheet(title, bodyHtml, { onSubmit, onDelete, submitLabel = "保存" } = {}) {
   sheetTitle.textContent = title;
   sheetForm.innerHTML = bodyHtml + `
-    <div class="sheet__actions">
+    <div class="sheet__actions" id="sheetActions">
       ${onDelete ? `<button type="button" class="btn btn--danger" id="sheetDeleteBtn">削除</button>` : ""}
       <button type="submit" class="btn btn--primary">${submitLabel}</button>
     </div>
+    ${onDelete ? `
+    <div class="delete-confirm" id="deleteConfirm" hidden>
+      <p class="delete-confirm__text">削除しますか？この操作は取り消せません。</p>
+      <div class="delete-confirm__actions">
+        <button type="button" class="btn btn--ghost" id="deleteCancelBtn">キャンセル</button>
+        <button type="button" class="btn btn--danger-solid" id="deleteConfirmBtn">削除する</button>
+      </div>
+    </div>` : ""}
   `;
   sheetSubmitHandler = onSubmit;
   if (onDelete) {
-    sheetForm.querySelector("#sheetDeleteBtn").addEventListener("click", async () => {
-      if (confirm("削除しますか？この操作は取り消せません。")) {
-        await onDelete();
-        closeSheet();
-      }
+    // 埋め込み先(プレビューのサンドボックス等)では window.confirm が使えないことがあるため、
+    // シート内蔵の2段階確認に置き換えている。
+    const deleteBtn = sheetForm.querySelector("#sheetDeleteBtn");
+    const sheetActions = sheetForm.querySelector("#sheetActions");
+    const confirmBox = sheetForm.querySelector("#deleteConfirm");
+    deleteBtn.addEventListener("click", () => {
+      sheetActions.hidden = true;
+      confirmBox.hidden = false;
+    });
+    confirmBox.querySelector("#deleteCancelBtn").addEventListener("click", () => {
+      confirmBox.hidden = true;
+      sheetActions.hidden = false;
+    });
+    confirmBox.querySelector("#deleteConfirmBtn").addEventListener("click", async () => {
+      await onDelete();
+      closeSheet();
     });
   }
   wirePillGroups(sheetForm);
