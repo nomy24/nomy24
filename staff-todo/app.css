@@ -164,6 +164,8 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
   transition: background 150ms ease, color 150ms ease, border-color 150ms ease;
 }
 .chip.is-active { background: var(--color-primary); border-color: var(--color-primary); color: var(--color-on-primary); }
+.chip-group { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip-group .chip { flex-shrink: initial; }
 
 .segmented {
   display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px;

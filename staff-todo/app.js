@@ -250,7 +250,7 @@ function filteredTodos() {
   let list = [...state.todos];
   if (state.todoFilter === "open") list = list.filter((x) => !x.done);
   else if (state.todoFilter === "today") list = list.filter((x) => !x.done && x.dueDate && x.dueDate <= t);
-  else if (state.todoFilter === "mine") list = state.meId ? list.filter((x) => x.assigneeId === state.meId) : [];
+  else if (state.todoFilter === "mine") list = state.meId ? list.filter((x) => todoAssigneeIds(x).includes(state.meId)) : [];
   list.sort((a, b) => {
     if (!!a.done !== !!b.done) return a.done ? 1 : -1;
     const ad = a.dueDate || "9999-99-99", bd = b.dueDate || "9999-99-99";
@@ -273,11 +273,11 @@ function renderTodoList() {
   empty.textContent = "Todoはまだありません。右下の＋から追加できます。";
   empty.hidden = list.length > 0;
   el.innerHTML = list.map((t) => {
-    const assignee = staffById(t.assigneeId);
+    const assignees = todoAssigneeIds(t).map((id) => staffById(id)).filter(Boolean);
     const badges = [];
     if (t.dueDate) badges.push(`<span class="badge ${!t.done && t.dueDate < todayKey() ? "badge--danger" : t.dueDate === todayKey() ? "badge--warning" : ""}">${escapeHtml(dueLabel(t.dueDate))}</span>`);
     if (t.priority === "high") badges.push(`<span class="badge badge--danger">重要</span>`);
-    if (assignee) badges.push(`<span class="badge">${escapeHtml(assignee.name)}</span>`);
+    assignees.forEach((a) => badges.push(`<span class="badge">${escapeHtml(a.name)}</span>`));
     return `
       <div class="card" data-id="${t.id}">
         <button type="button" class="check ${t.done ? "is-done" : ""}" data-action="toggle" aria-label="完了にする">
@@ -310,12 +310,18 @@ function renderTodoList() {
   });
 }
 
-function staffOptionsHtml(selectedId) {
-  return `<option value="">誰でも</option>` + state.staff.map((s) => `<option value="${s.id}" ${s.id === selectedId ? "selected" : ""}>${escapeHtml(s.name)}</option>`).join("");
+function todoAssigneeIds(todo) {
+  return todo?.assigneeIds || (todo?.assigneeId ? [todo.assigneeId] : []);
+}
+
+function assigneeChipsHtml(selectedIds) {
+  if (!state.staff.length) return `<p class="note">まだ職員が登録されていません。設定画面から追加できます。</p>`;
+  return state.staff.map((s) => `<button type="button" class="chip ${selectedIds.includes(s.id) ? "is-active" : ""}" data-id="${s.id}">${escapeHtml(s.name)}</button>`).join("");
 }
 
 function openTodoSheet(existing) {
   const priority = existing?.priority || "normal";
+  const selectedAssigneeIds = new Set(todoAssigneeIds(existing));
   const html = `
     <div class="field">
       <label for="f-title">タイトル</label>
@@ -325,15 +331,13 @@ function openTodoSheet(existing) {
       <label for="f-memo">メモ（任意）</label>
       <textarea id="f-memo" name="memo" maxlength="500" placeholder="詳しい内容があれば">${escapeHtml(existing?.memo || "")}</textarea>
     </div>
-    <div class="field-row">
-      <div class="field">
-        <label for="f-assignee">担当</label>
-        <select id="f-assignee" name="assigneeId">${staffOptionsHtml(existing?.assigneeId)}</select>
-      </div>
-      <div class="field">
-        <label for="f-due">期限（任意）</label>
-        <input id="f-due" name="dueDate" type="date" value="${existing?.dueDate || ""}">
-      </div>
+    <div class="field">
+      <label>担当（複数選択可）</label>
+      <div class="chip-group" id="assigneeGroup">${assigneeChipsHtml([...selectedAssigneeIds])}</div>
+    </div>
+    <div class="field">
+      <label for="f-due">期限（任意）</label>
+      <input id="f-due" name="dueDate" type="date" value="${existing?.dueDate || ""}">
     </div>
     <div class="field">
       <label>優先度</label>
@@ -349,7 +353,8 @@ function openTodoSheet(existing) {
       const payload = {
         title: data.title.trim(),
         memo: data.memo?.trim() || "",
-        assigneeId: data.assigneeId || null,
+        assigneeIds: [...selectedAssigneeIds],
+        assigneeId: null,
         dueDate: data.dueDate || null,
         priority: data.priority || "normal",
       };
@@ -362,6 +367,14 @@ function openTodoSheet(existing) {
       toast("保存しました");
     },
     onDelete: existing ? async () => { await todoStore.remove(existing.id); toast("削除しました"); } : null,
+  });
+  sheetForm.querySelector("#assigneeGroup")?.querySelectorAll(".chip").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const id = btn.dataset.id;
+      if (selectedAssigneeIds.has(id)) selectedAssigneeIds.delete(id);
+      else selectedAssigneeIds.add(id);
+      btn.classList.toggle("is-active", selectedAssigneeIds.has(id));
+    });
   });
 }
 
