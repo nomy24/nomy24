@@ -456,6 +456,47 @@ function renderAgenda() {
   });
 }
 
+// カレンダーをスワイプ／スクロールしても前後の月に切り替えられるようにする。
+// #calGrid の中身は毎回作り直されるが、要素自体は同じなのでリスナーは一度だけ張ればよい。
+(function setupCalendarScrollNav() {
+  const grid = document.getElementById("calGrid");
+  let touchStartX = null;
+  let touchStartY = null;
+  let touchHandled = false;
+
+  grid.addEventListener("touchstart", (e) => {
+    if (e.touches.length !== 1) return;
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+    touchHandled = false;
+  }, { passive: true });
+
+  grid.addEventListener("touchmove", (e) => {
+    if (touchStartX === null || touchHandled) return;
+    const dx = e.touches[0].clientX - touchStartX;
+    const dy = e.touches[0].clientY - touchStartY;
+    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
+      touchHandled = true;
+      shiftMonth(dx < 0 ? 1 : -1);
+    }
+  }, { passive: true });
+
+  grid.addEventListener("touchend", () => {
+    touchStartX = null;
+    touchStartY = null;
+  });
+
+  let wheelLocked = false;
+  grid.addEventListener("wheel", (e) => {
+    if (wheelLocked) return;
+    const delta = Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
+    if (Math.abs(delta) < 24) return;
+    wheelLocked = true;
+    shiftMonth(delta > 0 ? 1 : -1);
+    setTimeout(() => { wheelLocked = false; }, 350);
+  }, { passive: true });
+})();
+
 function openEventSheet(dateKey, existing) {
   const allDay = existing ? !!existing.allDay : true;
   const html = `
