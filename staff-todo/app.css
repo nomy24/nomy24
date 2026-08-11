@@ -184,14 +184,47 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 }
 
 .check {
+  position: relative;
   width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--color-border);
   background: var(--color-surface); flex-shrink: 0; margin-top: 1px;
   display: flex; align-items: center; justify-content: center; cursor: pointer;
   transition: background 150ms ease, border-color 150ms ease;
 }
-.check svg { width: 15px; height: 15px; stroke: var(--color-on-primary); stroke-width: 3; opacity: 0; }
+.check svg { width: 15px; height: 15px; stroke: var(--color-on-primary); stroke-width: 3; opacity: 0; transition: opacity 120ms ease; }
 .check.is-done { background: var(--color-primary); border-color: var(--color-primary); }
 .check.is-done svg { opacity: 1; }
+.check:disabled { cursor: default; }
+
+.check::after {
+  content: ""; position: absolute; inset: -2px; border-radius: 50%;
+  border: 2px solid var(--color-primary); opacity: 0; pointer-events: none;
+}
+.check.is-checking { animation: check-pop 320ms cubic-bezier(.34, 1.56, .64, 1); }
+.check.is-checking::after { animation: check-ring 420ms ease-out; }
+.check.is-checking svg {
+  opacity: 1; stroke-dasharray: 20; stroke-dashoffset: 20;
+  animation: check-draw 220ms ease-out 60ms forwards;
+}
+
+@keyframes check-pop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.3); }
+  65% { transform: scale(0.92); }
+  100% { transform: scale(1); }
+}
+@keyframes check-ring {
+  0% { transform: scale(0.5); opacity: 0.6; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+@keyframes check-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .check.is-checking,
+  .check.is-checking::after,
+  .check.is-checking svg { animation: none; }
+}
 
 .card__body { flex: 1; min-width: 0; }
 .card__title { font-size: 15.5px; font-weight: 600; line-height: 1.4; word-break: break-word; }

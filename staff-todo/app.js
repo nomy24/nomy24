@@ -10,6 +10,25 @@ function escapeHtml(str) {
 
 function pad2(n) { return String(n).padStart(2, "0"); }
 
+function prefersReducedMotion() {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+const CHECK_ANIM_MS = 260;
+
+// 完了ボタンを押した瞬間にアニメーションを見せてから、実際の状態更新を確定する。
+// 更新は同期的に一覧を再描画してボタンごと作り直してしまうため、
+// アニメーションが目に入るよう一呼吸だけ遅らせている。
+function animateCheck(btn, commit) {
+  if (prefersReducedMotion()) {
+    commit();
+    return;
+  }
+  btn.classList.add("is-checking");
+  btn.disabled = true;
+  setTimeout(commit, CHECK_ANIM_MS);
+}
+
 function toDateKey(date) {
   return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
 }
@@ -237,7 +256,10 @@ function renderTodoList() {
       e.stopPropagation();
       const id = btn.closest(".card").dataset.id;
       const todo = state.todos.find((x) => x.id === id);
-      todoStore.update(id, { done: !todo.done, doneBy: !todo.done ? (meStaff()?.name || null) : null });
+      const nowDone = !todo.done;
+      const commit = () => todoStore.update(id, { done: nowDone, doneBy: nowDone ? (meStaff()?.name || null) : null });
+      if (nowDone) animateCheck(btn, commit);
+      else commit();
     });
   });
   el.querySelectorAll('[data-action="edit"]').forEach((body) => {
@@ -525,12 +547,14 @@ function renderRoutineList() {
       const logId = `${taskId}__${periodKey}`;
       const log = routineLogFor(taskId, cat);
       const nowDone = !log?.done;
-      routineLogStore.set(logId, {
+      const commit = () => routineLogStore.set(logId, {
         taskId, category: cat, periodKey,
         done: nowDone,
         doneBy: nowDone ? (meStaff()?.name || "スタッフ") : null,
         doneAt: nowDone ? Date.now() : null,
       });
+      if (nowDone) animateCheck(btn, commit);
+      else commit();
     });
   });
   el.querySelectorAll('[data-action="edit"]').forEach((body) => {
