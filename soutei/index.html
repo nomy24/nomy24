@@ -4630,14 +4630,22 @@
       const cur = li.dataset.state || "";
       const cycle = li.querySelector(".who").value ? STATES : STATES_EMPTY;
       const next = cycle[(cycle.indexOf(cur) + 1) % cycle.length];
+
+      /* 一周のはじめに、その方の出欠を控えておく。
+         「外す」まで押し続けたときは、途中で通り過ぎただけの
+         欠席・振替・新規を残さず、押す前の出欠へ戻すため */
+      if (!("attendBefore" in li.dataset)) li.dataset.attendBefore = attendCodeOf(li);
+
       if (next === "clear") {
         /* 他の車に移すとき用。行を空にして次の選択に備える */
+        restoreAttendForRow(li);
         li.querySelector(".who").value = "";
         applyUser(li, "");
       } else {
         setState(li, next);
+        noteAttendFromRow(li);
       }
-      noteAttendFromRow(li);
+      if (next === "clear" || next === "") delete li.dataset.attendBefore;
       refillSelect(li);
       refresh();
     });
@@ -7537,10 +7545,33 @@
       .sort(byKana);
   }
 
+  /* その行の便 */
+  function legOfRow(stop) {
+    const section = stop.closest(".leg");
+    return (section && LEGS.find((l) => l.key === section.dataset.leg)) || null;
+  }
+
+  /* いまその行に乗っている方の出欠（控えを取るときに使う） */
+  function attendCodeOf(stop) {
+    const leg = legOfRow(stop);
+    const id = stop.querySelector(".who").value;
+    return (leg && id) ? (ATTEND[leg.part][id] || "") : "";
+  }
+
+  /* 番号を「外す」まで回したとき、控えておいた出欠へ戻す。
+     車から降ろしただけの方が新規や欠席のまま残らないようにする */
+  function restoreAttendForRow(stop) {
+    const leg = legOfRow(stop);
+    const id = stop.querySelector(".who").value;
+    if (!leg || !id) return;
+    const before = stop.dataset.attendBefore || "";
+    if (before) ATTEND[leg.part][id] = before;
+    else delete ATTEND[leg.part][id];
+  }
+
   /* 利用者を入れ替えたら、その方の出欠に合わせる */
   function pullAttendForRow(stop) {
-    const section = stop.closest(".leg");
-    const leg = section && LEGS.find((l) => l.key === section.dataset.leg);
+    const leg = legOfRow(stop);
     const id = stop.querySelector(".who").value;
     if (!leg || !id) return;
     const code = ATTEND[leg.part][id] || "";
@@ -7567,9 +7598,7 @@
 
   /* 行で変えた状態を出欠へ戻す */
   function noteAttendFromRow(stop) {
-    const section = stop.closest(".leg");
-    if (!section) return;
-    const leg = LEGS.find((l) => l.key === section.dataset.leg);
+    const leg = legOfRow(stop);
     const id = stop.querySelector(".who").value;
     if (!leg || !id) return;
 
