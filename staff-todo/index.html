@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<title>職員Todo｜共有タスク管理</title>
+<meta name="description" content="職員同士でTodo・カレンダー・定型タスクを共有できるアプリです。">
+<meta name="theme-color" content="#F0FDFA" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0B1A18" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="職員Todo">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<a class="skip-link" href="#main">本文へ移動</a>
+
+<header class="appbar">
+  <div class="appbar__inner">
+    <div class="appbar__title">
+      <span class="appbar__eyebrow">職員間で共有</span>
+      <h1 class="appbar__name">職員Todo</h1>
+    </div>
+    <div class="appbar__you" id="youBadge" title="設定画面で名前を選べます">
+      <span id="youInitial">?</span>
+    </div>
+  </div>
+  <div class="modebar" id="modebar" hidden>
+    <span id="modebarText"></span>
+  </div>
+</header>
+
+<main id="main" class="screens">
+
+  <!-- Todo -->
+  <section class="screen is-active" id="screen-todo" aria-labelledby="todoHeading">
+    <div class="pagehead">
+      <h2 id="todoHeading" class="pagehead__title">Todo</h2>
+      <p class="pagehead__note">みんなで共有するタスク一覧です。</p>
+    </div>
+
+    <div class="filters" role="group" aria-label="表示するTodoを絞り込む">
+      <button class="chip is-active" type="button" data-todo-filter="open">未完了</button>
+      <button class="chip" type="button" data-todo-filter="today">今日まで</button>
+      <button class="chip" type="button" data-todo-filter="mine">自分の担当</button>
+      <button class="chip" type="button" data-todo-filter="all">すべて</button>
+    </div>
+
+    <div id="todoList" class="list"></div>
+    <p class="empty" id="todoEmpty" hidden>Todoはまだありません。右下の＋から追加できます。</p>
+  </section>
+
+  <!-- カレンダー -->
+  <section class="screen" id="screen-calendar" aria-labelledby="calendarHeading" hidden>
+    <div class="pagehead">
+      <h2 id="calendarHeading" class="pagehead__title">カレンダー</h2>
+      <p class="pagehead__note">予定をタップすると詳しく見られます。</p>
+    </div>
+
+    <div class="cal-nav">
+      <button type="button" id="calPrev" class="icon-btn" aria-label="前の月">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+      </button>
+      <button type="button" id="calMonthLabel" class="cal-nav__label"></button>
+      <button type="button" id="calNext" class="icon-btn" aria-label="次の月">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+
+    <div class="cal-weekdays" id="calWeekdays"></div>
+    <div class="cal-grid" id="calGrid"></div>
+
+    <div class="agenda" id="agenda">
+      <h3 class="agenda__title" id="agendaTitle">今日の予定</h3>
+      <div id="agendaList" class="list"></div>
+      <p class="empty" id="agendaEmpty" hidden>この日の予定はまだありません。</p>
+    </div>
+  </section>
+
+  <!-- 定型タスク -->
+  <section class="screen" id="screen-routine" aria-labelledby="routineHeading" hidden>
+    <div class="pagehead">
+      <h2 id="routineHeading" class="pagehead__title">定型タスク</h2>
+      <p class="pagehead__note" id="routinePeriodNote">決まった作業のチェックリストです。</p>
+    </div>
+
+    <div class="segmented" role="tablist" aria-label="定型タスクの種類">
+      <button class="segmented__btn is-active" type="button" role="tab" data-routine-cat="daily" aria-selected="true">毎日</button>
+      <button class="segmented__btn" type="button" role="tab" data-routine-cat="monthStart" aria-selected="false">月初</button>
+      <button class="segmented__btn" type="button" role="tab" data-routine-cat="monthEnd" aria-selected="false">月末</button>
+      <button class="segmented__btn" type="button" role="tab" data-routine-cat="adhoc" aria-selected="false">随時</button>
+    </div>
+
+    <div id="routineList" class="list"></div>
+    <p class="empty" id="routineEmpty" hidden>このカテゴリのタスクはまだありません。右下の＋から追加できます。</p>
+  </section>
+
+  <!-- 設定 -->
+  <section class="screen" id="screen-settings" aria-labelledby="settingsHeading" hidden>
+    <div class="pagehead">
+      <h2 id="settingsHeading" class="pagehead__title">設定</h2>
+    </div>
+
+    <div class="card-group">
+      <h3 class="card-group__title">あなたの名前</h3>
+      <p class="card-group__desc">選んだ名前で「担当」や「実施者」が記録されます。</p>
+      <div id="staffPicker" class="staff-picker"></div>
+      <button type="button" id="addStaffBtn" class="ghost-btn">職員を追加する</button>
+    </div>
+
+    <div class="card-group">
+      <h3 class="card-group__title">共有の状態</h3>
+      <p class="note" id="modeNote">確認中です…</p>
+    </div>
+
+    <div class="card-group">
+      <h3 class="card-group__title">表示</h3>
+      <label class="row">
+        <span class="row__text">
+          <span class="row__label">文字を大きくする</span>
+          <span class="row__desc">一覧の文字を一回り大きく表示します。</span>
+        </span>
+        <input id="largeTextToggle" class="switch" type="checkbox">
+      </label>
+    </div>
+
+    <div class="card-group" id="localDataCard" hidden>
+      <h3 class="card-group__title">データ</h3>
+      <p class="note">お試しモードのデータはこの端末だけに保存されています。</p>
+      <button type="button" id="clearLocalBtn" class="ghost-btn ghost-btn--danger">この端末のデータを消去する</button>
+    </div>
+  </section>
+</main>
+
+<button type="button" id="fab" class="fab" aria-label="追加する">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+</button>
+
+<nav class="tabbar" aria-label="画面の切り替え">
+  <button class="tab is-active" type="button" data-screen="todo" aria-current="page">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l4 4 10-10"/></svg>
+    <span>Todo</span>
+  </button>
+  <button class="tab" type="button" data-screen="calendar">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M8 3v4M16 3v4"/></svg>
+    <span>カレンダー</span>
+  </button>
+  <button class="tab" type="button" data-screen="routine">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6h14M5 12h14M5 18h9"/><circle cx="19" cy="18" r="2"/></svg>
+    <span>定型タスク</span>
+  </button>
+  <button class="tab" type="button" data-screen="settings">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10m4 0h2M4 12h3m4 0h9M4 17h8m4 0h4"/><circle cx="16" cy="7" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="14" cy="17" r="2"/></svg>
+    <span>設定</span>
+  </button>
+</nav>
+
+<div class="sheet-backdrop" id="sheetBackdrop" hidden></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" hidden>
+  <div class="sheet__handle" aria-hidden="true"></div>
+  <div class="sheet__header">
+    <h2 class="sheet__title" id="sheetTitle">追加</h2>
+    <button type="button" class="icon-btn" id="sheetClose" aria-label="閉じる">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+  </div>
+  <form id="sheetForm" class="sheet__form"></form>
+</div>
+
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
