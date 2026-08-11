@@ -3547,6 +3547,7 @@
     <span class="item">■＝乗車　□＝空席（定員は運転手を除く人数）</span>
     <span class="item">利用者名のプルダウンには、その曜日・その便（午前／午後）に来る方だけが並びます。選ぶと住所と記号がマスタから自動で入ります。</span>
     <span class="item">予定の時刻は事業所発の時刻と住所から換算。手入力で上書きでき、空欄にすると自動に戻ります。</span>
+    <span class="item">お迎え便の<b>事業所発は自動で調整</b>されます。乗る方が増減するたびに、事業所着（目標）に間に合う時刻へ引き直します。発を手で書き換えるとその車だけ固定（※印）、空欄にすると自動に戻ります。</span>
     <span class="item">「実績」欄は実際の到着時刻の記入用です。</span>
     <span class="item">左端の番号をクリックするたびに　通常（便の色）→ 欠席（赤・取り消し線）→ 振替利用（黄緑）→ 新規・増回（橙）→ 通常　と一周します。押し間違えても押し続ければ通常に戻ります。</span>
     <span class="item">左端の番号を<b>長押し（右クリック）</b>すると、その行の利用者だけを外して空欄にできます。他の車へ移すときに使えます。</span>
@@ -4865,7 +4866,28 @@
     } else {
       depBar.append(el("span", "lbl", leg.departLabel), dep, el("span", "lbl", "実績"), depActual, map, fold);
     }
-    dep.addEventListener("input", refresh);
+    /* お迎え便の事業所発は既定で自動。乗る顔ぶれが変わるたびに
+       「事業所着の目標」に収まるよう引き直す。
+       手で書き換えたぶんは固定して守り、空にすると自動へ戻る */
+    dep.title = leg.arriveBy
+      ? "事業所発。事業所着に間に合うよう自動で調整します。\n手で書き換えるとその時刻で固定、空にすると自動に戻ります。"
+      : "事業所発。ここを起点に予定の時刻を組み立てます。";
+    const markDep = () => {
+      dep.dataset.manual = dep.textContent.trim() ? "true" : "false";
+      dep.classList.toggle("edited", leg.arriveBy && dep.dataset.manual === "true");
+    };
+    dep.addEventListener("input", () => { markDep(); refresh(); });
+    dep.addEventListener("blur", () => {
+      normalizeTime(dep);
+      /* 着の目標を持たない便は起点が要るので、空なら既定へ戻す */
+      if (!dep.textContent.trim() && !leg.arriveBy) dep.textContent = leg.depart;
+      markDep();
+      refresh();
+    });
+    dep.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") { e.preventDefault(); dep.blur(); }
+      if (e.key === "Escape") { dep.textContent = ""; dep.blur(); }
+    });
 
     const list = el("ol", "route");
     const head = el("li", "stop head");
@@ -5046,13 +5068,14 @@
      欠席は立ち寄らないので予定時刻を消し、以降を繰り上げる。 */
   function computeTimes(section, leg) {
     section.querySelectorAll(".car").forEach((car, index) => {
-      /* 事業所発を持たない便（午後お迎え）は、記入で調整する口がないので
-         毎回そのときの顔ぶれで着から逆算し直す。上限を必ず内側に保つ */
+      /* 事業所着の目標を持つ便（お迎え）は、乗る顔ぶれが変わるたびに
+         事業所発を引き直して、着が目標に収まるようにする。
+         手で書き換えた発だけはそのまま守る（※印の付いた欄） */
       if (leg.arriveBy) {
-        const eta = car.querySelector(".eta");
-        /* 目標を書いてある車と、そもそも発の記入欄がない便は、
-           そのつど着から逆算し直す */
-        if (leg.noDepart || (eta && eta.dataset.manual === "true")) retimeCar(car, leg, index);
+        const dep = car.querySelector(".dep");
+        /* 記入中は触らない。空にして自動へ戻す途中で書き戻すと、
+           そのまま手入力として固定されてしまう */
+        if (dep.dataset.manual !== "true" && document.activeElement !== dep) retimeCar(car, leg, index);
       }
 
       let cursor = parseHHMM(car.querySelector(".dep").textContent);
@@ -5630,6 +5653,8 @@
         start: car.querySelector(".start-box") ? car.querySelector(".start-box").textContent : "",
         driver: car.querySelector(".driver-select").value,
         dep: car.querySelector(".dep").textContent,
+        /* 事業所発を手で書き換えてあるか。自動調整をそこだけ止めるため */
+        depM: car.querySelector(".dep").dataset.manual === "true",
         depActual: car.querySelector(".dep-actual").textContent,
         arrive: car.querySelector(".arrive-box").textContent,
         /* 着の目標（お迎え便で手で入れたとき） */
@@ -5686,7 +5711,18 @@
         }
         dsel.value = s.driver || "";
         dsel.dataset.empty = dsel.value ? "false" : "true";
-        car.querySelector(".dep").textContent = s.dep || leg.depart;
+        const depEl = car.querySelector(".dep");
+        depEl.textContent = s.dep || leg.depart;
+        /* 自動調整を入れる前に保存した日は目印がない。
+           そのときの顔ぶれで計算した値と食い違うぶんだけ「手で入れた」とみなし、
+           前に記録した発の時刻を勝手に書き換えないようにする */
+        let depM = !!s.depM;
+        if (s.depM === undefined && leg.arriveBy) {
+          const ids = (s.stops || []).filter((r) => r && r.st !== "absent").map((r) => r.u).filter(Boolean);
+          depM = !!s.dep && s.dep !== departFor(leg, ci, ids, s.eta || "");
+        }
+        depEl.dataset.manual = String(depM);
+        depEl.classList.toggle("edited", !!leg.arriveBy && depM);
         car.querySelector(".dep-actual").textContent = s.depActual || "";
         car.querySelector(".arrive-box").textContent = s.arrive || "";
 
