@@ -66,6 +66,7 @@ function colorForStaff(staff) {
 
 const ME_KEY = "staffTodo:me";
 const LARGE_TEXT_KEY = "staffTodo:largeText";
+const HIDE_HEADER_KEY = "staffTodo:hideHeader";
 
 // ---------------- 状態 ----------------
 
@@ -814,6 +815,14 @@ document.body.classList.toggle("large-text", largeTextToggle.checked);
 largeTextToggle.addEventListener("change", () => {
   localStorage.setItem(LARGE_TEXT_KEY, largeTextToggle.checked ? "1" : "0");
   document.body.classList.toggle("large-text", largeTextToggle.checked);
+});
+
+const hideHeaderToggle = document.getElementById("hideHeaderToggle");
+hideHeaderToggle.checked = localStorage.getItem(HIDE_HEADER_KEY) === "1";
+document.body.classList.toggle("header-hidden", hideHeaderToggle.checked);
+hideHeaderToggle.addEventListener("change", () => {
+  localStorage.setItem(HIDE_HEADER_KEY, hideHeaderToggle.checked ? "1" : "0");
+  document.body.classList.toggle("header-hidden", hideHeaderToggle.checked);
 });
 
 // ================================================================

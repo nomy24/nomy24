@@ -101,6 +101,8 @@ body {
   padding-top: var(--header-h);
   padding-bottom: calc(var(--tabbar-h) + 8px);
 }
+body.header-hidden { padding-top: 0; }
+body.header-hidden .appbar { display: none; }
 h1, h2, h3 { margin: 0; font-weight: 700; }
 p { margin: 0; }
 button { font: inherit; color: inherit; }
