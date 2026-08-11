@@ -1,0 +1,1315 @@
+<title>送迎表 編集画面 デザイン案（仮）</title>
+<style>
+  /* ══ 提案書そのものの色。組み上げは寒色よりの灰緑で、
+        画面案の色が引き立つように地は静かに保つ ══ */
+  :root {
+    --pg:      #F6F8F6;
+    --card:    #FFFFFF;
+    --ink:     #1E2A2D;
+    --ink-2:   #55666A;
+    --ink-3:   #8A9A9D;
+    --rule:    #E0E6E1;
+    --rule-2:  #C9D3CB;
+    --accent:  #0E7C86;
+    --accent-s:#E2F0F0;
+    --gothic: "Hiragino Kaku Gothic ProN", "Yu Gothic", "YuGothic", "Noto Sans JP", "Meiryo", system-ui, sans-serif;
+    --mincho: "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", "Noto Serif JP", "MS PMincho", serif;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --pg:      #141A1B;
+      --card:    #1C2426;
+      --ink:     #E8EEEA;
+      --ink-2:   #A9B8B9;
+      --ink-3:   #7C8C8E;
+      --rule:    #2C3739;
+      --rule-2:  #3C4A4C;
+      --accent:  #57BFC4;
+      --accent-s:#183034;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --pg:      #141A1B;
+    --card:    #1C2426;
+    --ink:     #E8EEEA;
+    --ink-2:   #A9B8B9;
+    --ink-3:   #7C8C8E;
+    --rule:    #2C3739;
+    --rule-2:  #3C4A4C;
+    --accent:  #57BFC4;
+    --accent-s:#183034;
+  }
+
+  body {
+    margin: 0;
+    background: var(--pg);
+    color: var(--ink);
+    font-family: var(--gothic);
+    font-size: 15px;
+    line-height: 1.8;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 56px 24px 120px;
+    display: flex;
+    flex-direction: column;
+    gap: 72px;
+  }
+
+  /* ── 表紙 ───────────────────────────── */
+  .cover { display: flex; flex-direction: column; gap: 18px; }
+
+  .kicker {
+    font-size: 12px;
+    letter-spacing: .22em;
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  .cover h1 {
+    margin: 0;
+    font-family: var(--mincho);
+    font-size: clamp(30px, 5vw, 46px);
+    font-weight: 600;
+    letter-spacing: .04em;
+    line-height: 1.3;
+    text-wrap: balance;
+  }
+
+  .lede {
+    margin: 0;
+    max-width: 62ch;
+    font-size: 16px;
+    color: var(--ink-2);
+  }
+
+  .cover-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 28px;
+    padding-top: 14px;
+    border-top: 1px solid var(--rule);
+    font-size: 12.5px;
+    color: var(--ink-3);
+    letter-spacing: .04em;
+  }
+
+  /* ── 節 ──────────────────────────────── */
+  .sec { display: flex; flex-direction: column; gap: 20px; }
+
+  .sec-head { display: flex; flex-direction: column; gap: 6px; }
+
+  .sec-eyebrow {
+    font-size: 11.5px;
+    letter-spacing: .2em;
+    color: var(--ink-3);
+    font-weight: 700;
+  }
+
+  .sec h2 {
+    margin: 0;
+    font-family: var(--mincho);
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: .03em;
+    text-wrap: balance;
+  }
+
+  .sec h2 small {
+    display: block;
+    margin-top: 4px;
+    font-family: var(--gothic);
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--ink-2);
+    letter-spacing: 0;
+  }
+
+  .sec p { margin: 0; max-width: 66ch; color: var(--ink-2); }
+  .sec p strong { color: var(--ink); font-weight: 700; }
+
+  .cols {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+  }
+
+  .note {
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .note h3 {
+    margin: 0;
+    font-size: 13px;
+    letter-spacing: .08em;
+    color: var(--accent);
+  }
+
+  .note ul { margin: 0; padding-left: 1.15em; color: var(--ink-2); font-size: 14px; }
+  .note li { margin-bottom: 5px; }
+  .note li:last-child { margin-bottom: 0; }
+  .note li b { color: var(--ink); }
+
+  /* 画面案の枠。刷り物ではなく画面だと分かるように、
+     窓枠と影だけ添えて中身は原寸で見せる */
+  .frame {
+    border: 1px solid var(--rule-2);
+    border-radius: 6px;
+    background: #FFFFFF;
+    box-shadow: 0 10px 34px rgba(20, 34, 36, .10);
+    overflow: hidden;
+  }
+
+  .frame-bar {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 14px;
+    background: #EDF1EE;
+    border-bottom: 1px solid #DCE3DD;
+  }
+
+  .frame-bar i {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: #C9D3CB;
+  }
+
+  .frame-bar span {
+    margin-left: 8px;
+    font-size: 11px;
+    letter-spacing: .08em;
+    color: #7C8C8E;
+    font-family: var(--gothic);
+  }
+
+  .scroller { overflow-x: auto; }
+
+  /* 比較表 */
+  .cmp-wrap { overflow-x: auto; }
+
+  table.cmp {
+    width: 100%;
+    min-width: 640px;
+    border-collapse: collapse;
+    font-size: 14px;
+    background: var(--card);
+  }
+
+  table.cmp th, table.cmp td {
+    border: 1px solid var(--rule);
+    padding: 11px 14px;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  table.cmp thead th {
+    background: var(--accent-s);
+    color: var(--ink);
+    font-size: 13px;
+    letter-spacing: .06em;
+  }
+
+  table.cmp tbody th {
+    font-weight: 700;
+    color: var(--ink);
+    white-space: nowrap;
+    width: 8.5em;
+  }
+
+  table.cmp td { color: var(--ink-2); }
+
+  /* 色見本 */
+  .swatches {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+    gap: 10px;
+  }
+
+  .sw {
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    overflow: hidden;
+    background: var(--card);
+  }
+
+  .sw i { display: block; height: 46px; }
+
+  .sw b {
+    display: block;
+    padding: 8px 10px 2px;
+    font-size: 12.5px;
+    color: var(--ink);
+  }
+
+  .sw code {
+    display: block;
+    padding: 0 10px 9px;
+    font-size: 11px;
+    letter-spacing: .06em;
+    color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .tail {
+    border-top: 2px solid var(--ink);
+    padding-top: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .verdict {
+    background: var(--accent-s);
+    border-left: 3px solid var(--accent);
+    padding: 16px 20px;
+    font-size: 15px;
+    color: var(--ink);
+    max-width: 66ch;
+  }
+
+  /* ════════════════════════════════════════════
+     ここから下は「画面案」の中身。
+     3案それぞれに閉じた色の組を持たせ、
+     提案書の色とも互いとも混ざらないようにする
+     ════════════════════════════════════════════ */
+  .mk {
+    --am:      #2D77BE;
+    --am-soft: #EAF3FB;
+    --am-line: #C6DDF1;
+    --pm:      #C8593C;
+    --pm-soft: #FBEDE8;
+    --pm-line: #F0CFC3;
+    --absent:  #CE3F3F;
+    --furi:    #4C9A2A;
+    --shinki:  #E0821A;
+    --mk-ink:  #22303A;
+    --mk-ink2: #5A6E79;
+    --mk-ink3: #93A5AE;
+    --mk-rule: #E3E9EC;
+    --mk-bg:   #F7FAFB;
+    --mk-card: #FFFFFF;
+    font-family: var(--gothic);
+    color: var(--mk-ink);
+    background: var(--mk-bg);
+    font-size: 13px;
+    line-height: 1.5;
+    padding: 18px;
+    min-width: 900px;
+  }
+
+  .mk * { box-sizing: border-box; }
+
+  /* 見出し帯 */
+  .mk-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 14px;
+  }
+
+  .mk-arrow {
+    width: 34px; height: 34px;
+    display: grid; place-items: center;
+    border: 1px solid var(--mk-rule);
+    background: var(--mk-card);
+    border-radius: 8px;
+    color: var(--mk-ink2);
+    font-size: 17px;
+    line-height: 1;
+  }
+
+  .mk-title {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: .02em;
+    color: var(--mk-ink);
+  }
+
+  .mk-title em { font-style: normal; color: var(--mk-ink2); font-weight: 500; }
+
+  .mk-office { font-size: 11px; color: var(--mk-ink3); letter-spacing: .1em; }
+
+  .mk-spacer { flex: 1; }
+
+  .mk-final {
+    background: #C0392B;
+    color: #fff;
+    border: 0;
+    border-radius: 8px;
+    padding: 8px 18px;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: inherit;
+  }
+
+  /* 便のタブ */
+  .mk-tabs { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+  .mk-tab {
+    border: 1px solid var(--mk-rule);
+    background: var(--mk-card);
+    border-radius: 999px;
+    padding: 7px 16px;
+    font-size: 13px;
+    color: var(--mk-ink2);
+    font-family: inherit;
+  }
+
+  .mk-tab.on {
+    background: var(--am);
+    border-color: var(--am);
+    color: #fff;
+    font-weight: 700;
+  }
+
+  .mk-tab.pm.on { background: var(--pm); border-color: var(--pm); }
+
+  .mk-btn {
+    border: 1px solid var(--mk-rule);
+    background: var(--mk-card);
+    border-radius: 8px;
+    padding: 7px 14px;
+    font-size: 13px;
+    color: var(--mk-ink);
+    font-family: inherit;
+  }
+
+  /* 数の帯 */
+  .mk-stats { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .mk-stat {
+    background: var(--mk-card);
+    border: 1px solid var(--mk-rule);
+    border-radius: 8px;
+    padding: 7px 14px;
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    font-size: 11.5px;
+    color: var(--mk-ink2);
+  }
+
+  .mk-stat b {
+    font-size: 17px;
+    color: var(--mk-ink);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .mk-stat.warn { background: #FDECEC; border-color: #F3C9C9; }
+  .mk-stat.warn b { color: var(--absent); }
+
+  .mk-body { display: grid; grid-template-columns: 208px 1fr; gap: 14px; }
+
+  .mk-side {
+    background: var(--mk-card);
+    border: 1px solid var(--mk-rule);
+    border-radius: 10px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    height: fit-content;
+  }
+
+  .mk-side-h {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--mk-ink);
+  }
+
+  .mk-side-h span {
+    background: var(--absent);
+    color: #fff;
+    border-radius: 999px;
+    padding: 1px 9px;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .mk-un {
+    border: 1px solid #F0CFC3;
+    background: #FDF3EF;
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 13px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .mk-un small { color: var(--mk-ink3); font-size: 11px; }
+
+  .mk-nav {
+    border: 1px solid var(--mk-rule);
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 12.5px;
+    color: var(--mk-ink2);
+  }
+
+  .mk-nav b { display: block; color: var(--mk-ink); font-size: 13px; }
+
+  .mk-cars { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-content: start; }
+
+  /* ── 案A：やわらかい紙 ───────────────── */
+  .mk-a .car {
+    background: var(--mk-card);
+    border: 1px solid var(--mk-rule);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .mk-a .car-h {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 10px 13px;
+    background: var(--am-soft);
+    border-bottom: 1px solid var(--am-line);
+  }
+
+  .mk-a .car-no {
+    background: var(--am);
+    color: #fff;
+    border-radius: 8px;
+    width: 30px; height: 30px;
+    display: grid; place-items: center;
+    font-weight: 700;
+    font-size: 15px;
+  }
+
+  .mk-a .car-name { font-weight: 700; font-size: 14px; }
+  .mk-a .car-sub { font-size: 11px; color: var(--mk-ink2); }
+  .mk-a .car-cap { margin-left: auto; font-size: 11.5px; color: var(--mk-ink2); }
+
+  .mk-a .car-cap b { color: var(--am); font-size: 14px; font-variant-numeric: tabular-nums; }
+
+  .mk-a .dep {
+    display: flex;
+    gap: 14px;
+    align-items: baseline;
+    padding: 8px 13px;
+    border-bottom: 1px dashed var(--mk-rule);
+    font-size: 11.5px;
+    color: var(--mk-ink2);
+  }
+
+  .mk-a .dep b { font-size: 15px; color: var(--mk-ink); font-variant-numeric: tabular-nums; }
+  .mk-a .dep .auto { color: var(--furi); font-size: 10.5px; }
+
+  .mk-a .row {
+    display: grid;
+    grid-template-columns: 26px 54px 1fr auto;
+    gap: 9px;
+    align-items: center;
+    padding: 9px 13px;
+    border-bottom: 1px solid #F1F5F6;
+  }
+
+  .mk-a .row:last-child { border-bottom: 0; }
+
+  .mk-a .ord {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    display: grid; place-items: center;
+    background: var(--am);
+    color: #fff;
+    font-size: 12.5px;
+    font-weight: 700;
+  }
+
+  .mk-a .row.furi .ord { background: var(--furi); }
+  .mk-a .row.off .ord  { background: var(--absent); }
+  .mk-a .row.empty .ord { background: #EEF2F4; color: var(--mk-ink3); font-weight: 400; }
+
+  .mk-a .tm { font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .mk-a .row.off .tm { color: var(--mk-ink3); text-decoration: line-through; }
+  .mk-a .row.empty .tm { color: #C9D5D9; font-weight: 400; }
+
+  .mk-a .nm { font-size: 14px; }
+  .mk-a .nm small { display: block; color: var(--mk-ink3); font-size: 11px; }
+  .mk-a .row.off .nm { color: var(--absent); }
+  .mk-a .row.empty .nm { color: #B7C4C9; }
+
+  .mk-a .pills { display: flex; gap: 4px; }
+
+  /* 記号のピルは3案で共通。地の色ごと変えると意味が薄れるため */
+  .mk .pill {
+    border-radius: 999px;
+    padding: 2px 9px;
+    font-size: 10.5px;
+    font-weight: 700;
+    line-height: 1.6;
+    white-space: nowrap;
+    border: 1px solid;
+  }
+
+  .pill-wc  { color: #B23A2C; border-color: #EDC5BF; background: #FCEFEC; }
+  .pill-aid { color: #1B6FA8; border-color: #C3DCEC; background: #EDF5FB; }
+  .pill-dr  { color: #3F6B4E; border-color: #C7DCCD; background: #EFF6F1; }
+  .pill-off { color: #fff; border-color: var(--absent); background: var(--absent); }
+  .pill-fu  { color: #fff; border-color: var(--furi); background: var(--furi); }
+
+  .mk-a .car-f {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    padding: 9px 13px;
+    background: #F7FAFB;
+    border-top: 1px solid var(--mk-rule);
+    font-size: 11.5px;
+    color: var(--mk-ink2);
+  }
+
+  .mk-a .car-f b { font-size: 15px; color: var(--mk-ink); font-variant-numeric: tabular-nums; }
+  .mk-a .car-f .ok { margin-left: auto; color: var(--furi); font-weight: 700; }
+
+  /* ── 案B：大きな的 ──────────────────── */
+  .mk-b .car {
+    background: var(--mk-card);
+    border: 1px solid var(--mk-rule);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+
+  .mk-b .car-h {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    background: var(--am);
+    color: #fff;
+  }
+
+  .mk-b .car-h.lift { background: #B23A2C; }
+
+  .mk-b .car-no {
+    background: rgba(255,255,255,.22);
+    border-radius: 9px;
+    padding: 3px 11px;
+    font-weight: 700;
+    font-size: 16px;
+  }
+
+  .mk-b .car-h .drv { font-size: 15px; font-weight: 700; }
+  .mk-b .car-h .cap { margin-left: auto; font-size: 12px; opacity: .92; }
+  .mk-b .car-h .cap b { font-size: 17px; font-variant-numeric: tabular-nums; }
+
+  .mk-b .times {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--mk-rule);
+  }
+
+  .mk-b .times div {
+    flex: 1;
+    padding: 9px 14px;
+    font-size: 11px;
+    color: var(--mk-ink2);
+  }
+
+  .mk-b .times div + div { border-left: 1px solid var(--mk-rule); }
+  .mk-b .times b { display: block; font-size: 19px; color: var(--mk-ink); font-variant-numeric: tabular-nums; }
+  .mk-b .times .tag-auto { color: var(--furi); font-size: 10.5px; font-weight: 700; }
+
+  .mk-b .seat {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-bottom: 1px solid #F1F5F6;
+    min-height: 62px;
+  }
+
+  .mk-b .seat:last-child { border-bottom: 0; }
+
+  .mk-b .seat .ord {
+    width: 38px; height: 38px;
+    border-radius: 12px;
+    display: grid; place-items: center;
+    background: var(--am-soft);
+    color: var(--am);
+    font-size: 16px;
+    font-weight: 700;
+    border: 2px solid var(--am-line);
+  }
+
+  .mk-b .seat.furi .ord { background: #EFF7EA; color: var(--furi); border-color: #CBE4BC; }
+  .mk-b .seat.off  .ord { background: #FDECEC; color: var(--absent); border-color: #F3C9C9; }
+
+  .mk-b .seat .tm { font-size: 21px; font-weight: 700; font-variant-numeric: tabular-nums; min-width: 66px; }
+  .mk-b .seat.off .tm { color: var(--mk-ink3); text-decoration: line-through; }
+
+  .mk-b .seat .nm { font-size: 16px; font-weight: 600; }
+  .mk-b .seat .nm small { display: block; font-size: 11.5px; color: var(--mk-ink3); font-weight: 400; }
+  .mk-b .seat.off .nm { color: var(--absent); }
+
+  .mk-b .seat .pills { margin-left: auto; display: flex; gap: 6px; }
+
+  /* 指で触る案なので、記号も一回り大きく取る */
+  .mk-b .pill { font-size: 12.5px; padding: 4px 13px; }
+
+  .mk-b .seat.blank {
+    justify-content: center;
+    color: var(--mk-ink3);
+    font-size: 13px;
+    background: repeating-linear-gradient(135deg, #FBFDFD 0 8px, #F4F8F9 8px 16px);
+  }
+
+  .mk-b .car-f {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: #F7FAFB;
+    border-top: 1px solid var(--mk-rule);
+    font-size: 12px;
+    color: var(--mk-ink2);
+  }
+
+  .mk-b .pipbar { display: flex; gap: 4px; margin-left: auto; }
+  .mk-b .pip { width: 13px; height: 13px; border-radius: 4px; background: #DDE5E8; }
+  .mk-b .pip.on { background: var(--am); }
+
+  /* ── 案C：席ボード ──────────────────── */
+  .mk-c .board {
+    display: grid;
+    grid-template-columns: 190px repeat(3, 1fr);
+    gap: 10px;
+    align-items: start;
+  }
+
+  .mk-c .col {
+    background: var(--mk-card);
+    border: 1px solid var(--mk-rule);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .mk-c .col-h {
+    padding: 9px 12px;
+    font-size: 12.5px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--am-soft);
+    border-bottom: 1px solid var(--am-line);
+    color: var(--mk-ink);
+  }
+
+  .mk-c .col-h .no {
+    background: var(--am);
+    color: #fff;
+    border-radius: 7px;
+    padding: 1px 8px;
+    font-size: 12.5px;
+  }
+
+  .mk-c .col-h .n { margin-left: auto; font-weight: 400; font-size: 11.5px; color: var(--mk-ink2); }
+
+  .mk-c .col.pool .col-h { background: #FDF3EF; border-bottom-color: #F0CFC3; }
+  .mk-c .col.pool .col-h .no { background: var(--absent); }
+  .mk-c .col.lift .col-h { background: #FCEFEC; border-bottom-color: #EDC5BF; }
+  .mk-c .col.lift .col-h .no { background: #B23A2C; }
+
+  .mk-c .col-b { padding: 9px; display: flex; flex-direction: column; gap: 7px; min-height: 150px; }
+
+  .mk-c .chip {
+    border: 1px solid var(--mk-rule);
+    border-left: 4px solid var(--am);
+    border-radius: 8px;
+    padding: 8px 10px;
+    background: var(--mk-card);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    box-shadow: 0 1px 2px rgba(30,45,50,.05);
+  }
+
+  .mk-c .chip .top { display: flex; align-items: baseline; gap: 8px; }
+  .mk-c .chip .tm { font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .mk-c .chip .nm { font-size: 13.5px; font-weight: 600; }
+  .mk-c .chip .ad { font-size: 11px; color: var(--mk-ink3); }
+  .mk-c .chip .pills { display: flex; gap: 4px; margin-top: 3px; }
+
+  .mk-c .chip.furi { border-left-color: var(--furi); }
+  .mk-c .chip.off  { border-left-color: var(--absent); background: #FEF7F7; }
+  .mk-c .chip.off .tm { color: var(--mk-ink3); text-decoration: line-through; }
+  .mk-c .chip.off .nm { color: var(--absent); }
+  .mk-c .chip.pool { border-left-color: var(--absent); background: #FDF3EF; }
+
+  .mk-c .drop {
+    border: 1.5px dashed var(--am-line);
+    border-radius: 8px;
+    padding: 11px;
+    text-align: center;
+    font-size: 11.5px;
+    color: var(--mk-ink3);
+  }
+
+  .mk-c .col-f {
+    padding: 8px 12px;
+    background: #F7FAFB;
+    border-top: 1px solid var(--mk-rule);
+    font-size: 11.5px;
+    color: var(--mk-ink2);
+    display: flex;
+    gap: 8px;
+    align-items: baseline;
+  }
+
+  .mk-c .col-f b { font-size: 14px; color: var(--mk-ink); font-variant-numeric: tabular-nums; }
+
+  @media (max-width: 720px) {
+    .wrap { padding: 36px 14px 80px; gap: 52px; }
+    .cover h1 { font-size: 28px; }
+    .sec h2 { font-size: 21px; }
+  }
+</style>
+
+<div class="wrap">
+
+  <header class="cover">
+    <p class="kicker">デザイン案（仮）／ 検討用</p>
+    <h1>送迎表 編集画面<br>明るく、迷わず押せる画面へ</h1>
+    <p class="lede">
+      いまの編集画面は「紙の送迎表をそのまま画面にした」つくりで、印刷との整合はとても良い一方、
+      画面としては情報が細く、押せる場所が小さめです。ここでは<strong>明るい色調</strong>と
+      <strong>直感的な操作</strong>を軸に、変更の小さい順に3案をお出しします。
+      いずれも仮案で、実装はまだしていません。
+    </p>
+    <div class="cover-meta">
+      <span>対象：午前お迎えの編集画面</span>
+      <span>想定端末：事務所のPC ／ 現場のタブレット</span>
+      <span>色・記号の意味は現行のまま</span>
+    </div>
+  </header>
+
+  <section class="sec">
+    <div class="sec-head">
+      <p class="sec-eyebrow">前提</p>
+      <h2>残すもの、変えるもの<small>作り直しではなく、いまの良さを保ったまま画面としての読みやすさを足す</small></h2>
+    </div>
+    <div class="cols">
+      <div class="note">
+        <h3>そのまま残すこと</h3>
+        <ul>
+          <li><b>状態の色の意味</b>（欠席＝赤／振替＝緑／新規・増回＝橙）。現場の共通言語なので変えません。</li>
+          <li><b>記号</b>（車椅子・歩行器・玄関先）と、リフト車が朱色という決まり。</li>
+          <li><b>印刷は現行のまま。</b>紙は紙で完成しているので、画面だけを変えます。</li>
+        </ul>
+      </div>
+      <div class="note">
+        <h3>変えたいこと</h3>
+        <ul>
+          <li>地色を<b>明るい白基調</b>へ。いまの生成り色は紙らしい一方、画面では少し沈みます。</li>
+          <li><b>押す場所を大きく。</b>番号・記号・名前を指でも狙える寸法に。</li>
+          <li><b>今どうなっているかを先に</b>。人数・未割当・上限超えを、数える前に色と形で分かるように。</li>
+        </ul>
+      </div>
+      <div class="note">
+        <h3>判断のものさし</h3>
+        <ul>
+          <li>朝の忙しい時間に<b>2〜3タップで直せる</b>か。</li>
+          <li>初めて触る職員が<b>説明なしで意味が分かる</b>か。</li>
+          <li>1画面で<b>8台ぶんを見渡せる</b>か。</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head">
+      <p class="sec-eyebrow">共通の色</p>
+      <h2>明るい色調のもと<small>午前は空色、午後は珊瑚色。状態の3色は彩度を少し上げて、白地でもはっきり見えるように</small></h2>
+    </div>
+    <div class="swatches">
+      <div class="sw"><i style="background:#F7FAFB"></i><b>地</b><code>#F7FAFB</code></div>
+      <div class="sw"><i style="background:#2D77BE"></i><b>午前</b><code>#2D77BE</code></div>
+      <div class="sw"><i style="background:#C8593C"></i><b>午後</b><code>#C8593C</code></div>
+      <div class="sw"><i style="background:#CE3F3F"></i><b>欠席</b><code>#CE3F3F</code></div>
+      <div class="sw"><i style="background:#4C9A2A"></i><b>振替</b><code>#4C9A2A</code></div>
+      <div class="sw"><i style="background:#E0821A"></i><b>新規・増回</b><code>#E0821A</code></div>
+      <div class="sw"><i style="background:#22303A"></i><b>文字</b><code>#22303A</code></div>
+    </div>
+    <p>
+      いまの藍（<code>#1B3557</code>）と臙脂（<code>#63263A</code>）は印刷で沈まない濃さを優先した色です。
+      画面用にはこれを1段明るく開いた空色・珊瑚色を当て、<strong>紙は現行の濃さのまま</strong>にします。
+      同じ便でも「画面は明るく、紙は濃く」と使い分けられます。
+    </p>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head">
+      <p class="sec-eyebrow">案 A</p>
+      <h2>やわらかい紙<small>いまの並びはそのまま。白いカードと丸みで明るくし、時刻と名前を一回り大きくするだけ</small></h2>
+    </div>
+
+    <div class="frame">
+      <div class="frame-bar"><i></i><i></i><i></i><span>案A　やわらかい紙</span></div>
+      <div class="scroller">
+        <div class="mk mk-a">
+
+          <div class="mk-top">
+            <span class="mk-arrow">‹</span>
+            <span class="mk-title">令和8年7月22日（水曜日）<em> 送迎表</em></span>
+            <span class="mk-arrow">›</span>
+            <span class="mk-office">通所介護事業所　デイサービス　あさひ</span>
+            <span class="mk-spacer"></span>
+            <button class="mk-final" type="button">最終確認</button>
+          </div>
+
+          <div class="mk-tabs" style="padding-bottom:12px">
+            <button class="mk-tab on" type="button">午前 お迎え</button>
+            <button class="mk-tab" type="button">午前 お送り</button>
+            <button class="mk-tab pm" type="button">午後 お迎え</button>
+            <button class="mk-tab pm" type="button">午後 お送り</button>
+            <span class="mk-spacer"></span>
+            <button class="mk-btn" type="button">8人版</button>
+            <button class="mk-btn" type="button">いつもの割り当てを入れる</button>
+          </div>
+
+          <div class="mk-stats" style="padding-bottom:12px">
+            <span class="mk-stat"><b>8</b>台 稼働</span>
+            <span class="mk-stat"><b>17</b>名 乗車</span>
+            <span class="mk-stat"><b>1</b>名 欠席</span>
+            <span class="mk-stat"><b>1</b>名 振替</span>
+            <span class="mk-stat warn"><b>1</b>名 未割当</span>
+          </div>
+
+          <div class="mk-body">
+            <aside class="mk-side">
+              <div class="mk-side-h">未割当 <span>1</span></div>
+              <div class="mk-un">佐野 ハツ<small>押して車を選ぶ</small></div>
+              <div class="mk-nav"><b>出欠</b>業務日誌の状態欄と同じ</div>
+              <div class="mk-nav"><b>業務日誌</b>出欠から組んで印刷</div>
+              <div class="mk-nav"><b>マスタ編集</b>利用者・運転手・配車</div>
+            </aside>
+
+            <div class="mk-cars">
+
+              <article class="car">
+                <div class="car-h">
+                  <span class="car-no">1</span>
+                  <span>
+                    <span class="car-name">佐藤 健</span>
+                    <span class="car-sub">5人乗り</span>
+                  </span>
+                  <span class="car-cap">乗車 <b>3</b> / 4 名</span>
+                </div>
+                <div class="dep">
+                  <span>事業所 発 <b>07:15</b> <span class="auto">自動</span></span>
+                  <span>実績 ────</span>
+                </div>
+                <div class="row">
+                  <span class="ord">1</span><span class="tm">08:10</span>
+                  <span class="nm">田中 ハル<small>中央町3-14-2</small></span>
+                  <span class="pills"><span class="pill pill-aid">歩行器</span></span>
+                </div>
+                <div class="row furi">
+                  <span class="ord">2</span><span class="tm">08:25</span>
+                  <span class="nm">高橋 キヨ<small>本町5-3-11</small></span>
+                  <span class="pills"><span class="pill pill-fu">振替</span><span class="pill pill-dr">玄関</span></span>
+                </div>
+                <div class="row off">
+                  <span class="ord">3</span><span class="tm">08:40</span>
+                  <span class="nm">渡部 秀夫<small>若葉台4-11-8</small></span>
+                  <span class="pills"><span class="pill pill-off">入院</span></span>
+                </div>
+                <div class="row empty">
+                  <span class="ord">4</span><span class="tm">--:--</span>
+                  <span class="nm">空席</span><span class="pills"></span>
+                </div>
+                <div class="car-f">事業所 着 目標 <b>08:55</b><span class="ok">上限内</span></div>
+              </article>
+
+              <article class="car">
+                <div class="car-h">
+                  <span class="car-no">2</span>
+                  <span>
+                    <span class="car-name">鈴木 明</span>
+                    <span class="car-sub">リフト車・5人乗り</span>
+                  </span>
+                  <span class="car-cap">乗車 <b>2</b> / 4 名</span>
+                </div>
+                <div class="dep">
+                  <span>事業所 発 <b>08:10</b> <span class="auto">自動</span></span>
+                  <span>実績 ────</span>
+                </div>
+                <div class="row">
+                  <span class="ord">1</span><span class="tm">08:25</span>
+                  <span class="nm">山田 トシ子<small>緑町1-4-16</small></span>
+                  <span class="pills"><span class="pill pill-wc">車椅子</span></span>
+                </div>
+                <div class="row">
+                  <span class="ord">2</span><span class="tm">08:40</span>
+                  <span class="nm">大野 スミ<small>桜ヶ丘1-2-7</small></span>
+                  <span class="pills"><span class="pill pill-dr">玄関</span></span>
+                </div>
+                <div class="row empty">
+                  <span class="ord">3</span><span class="tm">--:--</span>
+                  <span class="nm">空席</span><span class="pills"></span>
+                </div>
+                <div class="row empty">
+                  <span class="ord">4</span><span class="tm">--:--</span>
+                  <span class="nm">空席</span><span class="pills"></span>
+                </div>
+                <div class="car-f">事業所 着 目標 <b>08:55</b><span class="ok">上限内</span></div>
+              </article>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cols">
+      <div class="note">
+        <h3>変わるところ</h3>
+        <ul>
+          <li>地を<b>白基調</b>に、カードを角丸に。便の色は見出し帯だけに敷いて、行は白く保ちます。</li>
+          <li>記号を絵から<b>言葉のピル</b>へ（車椅子・歩行器・玄関）。初めての職員でも読めます。</li>
+          <li>状態は番号の丸の色に加えて、<b>欠席・振替はピルでも表示</b>。色が見分けにくい方にも伝わります。</li>
+          <li>「事業所 発」に<b>自動</b>の印。手で直したときだけ印が消えます。</li>
+        </ul>
+      </div>
+      <div class="note">
+        <h3>向いていること</h3>
+        <ul>
+          <li>いまの並び・操作をそのまま引き継ぐので、<b>覚え直しがほぼ不要</b>。</li>
+          <li>印刷との見た目の距離が近く、紙と画面を突き合わせやすい。</li>
+          <li>改修の範囲が色と余白に収まり、<b>いちばん短く入れられる</b>。</li>
+        </ul>
+      </div>
+      <div class="note">
+        <h3>物足りないところ</h3>
+        <ul>
+          <li>1行の高さは今と同程度なので、<b>タブレットでの押しやすさは大きく変わらない</b>。</li>
+          <li>「どの車に移すか」の操作は従来どおり、プルダウンか長押しが要ります。</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head">
+      <p class="sec-eyebrow">案 B</p>
+      <h2>大きな的<small>1人ぶんを1枚の大きな行に。時刻を最大の文字にして、走る前の確認を数秒で終える</small></h2>
+    </div>
+
+    <div class="frame">
+      <div class="frame-bar"><i></i><i></i><i></i><span>案B　大きな的</span></div>
+      <div class="scroller">
+        <div class="mk mk-b">
+
+          <div class="mk-top">
+            <span class="mk-arrow">‹</span>
+            <span class="mk-title">令和8年7月22日（水曜日）<em> 送迎表</em></span>
+            <span class="mk-arrow">›</span>
+            <span class="mk-spacer"></span>
+            <button class="mk-final" type="button">最終確認</button>
+          </div>
+
+          <div class="mk-tabs" style="padding-bottom:12px">
+            <button class="mk-tab on" type="button">午前 お迎え</button>
+            <button class="mk-tab" type="button">午前 お送り</button>
+            <button class="mk-tab pm" type="button">午後 お迎え</button>
+            <button class="mk-tab pm" type="button">午後 お送り</button>
+            <span class="mk-spacer"></span>
+            <span class="mk-stat warn"><b>1</b>名 未割当</span>
+          </div>
+
+          <div class="mk-cars">
+
+            <article class="car">
+              <div class="car-h">
+                <span class="car-no">1号車</span>
+                <span class="drv">佐藤 健</span>
+                <span class="cap">乗車 <b>3</b> / 4</span>
+              </div>
+              <div class="times">
+                <div>事業所 発 <b>07:15</b><span class="tag-auto">着に合わせて自動</span></div>
+                <div>事業所 着 目標 <b>08:55</b><span class="tag-auto">上限 09:00 内</span></div>
+              </div>
+              <div class="seat">
+                <span class="ord">1</span><span class="tm">08:10</span>
+                <span class="nm">田中 ハル<small>中央町3-14-2</small></span>
+                <span class="pills"><span class="pill pill-aid">歩行器</span></span>
+              </div>
+              <div class="seat furi">
+                <span class="ord">2</span><span class="tm">08:25</span>
+                <span class="nm">高橋 キヨ<small>本町5-3-11</small></span>
+                <span class="pills"><span class="pill pill-fu">振替</span><span class="pill pill-dr">玄関</span></span>
+              </div>
+              <div class="seat off">
+                <span class="ord">3</span><span class="tm">08:40</span>
+                <span class="nm">渡部 秀夫<small>若葉台4-11-8</small></span>
+                <span class="pills"><span class="pill pill-off">入院</span></span>
+              </div>
+              <div class="seat blank">＋ ここに乗せる</div>
+              <div class="car-f">出発位置 ────<span class="pipbar"><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i><i class="pip"></i></span></div>
+            </article>
+
+            <article class="car">
+              <div class="car-h lift">
+                <span class="car-no">2号車</span>
+                <span class="drv">鈴木 明</span>
+                <span class="cap">リフト・乗車 <b>2</b> / 4</span>
+              </div>
+              <div class="times">
+                <div>事業所 発 <b>08:10</b><span class="tag-auto">着に合わせて自動</span></div>
+                <div>事業所 着 目標 <b>08:55</b><span class="tag-auto">上限 09:00 内</span></div>
+              </div>
+              <div class="seat">
+                <span class="ord">1</span><span class="tm">08:25</span>
+                <span class="nm">山田 トシ子<small>緑町1-4-16</small></span>
+                <span class="pills"><span class="pill pill-wc">車椅子</span></span>
+              </div>
+              <div class="seat">
+                <span class="ord">2</span><span class="tm">08:40</span>
+                <span class="nm">大野 スミ<small>桜ヶ丘1-2-7</small></span>
+                <span class="pills"><span class="pill pill-dr">玄関</span></span>
+              </div>
+              <div class="seat blank">＋ ここに乗せる</div>
+              <div class="seat blank">＋ ここに乗せる</div>
+              <div class="car-f">出発位置 ────<span class="pipbar"><i class="pip on"></i><i class="pip on"></i><i class="pip"></i><i class="pip"></i></span></div>
+            </article>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cols">
+      <div class="note">
+        <h3>変わるところ</h3>
+        <ul>
+          <li>車の見出しに<b>便の色を全面に敷き、運転手名を最大</b>に。誰の車かが最初に目に入ります。</li>
+          <li>1人ぶんの行が<b>62px の高さ</b>。指でも狙えます。時刻は21pxで、走行中の確認に耐えます。</li>
+          <li>空席は<b>「＋ ここに乗せる」</b>という押せる的に。空欄を探す作業がなくなります。</li>
+          <li>事業所 発・着を<b>並べて2枠</b>に。自動で動いたことがその場で読めます。</li>
+        </ul>
+      </div>
+      <div class="note">
+        <h3>向いていること</h3>
+        <ul>
+          <li><b>タブレットでの当日運用</b>。乗せ換え・欠席の反映が指だけで完結します。</li>
+          <li>リフト車が朱色の帯になるので、車椅子の方の割り当て間違いに気づきやすい。</li>
+          <li>数字が大きく、<b>出発前の読み合わせ</b>に向きます。</li>
+        </ul>
+      </div>
+      <div class="note">
+        <h3>物足りないところ</h3>
+        <ul>
+          <li>1台が縦に長くなるため、<b>8台を一度に見渡すには縮小か2列</b>が要ります。</li>
+          <li>紙の送迎表とは見た目が離れるので、突き合わせは印刷で行う前提になります。</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head">
+      <p class="sec-eyebrow">案 C</p>
+      <h2>席ボード<small>便まるごとを一枚の盤に。未割当を左端に置き、札を車の列へ移して組む</small></h2>
+    </div>
+
+    <div class="frame">
+      <div class="frame-bar"><i></i><i></i><i></i><span>案C　席ボード</span></div>
+      <div class="scroller">
+        <div class="mk mk-c">
+
+          <div class="mk-top">
+            <span class="mk-arrow">‹</span>
+            <span class="mk-title">令和8年7月22日（水曜日）<em> 送迎表</em></span>
+            <span class="mk-arrow">›</span>
+            <span class="mk-spacer"></span>
+            <span class="mk-stat"><b>8</b>台</span>
+            <span class="mk-stat"><b>17</b>名</span>
+            <span class="mk-stat warn"><b>1</b>名 未割当</span>
+            <button class="mk-final" type="button">最終確認</button>
+          </div>
+
+          <div class="mk-tabs" style="padding-bottom:12px">
+            <button class="mk-tab on" type="button">午前 お迎え</button>
+            <button class="mk-tab" type="button">午前 お送り</button>
+            <button class="mk-tab pm" type="button">午後 お迎え</button>
+            <button class="mk-tab pm" type="button">午後 お送り</button>
+          </div>
+
+          <div class="board">
+
+            <section class="col pool">
+              <div class="col-h"><span class="no">！</span>未割当<span class="n">1名</span></div>
+              <div class="col-b">
+                <div class="chip pool">
+                  <span class="top"><span class="tm">--:--</span><span class="nm">佐野 ハツ</span></span>
+                  <span class="ad">富士見台2-8-3</span>
+                  <span class="pills"><span class="pill pill-aid">歩行器</span></span>
+                </div>
+                <div class="drop">押すか、車の列へ動かす</div>
+              </div>
+              <div class="col-f">乗る車が決まっていない方</div>
+            </section>
+
+            <section class="col">
+              <div class="col-h"><span class="no">1</span>佐藤 健<span class="n">3 / 4</span></div>
+              <div class="col-b">
+                <div class="chip">
+                  <span class="top"><span class="tm">08:10</span><span class="nm">田中 ハル</span></span>
+                  <span class="ad">中央町3-14-2</span>
+                  <span class="pills"><span class="pill pill-aid">歩行器</span></span>
+                </div>
+                <div class="chip furi">
+                  <span class="top"><span class="tm">08:25</span><span class="nm">高橋 キヨ</span></span>
+                  <span class="ad">本町5-3-11</span>
+                  <span class="pills"><span class="pill pill-fu">振替</span><span class="pill pill-dr">玄関</span></span>
+                </div>
+                <div class="chip off">
+                  <span class="top"><span class="tm">08:40</span><span class="nm">渡部 秀夫</span></span>
+                  <span class="ad">若葉台4-11-8</span>
+                  <span class="pills"><span class="pill pill-off">入院</span></span>
+                </div>
+                <div class="drop">空席 1</div>
+              </div>
+              <div class="col-f">発 <b>07:15</b> → 着 <b>08:55</b></div>
+            </section>
+
+            <section class="col lift">
+              <div class="col-h"><span class="no">2</span>鈴木 明<span class="n">2 / 4</span></div>
+              <div class="col-b">
+                <div class="chip">
+                  <span class="top"><span class="tm">08:25</span><span class="nm">山田 トシ子</span></span>
+                  <span class="ad">緑町1-4-16</span>
+                  <span class="pills"><span class="pill pill-wc">車椅子</span></span>
+                </div>
+                <div class="chip">
+                  <span class="top"><span class="tm">08:40</span><span class="nm">大野 スミ</span></span>
+                  <span class="ad">桜ヶ丘1-2-7</span>
+                  <span class="pills"><span class="pill pill-dr">玄関</span></span>
+                </div>
+                <div class="drop">空席 2</div>
+              </div>
+              <div class="col-f">発 <b>08:10</b> → 着 <b>08:55</b></div>
+            </section>
+
+            <section class="col">
+              <div class="col-h"><span class="no">3</span>高木 進<span class="n">2 / 4</span></div>
+              <div class="col-b">
+                <div class="chip">
+                  <span class="top"><span class="tm">08:25</span><span class="nm">森田 光子</span></span>
+                  <span class="ad">旭ヶ丘5-1-12</span>
+                </div>
+                <div class="chip">
+                  <span class="top"><span class="tm">08:40</span><span class="nm">村上 三郎</span></span>
+                  <span class="ad">東雲2-11-6</span>
+                </div>
+                <div class="drop">空席 2</div>
+              </div>
+              <div class="col-f">発 <b>08:10</b> → 着 <b>08:55</b></div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cols">
+      <div class="note">
+        <h3>変わるところ</h3>
+        <ul>
+          <li><b>未割当が車と同じ並びの一列</b>になります。「余っている人」と「空いている席」が同じ画面で向き合います。</li>
+          <li>1人ぶんが<b>札</b>になり、押して選ぶ／動かすのどちらでも移せます。</li>
+          <li>状態は<b>札の左端の色帯</b>。縦に並ぶので、欠席と振替の数が一目で数えられます。</li>
+          <li>列の足元に<b>発 → 着</b>を置き、その車が上限に収まっているかを列ごとに確かめられます。</li>
+        </ul>
+      </div>
+      <div class="note">
+        <h3>向いていること</h3>
+        <ul>
+          <li><b>割り当てを組む作業そのもの</b>にいちばん近い形。朝の組み直しが速くなります。</li>
+          <li>横に並ぶので、<b>台数が増えても同じ形</b>のまま伸ばせます。</li>
+          <li>空席が「空いた枠」として見えるので、詰め忘れが起きにくい。</li>
+        </ul>
+      </div>
+      <div class="note">
+        <h3>物足りないところ</h3>
+        <ul>
+          <li>紙の送迎表とかたちが<b>いちばん離れます</b>。慣れるまで説明が要ります。</li>
+          <li>備考・実績など<b>書き込む欄は札に入りきらない</b>ので、札を開いて記入する画面が別に要ります。</li>
+          <li>改修は3案でいちばん大きくなります。</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head">
+      <p class="sec-eyebrow">見比べ</p>
+      <h2>3案のちがい</h2>
+    </div>
+    <div class="cmp-wrap">
+      <table class="cmp">
+        <thead>
+          <tr><th>　</th><th>案A　やわらかい紙</th><th>案B　大きな的</th><th>案C　席ボード</th></tr>
+        </thead>
+        <tbody>
+          <tr><th>ねらい</th><td>いまの画面を明るく読みやすく</td><td>指で確実に操作する</td><td>割り当てを組む作業に合わせる</td></tr>
+          <tr><th>いちばん向く端末</th><td>事務所のPC</td><td>タブレット・現場</td><td>PC（大きい画面）</td></tr>
+          <tr><th>覚え直し</th><td>ほぼ不要</td><td>少し</td><td>説明が要る</td></tr>
+          <tr><th>1画面に入る台数</th><td>2列 × 4段＝8台</td><td>2列 × 2段（縮小か送りが要る）</td><td>横に4〜5台、送って全台</td></tr>
+          <tr><th>紙との近さ</th><td>近い</td><td>やや離れる</td><td>離れる</td></tr>
+          <tr><th>改修の大きさ</th><td>小（色と余白が中心）</td><td>中（行の作り直し）</td><td>大（画面の組み替え）</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="sec tail">
+    <div class="sec-head">
+      <p class="sec-eyebrow">おすすめ</p>
+      <h2>まず案A、様子を見て案Bの行だけ足す</h2>
+    </div>
+    <p class="verdict">
+      案Aは色と余白の調整が中心で、いまの操作をそのまま残したまま「明るく、読みやすく」だけを取れます。
+      そのうえで、タブレットで使う便（午後お迎えなど）に限って案Bの大きな行を当てると、
+      画面を2つ覚えることなく現場での押しやすさが上がります。
+      案Cは効果は大きいものの作り替えの幅も大きいので、案A・Bを試したあとで判断するのが安全だと考えます。
+    </p>
+    <div class="cols">
+      <div class="note">
+        <h3>お決めいただきたいこと</h3>
+        <ul>
+          <li>3案のうち、<b>進める方向</b>はどれか（組み合わせも可）。</li>
+          <li>記号を<b>絵のままにするか、言葉のピルにするか</b>。</li>
+          <li>午前＝空色／午後＝珊瑚色の<b>色みの好み</b>。もっと淡く／濃くも作れます。</li>
+        </ul>
+      </div>
+      <div class="note">
+        <h3>決まったあとの進め方</h3>
+        <ul>
+          <li>選ばれた案で、<b>実際に動く画面</b>を1便ぶん作ってお渡しします。</li>
+          <li>そこで問題がなければ、4便すべてと印刷まわりを合わせます。</li>
+          <li>色や寸法は後から数値ひとつで変えられるようにしておきます。</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+</div>
