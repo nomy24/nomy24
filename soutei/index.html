@@ -8161,10 +8161,9 @@
   /* 刷る前に、乗る車が決まっていない方がいないか見る。
      欠席の方は乗らなくてよいので数えない（車から降ろすと未割当になるため、
      入れてしまうと毎回出て読み飛ばされる）。
-     業務日誌は名簿をそのまま並べる紙なので、割り当てとは関わりがない。 */
+     電話連絡表は午後お迎えの紙なのでその便だけ。ほかは4便すべてを見る。 */
   function unassignedFor(kind) {
-    const legs = kind === "denwa" ? LEGS.filter((l) => l.key === "pm-pick")
-      : kind === "soutei" ? LEGS : [];
+    const legs = kind === "denwa" ? LEGS.filter((l) => l.key === "pm-pick") : LEGS;
     const weekday = weekdayOf(currentDate);
 
     return legs.map((leg) => {
