@@ -1600,6 +1600,7 @@
 
   .pa-lead b { color: var(--ink-2); }
   .pa-actions .btn { font-size: 13px; padding: 8px 16px; }
+  .pa-actions .btn:hover { border-color: var(--ai); color: var(--ai); }
 
   .pa-parts {
     display: grid;
@@ -3548,7 +3549,7 @@
       </p>
     </div>
     <div class="pa-actions">
-      <button type="button" class="btn" id="attend-back">送迎表へ戻る</button>
+      <button type="button" class="btn" id="attend-back" title="Esc キーでも戻れます">送迎表へ戻る<small class="btn-key">Esc</small></button>
     </div>
   </header>
 
@@ -8058,15 +8059,15 @@
     catch (e) { return false; }
   }
 
-  /* 印刷レイアウトは見て閉じるだけの画面なので、Escape で送迎表へ戻す。
+  /* 印刷レイアウトと出欠は、開いて見て閉じるだけの画面なので Escape で送迎表へ戻す。
+     出欠はプルダウンを変えたその場で控えに落ちるので、閉じても失うものはない。
      ダイアログが開いているときは、そちらの Escape が先（重ねて閉じない）。
-     マスタ編集には付けない。書きかけを黙って捨ててしまうため */
+     マスタ編集には付けない。書きかけの下書きを黙って捨ててしまうため */
   document.addEventListener("keydown", (e) => {
     if (e.key !== "Escape") return;
     if (!muBox.hidden) return;
-    if (document.getElementById("page-print").hidden) return;
-    e.preventDefault();
-    closePrintPage();
+    if (!document.getElementById("page-print").hidden) { e.preventDefault(); closePrintPage(); return; }
+    if (!document.getElementById("page-attend").hidden) { e.preventDefault(); showAttendPage(false); }
   });
 
   document.getElementById("btn-print").addEventListener("click", () => openPrintPage("soutei"));
