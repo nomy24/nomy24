@@ -198,15 +198,30 @@
     color: var(--ink-3);
   }
 
+  /* 表題そのものが日付の操作列。両端の矢印で前後の日へ動かし、
+     真ん中の日付を押すと保存済みの日と「別の日」を選べる */
   .masthead h1 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     margin: 0;
     font-family: var(--mincho);
     font-size: 30px;
     font-weight: 600;
     letter-spacing: .08em;
     line-height: 1.25;
-    text-wrap: balance;
   }
+
+  /* 矢印を両端に置いたまま、真ん中だけが折り返せるようにする */
+  .title-mid {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0 8px;
+    min-width: 0;
+  }
+
+  .masthead h1 .title-word { margin-left: -2px; }
 
   /* 日付そのものがプルダウン。保存済みの日を選べる */
   .date-slot {
@@ -239,25 +254,28 @@
     color: var(--ink-3);
   }
 
-  .masthead h1 .date-slot { margin-right: 8px; }
-
-  /* 保存済みでない日はここから開く */
-  .date-open {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 11px;
-    letter-spacing: .06em;
-    color: var(--ink-3);
-    cursor: pointer;
+  /* 保存済みでない日はプルダウンの「＋ 別の日を開く…」から。
+     カレンダーの口だけ日付の真下に置き、見た目には出さない */
+  .date-slot input[type="date"] {
+    position: absolute;
+    left: 0;
+    bottom: -2px;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    border: 0;
+    opacity: 0;
+    pointer-events: none;
   }
 
+  /* 表題の両端。前後の日へ1日ずつ動かす */
   .date-step {
-    font: inherit;
-    font-size: 15px;
+    font-family: var(--gothic);
+    font-size: 20px;
     line-height: 1;
-    width: 26px;
-    height: 26px;
+    width: 32px;
+    height: 32px;
+    flex: none;
     display: grid;
     place-items: center;
     padding: 0;
@@ -267,21 +285,13 @@
     cursor: pointer;
   }
 
-  .date-step:hover { border-color: var(--accent); color: var(--accent); }
-
-  .date-open input {
-    font: inherit;
-    font-size: 12px;
-    font-variant-numeric: tabular-nums;
-    color: var(--ink);
-    background: var(--card);
-    border: 1px solid var(--rule-2);
-    border-radius: 0;
-    padding: 3px 6px;
-    cursor: pointer;
+  .date-step:hover {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    color: var(--accent);
   }
 
-  .date-open:hover input { border-color: var(--accent); }
+  .date-step:active { transform: translateY(1px); }
 
   .saved-note {
     font-size: 11px;
@@ -3023,12 +3033,11 @@
   @media screen and (max-width: 760px) {
     .sheet { padding: calc(var(--step) * 3) calc(var(--step) * 3) calc(var(--step) * 10); }
 
-    /* 表題は2行に折れてよい。日付の操作は指で押せる大きさに */
-    .title { font-size: 22px; }
+    /* 表題は2行に折れてよい。矢印は両端に置いたまま、真ん中だけを折る。
+       日付の操作は指で押せる大きさに */
+    .masthead h1 { font-size: 18px; gap: 6px; flex-wrap: nowrap; }
     .masthead { gap: calc(var(--step) * 2) calc(var(--step) * 3); }
-    .date-open { flex-wrap: wrap; }
     .date-step { min-width: 40px; min-height: 40px; }
-    #date-picker { min-height: 40px; }
 
     /* ツール列。文字が縦に1字ずつ折れないよう、縮ませずに折り返す */
     .controls { gap: calc(var(--step) * 3); }
@@ -3214,7 +3223,7 @@
        紙の上では通常のブロックに戻して便ごとの改ページを確実にする */
     .sheet { display: block; max-width: none; padding: 0; gap: 0; }
 
-    .controls, .modal, .saved-note, .swap-bar, .date-open, .toast,
+    .controls, .modal, .saved-note, .swap-bar, .date-step, .toast,
     .page-master, .page-print, .page-attend, .side { display: none !important; }
 
     .work { display: block; }
@@ -3230,7 +3239,7 @@
     .left-name { border: 0; padding: 0 4px; background: none; color: var(--warn); }
 
     /* 便ごとに1枚。画面用の表題は出さず、便の見出しだけで紙が成り立つようにする */
-    .masthead, .date-open, .sticky-top { display: none !important; }
+    .masthead, .date-step, .sticky-top { display: none !important; }
 
     .leg[hidden] { display: block !important; }
     .leg { break-before: page; break-inside: avoid; }
@@ -3455,17 +3464,17 @@
     <p class="eyebrow" id="office-name-top" contenteditable="true" spellcheck="false"
        title="事業所名。ここで直すとマスタにも入り、印刷にも出ます"></p>
     <h1>
-      <span class="date-slot">
-        <span id="title-date"></span>
-        <select id="date-select" aria-label="保存済みの運行日を選ぶ"></select>
-      </span>送迎表
-    </h1>
-    <span class="date-open">
-      <span class="do-label">別の日を開く</span>
       <button type="button" class="date-step" id="date-prev" aria-label="前の日へ" title="前の日へ">‹</button>
-      <input type="date" id="date-picker" aria-label="別の運行日を開く">
+      <span class="title-mid">
+        <span class="date-slot">
+          <span id="title-date"></span>
+          <select id="date-select" aria-label="運行日を選ぶ。保存済みの日と、別の日を開く"></select>
+          <input type="date" id="date-picker" aria-label="別の運行日を開く" tabindex="-1">
+        </span>
+        <span class="title-word">送迎表</span>
+      </span>
       <button type="button" class="date-step" id="date-next" aria-label="次の日へ" title="次の日へ">›</button>
-    </span>
+    </h1>
     <span class="saved-note" id="saved-note"></span>
   </header>
 
@@ -7364,7 +7373,7 @@
       if (picked) picked.setAttribute("selected", "");
     });
 
-    sheet.querySelectorAll(".controls, .saved-note, .date-open, .swap-bar, .side").forEach((n) => n.remove());
+    sheet.querySelectorAll(".controls, .saved-note, .date-step, .swap-bar, .side").forEach((n) => n.remove());
     sheet.querySelectorAll(".leg").forEach((n) => n.removeAttribute("hidden"));
 
     const pages = [...sheet.querySelectorAll(".leg")].map((leg) => {
