@@ -1,0 +1,610 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>案C　席ボード｜送迎表 編集画面 見本</title>
+<style>
+
+  :root {
+    color-scheme: light;
+    --bg:      #F7FAFB;
+    --card:    #FFFFFF;
+    --ink:     #22303A;
+    --ink2:    #5A6E79;
+    --ink3:    #93A5AE;
+    --rule:    #E3E9EC;
+    --am:      #2D77BE;
+    --am-soft: #EAF3FB;
+    --am-line: #C6DDF1;
+    --pm:      #C8593C;
+    --pm-soft: #FBEDE8;
+    --pm-line: #F0CFC3;
+    --absent:  #CE3F3F;
+    --furi:    #4C9A2A;
+    --shinki:  #E0821A;
+    --gothic: "Hiragino Kaku Gothic ProN", "Yu Gothic", "YuGothic", "Noto Sans JP", "Meiryo", system-ui, sans-serif;
+  }
+
+
+  *, *::before, *::after { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--gothic);
+    font-size: 13px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* 見本であることの断り書き */
+  .pv-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding: 8px 16px;
+    background: #26333A;
+    color: #DCE6EA;
+    font-size: 12px;
+    letter-spacing: .04em;
+  }
+
+  .pv-bar b { color: #fff; }
+  .pv-bar em { font-style: normal; color: #9DB2BC; }
+  .pv-bar .sp { flex: 1; }
+
+  .pv-bar a {
+    color: #DCE6EA;
+    text-decoration: none;
+    border: 1px solid #46565E;
+    border-radius: 6px;
+    padding: 3px 11px;
+  }
+
+  .pv-bar a:hover { background: #33434B; }
+  .pv-bar a[aria-current="page"] { background: #fff; color: #26333A; border-color: #fff; font-weight: 700; }
+
+  .wrap { padding: 16px; max-width: 1560px; margin: 0 auto; }
+
+  /* 記号と状態のピル */
+  .pill {
+    border-radius: 999px;
+    padding: 2px 9px;
+    font-size: 10.5px;
+    font-weight: 700;
+    line-height: 1.6;
+    white-space: nowrap;
+    border: 1px solid;
+  }
+
+  .pill-wc   { color:#B23A2C; border-color:#EDC5BF; background:#FCEFEC; }
+  .pill-aid  { color:#1B6FA8; border-color:#C3DCEC; background:#EDF5FB; }
+  .pill-door { color:#3F6B4E; border-color:#C7DCCD; background:#EFF6F1; }
+  .pill-off  { color:#fff; border-color:var(--absent); background:var(--absent); }
+  .pill-fu   { color:#fff; border-color:var(--furi);   background:var(--furi); }
+  .pill-sh   { color:#fff; border-color:var(--shinki); background:var(--shinki); }
+
+  /* 見出し */
+  .top { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding-bottom: 12px; }
+
+  .arw {
+    width: 36px; height: 36px;
+    display: grid; place-items: center;
+    border: 1px solid var(--rule);
+    background: var(--card);
+    border-radius: 9px;
+    color: var(--ink2);
+    font-size: 18px;
+    line-height: 1;
+    font-family: inherit;
+  }
+
+  .arw:hover { border-color: var(--am); color: var(--am); background: var(--am-soft); }
+
+  .ttl { font-size: 22px; font-weight: 700; letter-spacing: .02em; }
+  .ttl em { font-style: normal; color: var(--ink2); font-weight: 500; }
+  .sp { flex: 1; }
+
+  .final {
+    background: #C0392B; color: #fff; border: 0; border-radius: 9px;
+    padding: 9px 20px; font-size: 14px; font-weight: 700; font-family: inherit;
+  }
+
+  .tabs { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; padding-bottom: 12px; }
+
+  .tab {
+    border: 1px solid var(--rule);
+    background: var(--card);
+    border-radius: 999px;
+    padding: 8px 17px;
+    font-size: 13px;
+    color: var(--ink2);
+    font-family: inherit;
+  }
+
+  .tab:hover { border-color: var(--am); color: var(--am); }
+  .tab.on { background: var(--am); border-color: var(--am); color: #fff; font-weight: 700; }
+  .tab.pm.on { background: var(--pm); border-color: var(--pm); }
+
+  .stats { display: flex; gap: 8px; flex-wrap: wrap; padding-bottom: 12px; }
+
+  .stat {
+    background: var(--card); border: 1px solid var(--rule); border-radius: 9px;
+    padding: 7px 14px; display: flex; align-items: baseline; gap: 6px;
+    font-size: 11.5px; color: var(--ink2);
+  }
+
+  .stat b { font-size: 17px; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .stat.warn { background: #FDECEC; border-color: #F3C9C9; }
+  .stat.warn b { color: var(--absent); }
+
+  /* 小さな窓 */
+  .pv-back {
+    position: fixed; inset: 0; z-index: 60;
+    background: rgba(22, 32, 38, .42);
+    display: grid; place-items: center;
+    padding: 20px;
+  }
+
+  .pv-sheet {
+    background: var(--card);
+    border-radius: 14px;
+    padding: 20px;
+    width: min(420px, 100%);
+    max-height: 82vh;
+    overflow: auto;
+    box-shadow: 0 18px 50px rgba(15, 25, 30, .3);
+  }
+
+  .pv-sheet h2 { margin: 0 0 4px; font-size: 17px; }
+  .pv-sheet p { margin: 0 0 14px; color: var(--ink2); font-size: 13px; }
+  .pv-rows { display: flex; flex-direction: column; gap: 7px; }
+
+  .pv-row {
+    text-align: left;
+    border: 1px solid var(--rule);
+    background: var(--card);
+    border-radius: 10px;
+    padding: 11px 14px;
+    font-family: inherit;
+    min-height: 48px;
+  }
+
+  .pv-row:hover { border-color: var(--am); background: var(--am-soft); }
+  .pv-row b { display: block; font-size: 14.5px; color: var(--ink); }
+  .pv-row small { color: var(--ink3); font-size: 11.5px; }
+  .pv-row.warn:hover { border-color: var(--absent); background: #FDECEC; }
+
+  .pv-cancel {
+    margin-top: 14px; width: 100%;
+    border: 1px solid var(--rule); background: var(--card);
+    border-radius: 10px; padding: 11px; font-family: inherit; font-size: 14px;
+    color: var(--ink2); min-height: 48px;
+  }
+
+  #pv-toast {
+    position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%) translateY(14px);
+    background: #26333A; color: #fff; padding: 11px 20px; border-radius: 10px;
+    font-size: 13.5px; opacity: 0; pointer-events: none; transition: opacity .18s, transform .18s;
+    z-index: 70; max-width: 90vw; text-align: center;
+  }
+
+  #pv-toast.on { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  button { cursor: pointer; }
+  button:focus-visible, a:focus-visible { outline: 2px solid var(--am); outline-offset: 2px; }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+
+  .board { display: grid; grid-template-columns: 210px repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; align-items: start; }
+
+  .col { background: var(--card); border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; }
+
+  .col-h {
+    padding: 9px 12px; font-size: 12.5px; font-weight: 700;
+    display: flex; align-items: center; gap: 8px;
+    background: var(--am-soft); border-bottom: 1px solid var(--am-line);
+  }
+
+  .leg-pm .col-h { background: var(--pm-soft); border-bottom-color: var(--pm-line); }
+
+  .col-h .no { background: var(--am); color: #fff; border-radius: 7px; padding: 1px 9px; font-size: 12.5px; }
+  .leg-pm .col-h .no { background: var(--pm); }
+  .col-h .n { margin-left: auto; font-weight: 400; font-size: 11.5px; color: var(--ink2); }
+
+  .col.pool .col-h { background: #FDF3EF; border-bottom-color: var(--pm-line); }
+  .col.pool .col-h .no { background: var(--absent); }
+  .col.lift .col-h { background: #FCEFEC; border-bottom-color: #EDC5BF; }
+  .col.lift .col-h .no { background: #B23A2C; }
+
+  .col-b { padding: 9px; display: flex; flex-direction: column; gap: 7px; min-height: 130px; }
+
+  .chip {
+    border: 1px solid var(--rule); border-left: 4px solid var(--am);
+    border-radius: 9px; padding: 8px 10px; background: var(--card);
+    display: flex; flex-direction: column; gap: 2px;
+    box-shadow: 0 1px 2px rgba(30,45,50,.05);
+    text-align: left; font-family: inherit; width: 100%;
+  }
+
+  .chip:hover { border-color: var(--am); border-left-color: var(--am); background: var(--am-soft); }
+  .leg-pm .chip { border-left-color: var(--pm); }
+  .chip .top2 { display: flex; align-items: baseline; gap: 8px; }
+  .chip .tm { font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .chip .nm { font-size: 13.5px; font-weight: 600; }
+  .chip .ad { font-size: 11px; color: var(--ink3); }
+  .chip .pills { display: flex; gap: 4px; margin-top: 4px; flex-wrap: wrap; }
+
+  .chip.furikae { border-left-color: var(--furi); }
+  .chip.shinki  { border-left-color: var(--shinki); }
+  .chip.absent  { border-left-color: var(--absent); background: #FEF7F7; }
+  .chip.absent .tm { color: var(--ink3); text-decoration: line-through; }
+  .chip.absent .nm { color: var(--absent); }
+  .chip.inpool  { border-left-color: var(--absent); background: #FDF3EF; }
+
+  .chip-row { display: flex; gap: 6px; align-items: stretch; }
+
+  .ord {
+    width: 30px; flex: none; border: 1px solid var(--rule); background: var(--card);
+    border-radius: 8px; font-family: inherit; font-size: 12px; font-weight: 700; color: var(--ink2);
+  }
+
+  .ord:hover { border-color: var(--am); color: var(--am); background: var(--am-soft); }
+  .ord.furikae { background: var(--furi); color: #fff; border-color: var(--furi); }
+  .ord.shinki  { background: var(--shinki); color: #fff; border-color: var(--shinki); }
+  .ord.absent  { background: var(--absent); color: #fff; border-color: var(--absent); }
+
+  .drop {
+    border: 1.5px dashed var(--am-line); border-radius: 9px; padding: 11px;
+    text-align: center; font-size: 11.5px; color: var(--ink3);
+    background: none; font-family: inherit; width: 100%; min-height: 44px;
+  }
+
+  .drop:hover { border-color: var(--am); color: var(--am); background: var(--am-soft); }
+
+  .col-f { padding: 8px 12px; background: #F7FAFB; border-top: 1px solid var(--rule);
+           font-size: 11.5px; color: var(--ink2); display: flex; gap: 7px; align-items: baseline; flex-wrap: wrap; }
+  .col-f b { font-size: 14px; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .col-none { color: var(--ink3); font-size: 12px; text-align: center; padding: 10px 4px; }
+
+</style>
+</head>
+<body>
+
+<div class="pv-bar">
+  <b>案C　席ボード</b>
+  <em>未割当を左端に置き、札を車の列へ移す</em>
+  <span class="sp"></span>
+  <em>これは見本です。保存はされません</em>
+  <a href="デザイン案A_やわらかい紙.html">案A</a><a href="デザイン案B_大きな的.html">案B</a><a href="デザイン案C_席ボード.html" aria-current="page">案C</a>
+</div>
+
+<div id="app"></div>
+
+<script>
+
+/* ── 見本のデータ。実物のマスタから抜いた並び ── */
+const U = {
+  u01:{n:"田中 ハル",   a:"中央町3-14-2",  g:["aid"]},
+  u02:{n:"高橋 キヨ",   a:"本町5-3-11",    g:["door"]},
+  u03:{n:"渡部 秀夫",   a:"若葉台4-11-8",  g:[]},
+  u04:{n:"山田 トシ子", a:"緑町1-4-16",    g:["wc"]},
+  u05:{n:"大野 スミ",   a:"桜ヶ丘1-2-7",   g:["door"]},
+  u06:{n:"森田 光子",   a:"旭ヶ丘5-1-12",  g:[]},
+  u07:{n:"村上 三郎",   a:"東雲2-11-6",    g:[]},
+  u08:{n:"菅原 テル",   a:"川井町1-22-4",  g:["wc"]},
+  u09:{n:"白石 ミツ",   a:"南台2-5-9",     g:[]},
+  u10:{n:"野口 定雄",   a:"南台5-13-2",    g:["door"]},
+  u11:{n:"石田 正治",   a:"上野原3-12-1",  g:[]},
+  u12:{n:"堀 かず子",   a:"中央町1-2-9",   g:["aid"]},
+  u13:{n:"佐野 ハツ",   a:"富士見台2-8-3", g:["aid"]},
+  u14:{n:"宮本 サダ",   a:"本町2-4-6",     g:[]},
+  u15:{n:"河合 秀子",   a:"緑町3-8-2",     g:["door"]},
+  u16:{n:"井上 マサ",   a:"若葉台1-5-4",   g:[]},
+  u17:{n:"内田 光",     a:"旭ヶ丘2-2-2",   g:["aid"]}
+};
+
+const GLABEL = { wc:"車椅子", aid:"歩行器", door:"玄関" };
+
+const LEGS = [
+  {k:"am-pick", part:"am", label:"午前 お迎え", flow:"自宅 → 事業所", dep:"事業所 発", arr:"事業所 着 目標", limit:"09:00"},
+  {k:"am-drop", part:"am", label:"午前 お送り", flow:"事業所 → 自宅", dep:"事業所 発", arr:"事業所 帰着",     limit:""},
+  {k:"pm-pick", part:"pm", label:"午後 お迎え", flow:"自宅 → 事業所", dep:"午前お送りから続けて", arr:"事業所 着 目標", limit:"13:20"},
+  {k:"pm-drop", part:"pm", label:"午後 お送り", flow:"事業所 → 自宅", dep:"事業所 発", arr:"事業所 帰着",     limit:""}
+];
+
+/* 便ごとの初期の割り当て。実物の「いつもの割り当て」に近い形 */
+function seedLeg(k) {
+  const base = [
+    {no:1, drv:"佐藤 健",  cap:4, lift:false, dep:"07:15", arr:"08:55", r:["u01","u02","u03",""]},
+    {no:2, drv:"鈴木 明",  cap:4, lift:true,  dep:"08:10", arr:"08:55", r:["u04","u05","",""]},
+    {no:3, drv:"高木 進",  cap:4, lift:false, dep:"08:10", arr:"08:55", r:["u06","u07","",""]},
+    {no:4, drv:"中村 恵",  cap:4, lift:false, dep:"07:50", arr:"08:55", r:["u08","u09","",""]},
+    {no:5, drv:"小林 剛",  cap:4, lift:false, dep:"08:10", arr:"08:55", r:["u10","u11","",""]},
+    {no:6, drv:"渡辺 睦",  cap:4, lift:false, dep:"07:55", arr:"09:00", r:["u12","u14","",""]},
+    {no:7, drv:"斎藤 章",  cap:4, lift:false, dep:"07:20", arr:"08:55", r:["u15","u16","",""]},
+    {no:8, drv:"松本 里",  cap:4, lift:false, dep:"07:50", arr:"08:55", r:["u17","","",""]}
+  ];
+  const pm = k.startsWith("pm");
+  return base.map((c) => ({
+    no:c.no, drv:c.drv, cap:c.cap, lift:c.lift,
+    dep: pm ? shiftT(c.dep, 280) : (k === "am-drop" ? shiftT(c.dep, 290) : c.dep),
+    arr: pm ? (k === "pm-pick" ? "13:10" : shiftT(c.arr, 300)) : (k === "am-drop" ? "" : c.arr),
+    r: c.r.slice()
+  }));
+}
+
+function shiftT(t, add) {
+  if (!t) return "";
+  const [h, m] = t.split(":").map(Number);
+  const v = h * 60 + m + add;
+  return String(Math.floor(v / 60) % 24).padStart(2, "0") + ":" + String(v % 60).padStart(2, "0");
+}
+
+/* 各席の予定時刻。発から順に積む（見本なので単純な足し算） */
+function seatTime(car, i) {
+  let n = 0;
+  for (let j = 0; j < i; j++) if (car.r[j]) n++;
+  if (!car.r[i]) return "--:--";
+  return shiftT(car.dep || "08:00", 55 + n * 15);
+}
+
+
+function screen() {
+  const L = leg(), t = tally();
+  return ''
+  + '<div class="wrap ' + (L.part === "pm" ? "leg-pm" : "leg-am") + '">'
+  + '<div class="top">'
+  +   '<button class="arw" data-act="prev" aria-label="前の日へ">‹</button>'
+  +   '<span class="ttl">' + titleDate() + '<em> 送迎表</em></span>'
+  +   '<button class="arw" data-act="next" aria-label="次の日へ">›</button>'
+  +   '<span class="sp"></span>'
+  +   '<span class="stat"><b>' + t.run + '</b>台</span>'
+  +   '<span class="stat"><b>' + t.ride + '</b>名</span>'
+  +   '<span class="stat"><b>' + t.off + '</b>名 欠席</span>'
+  +   '<span class="stat ' + (t.pool ? "warn" : "") + '"><b>' + t.pool + '</b>名 未割当</span>'
+  +   '<button class="final">最終確認</button>'
+  + '</div>'
+  + '<div class="tabs">'
+  +   LEGS.map((l) => '<button class="tab ' + (l.part === "pm" ? "pm " : "") + (l.k === S.leg ? "on" : "")
+        + '" data-act="tab" data-leg="' + l.k + '">' + l.label + '</button>').join("")
+  + '</div>'
+  + '<div class="board">' + poolCol() + cars().map(colHTML).join("") + '</div>'
+  + '</div>';
+}
+
+function poolCol() {
+  const p = S.pool[S.leg];
+  return '<section class="col pool"><div class="col-h"><span class="no">！</span>未割当'
+  + '<span class="n">' + p.length + '名</span></div><div class="col-b">'
+  + (p.length
+      ? p.map((uid) => '<button class="chip inpool" data-act="pool" data-uid="' + uid + '">'
+          + '<span class="top2"><span class="tm">--:--</span><span class="nm">' + U[uid].n + '</span></span>'
+          + '<span class="ad">' + U[uid].a + '</span>'
+          + '<span class="pills">' + U[uid].g.map((g) => '<span class="pill pill-' + g + '">' + GLABEL[g] + '</span>').join("") + '</span>'
+          + '</button>').join("")
+      : '<p class="col-none">全員どこかの車に<br>乗っています</p>')
+  + '</div><div class="col-f">乗る車が決まっていない方</div></section>';
+}
+
+function colHTML(c, ci) {
+  const L = leg();
+  const n = c.r.filter((u, si) => u && stateOf(ci, si) !== "absent").length;
+  const free = c.r.filter((x) => !x).length;
+  return '<section class="col' + (c.lift ? " lift" : "") + '">'
+  + '<div class="col-h"><span class="no">' + c.no + '</span>' + c.drv + '<span class="n">' + n + ' / ' + c.cap + '</span></div>'
+  + '<div class="col-b">'
+  +   c.r.map((uid, si) => uid ? chipHTML(c, ci, uid, si) : "").join("")
+  +   (free ? '<button class="drop" data-act="seat" data-car="' + ci + '" data-seat="' + c.r.indexOf("") + '">空席 ' + free + '　＋ 乗せる</button>' : '')
+  + '</div>'
+  + '<div class="col-f">' + (c.dep ? '発 <b>' + c.dep + '</b> → ' : '') + '着 <b>' + (c.arr || "──") + '</b></div>'
+  + '</section>';
+}
+
+function chipHTML(c, ci, uid, si) {
+  const u = U[uid], st = stateOf(ci, si);
+  return '<div class="chip-row">'
+  + '<button class="ord ' + st + '" data-act="ord" data-car="' + ci + '" data-seat="' + si + '" title="押すたびに 通常→欠席→振替→新規→通常">' + (si + 1) + '</button>'
+  + '<button class="chip ' + st + '" data-act="rider" data-car="' + ci + '" data-seat="' + si + '">'
+  +   '<span class="top2"><span class="tm">' + seatTime(c, si) + '</span><span class="nm">' + u.n + '</span></span>'
+  +   '<span class="ad">' + u.a + '</span>'
+  +   '<span class="pills">' + pills(uid, ci, si) + '</span>'
+  + '</button></div>';
+}
+
+/* ── 状態。3案で同じものを使う ────────────── */
+const STATES = ["", "absent", "furikae", "shinki"];
+const SLABEL = { "":"通常", absent:"欠席", furikae:"振替", shinki:"新規" };
+const SCODE  = { absent:"入院", furikae:"振替", shinki:"新規" };
+
+const S = {
+  date: new Date(2026, 6, 22),
+  leg: "am-pick",
+  cars: {},
+  st: {},          /* st["am-pick:2:0"] = "absent" など */
+  pool: { "am-pick":["u13"], "am-drop":["u13"], "pm-pick":["u13"], "pm-drop":["u13"] }
+};
+LEGS.forEach((l) => { S.cars[l.k] = seedLeg(l.k); });
+
+const leg = () => LEGS.find((l) => l.k === S.leg);
+const cars = () => S.cars[S.leg];
+const key = (ci, si) => S.leg + ":" + ci + ":" + si;
+const stateOf = (ci, si) => S.st[key(ci, si)] || "";
+
+const WD = ["日","月","火","水","木","金","土"];
+function titleDate() {
+  const d = S.date;
+  const y = d.getFullYear() - 2018;
+  return "令和" + y + "年" + (d.getMonth() + 1) + "月" + d.getDate() + "日（" + WD[d.getDay()] + "曜日）";
+}
+
+function tally() {
+  let ride = 0, off = 0, fu = 0, sh = 0, run = 0;
+  cars().forEach((c, ci) => {
+    let n = 0;
+    c.r.forEach((u, si) => {
+      if (!u) return;
+      const st = stateOf(ci, si);
+      if (st === "absent") { off++; return; }
+      n++;
+      if (st === "furikae") fu++;
+      if (st === "shinki") sh++;
+    });
+    ride += n;
+    if (n > 0) run++;
+  });
+  return { ride, off, fu, sh, run, pool: S.pool[S.leg].length };
+}
+
+function pills(uid, ci, si) {
+  const u = U[uid];
+  if (!u) return "";
+  const st = stateOf(ci, si);
+  let out = "";
+  if (st === "absent")  out += '<span class="pill pill-off">' + SCODE.absent + '</span>';
+  if (st === "furikae") out += '<span class="pill pill-fu">振替</span>';
+  if (st === "shinki")  out += '<span class="pill pill-sh">新規</span>';
+  u.g.forEach((g) => { out += '<span class="pill pill-' + g + '">' + GLABEL[g] + '</span>'; });
+  return out;
+}
+
+/* ── 操作 ─────────────────────────────────── */
+function cycleState(ci, si) {
+  if (!cars()[ci].r[si]) return;
+  const cur = stateOf(ci, si);
+  const next = STATES[(STATES.indexOf(cur) + 1) % STATES.length];
+  if (next) S.st[key(ci, si)] = next; else delete S.st[key(ci, si)];
+  toast(U[cars()[ci].r[si]].n + " さんを「" + SLABEL[next] + "」にしました");
+  draw();
+}
+
+function seatInto(ci, si, uid) {
+  cars()[ci].r[si] = uid;
+  S.pool[S.leg] = S.pool[S.leg].filter((x) => x !== uid);
+  delete S.st[key(ci, si)];
+  toast(U[uid].n + " さんを " + cars()[ci].no + "号車 に乗せました");
+  draw();
+}
+
+function takeOff(ci, si) {
+  const uid = cars()[ci].r[si];
+  if (!uid) return;
+  cars()[ci].r[si] = "";
+  delete S.st[key(ci, si)];
+  if (!S.pool[S.leg].includes(uid)) S.pool[S.leg].push(uid);
+  toast(U[uid].n + " さんを降ろしました。未割当に戻ります");
+  draw();
+}
+
+function moveTo(ci, si, toCar) {
+  const uid = cars()[ci].r[si];
+  const dest = cars()[toCar].r.indexOf("");
+  if (dest < 0) { toast(cars()[toCar].no + "号車 は満席です"); return; }
+  const st = stateOf(ci, si);
+  cars()[ci].r[si] = "";
+  delete S.st[key(ci, si)];
+  cars()[toCar].r[dest] = uid;
+  if (st) S.st[key(toCar, dest)] = st;
+  toast(U[uid].n + " さんを " + cars()[toCar].no + "号車 へ移しました");
+  draw();
+}
+
+function shiftDate(n) { S.date = new Date(S.date.getTime() + n * 86400000); draw(); }
+
+/* ── 小さな窓 ─────────────────────────────── */
+function sheet(title, lead, rows) {
+  const back = document.createElement("div");
+  back.className = "pv-back";
+  back.innerHTML =
+    '<div class="pv-sheet" role="dialog" aria-modal="true">'
+    + '<h2>' + title + '</h2>'
+    + (lead ? '<p>' + lead + '</p>' : '')
+    + '<div class="pv-rows"></div>'
+    + '<button type="button" class="pv-cancel">やめる</button>'
+    + '</div>';
+  const box = back.querySelector(".pv-rows");
+  rows.forEach((r) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "pv-row" + (r.tone ? " " + r.tone : "");
+    b.innerHTML = '<b>' + r.label + '</b>' + (r.sub ? '<small>' + r.sub + '</small>' : '');
+    b.addEventListener("click", () => { back.remove(); r.run(); });
+    box.append(b);
+  });
+  const close = () => back.remove();
+  back.querySelector(".pv-cancel").addEventListener("click", close);
+  back.addEventListener("click", (e) => { if (e.target === back) close(); });
+  document.addEventListener("keydown", function esc(e) {
+    if (e.key === "Escape") { close(); document.removeEventListener("keydown", esc); }
+  });
+  document.body.append(back);
+}
+
+function askSeat(ci, si) {
+  const pool = S.pool[S.leg];
+  if (!pool.length) { toast("いま未割当の方はいません"); return; }
+  sheet(cars()[ci].no + "号車 に乗せる", "未割当の方から選びます。",
+    pool.map((uid) => ({ label: U[uid].n, sub: U[uid].a, run: () => seatInto(ci, si, uid) })));
+}
+
+function askRider(ci, si) {
+  const uid = cars()[ci].r[si];
+  if (!uid) return;
+  const rows = [{ label: "この車から降ろす", sub: "未割当に戻ります", tone: "warn", run: () => takeOff(ci, si) }];
+  cars().forEach((c, i) => {
+    if (i === ci) return;
+    const free = c.r.filter((x) => !x).length;
+    rows.push({
+      label: c.no + "号車 へ移す",
+      sub: c.drv + "　" + (free ? "空き " + free + "席" : "満席"),
+      run: () => moveTo(ci, si, i)
+    });
+  });
+  sheet(U[uid].n + " さん", "どうしますか。", rows);
+}
+
+function askPool(uid) {
+  sheet(U[uid].n + " さんを乗せる", U[uid].a,
+    cars().map((c, i) => ({
+      label: c.no + "号車　" + c.drv,
+      sub: c.r.filter((x) => !x).length ? "空き " + c.r.filter((x) => !x).length + "席" : "満席",
+      run: () => { const si = c.r.indexOf(""); if (si < 0) { toast(c.no + "号車 は満席です"); return; } seatInto(i, si, uid); }
+    })));
+}
+
+let toastT = null;
+function toast(msg) {
+  let t = document.getElementById("pv-toast");
+  if (!t) { t = document.createElement("div"); t.id = "pv-toast"; document.body.append(t); }
+  t.textContent = msg;
+  t.classList.add("on");
+  clearTimeout(toastT);
+  toastT = setTimeout(() => t.classList.remove("on"), 2200);
+}
+
+/* ── 押したときの振り分け。3案とも同じ約束で動く ── */
+document.addEventListener("click", (e) => {
+  const el = e.target.closest("[data-act]");
+  if (!el) return;
+  const ci = Number(el.dataset.car), si = Number(el.dataset.seat);
+  switch (el.dataset.act) {
+    case "prev":  shiftDate(-1); break;
+    case "next":  shiftDate(1);  break;
+    case "tab":   S.leg = el.dataset.leg; draw(); break;
+    case "ord":   cycleState(ci, si); break;
+    case "seat":  askSeat(ci, si); break;
+    case "rider": askRider(ci, si); break;
+    case "pool":  askPool(el.dataset.uid); break;
+  }
+});
+
+function draw() { document.getElementById("app").innerHTML = screen(); }
+draw();
+
+</script>
+</body>
+</html>

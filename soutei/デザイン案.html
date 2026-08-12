@@ -104,6 +104,33 @@
     letter-spacing: .04em;
   }
 
+  /* 押して動く見本への入り口 */
+  .try {
+    background: var(--accent-s);
+    border-left: 3px solid var(--accent);
+    padding: 16px 20px;
+    font-size: 14.5px;
+    color: var(--ink);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 66ch;
+  }
+
+  .try-links { display: flex; flex-wrap: wrap; gap: 8px; }
+
+  .try-links a {
+    background: var(--card);
+    border: 1px solid var(--rule-2);
+    border-radius: 999px;
+    padding: 7px 17px;
+    font-size: 13.5px;
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  .try-links a:hover { border-color: var(--accent); color: var(--accent); }
+
   /* ── 節 ──────────────────────────────── */
   .sec { display: flex; flex-direction: column; gap: 20px; }
 
@@ -805,6 +832,17 @@
       <span>対象：午前お迎えの編集画面</span>
       <span>想定端末：事務所のPC ／ 現場のタブレット</span>
       <span>色・記号の意味は現行のまま</span>
+    </div>
+
+    <div class="try">
+      <b>押して動く見本があります。</b>
+      同じ場所に置いた次の3つを開くと、便の切替・番号での状態切替・乗せ換えまで実際に試せます
+      （保存はされません）。
+      <span class="try-links">
+        <a href="デザイン案A_やわらかい紙.html">案A　やわらかい紙</a>
+        <a href="デザイン案B_大きな的.html">案B　大きな的</a>
+        <a href="デザイン案C_席ボード.html">案C　席ボード</a>
+      </span>
     </div>
   </header>
 
