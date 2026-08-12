@@ -462,14 +462,39 @@
 
   .menu-pop[hidden] { display: none; }
 
-  /* カーソルを外すまでの間に隙間があると消えてしまうので、橋を渡しておく */
-  .menu-wrap::after {
-    content: "";
-    position: absolute;
-    top: 100%;
-    right: 0;
-    width: 250px;
-    height: 8px;
+  /* すっと下りてくる。押した先が動いたことが目で追えるように */
+  .menu-pop {
+    transform-origin: top right;
+    animation: menu-in .16s cubic-bezier(.2, .8, .3, 1);
+  }
+
+  .menu-pop .menu-item {
+    opacity: 0;
+    animation: item-in .22s ease-out forwards;
+  }
+
+  .menu-pop .menu-item:nth-child(1) { animation-delay: .02s; }
+  .menu-pop .menu-item:nth-child(2) { animation-delay: .05s; }
+  .menu-pop .menu-item:nth-child(3) { animation-delay: .08s; }
+  .menu-pop .menu-item:nth-child(4) { animation-delay: .11s; }
+
+  @keyframes menu-in {
+    from { opacity: 0; transform: translateY(-6px) scale(.97); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  @keyframes item-in {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  /* 三本線は開くと少し回して、開いている合図にする */
+  .mb-icon { transition: transform .18s cubic-bezier(.2, .8, .3, 1); }
+  .menu-btn[aria-expanded="true"] .mb-icon { transform: rotate(90deg); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .menu-pop, .menu-pop .menu-item { animation: none; opacity: 1; }
+    .mb-icon { transition: none; }
   }
 
   .tools .menu-item {
@@ -525,6 +550,16 @@
     align-items: stretch;
     gap: calc(var(--step) * 2);
   }
+
+  /* 一つ戻る／一つ進むは絵だけ。何度も押す場所なので幅を取らせない */
+  .tools .btn-ico {
+    display: grid;
+    place-items: center;
+    width: 42px;
+    padding: 0;
+  }
+
+  .tools .btn-ico svg { width: 20px; height: 20px; }
 
   .tools button:disabled {
     opacity: .4;
@@ -586,17 +621,26 @@
     border-top: 1px solid var(--rule);
   }
 
-  .side-title { font-size: 12px; letter-spacing: .1em; color: var(--ink-2); }
+  /* 脇の文字は大きめに取る。朝の忙しい時間に、離れた位置からでも読めるように */
+  .side-title { font-size: 15px; font-weight: 600; letter-spacing: .08em; color: var(--ink); }
 
   .side-count {
     margin-left: auto;
-    font-size: 17px;
-    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 20px;
+    font-weight: 700;
     font-variant-numeric: tabular-nums;
     color: var(--ok);
   }
 
   .side.has-left .side-count { color: var(--warn); }
+
+  /* 全員乗ったら丸印。数の 0 だけだと見落とすため */
+  .side-ok { display: inline-grid; place-items: center; width: 22px; height: 22px; color: var(--ok); }
+  .side-ok svg { width: 22px; height: 22px; }
+  .side-ok + .cnt { display: none; }
 
   .side-list {
     flex: 1 1 auto;
@@ -609,15 +653,16 @@
 
   .side-name {
     font: inherit;
-    font-size: 13px;
+    font-size: 15px;
+    font-weight: 600;
     text-align: left;
     display: flex;
     flex-direction: column;
     gap: 1px;
-    padding: 5px 8px;
+    padding: 7px 9px;
     border: 1px solid var(--warn);
-    border-left-width: 3px;
-    border-radius: 7px;
+    border-left-width: 4px;
+    border-radius: 8px;
     background: var(--warn-soft);
     color: var(--warn);
     cursor: grab;
@@ -625,16 +670,62 @@
 
   .side-name:active { cursor: grabbing; }
   .side-name.dragging { opacity: .45; }
-  .side-name .sn-addr { font-size: 10px; color: var(--ink-3); font-weight: 400; }
+  .side-name .sn-addr { font-size: 11.5px; color: var(--ink-3); font-weight: 400; }
   .side-name:hover { background: var(--warn); color: var(--card); }
   .side-name:hover .sn-addr { color: var(--card); }
 
   .side-none {
-    font-size: 12px;
+    font-size: 13px;
     line-height: 1.6;
     color: var(--ink-3);
     padding: calc(var(--step) * 2) 0;
   }
+
+  /* 全員そろったときの一言。丸印と並べて出す */
+  .side-done {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--ok);
+    padding: calc(var(--step) * 2) 0;
+  }
+
+  .side-done .di { display: grid; place-items: center; width: 20px; height: 20px; }
+  .side-done .di svg { width: 20px; height: 20px; }
+
+  /* ── 脇の欠席 ─────────────────────────────
+     車から降ろした欠席の方はここへ。未割当と混ぜると
+     「乗せ忘れ」と「休み」の区別がつかなくなる */
+  .side-off { border-top: 1px solid var(--rule); padding-top: calc(var(--step) * 3); }
+  .side-off[hidden] { display: none; }
+  .off-count { color: var(--warn); }
+
+  .side-name.is-off {
+    border-color: var(--rule-2);
+    background: var(--sub);
+    color: var(--ink-2);
+    cursor: default;
+    text-decoration: none;
+  }
+
+  .side-name.is-off:hover { background: var(--sub); color: var(--ink-2); }
+  .side-name.is-off:hover .sn-addr { color: var(--ink-3); }
+  .side-name.is-off .sn-top b { text-decoration: line-through; }
+
+  /* 理由は絵で出す。言葉より先に形で見分けられる */
+  .sn-why {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    background: var(--warn-soft);
+    color: var(--warn);
+  }
+
+  .sn-why svg { width: 15px; height: 15px; }
 
   /* ── 脇の振替 ──────────────────────────────
      受付欄を便の見出しから脇へ移した。振替の方は名簿と一緒に並ぶので、
@@ -822,6 +913,67 @@
   .stat.s-furikae.on b { color: var(--furikae); }
   .stat.is-alert { border-color: var(--warn); background: var(--warn-soft); color: var(--warn); }
   .stat.is-alert b { color: var(--warn); }
+
+  /* 未割当だけは押せる。誰が残っているかをその場で開ける */
+  .stat.s-left {
+    font: inherit;
+    cursor: pointer;
+    transition: border-color .12s, background-color .12s;
+  }
+
+  .stat.s-left.on { border-width: 1.5px; border-color: var(--warn); background: var(--warn-soft); color: var(--warn); }
+  .stat.s-left.on b { color: var(--warn); }
+  .stat.s-left:hover { border-color: var(--warn); }
+  .stat.s-left.is-clear { border-color: var(--ok); color: var(--ok); }
+  .stat.s-left.is-clear b { color: var(--ok); }
+
+  /* 「◯名 未割当」から開く一覧。押せばそのまま乗せる車を選べる */
+  .left-pick { display: flex; flex-direction: column; gap: 5px; }
+
+  .lp-row {
+    font: inherit;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    padding: 9px 12px;
+    border: 1px solid var(--rule-2);
+    border-left: 4px solid var(--warn);
+    border-radius: 8px;
+    background: var(--card);
+    color: var(--ink);
+    cursor: pointer;
+  }
+
+  .lp-row:hover { border-color: var(--warn); background: var(--warn-soft); }
+  .lp-top { display: flex; align-items: center; gap: 7px; }
+  .lp-top b { font-size: 15px; font-weight: 600; }
+  .lp-addr { font-size: 11.5px; color: var(--ink-3); }
+
+  .lp-tag {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    padding: 1px 7px;
+    border-radius: 999px;
+    color: #fff;
+  }
+
+  .lp-tag.is-fu { background: var(--furikae); }
+  .lp-tag.is-off { background: var(--warn); }
+
+  /* 押されたときに脇を光らせる。どこを見ればよいかを目で示す */
+  .side-sec.flash {
+    animation: side-flash 1.1s ease-out 2;
+    border-radius: 9px;
+  }
+
+  @keyframes side-flash {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(156, 43, 43, 0); }
+    35%      { box-shadow: 0 0 0 4px var(--warn-soft), 0 0 0 5px var(--warn); }
+  }
+
+  @media (prefers-reduced-motion: reduce) { .side-sec.flash { animation: none; } }
 
   .print-stamp {
     display: none;
@@ -3306,6 +3458,7 @@
 
     .stat,
     .stat.s-total,
+    .stat.s-left.on,
     .stat.s-away.on,
     .stat.s-furikae.on,
     .stat.s-dup.is-alert,
@@ -3527,8 +3680,8 @@
         </button>
       </span>
       <span class="undo">
-        <button type="button" id="btn-undo" title="一つ戻る">↶ 一つ戻る</button>
-        <button type="button" id="btn-redo" title="一つ進む">↷ 一つ進む</button>
+        <button type="button" id="btn-undo" class="btn-ico" title="一つ戻る" aria-label="一つ戻る"></button>
+        <button type="button" id="btn-redo" class="btn-ico" title="一つ進む" aria-label="一つ進む"></button>
       </span>
 
       <!-- 出欠・業務日誌・マスタ編集・最終確認をここへ畳む。
@@ -3583,6 +3736,15 @@
           <span class="side-count" id="side-count">0</span>
         </div>
         <div class="side-list" id="side-list"></div>
+      </section>
+
+      <!-- 車から降ろした欠席の方はここへ。未割当と混ぜない -->
+      <section class="side-sec side-off" id="side-off-sec" hidden>
+        <div class="side-head">
+          <span class="side-title">欠席</span>
+          <span class="side-count off-count" id="off-count">0</span>
+        </div>
+        <div class="side-list" id="off-list"></div>
       </section>
 
       <!-- 振替はここで受け付けて、そのまま脇に並べる。
@@ -3995,7 +4157,30 @@
     /* 刷り物：紙が出てくる形 */
     print: svg('<path d="M7 8.4V3.2h10v5.2"/>'
       + '<path d="M5 8.4h14a2 2 0 0 1 2 2v5.2h-4"/><path d="M5 15.6H3v-5.2a2 2 0 0 1 2-2"/>'
-      + '<path d="M7 13.6h10v7.2H7Z"/>')
+      + '<path d="M7 13.6h10v7.2H7Z"/>'),
+    /* 一つ戻る／一つ進む */
+    undo: svg('<path d="M4 9.6h10.4a5.4 5.4 0 0 1 0 10.8H7.6"/><path d="M8.4 4.4 3.2 9.6l5.2 5.2"/>'),
+    redo: svg('<path d="M20 9.6H9.6a5.4 5.4 0 0 0 0 10.8h6.8"/><path d="M15.6 4.4l5.2 5.2-5.2 5.2"/>'),
+    /* 全員そろった印 */
+    ok: svg('<circle cx="12" cy="12" r="9"/><path d="M7.8 12.3 10.9 15.4 16.4 9.4"/>'),
+
+    /* 欠席の理由。言葉より先に形で分かるように、ひと目で違う輪郭にする */
+    /* 体調：体温計 */
+    r体調: svg('<path d="M14.4 14V4.6a2.2 2.2 0 0 0-4.4 0V14a4 4 0 1 0 4.4 0Z"/>'
+      + '<path d="M12.2 8.4v7.8"/>'),
+    /* 受診：病院の十字 */
+    r受診: svg('<rect x="3.4" y="3.4" width="17.2" height="17.2" rx="3"/>'
+      + '<path d="M12 8v8M8 12h8"/>'),
+    /* 都合：家。事情があって家にいる */
+    r都合: svg('<path d="M3.6 10.4 12 3.6l8.4 6.8V20a1 1 0 0 1-1 1H4.6a1 1 0 0 1-1-1Z"/>'
+      + '<path d="M9.6 21v-6.4h4.8V21"/>'),
+    /* 入院：寝台 */
+    r入院: svg('<path d="M2.8 7v12M2.8 12.6h18.4V19M21.2 12.6a3.4 3.4 0 0 0-3.4-3.4h-6.2v3.4"/>'
+      + '<circle cx="7.2" cy="9.8" r="2"/>'),
+    /* SS：泊まりの建物 */
+    rSS: svg('<path d="M4.2 21V5.4a1 1 0 0 1 1-1h9.6a1 1 0 0 1 1 1V21"/>'
+      + '<path d="M15.8 10.6h4a1 1 0 0 1 1 1V21M2.6 21h18.8"/>'
+      + '<path d="M7.6 8.4h1.8M11.2 8.4H13M7.6 12.4h1.8M11.2 12.4H13M7.6 16.4h5.4"/>')
   };
 
   const TAGS = [
@@ -5069,6 +5254,7 @@
       '<span class="stat"><b data-stat="cars">0</b>台 稼働</span>' +
       '<span class="stat s-total"><b data-stat="total">0</b>名 登録者</span>' +
       '<span class="stat"><b data-stat="riders">0</b>名 乗車</span>' +
+      '<button type="button" class="stat s-left" data-open="left"><b data-stat="left">0</b>名 未割当</button>' +
       '<span class="stat s-away"><b data-stat="away">0</b>名 欠席</span>' +
       '<span class="stat s-furikae"><b data-stat="furikae">0</b>名 振替</span>' +
       '<span class="stat s-dup"><b data-stat="dup">0</b>件 重複</span>';
@@ -5349,6 +5535,16 @@
     set("away", away, false);
     set("furikae", furikae, false);
     set("dup", dup, dup > 0);
+
+    /* 未割当は押せる欄。0 のときは緑にして「そろった」と分かるようにする */
+    const leftBtn = section.querySelector(".s-left");
+    set("left", missing.length, false);
+    leftBtn.classList.toggle("on", missing.length > 0);
+    leftBtn.classList.toggle("is-clear", missing.length === 0);
+    leftBtn.title = missing.length
+      ? "押すと、乗る車が決まっていない方の一覧が出ます"
+      : "この便は全員どこかの車に乗っています";
+
     section.querySelector(".s-away").classList.toggle("on", away > 0);
     section.querySelector(".s-furikae").classList.toggle("on", furikae > 0);
     markDrivers(section);
@@ -5378,22 +5574,125 @@
   function drawSide(leg, missing) {
     const side = document.getElementById("side");
     const swapSet = new Set(swapIds(leg.part));
-    const plain = missing.filter((id) => !swapSet.has(id));
+
+    /* 休みの方は「乗せ忘れ」ではないので、未割当から外して下の段へ回す */
+    const off = missing.filter((id) => codeState(ATTEND[leg.part][id]) === "absent");
+    const offSet = new Set(off);
+    const plain = missing.filter((id) => !swapSet.has(id) && !offSet.has(id));
 
     side.classList.toggle("has-left", plain.length > 0);
-    document.getElementById("side-count").textContent = plain.length;
+    setSideCount("side-count", plain.length);
 
     const list = document.getElementById("side-list");
     list.innerHTML = "";
     if (plain.length === 0) {
-      list.append(el("p", "side-none", missing.length
-        ? "通常利用の方は全員どこかの車に乗っています。"
-        : "この便は全員どこかの車に乗っています。"));
+      list.append(doneNote("乗る車が全員決まりました。"));
     } else {
       plain.forEach((id) => list.append(sideChip(leg, id)));
     }
 
-    drawSwapSide(leg, missing);
+    drawOffSide(leg, off);
+    drawSwapSide(leg, missing, offSet);
+  }
+
+  /* 数の欄。0 のときは丸印に差し替える */
+  function setSideCount(id, n) {
+    const box = document.getElementById(id);
+    box.innerHTML = "";
+    if (n === 0) {
+      const ok = el("span", "side-ok");
+      ok.innerHTML = ICONS.ok;
+      ok.title = "全員そろっています";
+      box.append(ok);
+    } else {
+      box.append(el("span", "cnt", String(n)));
+    }
+  }
+
+  function doneNote(text) {
+    const p = el("p", "side-done");
+    const i = el("span", "di");
+    i.innerHTML = ICONS.ok;
+    p.append(i, document.createTextNode(text));
+    return p;
+  }
+
+  /* 車から降ろした欠席の方。理由を絵で添える */
+  function drawOffSide(leg, off) {
+    const sec = document.getElementById("side-off-sec");
+    const box = document.getElementById("off-list");
+    sec.hidden = off.length === 0;
+    if (off.length === 0) return;
+
+    setSideCount("off-count", off.length);
+    box.innerHTML = "";
+    off.forEach((id) => {
+      const user = USER_BY_ID.get(id);
+      if (!user) return;
+      const code = ATTEND[leg.part][id] || "";
+      const chip = el("span", "side-name is-off");
+
+      const top = el("span", "sn-top");
+      top.append(el("b", null, user.name));
+      const why = el("span", "sn-why");
+      why.innerHTML = ICONS["r" + code] || "";
+      why.title = code;
+      why.setAttribute("aria-label", code);
+      top.append(why);
+
+      chip.append(top, el("span", "sn-addr", user.addr));
+      chip.title = user.name + "：" + code + "（車には乗りません）";
+      box.append(chip);
+    });
+  }
+
+  /* ── 「◯名 未割当」を押したとき ──────────────
+     脇を光らせて場所を示し、あわせて名前の一覧を開く。
+     名前を押せばそのまま乗せる車を選べる */
+  function showLeft(leg) {
+    const section = document.getElementById("leg-" + leg.key);
+    const seen = new Set();
+    section.querySelectorAll(".stop:not(.head) .who").forEach((sel) => { if (sel.value) seen.add(sel.value); });
+    const roster = [...new Set([...rosterFor(leg.part, weekdayOf(currentDate)), ...swapIds(leg.part)])];
+    const missing = roster.filter((id) => !seen.has(id));
+
+    /* 脇のどこを見ればよいかを光らせて示す */
+    document.querySelectorAll(".side-sec").forEach((sec) => {
+      sec.classList.remove("flash");
+      void sec.offsetWidth;   /* もう一度光らせるために巻き戻す */
+      sec.classList.add("flash");
+      setTimeout(() => sec.classList.remove("flash"), 2400);
+    });
+
+    if (missing.length === 0) {
+      notify(leg.partLabel + leg.dir + "は、全員どこかの車に乗っています。");
+      return;
+    }
+
+    openUserDialog({
+      title: "乗る車が決まっていない方",
+      lead: leg.partLabel + leg.dir + "で " + missing.length + "名います。名前を押すと、乗せる車を選べます。",
+      ok: "",
+      cancel: "閉じる",
+      build(body) {
+        const box = el("div", "left-pick");
+        missing.forEach((id) => {
+          const user = USER_BY_ID.get(id);
+          if (!user) return;
+          const code = ATTEND[leg.part][id] || "";
+          const b = el("button", "lp-row");
+          b.type = "button";
+          const top = el("span", "lp-top");
+          top.append(el("b", null, user.name));
+          if (swapEntry(leg.part, id)) top.append(el("span", "lp-tag is-fu", "振替"));
+          if (codeState(code) === "absent") top.append(el("span", "lp-tag is-off", code));
+          b.append(top, el("span", "lp-addr", user.addr));
+          b.addEventListener("click", () => { closeUserDialog(); openAssign(leg, id); });
+          box.append(b);
+        });
+        body.append(box);
+      }
+    });
   }
 
   /* 未割当の1人ぶん。車両カードへドラッグもできる */
@@ -5425,11 +5724,14 @@
   }
 
   /* 振替の段。受け付けた順に並べ、車が決まっていない方には印を付ける */
-  function drawSwapSide(leg, missing) {
+  function drawSwapSide(leg, missing, offSet) {
     const box = document.getElementById("swap-list");
-    const left = new Set(missing);
+    const left = new Set(missing.filter((id) => !offSet.has(id)));
     box.innerHTML = "";
-    document.getElementById("swap-count").textContent = SWAP[leg.part].length;
+
+    /* 数えるのは「まだ車が決まっていない振替の方」。0 なら丸印になる */
+    const stillLeft = SWAP[leg.part].filter((e) => left.has(e.id)).length;
+    setSideCount("swap-count", stillLeft);
 
     if (SWAP[leg.part].length === 0) {
       box.append(el("p", "side-none", "この便の振替はまだありません。"));
@@ -5440,6 +5742,7 @@
       const user = USER_BY_ID.get(entry.id);
       if (!user) return;
       const notSeated = left.has(entry.id);
+      const isOff = offSet.has(entry.id);
 
       const chip = el("button", "side-name is-swap");
       chip.type = "button";
@@ -5448,7 +5751,15 @@
       const top = el("span", "sn-top");
       top.append(el("b", null, user.name));
       if (entry.from) top.append(el("span", "sn-from", swapLabel(entry.from)));
-      if (notSeated) top.append(el("span", "sn-left", "未割当"));
+      if (isOff) {
+        const why = el("span", "sn-why");
+        const code = ATTEND[leg.part][entry.id] || "";
+        why.innerHTML = ICONS["r" + code] || "";
+        why.title = code;
+        top.append(why);
+      } else if (notSeated) {
+        top.append(el("span", "sn-left", "未割当"));
+      }
 
       const x = el("span", "sn-x", "×");
       x.title = "振替から外す（車に乗っていれば降ろします）";
@@ -6158,6 +6469,25 @@
     applyDispatch(leg, size);
   });
 
+  /* 人数の帯の「◯名 未割当」。便ごとに建て直されるので、まとめて受ける */
+  document.getElementById("sections").addEventListener("click", (e) => {
+    const btn = e.target.closest('[data-open="left"]');
+    if (!btn) return;
+    const section = btn.closest(".leg");
+    const leg = section && LEGS.find((l) => l.key === section.dataset.leg);
+    if (leg) showLeft(leg);
+  });
+
+  /* ── 右クリック ────────────────────────────
+     利用者名・運転手・行の番号では「外す」の操作に使っているので、
+     ブラウザの右クリックの窓は出さない。
+     ただし文字を打つ欄（備考・実績・住所・氏名など）だけは、
+     コピーと貼り付けが要るのでそのまま残す */
+  document.addEventListener("contextmenu", (e) => {
+    if (e.target.closest('input, textarea, [contenteditable="true"]')) return;
+    e.preventDefault();
+  });
+
   /* ── タブ ─────────────────────────────────── */
   const tablist = document.querySelector(".legs");
   ["am", "pm"].forEach((part) => {
@@ -6219,7 +6549,7 @@
     document.getElementById("mu-body").innerHTML = "";
   }
 
-  function openUserDialog({ title, lead, ok, danger, build, submit }) {
+  function openUserDialog({ title, lead, ok, cancel, danger, build, submit }) {
     document.getElementById("mu-title").textContent = title;
     document.getElementById("mu-lead").textContent = lead || "";
     const body = document.getElementById("mu-body");
@@ -6227,9 +6557,12 @@
     build(body);
 
     const okBtn = document.getElementById("mu-ok");
-    okBtn.textContent = ok;
+    /* 見るだけの窓では「決める」ボタンを出さない */
+    okBtn.hidden = !ok;
+    okBtn.textContent = ok || "";
     okBtn.classList.toggle("danger", !!danger);
     okBtn.classList.toggle("primary", !danger);
+    document.getElementById("mu-cancel").textContent = cancel || "やめる";
     muOk = submit;
 
     muBox.hidden = false;
@@ -8814,6 +9147,8 @@
   document.getElementById("sn-icon").innerHTML = ICONS.book;
   document.getElementById("sp-icon").innerHTML = ICONS.print;
   document.getElementById("mb-icon").innerHTML = ICONS.menu;
+  document.getElementById("btn-undo").innerHTML = ICONS.undo;
+  document.getElementById("btn-redo").innerHTML = ICONS.redo;
   document.querySelector("#btn-dispatch .bd-van").innerHTML = ICONS.van;
   document.querySelector("#btn-dispatch .bd-auto").innerHTML = ICONS.auto;
   document.getElementById("btn-attend").addEventListener("click", openAttendPage);
@@ -8825,31 +9160,17 @@
     const btn = document.getElementById("menu-btn");
     const pop = document.getElementById("menu-pop");
     let leaveTimer = null;
-    let byHover = false;   /* カーソルで開いたぶん */
 
     const show = (on) => {
       if (leaveTimer) { clearTimeout(leaveTimer); leaveTimer = null; }
       pop.hidden = !on;
       btn.setAttribute("aria-expanded", String(on));
-      if (!on) byHover = false;
     };
 
-    /* カーソルで開いた直後の1回は閉じない。
-       近づいたら開いて、押したとたんに閉じる、では操作にならないため */
-    btn.addEventListener("click", () => {
-      if (byHover) { byHover = false; show(true); return; }
-      show(pop.hidden);
-    });
+    /* 押したときだけ開く。近づいただけで開くと、
+       通りがかりに開いてしまって作業の邪魔になる */
+    btn.addEventListener("click", () => show(pop.hidden));
     pop.addEventListener("click", () => show(false));
-
-    /* 指の端末では、触っただけで開くと押し間違えるので押したときだけにする */
-    if (!window.matchMedia || !window.matchMedia("(hover: none)").matches) {
-      wrap.addEventListener("mouseenter", () => { if (pop.hidden) byHover = true; show(true); });
-      wrap.addEventListener("mouseleave", () => {
-        if (leaveTimer) clearTimeout(leaveTimer);
-        leaveTimer = setTimeout(() => show(false), 180);
-      });
-    }
 
     document.addEventListener("click", (e) => { if (!wrap.contains(e.target)) show(false); });
     document.addEventListener("keydown", (e) => {
