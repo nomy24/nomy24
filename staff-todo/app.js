@@ -1,4 +1,4 @@
-import { mode as storeModeRef, ready as storeReady, staffStore, todoStore, eventStore, routineTaskStore, routineLogStore } from "./store.js";
+import { mode as storeModeRef, ready as storeReady, staffStore, todoStore, eventStore, routineTaskStore, routineLogStore, groupStore } from "./store.js";
 
 // ---------------- 共通ユーティリティ ----------------
 
@@ -67,6 +67,8 @@ function colorForStaff(staff) {
 const ME_KEY = "staffTodo:me";
 const LARGE_TEXT_KEY = "staffTodo:largeText";
 const HIDE_HEADER_KEY = "staffTodo:hideHeader";
+const GROUPS_SEEDED_KEY = "staffTodo:groupsSeeded";
+const DEFAULT_GROUPS = ["機能訓練指導員", "生活相談員"];
 
 // ---------------- 状態 ----------------
 
@@ -77,6 +79,7 @@ const state = {
   events: [],
   routineTasks: [],
   routineLogs: [],
+  groups: [],
   meId: localStorage.getItem(ME_KEY) || null,
   screen: "todo",
   todoFilter: "open",
@@ -88,6 +91,7 @@ const state = {
 
 function meStaff() { return state.staff.find((s) => s.id === state.meId) || null; }
 function staffById(id) { return state.staff.find((s) => s.id === id) || null; }
+function groupById(id) { return state.groups.find((g) => g.id === id) || null; }
 
 // ---------------- トースト ----------------
 
@@ -320,6 +324,7 @@ function renderTodoList() {
     }
     const assignees = todoAssigneeIds(t).map((id) => staffById(id)).filter(Boolean);
     const badges = [];
+    if (t.sourceRoutineTaskId) badges.push(`<span class="badge badge--purple">定型タスクから自動追加</span>`);
     if (t.dueDate) badges.push(`<span class="badge ${!t.done && t.dueDate < todayKey() ? "badge--danger" : t.dueDate === todayKey() ? "badge--warning" : ""}">${escapeHtml(dueLabel(t.dueDate))}</span>`);
     if (t.priority === "high") badges.push(`<span class="badge badge--danger">重要</span>`);
     assignees.forEach((a) => badges.push(`<span class="badge">${escapeHtml(a.name)}</span>`));
@@ -395,6 +400,10 @@ function openTodoSheet(existing) {
     </div>
     <div class="field">
       <label>担当（複数選択可）</label>
+      ${state.groups.length ? `
+      <div class="chip-group" id="assigneeGroupChips">
+        ${state.groups.map((g) => `<button type="button" class="chip chip--group" data-group-id="${g.id}">${escapeHtml(g.name)}</button>`).join("")}
+      </div>` : ""}
       <div class="chip-group" id="assigneeGroup">${assigneeChipsHtml([...selectedAssigneeIds])}</div>
     </div>
     <div class="field">
@@ -430,14 +439,35 @@ function openTodoSheet(existing) {
     },
     onDelete: existing ? async () => { await todoStore.remove(existing.id); toast("削除しました"); } : null,
   });
+  const groupMembers = (groupId) => state.staff.filter((s) => s.groupId === groupId).map((s) => s.id);
+  function syncAssigneeChipsUI() {
+    sheetForm.querySelectorAll("#assigneeGroup .chip").forEach((btn) => {
+      btn.classList.toggle("is-active", selectedAssigneeIds.has(btn.dataset.id));
+    });
+    sheetForm.querySelectorAll("#assigneeGroupChips .chip--group").forEach((btn) => {
+      const members = groupMembers(btn.dataset.groupId);
+      const allSelected = members.length > 0 && members.every((id) => selectedAssigneeIds.has(id));
+      btn.classList.toggle("is-active", allSelected);
+    });
+  }
   sheetForm.querySelector("#assigneeGroup")?.querySelectorAll(".chip").forEach((btn) => {
     btn.addEventListener("click", () => {
       const id = btn.dataset.id;
       if (selectedAssigneeIds.has(id)) selectedAssigneeIds.delete(id);
       else selectedAssigneeIds.add(id);
-      btn.classList.toggle("is-active", selectedAssigneeIds.has(id));
+      syncAssigneeChipsUI();
     });
   });
+  sheetForm.querySelector("#assigneeGroupChips")?.querySelectorAll(".chip--group").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const members = groupMembers(btn.dataset.groupId);
+      const allSelected = members.length > 0 && members.every((id) => selectedAssigneeIds.has(id));
+      if (allSelected) members.forEach((id) => selectedAssigneeIds.delete(id));
+      else members.forEach((id) => selectedAssigneeIds.add(id));
+      syncAssigneeChipsUI();
+    });
+  });
+  syncAssigneeChipsUI();
 }
 
 // ================================================================
@@ -502,35 +532,83 @@ function renderCalendar() {
   grid.querySelectorAll(".cal-day").forEach((btn) => {
     btn.addEventListener("click", () => {
       state.calSelected = btn.dataset.date;
-      renderCalendar();
+      grid.querySelectorAll(".cal-day").forEach((b) => b.classList.toggle("is-selected", b === btn));
+      openDayEventsSheet(btn.dataset.date);
     });
   });
 
-  renderAgenda();
+  renderMonthOverview();
 }
 
-function renderAgenda() {
-  const list = eventsOn(state.calSelected).sort((a, b) => (a.startTime || "") < (b.startTime || "") ? -1 : 1);
-  const [y, m, d] = state.calSelected.split("-");
-  document.getElementById("agendaTitle").textContent = `${y}年${Number(m)}月${Number(d)}日の予定${state.calSelected === todayKey() ? "（今日）" : ""}`;
+// 日付をタップすると、その日の予定をウィンドウ（ボトムシート）でまとめて確認できる。
+function openDayEventsSheet(dateKey) {
+  const list = eventsOn(dateKey).sort((a, b) => (a.startTime || "") < (b.startTime || "") ? -1 : 1);
+  const label = `${Number(dateKey.slice(5, 7))}月${Number(dateKey.slice(8, 10))}日(${dateKeyWeekday(dateKey)})の予定${dateKey === todayKey() ? "（今日）" : ""}`;
+  const seenAt = getSeenAt("calendar");
+  const html = list.length
+    ? `<div class="list">${list.map((e) => {
+        const time = e.allDay ? "終日" : [e.startTime, e.endTime].filter(Boolean).join(" - ");
+        return `
+          <div class="card" data-id="${e.id}" data-action="edit-event">
+            <div class="card__body">
+              <div class="card__title">${newTagHtml(isNewItem(e, seenAt))}${escapeHtml(e.title)}</div>
+              ${e.memo ? `<div class="card__memo">${escapeHtml(e.memo)}</div>` : ""}
+              <div class="card__meta">${time ? `<span class="badge badge--info">${escapeHtml(time)}</span>` : ""}</div>
+            </div>
+          </div>`;
+      }).join("")}</div>`
+    : `<p class="empty">この日の予定はまだありません。閉じてから右下の＋で追加できます。</p>`;
+  markSeen("calendar");
+  openSheet(label, html, { onSubmit: async () => {}, submitLabel: "閉じる" });
+  sheetForm.querySelectorAll('[data-action="edit-event"]').forEach((card) => {
+    card.addEventListener("click", () => {
+      openEventSheet(dateKey, state.events.find((x) => x.id === card.dataset.id));
+    });
+  });
+}
+
+// カレンダー画面下部には、選択中の1日ではなく表示中の月全体の予定を日付ごとにまとめて表示する。
+function renderMonthOverview() {
+  const year = state.calMonth.getFullYear();
+  const month = state.calMonth.getMonth();
+  const monthPrefix = `${year}-${pad2(month + 1)}`;
+  const list = state.events
+    .filter((e) => e.date && e.date.startsWith(monthPrefix))
+    .sort((a, b) => {
+      if (a.date !== b.date) return a.date < b.date ? -1 : 1;
+      return (a.startTime || "") < (b.startTime || "") ? -1 : 1;
+    });
+  document.getElementById("agendaTitle").textContent = `${month + 1}月の予定`;
   const el = document.getElementById("agendaList");
   const empty = document.getElementById("agendaEmpty");
   empty.hidden = list.length > 0;
+  empty.textContent = "この月の予定はまだありません。日付をタップするか、右下の＋から追加できます。";
   const seenAt = getSeenAt("calendar");
-  el.innerHTML = list.map((e) => {
+  let lastDate = null;
+  const parts = [];
+  list.forEach((e) => {
+    if (e.date !== lastDate) {
+      const label = e.date === todayKey() ? "今日" : `${Number(e.date.slice(5, 7))}月${Number(e.date.slice(8, 10))}日(${dateKeyWeekday(e.date)})`;
+      parts.push(`<div class="list-group-header">${escapeHtml(label)}</div>`);
+      lastDate = e.date;
+    }
     const time = e.allDay ? "終日" : [e.startTime, e.endTime].filter(Boolean).join(" - ");
-    return `
+    parts.push(`
       <div class="card" data-id="${e.id}" data-action="edit-event">
         <div class="card__body">
           <div class="card__title">${newTagHtml(isNewItem(e, seenAt))}${escapeHtml(e.title)}</div>
           ${e.memo ? `<div class="card__memo">${escapeHtml(e.memo)}</div>` : ""}
           <div class="card__meta">${time ? `<span class="badge badge--info">${escapeHtml(time)}</span>` : ""}</div>
         </div>
-      </div>`;
-  }).join("");
+      </div>`);
+  });
+  el.innerHTML = parts.join("");
   markSeen("calendar");
   el.querySelectorAll('[data-action="edit-event"]').forEach((card) => {
-    card.addEventListener("click", () => openEventSheet(state.calSelected, state.events.find((x) => x.id === card.dataset.id)));
+    card.addEventListener("click", () => {
+      const ev = state.events.find((x) => x.id === card.dataset.id);
+      if (ev) openEventSheet(ev.date, ev);
+    });
   });
 }
 
@@ -684,6 +762,8 @@ function renderRoutineList() {
     } else {
       statusHtml = `<span class="badge">未実施</span>`;
     }
+    const periodHtml = task.periodStartDay && task.periodEndDay
+      ? `<span class="badge badge--info">${task.periodStartDay}日〜${task.periodEndDay}日</span>` : "";
     return `
       <div class="card" data-id="${task.id}">
         <button type="button" class="check ${done ? "is-done" : ""}" data-action="toggle" aria-label="実施済みにする">
@@ -692,7 +772,7 @@ function renderRoutineList() {
         <div class="card__body" data-action="edit">
           <div class="card__title ${done ? "is-done" : ""}">${newTagHtml(isNewItem(task, seenAt))}${escapeHtml(task.title)}</div>
           ${task.memo ? `<div class="card__memo">${escapeHtml(task.memo)}</div>` : ""}
-          <div class="card__meta">${statusHtml}</div>
+          <div class="card__meta">${periodHtml}${statusHtml}</div>
         </div>
       </div>`;
   }).join("");
@@ -725,6 +805,10 @@ function renderRoutineList() {
   });
 }
 
+function routineHasPeriod(category) {
+  return category === "monthStart" || category === "monthEnd";
+}
+
 function openRoutineTaskSheet(cat, existing) {
   const category = existing?.category || cat;
   const html = `
@@ -735,8 +819,22 @@ function openRoutineTaskSheet(cat, existing) {
     <div class="field">
       <label>種類</label>
       <input type="hidden" name="category" value="${category}">
-      <div class="pill-group">
+      <div class="pill-group" id="r-category-group">
         ${Object.entries(ROUTINE_LABELS).map(([k, label]) => `<button type="button" class="pill-option ${category === k ? "is-active" : ""}" data-value="${k}">${label}</button>`).join("")}
+      </div>
+    </div>
+    <div class="field" id="r-period-field" ${routineHasPeriod(category) ? "" : "hidden"}>
+      <label>期間（任意・毎月の日付）</label>
+      <p class="field__hint">この日付の範囲になったら、自動でTodoにも追加されます。</p>
+      <div class="field-row">
+        <div class="field">
+          <label for="r-period-start">開始日</label>
+          <input id="r-period-start" name="periodStartDay" type="number" min="1" max="31" value="${existing?.periodStartDay || ""}" placeholder="例：1">
+        </div>
+        <div class="field">
+          <label for="r-period-end">終了日</label>
+          <input id="r-period-end" name="periodEndDay" type="number" min="1" max="31" value="${existing?.periodEndDay || ""}" placeholder="例：5">
+        </div>
       </div>
     </div>
     <div class="field">
@@ -746,7 +844,16 @@ function openRoutineTaskSheet(cat, existing) {
   `;
   openSheet(existing ? "定型タスクを編集" : "定型タスクを追加", html, {
     onSubmit: async (data) => {
-      const payload = { title: data.title.trim(), category: data.category, memo: data.memo?.trim() || "" };
+      const hasPeriod = routineHasPeriod(data.category);
+      const startDay = hasPeriod && data.periodStartDay ? Number(data.periodStartDay) : null;
+      const endDay = hasPeriod && data.periodEndDay ? Number(data.periodEndDay) : null;
+      const payload = {
+        title: data.title.trim(),
+        category: data.category,
+        memo: data.memo?.trim() || "",
+        periodStartDay: startDay && endDay ? Math.min(startDay, endDay) : startDay,
+        periodEndDay: startDay && endDay ? Math.max(startDay, endDay) : endDay,
+      };
       if (!payload.title) return;
       if (existing) await routineTaskStore.update(existing.id, payload);
       else await routineTaskStore.add({ ...payload, order: Date.now(), createdBy: meStaff()?.name || null });
@@ -759,6 +866,11 @@ function openRoutineTaskSheet(cat, existing) {
       toast("保存しました");
     },
     onDelete: existing ? async () => { await routineTaskStore.remove(existing.id); toast("削除しました"); } : null,
+  });
+  sheetForm.querySelector("#r-category-group").querySelectorAll(".pill-option").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      document.getElementById("r-period-field").hidden = !routineHasPeriod(btn.dataset.value);
+    });
   });
 }
 
@@ -817,6 +929,7 @@ document.getElementById("addStaffBtn").addEventListener("click", () => openStaff
 
 function openStaffSheet(existing) {
   const color = existing?.color || AVATAR_COLORS[state.staff.length % AVATAR_COLORS.length];
+  const groupId = existing?.groupId || "";
   const html = `
     <div class="field">
       <label for="s-name">名前</label>
@@ -825,14 +938,22 @@ function openStaffSheet(existing) {
     <div class="field">
       <label>色</label>
       <input type="hidden" name="color" value="${color}">
-      <div class="pill-group">
+      <div class="pill-group" id="s-color-group">
         ${AVATAR_COLORS.map((c) => `<button type="button" class="pill-option ${c === color ? "is-active" : ""}" data-value="${c}" style="background:${c === color ? c : "transparent"}; border-color:${c}; color:${c === color ? "#fff" : c};">●</button>`).join("")}
+      </div>
+    </div>
+    <div class="field">
+      <label>職種グループ（任意）</label>
+      <input type="hidden" name="groupId" value="${groupId}">
+      <div class="pill-group" id="s-group-group">
+        <button type="button" class="pill-option ${!groupId ? "is-active" : ""}" data-value="">なし</button>
+        ${state.groups.map((g) => `<button type="button" class="pill-option ${g.id === groupId ? "is-active" : ""}" data-value="${g.id}">${escapeHtml(g.name)}</button>`).join("")}
       </div>
     </div>
   `;
   openSheet(existing ? "職員を編集" : "職員を追加", html, {
     onSubmit: async (data) => {
-      const payload = { name: data.name.trim(), color: data.color };
+      const payload = { name: data.name.trim(), color: data.color, groupId: data.groupId || null };
       if (!payload.name) return;
       if (existing) await staffStore.update(existing.id, payload);
       else {
@@ -848,13 +969,66 @@ function openStaffSheet(existing) {
     } : null,
   });
   // 色スウォッチのクリックで見た目も切り替える
-  const group = sheetForm.querySelector(".pill-group");
-  group.querySelectorAll(".pill-option").forEach((btn) => {
+  const colorGroup = sheetForm.querySelector("#s-color-group");
+  colorGroup.querySelectorAll(".pill-option").forEach((btn) => {
     btn.addEventListener("click", () => {
-      group.querySelectorAll(".pill-option").forEach((b) => { b.style.background = "transparent"; b.style.color = b.dataset.value; });
+      colorGroup.querySelectorAll(".pill-option").forEach((b) => { b.style.background = "transparent"; b.style.color = b.dataset.value; });
       btn.style.background = btn.dataset.value;
       btn.style.color = "#fff";
     });
+  });
+}
+
+// ================================================================
+// 職種グループ
+// ================================================================
+
+function renderGroupPicker() {
+  const el = document.getElementById("groupPicker");
+  if (!state.groups.length) {
+    el.innerHTML = `<p class="note">まだグループが登録されていません。「グループを追加する」から登録してください。</p>`;
+    return;
+  }
+  el.innerHTML = state.groups.map((g) => {
+    const count = state.staff.filter((s) => s.groupId === g.id).length;
+    return `
+    <div class="staff-row">
+      <span class="staff-chip">${escapeHtml(g.name)}<span class="badge">${count}人</span></span>
+      <button type="button" class="staff-chip__edit" data-edit-group-id="${g.id}" aria-label="${escapeHtml(g.name)}を編集する">
+        <svg viewBox="0 0 24 24"><path d="M4 20h4l10.5-10.5a2 2 0 0 0 0-2.8l-1.2-1.2a2 2 0 0 0-2.8 0L4 16v4Z"/></svg>
+      </button>
+    </div>`;
+  }).join("");
+  el.querySelectorAll("[data-edit-group-id]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      openGroupSheet(state.groups.find((g) => g.id === btn.dataset.editGroupId));
+    });
+  });
+}
+
+document.getElementById("addGroupBtn").addEventListener("click", () => openGroupSheet());
+
+function openGroupSheet(existing) {
+  const html = `
+    <div class="field">
+      <label for="g-name">グループ名</label>
+      <input id="g-name" name="name" type="text" required maxlength="20" value="${escapeHtml(existing?.name || "")}" placeholder="例：生活相談員">
+    </div>
+  `;
+  openSheet(existing ? "グループを編集" : "グループを追加", html, {
+    onSubmit: async (data) => {
+      const payload = { name: data.name.trim() };
+      if (!payload.name) return;
+      if (existing) await groupStore.update(existing.id, payload);
+      else await groupStore.add({ ...payload, order: Date.now() });
+      toast("保存しました");
+    },
+    onDelete: existing ? async () => {
+      await groupStore.remove(existing.id);
+      const affected = state.staff.filter((s) => s.groupId === existing.id);
+      await Promise.all(affected.map((s) => staffStore.update(s.id, { groupId: null })));
+      toast("削除しました");
+    } : null,
   });
 }
 
@@ -877,6 +1051,7 @@ function renderModeInfo() {
 
 function renderSettings() {
   renderStaffPicker();
+  renderGroupPicker();
   renderModeInfo();
 }
 
@@ -937,6 +1112,43 @@ function newTagHtml(isNew) {
 // 起動
 // ================================================================
 
+// 「月初」「月末」の定型タスクに期間（開始日〜終了日）が設定されていて、
+// 今日がその範囲に入っていれば、対応するTodoを自動でひとつ用意する。
+// 同じ月に二重生成しないよう、定型タスクID×月をキーにしたマーカーをTodo側に持たせて判定する。
+let syncingRoutineTodos = false;
+function syncRoutineTodos() {
+  if (syncingRoutineTodos) return;
+  syncingRoutineTodos = true;
+  try {
+    const now = new Date();
+    const day = now.getDate();
+    const monthKey = currentMonthKey();
+    const daysInThisMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    state.routineTasks.forEach((task) => {
+      if (!routineHasPeriod(task.category)) return;
+      if (!task.periodStartDay || !task.periodEndDay) return;
+      if (day < task.periodStartDay || day > task.periodEndDay) return;
+      const periodKey = `${task.id}__${monthKey}`;
+      const already = state.todos.some((t) => t.sourceRoutinePeriodKey === periodKey);
+      if (already) return;
+      const dueDay = Math.min(task.periodEndDay, daysInThisMonth);
+      todoStore.add({
+        title: task.title,
+        memo: task.memo || "",
+        assigneeIds: [],
+        dueDate: `${monthKey}-${pad2(dueDay)}`,
+        priority: "normal",
+        done: false,
+        createdBy: null,
+        sourceRoutineTaskId: task.id,
+        sourceRoutinePeriodKey: periodKey,
+      });
+    });
+  } finally {
+    syncingRoutineTodos = false;
+  }
+}
+
 async function main() {
   state.storeMode = await storeReady;
   renderModeInfo();
@@ -944,12 +1156,13 @@ async function main() {
   staffStore.subscribe((list) => {
     state.staff = list;
     renderYouBadge();
-    if (state.screen === "settings") renderStaffPicker();
+    if (state.screen === "settings") { renderStaffPicker(); renderGroupPicker(); }
     if (state.screen === "todo") renderTodoList();
   });
   todoStore.subscribe((list) => {
     state.todos = list;
     if (state.screen === "todo") renderTodoList();
+    syncRoutineTodos();
   });
   eventStore.subscribe((list) => {
     state.events = list;
@@ -958,10 +1171,19 @@ async function main() {
   routineTaskStore.subscribe((list) => {
     state.routineTasks = list;
     if (state.screen === "routine") renderRoutineList();
+    syncRoutineTodos();
   });
   routineLogStore.subscribe((list) => {
     state.routineLogs = list;
     if (state.screen === "routine") renderRoutineList();
+  });
+  groupStore.subscribe((list) => {
+    state.groups = list;
+    if (state.screen === "settings") renderGroupPicker();
+    if (!localStorage.getItem(GROUPS_SEEDED_KEY) && list.length === 0) {
+      localStorage.setItem(GROUPS_SEEDED_KEY, "1");
+      DEFAULT_GROUPS.forEach((name, i) => groupStore.add({ name, order: i }));
+    }
   });
 
   renderScreen(state.screen);

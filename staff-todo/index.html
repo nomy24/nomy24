@@ -86,9 +86,9 @@
     <div class="cal-grid" id="calGrid"></div>
 
     <div class="agenda" id="agenda">
-      <h3 class="agenda__title" id="agendaTitle">今日の予定</h3>
+      <h3 class="agenda__title" id="agendaTitle">今月の予定</h3>
       <div id="agendaList" class="list"></div>
-      <p class="empty" id="agendaEmpty" hidden>この日の予定はまだありません。</p>
+      <p class="empty" id="agendaEmpty" hidden>この月の予定はまだありません。</p>
     </div>
   </section>
 
@@ -121,6 +121,13 @@
       <p class="card-group__desc">選んだ名前で「担当」や「実施者」が記録されます。</p>
       <div id="staffPicker" class="staff-picker"></div>
       <button type="button" id="addStaffBtn" class="ghost-btn">職員を追加する</button>
+    </div>
+
+    <div class="card-group">
+      <h3 class="card-group__title">職種グループ</h3>
+      <p class="card-group__desc">職員を職種でグループ分けすると、Todoの担当を職種ごとまとめて選べます。</p>
+      <div id="groupPicker" class="staff-picker"></div>
+      <button type="button" id="addGroupBtn" class="ghost-btn">グループを追加する</button>
     </div>
 
     <div class="card-group">
