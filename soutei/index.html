@@ -34,6 +34,7 @@
     --wc: #C43D2E;         /* 朱　　車椅子乗車の車両 */
     --wc-soft: #FBE9E6;
     --furikae: #5F8A28;    /* 黄緑　振替利用 */
+    --furikae-soft: #EDF3E3;
     --shinki: #D2731A;     /* 橙　　新規・増回 */
 
     --accent: var(--ai);
@@ -69,6 +70,7 @@
       --wc: #E88A7C;
       --wc-soft: #33201D;
       --furikae: #A9CC72;
+      --furikae-soft: #232D1B;
       --shinki: #E5A063;
     }
   }
@@ -96,6 +98,7 @@
     --wc: #E88A7C;
     --wc-soft: #33201D;
     --furikae: #A9CC72;
+    --furikae-soft: #232D1B;
     --shinki: #E5A063;
   }
 
@@ -122,6 +125,7 @@
     --wc: #C43D2E;
     --wc-soft: #FBE9E6;
     --furikae: #5F8A28;
+    --furikae-soft: #EDF3E3;
     --shinki: #D2731A;
   }
 
@@ -375,39 +379,146 @@
     color: var(--accent);
   }
 
-  .tools #btn-master {
+  /* 自動で配車：車の絵と回る矢印で「押せば組み上がる」と分かるようにする */
+  .tools #btn-dispatch {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--step) * 2);
+    padding: 5px 16px 5px 12px;
+    text-align: left;
     border-color: var(--accent);
     color: var(--accent);
   }
 
-  /* 最終確認：送迎表・業務日誌・電話連絡表の3つを刷る入口。
-     1日の締めに必ず通る場所なので、他のツールと見た目を分けて赤で立てる */
-  .tools .btn-final {
+  .bd-icons { position: relative; display: block; width: 30px; height: 24px; flex: none; }
+
+  .bd-van, .bd-auto { position: absolute; display: block; }
+  .bd-van { inset: 0 4px 0 0; }
+  .bd-van svg { width: 26px; height: 24px; }
+
+  /* 回る矢印は車の左下に小さく重ねる。車だけだと「配車」で止まり、
+     自動で組めることまで伝わらないため */
+  .bd-auto {
+    left: 0;
+    bottom: -2px;
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    background: var(--card);
+    display: grid;
+    place-items: center;
+  }
+
+  .bd-auto svg { width: 12px; height: 12px; stroke-width: 2.6; }
+
+  .bd-text { display: flex; flex-direction: column; gap: 1px; }
+  .bd-title { font-size: 13.5px; font-weight: 600; letter-spacing: .04em; }
+  .bd-sub { font-size: 9.5px; color: var(--ink-3); letter-spacing: .02em; }
+
+  .tools #btn-dispatch:hover { background: var(--accent-soft); }
+  .tools #btn-dispatch:hover .bd-sub { color: var(--accent); }
+  .tools #btn-dispatch:hover .bd-auto { background: var(--accent-soft); }
+
+  /* ── 右上のメニュー ────────────────────────
+     出欠・業務日誌・マスタ編集・最終確認をここへ畳む。
+     日々の作業は送迎表の中で完結するので、行き先はしまっておく */
+  .menu-wrap { position: relative; display: flex; }
+
+  .tools .menu-btn {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--step) * 2);
+    padding: 6px 16px 6px 12px;
+    border-color: var(--ink-2);
+    color: var(--ink);
+  }
+
+  .mb-icon { display: grid; place-items: center; width: 22px; height: 22px; }
+  .mb-icon svg { width: 21px; height: 21px; }
+  .mb-label { font-size: 13px; letter-spacing: .06em; }
+
+  .tools .menu-btn:hover,
+  .tools .menu-btn[aria-expanded="true"] {
+    border-color: var(--ink);
+    background: var(--ink);
+    color: var(--card);
+  }
+
+  .menu-pop {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    z-index: 30;
+    width: 250px;
     display: flex;
     flex-direction: column;
+    gap: 3px;
+    padding: 6px;
+    background: var(--card);
+    border: 1px solid var(--rule-2);
+    border-radius: 10px;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, .16);
+  }
+
+  .menu-pop[hidden] { display: none; }
+
+  /* カーソルを外すまでの間に隙間があると消えてしまうので、橋を渡しておく */
+  .menu-wrap::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    right: 0;
+    width: 250px;
+    height: 8px;
+  }
+
+  .tools .menu-item {
+    display: flex;
     align-items: center;
-    gap: 1px;
-    padding: 5px 20px 6px;
+    gap: calc(var(--step) * 2);
+    width: 100%;
+    padding: 9px 10px;
+    text-align: left;
+    border-color: transparent;
+    background: var(--sub);
+    color: var(--ink);
+  }
+
+  .mi-icon { display: grid; place-items: center; width: 26px; height: 26px; flex: none; color: var(--accent); }
+  .mi-icon svg { width: 22px; height: 22px; }
+  .mi-text { display: flex; flex-direction: column; gap: 1px; }
+  .mi-title { font-size: 13.5px; font-weight: 600; letter-spacing: .04em; }
+  .mi-sub { font-size: 9.5px; color: var(--ink-3); letter-spacing: .02em; }
+
+  .tools .menu-item:hover {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+
+  .tools .menu-item:hover .mi-sub { color: var(--accent); }
+
+  /* 最終確認は1日の締めに必ず通る場所なので、畳んだ中でも赤で立てる */
+  .tools .menu-item.is-final {
+    margin-top: 3px;
     background: var(--warn);
     border-color: var(--warn);
     color: #fff;
-    font-size: 15px;
-    font-weight: 600;
-    letter-spacing: .1em;
   }
 
-  .tools .btn-final small {
-    font-size: 9.5px;
-    font-weight: 400;
-    letter-spacing: .04em;
-    opacity: .88;
-  }
+  .tools .menu-item.is-final .mi-icon,
+  .tools .menu-item.is-final .mi-sub { color: #fff; }
+  .tools .menu-item.is-final .mi-sub { opacity: .88; }
+  .tools .menu-item.is-final .mi-title { font-size: 15px; letter-spacing: .1em; }
 
-  .tools .btn-final:hover {
+  .tools .menu-item.is-final:hover {
     background: var(--ink);
     border-color: var(--ink);
     color: #fff;
   }
+
+  .tools .menu-item.is-final:hover .mi-icon,
+  .tools .menu-item.is-final:hover .mi-sub { color: #fff; }
 
   .crew, .undo {
     display: flex;
@@ -433,100 +544,6 @@
     cursor: pointer;
   }
 
-  /* ── 振替の受付 ───────────────────────────── */
-  .swap-bar {
-    flex-basis: 100%;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: calc(var(--step) * 2);
-    margin-top: calc(var(--step) * 1);
-    font-size: 12px;
-  }
-
-  /* 入力欄がプルダウンだと分かるように印を出す */
-  .swap-combo {
-    position: relative;
-    display: inline-flex;
-  }
-
-  .swap-combo::after {
-    content: "▾";
-    position: absolute;
-    right: 8px;
-    top: 50%;
-    transform: translateY(-50%);
-    pointer-events: none;
-    font-size: 12px;
-    color: var(--ink-3);
-  }
-
-  .swap-label {
-    letter-spacing: .1em;
-    color: var(--furikae);
-    font-weight: 600;
-  }
-
-  .swap-input {
-    font: inherit;
-    font-size: 13px;
-    min-width: 15rem;
-    padding: 4px 22px 4px 8px;
-    color: var(--ink);
-    background: var(--card);
-    border: 1px solid var(--rule-2);
-    border-radius: 0;
-  }
-
-  .swap-input:focus { border-color: var(--furikae); }
-
-  .swap-add {
-    font: inherit;
-    font-size: 12px;
-    padding: 5px 12px;
-    background: transparent;
-    color: var(--furikae);
-    border: 1px solid var(--furikae);
-    cursor: pointer;
-  }
-
-  .swap-chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: calc(var(--step) * 2);
-    align-items: center;
-  }
-
-  .swap-from {
-    margin-left: 5px;
-    font-size: 10px;
-    font-weight: 400;
-    opacity: .85;
-  }
-
-  .swap-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 2px 4px 2px 8px;
-    background: var(--card);
-    border: 1px solid var(--furikae);
-    color: var(--furikae);
-  }
-
-  .swap-x {
-    font: inherit;
-    font-size: 12px;
-    line-height: 1;
-    padding: 0 2px;
-    border: 0;
-    background: transparent;
-    color: inherit;
-    cursor: pointer;
-  }
-
-  .swap-none { color: var(--ink-3); }
-
   /* ── 未割当のサイドバー ────────────────────
      乗せ忘れは紙に出てから気づいても遅いので、常に脇に出しておく。
      ここから車両カードへ直接ドラッグして乗せる。 */
@@ -550,33 +567,16 @@
     border-radius: 10px;
   }
 
-  .side-legs {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 3px;
+  /* 脇は「未割当」と「振替利用」の2段だけ。
+     行き先のボタンは右上のメニューへ移した */
+  .side-sec {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--step) * 2);
+    min-height: 0;
   }
 
-  .side-legs button {
-    font: inherit;
-    font-size: 11px;
-    line-height: 1.35;
-    padding: 6px 4px;
-    border: 1px solid var(--rule-2);
-    border-radius: 7px;
-    background: transparent;
-    color: var(--ink-2);
-    cursor: pointer;
-    letter-spacing: .02em;
-  }
-
-  .side-legs button:hover { border-color: var(--tab); color: var(--tab); }
-
-  .side-legs button[aria-selected="true"] {
-    border-color: var(--tab);
-    background: var(--tab);
-    color: var(--card);
-    font-weight: 600;
-  }
+  .side-swap { border-top: 1px solid var(--rule); padding-top: calc(var(--step) * 3); }
 
   .side-head {
     display: flex;
@@ -636,56 +636,86 @@
     padding: calc(var(--step) * 2) 0;
   }
 
-  .side-hint {
-    margin: 0;
-    font-size: 10px;
-    line-height: 1.6;
-    color: var(--ink-3);
-    border-top: 1px solid var(--rule);
-    padding-top: calc(var(--step) * 2);
-  }
+  /* ── 脇の振替 ──────────────────────────────
+     受付欄を便の見出しから脇へ移した。振替の方は名簿と一緒に並ぶので、
+     車に乗ったかどうかがその場で分かる */
+  .swap-add { display: flex; gap: 4px; }
 
-  .side-hint b { color: var(--ink-2); }
-
-  /* マスタ編集は「別の場所へ行く」操作なので、日々のツールとは見た目を分ける */
-  .side-master {
+  .swap-input {
     font: inherit;
-    display: flex;
-    align-items: center;
-    gap: calc(var(--step) * 2);
-    width: 100%;
-    padding: 9px 10px;
-    text-align: left;
-    color: var(--ink);
-    background: var(--sub);
+    font-size: 12px;
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 5px 8px;
     border: 1px solid var(--rule-2);
-    border-radius: 9px;
-    cursor: pointer;
-    transition: border-color .12s, background-color .12s;
-  }
-
-  .side-master:hover {
-    border-color: var(--ai);
-    background: var(--ai-soft);
-  }
-
-  .sm-icon {
-    flex: 0 0 auto;
-    width: 26px;
-    height: 26px;
-    display: grid;
-    place-items: center;
     border-radius: 7px;
     background: var(--card);
-    border: 1px solid var(--rule-2);
-    color: var(--ai);
+    color: var(--ink);
   }
 
-  .sm-icon svg { width: 15px; height: 15px; }
-  .side-master:hover .sm-icon { border-color: var(--ai); }
-  .sm-text { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
-  .sm-title { font-size: 13px; font-weight: 600; letter-spacing: .04em; }
-  .sm-sub { font-size: 10px; color: var(--ink-3); }
+  .swap-input:focus { border-color: var(--furikae); outline: none; }
+
+  .swap-add-btn {
+    font: inherit;
+    font-size: 15px;
+    line-height: 1;
+    flex: none;
+    width: 30px;
+    padding: 0;
+    border: 1px solid var(--furikae);
+    border-radius: 7px;
+    background: var(--card);
+    color: var(--furikae);
+    cursor: pointer;
+  }
+
+  .swap-add-btn:hover { background: var(--furikae); color: var(--card); }
+
+  .sw-count { color: var(--furikae); }
+
+  /* 振替の方。乗っていれば落ち着いた見た目、まだ乗っていなければ印を付ける */
+  .side-name.is-swap {
+    border-color: var(--furikae);
+    background: var(--card);
+    color: var(--ink);
+    cursor: pointer;
+  }
+
+  .side-name.is-swap:hover { background: var(--furikae-soft); color: var(--ink); }
+  .side-name.is-swap:hover .sn-addr { color: var(--ink-3); }
+
+  .sn-top { display: flex; align-items: center; gap: 5px; }
+  .sn-top b { font-weight: 600; }
+
+  /* 「まだ車が決まっていない」の印。通常利用の方と見分ける手がかりになる */
+  .sn-left {
+    flex: none;
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: var(--warn);
+    color: #fff;
+  }
+
+  .sn-from { font-size: 9.5px; color: var(--ink-3); font-weight: 400; }
+
+  .sn-x {
+    margin-left: auto;
+    flex: none;
+    font: inherit;
+    font-size: 13px;
+    line-height: 1;
+    padding: 2px 4px;
+    border: 0;
+    border-radius: 5px;
+    background: transparent;
+    color: var(--ink-3);
+    cursor: pointer;
+  }
+
+  .sn-x:hover { background: var(--warn); color: #fff; }
 
   /* 事業所名はその場で直せる */
   .eyebrow[contenteditable] {
@@ -3056,7 +3086,6 @@
     .undo button { flex: 1 1 0; }
 
     /* 便の切替は上の1か所だけ。脇のぶんは重なるので出さない */
-    .side-legs { display: none; }
     .legs { width: 100%; }
     .leg-group { flex: 1 1 auto; }
     .leg-group button { flex: 1 1 0; min-height: 44px; }
@@ -3120,7 +3149,6 @@
     .car-foot .count { margin-left: 0; }
 
     /* 振替の受付 */
-    .swap-bar { flex-wrap: wrap; }
 
     /* 便の見出しと人数 */
     .leg-head { gap: calc(var(--step) * 2); }
@@ -3208,6 +3236,7 @@
       --wc: #96200F;
       --wc-soft: #F3DAD3;
       --furikae: #3C5C15;
+      --furikae-soft: #E7EEDC;
       --shinki: #8E480C;
     }
 
@@ -3223,7 +3252,7 @@
        紙の上では通常のブロックに戻して便ごとの改ページを確実にする */
     .sheet { display: block; max-width: none; padding: 0; gap: 0; }
 
-    .controls, .modal, .saved-note, .swap-bar, .date-step, .toast,
+    .controls, .modal, .saved-note, .date-step, .toast,
     .page-master, .page-print, .page-attend, .side { display: none !important; }
 
     .work { display: block; }
@@ -3488,47 +3517,89 @@
           <option value="7">7人版</option>
           <option value="8" selected>8人版</option>
         </select>
-        <button type="button" id="btn-dispatch">いつもの割り当てを入れる</button>
+        <!-- 車の絵で「配車を組む」と分かるようにする -->
+        <button type="button" id="btn-dispatch" title="この人数版の車に、いつもの割り当てを自動で入れます">
+          <span class="bd-icons"><span class="bd-van"></span><span class="bd-auto"></span></span>
+          <span class="bd-text">
+            <span class="bd-title">自動で配車</span>
+            <span class="bd-sub">いつもの割り当てを入れる</span>
+          </span>
+        </button>
       </span>
       <span class="undo">
         <button type="button" id="btn-undo" title="一つ戻る">↶ 一つ戻る</button>
         <button type="button" id="btn-redo" title="一つ進む">↷ 一つ進む</button>
       </span>
-      <button type="button" id="btn-print" class="btn-final">最終確認<small>送迎表・業務日誌・電話連絡表</small></button>
+
+      <!-- 出欠・業務日誌・マスタ編集・最終確認をここへ畳む。
+           押しても、カーソルを合わせても開く -->
+      <span class="menu-wrap" id="menu-wrap">
+        <button type="button" class="menu-btn" id="menu-btn"
+                aria-expanded="false" aria-haspopup="true" aria-controls="menu-pop"
+                title="出欠・業務日誌・マスタ編集・最終確認">
+          <span class="mb-icon" id="mb-icon"></span>
+          <span class="mb-label">メニュー</span>
+        </button>
+        <div class="menu-pop" id="menu-pop" role="menu" hidden>
+          <button type="button" class="menu-item" id="btn-attend" role="menuitem">
+            <span class="mi-icon" id="sa-icon"></span>
+            <span class="mi-text">
+              <span class="mi-title">出欠</span>
+              <span class="mi-sub">業務日誌の状態欄と同じ</span>
+            </span>
+          </button>
+          <button type="button" class="menu-item" id="btn-nisshi" role="menuitem">
+            <span class="mi-icon" id="sn-icon"></span>
+            <span class="mi-text">
+              <span class="mi-title">業務日誌</span>
+              <span class="mi-sub">出欠から組んで印刷する</span>
+            </span>
+          </button>
+          <button type="button" class="menu-item" id="btn-master" role="menuitem">
+            <span class="mi-icon" id="sm-icon"></span>
+            <span class="mi-text">
+              <span class="mi-title">マスタ編集</span>
+              <span class="mi-sub">利用者・運転手・配車・事業所</span>
+            </span>
+          </button>
+          <button type="button" class="menu-item is-final" id="btn-print" role="menuitem">
+            <span class="mi-icon" id="sp-icon"></span>
+            <span class="mi-text">
+              <span class="mi-title">最終確認</span>
+              <span class="mi-sub">送迎表・業務日誌・電話連絡表</span>
+            </span>
+          </button>
+        </div>
+      </span>
     </div>
   </div>
   </div>
 
   <div class="work">
-    <aside class="side" id="side" aria-label="未割当の利用者">
-      <div class="side-legs" id="side-legs" role="tablist" aria-label="便の切替"></div>
-      <div class="side-head">
-        <span class="side-title">未割当</span>
-        <span class="side-count" id="side-count">0</span>
-      </div>
-      <div class="side-list" id="side-list"></div>
-      <p class="side-hint">名前を車両カードへ<b>ドラッグ</b>すると乗せられます。押して選ぶこともできます。</p>
-      <button type="button" class="side-master" id="btn-attend">
-        <span class="sm-icon" id="sa-icon"></span>
-        <span class="sm-text">
-          <span class="sm-title">出欠</span>
-          <span class="sm-sub">業務日誌の状態欄と同じ</span>
-        </span>
-      </button>
-      <button type="button" class="side-master" id="btn-nisshi">
-        <span class="sm-icon" id="sn-icon"></span>
-        <span class="sm-text">
-          <span class="sm-title">業務日誌</span>
-          <span class="sm-sub">出欠から組んで印刷する</span>
-        </span>
-      </button>
-      <button type="button" class="side-master" id="btn-master">
-        <span class="sm-icon" id="sm-icon"></span>
-        <span class="sm-text">
-          <span class="sm-title">マスタ編集</span>
-          <span class="sm-sub">利用者・運転手・配車・事業所</span>
-        </span>
-      </button>
+    <aside class="side" id="side" aria-label="未割当と振替利用">
+      <section class="side-sec">
+        <div class="side-head">
+          <span class="side-title">未割当</span>
+          <span class="side-count" id="side-count">0</span>
+        </div>
+        <div class="side-list" id="side-list"></div>
+      </section>
+
+      <!-- 振替はここで受け付けて、そのまま脇に並べる。
+           車に乗っていない方には「未割当」の印を付けて、通常利用と見分ける -->
+      <section class="side-sec side-swap">
+        <div class="side-head">
+          <span class="side-title">振替利用</span>
+          <span class="side-count sw-count" id="swap-count">0</span>
+        </div>
+        <div class="swap-add">
+          <input type="text" id="swap-input" class="swap-input" list="swap-datalist"
+                 placeholder="氏名を入力" aria-label="振替に追加する利用者の氏名">
+          <datalist id="swap-datalist"></datalist>
+          <button type="button" id="swap-add" class="swap-add-btn" title="振替に追加">＋</button>
+        </div>
+        <div class="side-list" id="swap-list"></div>
+      </section>
     </aside>
     <div id="sections"></div>
   </div>
@@ -3911,7 +3982,20 @@
     /* 業務日誌：綴じた帳面に罫が引いてある */
     book: svg('<path d="M4 3.4h11.2a2.4 2.4 0 0 1 2.4 2.4V21H6.4A2.4 2.4 0 0 1 4 18.6Z"/>'
       + '<path d="M17.6 7.6H20v13.8H8.6"/>'
-      + '<path d="M7.2 8h7M7.2 11.6h7M7.2 15.2h4.4"/>')
+      + '<path d="M7.2 8h7M7.2 11.6h7M7.2 15.2h4.4"/>'),
+    /* 送迎車：横から見たワゴン。窓と車輪で「車」と読める */
+    van: svg('<path d="M2.4 16.2V9.6a1.6 1.6 0 0 1 1.6-1.6h9.2l3.4 3.2h3.4a1.6 1.6 0 0 1 1.6 1.6v3.4h-2"/>'
+      + '<path d="M8.6 16.2h6.2M2.4 16.2h1.4"/>'
+      + '<path d="M6 8v3.2h7.4"/>'
+      + '<circle cx="6.2" cy="17.6" r="2.2"/><circle cx="17.2" cy="17.6" r="2.2"/>'),
+    /* 自動で組む：ぐるりと回る矢印。van に添えて「勝手に組む」を示す */
+    auto: svg('<path d="M20.4 12a8.4 8.4 0 1 1-2.5-6"/><path d="M18.4 1.8v4.4h-4.4"/>'),
+    /* 献立のような三本線。しまってあるメニューの合図 */
+    menu: svg('<path d="M3.6 6.4h16.8M3.6 12h16.8M3.6 17.6h16.8"/>'),
+    /* 刷り物：紙が出てくる形 */
+    print: svg('<path d="M7 8.4V3.2h10v5.2"/>'
+      + '<path d="M5 8.4h14a2 2 0 0 1 2 2v5.2h-4"/><path d="M5 15.6H3v-5.2a2 2 0 0 1 2-2"/>'
+      + '<path d="M7 13.6h10v7.2H7Z"/>')
   };
 
   const TAGS = [
@@ -4646,11 +4730,19 @@
     ord.addEventListener("click", () => {
       if (held) { held = false; return; }
       const cur = li.dataset.state || "";
-      const cycle = li.querySelector(".who").value ? STATES : STATES_EMPTY;
-      setState(li, cycle[(cycle.indexOf(cur) + 1) % cycle.length]);
+      const uid = li.querySelector(".who").value;
+      const cycle = uid ? STATES : STATES_EMPTY;
+      const next = cycle[(cycle.indexOf(cur) + 1) % cycle.length];
+      setState(li, next);
       noteAttendFromRow(li);
       refillSelect(li);
       refresh();
+
+      /* 何に変わったかを下に出す。色だけだと見落とすため */
+      const u = USER_BY_ID.get(uid);
+      notify(u
+        ? u.name + " さんを「" + STATE_LABEL[next] + "」にしました。"
+        : "この行を「" + STATE_LABEL[next] + "」の枠にしました。");
     });
 
     /* 他の車へ移すときに、その場で行を空ける。
@@ -4996,68 +5088,6 @@
       title.append(el("small", "day-note", "日曜日は利用曜日の登録がないため、既定の割り当ては空です"));
     }
 
-    /* 振替利用者の受付。名前を打つとマスタから候補が出る */
-    const swapBar = el("div", "swap-bar");
-    const listId = "swap-list-" + leg.key;
-    const input = document.createElement("input");
-    input.type = "text";
-    input.className = "swap-input";
-    input.placeholder = "氏名を入力（マスタから候補）";
-    input.setAttribute("list", listId);
-    const datalist = document.createElement("datalist");
-    datalist.id = listId;
-    activeUsers().forEach((u) => {
-      const o = document.createElement("option");
-      o.value = u.name;
-      o.label = u.kana + "／" + u.addr;
-      datalist.append(o);
-    });
-    const addBtn = el("button", "swap-add", "＋ 振替に追加");
-    addBtn.type = "button";
-    const chips = el("span", "swap-chips");
-
-    const addSwap = () => {
-      const name = input.value.trim();
-      if (!name) return;
-      const user = activeUsers().find((u) => u.name === name || u.kana === name);
-      if (!user) { notify("「" + name + "」は利用者マスタに見つかりません。", "warn"); return; }
-      if (swapEntry(leg.part, user.id)) { notify(user.name + " さんはもう振替に入っています。", "warn"); return; }
-
-      /* いつのぶんの振替かを聞く。業務日誌に「20日分 振替」と出るので、
-         あとから思い出せなくならないよう、受け付けるときに一度だけ尋ねる */
-      let dayEl = null;
-      openUserDialog({
-        title: user.name + " さんの振替",
-        lead: leg.partLabel + "の振替として受け付けます。いつのぶんの振替ですか。",
-        ok: "振替に追加",
-        build(body) {
-          dayEl = formRow(body, "振替元の日",
-            Object.assign(document.createElement("input"), { type: "date", value: currentDate }),
-            "業務日誌の状態欄に「20日分 振替」の形で出ます。分からなければ空欄のままで構いません。");
-        },
-        submit() {
-          SWAP[leg.part].push({ id: user.id, from: dayEl.value || "" });
-          /* 出欠にも入れる。車に乗せたときに緑になり、人数にも入る */
-          ATTEND[leg.part][user.id] = "振替";
-          closeUserDialog();
-          input.value = "";
-          drawSwapChips();
-          applyAttendToRows();
-          document.querySelectorAll(".stop.st-furikae").forEach(refillSelect);
-          refresh();
-          notify(user.name + " さんを" + leg.partLabel + "の振替に追加しました"
-            + (dayEl.value ? "（" + swapLabel(dayEl.value) + "）" : "") + "。");
-        }
-      });
-    };
-    addBtn.addEventListener("click", addSwap);
-    input.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); addSwap(); } });
-
-    const combo = el("span", "swap-combo");
-    combo.append(input, datalist);
-    swapBar.append(el("span", "swap-label", "振替利用"), combo, addBtn, chips);
-    head.append(swapBar);
-
     const leftover = el("p", "leftover");
     leftover.hidden = true;
 
@@ -5157,50 +5187,12 @@
     });
   }
 
-  /* 振替として受け付けた方を、便ごとに並べる */
+  /* 振替の並びは脇に出す。いま見ている便のものだけを描く */
   function drawSwapChips() {
-    LEGS.forEach((leg) => {
-      const wrap = document.querySelector("#leg-" + leg.key + " .swap-chips");
-      if (!wrap) return;
-      wrap.innerHTML = "";
-      SWAP[leg.part].forEach((entry) => {
-        const user = USER_BY_ID.get(entry.id);
-        if (!user) return;
-        const chip = el("span", "swap-chip");
-        const x = el("button", "swap-x", "×");
-        x.type = "button";
-        x.title = "振替から外す（車に乗っていれば降ろします）";
-        x.addEventListener("click", () => {
-          SWAP[leg.part] = SWAP[leg.part].filter((v) => v.id !== entry.id);
-          /* 車に乗せたあとで外すこともある。行に残ったままだと
-             名簿にいない方が乗っていることになるので、そこも空ける */
-          let seated = 0;
-          LEGS.filter((l) => l.part === leg.part).forEach((l) => {
-            const section = document.getElementById("leg-" + l.key);
-            if (!section) return;
-            section.querySelectorAll(".stop:not(.head)").forEach((stop) => {
-              const sel = stop.querySelector(".who");
-              if (sel.value !== entry.id) return;
-              sel.value = "";
-              applyUser(stop, "");
-              setState(stop, "");
-              seated += 1;
-            });
-          });
-          if (ATTEND[leg.part][entry.id] === "振替") delete ATTEND[leg.part][entry.id];
-          drawSwapChips();
-          document.querySelectorAll(".stop.st-furikae").forEach(refillSelect);
-          refresh();
-          notify(user.name + " さんを振替から外しました"
-            + (seated ? "（乗っていた " + seated + "件の行も空けました）" : "") + "。");
-        });
-        chip.append(document.createTextNode(user.name));
-        if (entry.from) chip.append(el("small", "swap-from", swapLabel(entry.from)));
-        chip.append(x);
-        wrap.append(chip);
-      });
-      if (SWAP[leg.part].length === 0) wrap.append(el("span", "swap-none", "登録なし"));
-    });
+    const leg = LEGS.find((l) => !document.getElementById("leg-" + l.key).hidden) || LEGS[0];
+    const section = document.getElementById("leg-" + leg.key);
+    if (!section) return;
+    recount(section, leg);
   }
 
   /* 同じ便で既に選ばれている運転手に「使用中」の印を付ける */
@@ -5380,61 +5372,143 @@
     if (!section.hidden) drawSide(leg, missing);
   }
 
-  /* ── 未割当のサイドバー ──────────────────── */
+  /* ── 脇の「未割当」と「振替利用」 ──────────
+     未割当には通常利用の方だけを並べ、振替の方は下の段にまとめる。
+     振替でまだ車が決まっていない方には「未割当」の印を付ける。 */
   function drawSide(leg, missing) {
     const side = document.getElementById("side");
-    side.classList.toggle("has-left", missing.length > 0);
-    document.getElementById("side-count").textContent = missing.length;
+    const swapSet = new Set(swapIds(leg.part));
+    const plain = missing.filter((id) => !swapSet.has(id));
 
-    const tabs = document.getElementById("side-legs");
-    tabs.innerHTML = "";
-    LEGS.forEach((l) => {
-      const b = el("button", null, l.partLabel + "\n" + l.dir);
-      b.type = "button";
-      b.setAttribute("role", "tab");
-      b.setAttribute("aria-selected", String(l.key === leg.key));
-      b.style.setProperty("--tab", "var(--" + l.accent + ")");
-      b.style.whiteSpace = "pre-line";
-      b.addEventListener("click", () => switchLeg(l.key));
-      tabs.append(b);
-    });
+    side.classList.toggle("has-left", plain.length > 0);
+    document.getElementById("side-count").textContent = plain.length;
 
     const list = document.getElementById("side-list");
     list.innerHTML = "";
+    if (plain.length === 0) {
+      list.append(el("p", "side-none", missing.length
+        ? "通常利用の方は全員どこかの車に乗っています。"
+        : "この便は全員どこかの車に乗っています。"));
+    } else {
+      plain.forEach((id) => list.append(sideChip(leg, id)));
+    }
 
-    if (missing.length === 0) {
-      list.append(el("p", "side-none", "この便は全員どこかの車に乗っています。"));
+    drawSwapSide(leg, missing);
+  }
+
+  /* 未割当の1人ぶん。車両カードへドラッグもできる */
+  function sideChip(leg, id) {
+    const user = USER_BY_ID.get(id);
+    const chip = el("button", "side-name");
+    chip.type = "button";
+    chip.draggable = true;
+    chip.title = user.name + "（" + user.addr + "）：車両カードへドラッグ、または押して選ぶ";
+    chip.append(document.createTextNode(user.name), el("span", "sn-addr", user.addr));
+    chip.addEventListener("click", () => openAssign(leg, id));
+
+    chip.addEventListener("dragstart", (e) => {
+      dragUser = id;
+      chip.classList.add("dragging");
+      if (e.dataTransfer) {
+        e.dataTransfer.effectAllowed = "copy";
+        try { e.dataTransfer.setData("text/plain", user.name); } catch (err) { /* 一部の環境向け */ }
+      }
+    });
+
+    chip.addEventListener("dragend", () => {
+      chip.classList.remove("dragging");
+      dragUser = null;
+      clearDropMarks();
+    });
+
+    return chip;
+  }
+
+  /* 振替の段。受け付けた順に並べ、車が決まっていない方には印を付ける */
+  function drawSwapSide(leg, missing) {
+    const box = document.getElementById("swap-list");
+    const left = new Set(missing);
+    box.innerHTML = "";
+    document.getElementById("swap-count").textContent = SWAP[leg.part].length;
+
+    if (SWAP[leg.part].length === 0) {
+      box.append(el("p", "side-none", "この便の振替はまだありません。"));
       return;
     }
 
-    missing.forEach((id) => {
-      const user = USER_BY_ID.get(id);
+    SWAP[leg.part].forEach((entry) => {
+      const user = USER_BY_ID.get(entry.id);
       if (!user) return;
-      const chip = el("button", "side-name");
+      const notSeated = left.has(entry.id);
+
+      const chip = el("button", "side-name is-swap");
       chip.type = "button";
-      chip.draggable = true;
-      chip.title = user.name + "（" + user.addr + "）：車両カードへドラッグ、または押して選ぶ";
-      chip.append(document.createTextNode(user.name), el("span", "sn-addr", user.addr));
+      chip.draggable = notSeated;
 
-      chip.addEventListener("click", () => openAssign(leg, id));
+      const top = el("span", "sn-top");
+      top.append(el("b", null, user.name));
+      if (entry.from) top.append(el("span", "sn-from", swapLabel(entry.from)));
+      if (notSeated) top.append(el("span", "sn-left", "未割当"));
 
-      chip.addEventListener("dragstart", (e) => {
-        dragUser = id;
-        chip.classList.add("dragging");
-        if (e.dataTransfer) {
-          e.dataTransfer.effectAllowed = "copy";
-          try { e.dataTransfer.setData("text/plain", user.name); } catch (err) { /* 一部の環境向け */ }
-        }
+      const x = el("span", "sn-x", "×");
+      x.title = "振替から外す（車に乗っていれば降ろします）";
+      x.addEventListener("click", (e) => { e.stopPropagation(); dropSwap(leg, entry); });
+      top.append(x);
+
+      chip.append(top, el("span", "sn-addr", user.addr));
+      chip.title = notSeated
+        ? user.name + "（" + user.addr + "）：まだ車が決まっていません。押して選ぶ"
+        : user.name + "（" + user.addr + "）：車に乗っています";
+
+      chip.addEventListener("click", () => {
+        if (notSeated) openAssign(leg, entry.id);
+        else notify(user.name + " さんは、もう車に乗っています。");
       });
 
-      chip.addEventListener("dragend", () => {
-        chip.classList.remove("dragging");
-        dragUser = null;
-        clearDropMarks();
-      });
+      if (notSeated) {
+        chip.addEventListener("dragstart", (e) => {
+          dragUser = entry.id;
+          chip.classList.add("dragging");
+          if (e.dataTransfer) {
+            e.dataTransfer.effectAllowed = "copy";
+            try { e.dataTransfer.setData("text/plain", user.name); } catch (err) { /* 一部の環境向け */ }
+          }
+        });
+        chip.addEventListener("dragend", () => {
+          chip.classList.remove("dragging");
+          dragUser = null;
+          clearDropMarks();
+        });
+      }
 
-      list.append(chip);
+      box.append(chip);
     });
+  }
+
+  /* 振替から外す。車に乗っていれば、その行も空ける */
+  function dropSwap(leg, entry) {
+    const user = USER_BY_ID.get(entry.id);
+    SWAP[leg.part] = SWAP[leg.part].filter((v) => v.id !== entry.id);
+
+    let seated = 0;
+    LEGS.filter((l) => l.part === leg.part).forEach((l) => {
+      const section = document.getElementById("leg-" + l.key);
+      if (!section) return;
+      section.querySelectorAll(".stop:not(.head)").forEach((stop) => {
+        const sel = stop.querySelector(".who");
+        if (sel.value !== entry.id) return;
+        sel.value = "";
+        applyUser(stop, "");
+        setState(stop, "");
+        seated += 1;
+      });
+    });
+
+    if (ATTEND[leg.part][entry.id] === "振替") delete ATTEND[leg.part][entry.id];
+    document.querySelectorAll(".stop.st-furikae").forEach(refillSelect);
+    refresh();
+    notify((user ? user.name : "この方") + " さんを振替から外しました"
+      + (seated ? "（乗っていた " + seated + "件の行も空けました）" : "") + "。");
   }
 
   /* ── 行の中身の出し入れ ────────────────────
@@ -7373,7 +7447,7 @@
       if (picked) picked.setAttribute("selected", "");
     });
 
-    sheet.querySelectorAll(".controls, .saved-note, .date-step, .swap-bar, .side").forEach((n) => n.remove());
+    sheet.querySelectorAll(".controls, .saved-note, .date-step, .side").forEach((n) => n.remove());
     sheet.querySelectorAll(".leg").forEach((n) => n.removeAttribute("hidden"));
 
     const pages = [...sheet.querySelectorAll(".leg")].map((leg) => {
@@ -8737,17 +8811,110 @@
 
   document.getElementById("sm-icon").innerHTML = ICONS.gear;
   document.getElementById("sa-icon").innerHTML = ICONS.check;
-
-  /* 指で使う端末ではドラッグができない。案内を「押して選ぶ」に差し替える */
-  if (window.matchMedia && window.matchMedia("(hover: none)").matches) {
-    const hint = document.querySelector(".side-hint");
-    if (hint) {
-      hint.innerHTML = "名前を<b>押す</b>と、乗せる車を選べます。"
-        + "乗っている方を別の車へ移すときは、行の<b>番号を長押しして空欄にしてから</b>選び直してください。";
-    }
-  }
   document.getElementById("sn-icon").innerHTML = ICONS.book;
+  document.getElementById("sp-icon").innerHTML = ICONS.print;
+  document.getElementById("mb-icon").innerHTML = ICONS.menu;
+  document.querySelector("#btn-dispatch .bd-van").innerHTML = ICONS.van;
+  document.querySelector("#btn-dispatch .bd-auto").innerHTML = ICONS.auto;
   document.getElementById("btn-attend").addEventListener("click", openAttendPage);
+
+  /* ── 右上のメニュー ────────────────────────
+     押しても、カーソルを合わせても開く。選べば閉じる */
+  (function () {
+    const wrap = document.getElementById("menu-wrap");
+    const btn = document.getElementById("menu-btn");
+    const pop = document.getElementById("menu-pop");
+    let leaveTimer = null;
+    let byHover = false;   /* カーソルで開いたぶん */
+
+    const show = (on) => {
+      if (leaveTimer) { clearTimeout(leaveTimer); leaveTimer = null; }
+      pop.hidden = !on;
+      btn.setAttribute("aria-expanded", String(on));
+      if (!on) byHover = false;
+    };
+
+    /* カーソルで開いた直後の1回は閉じない。
+       近づいたら開いて、押したとたんに閉じる、では操作にならないため */
+    btn.addEventListener("click", () => {
+      if (byHover) { byHover = false; show(true); return; }
+      show(pop.hidden);
+    });
+    pop.addEventListener("click", () => show(false));
+
+    /* 指の端末では、触っただけで開くと押し間違えるので押したときだけにする */
+    if (!window.matchMedia || !window.matchMedia("(hover: none)").matches) {
+      wrap.addEventListener("mouseenter", () => { if (pop.hidden) byHover = true; show(true); });
+      wrap.addEventListener("mouseleave", () => {
+        if (leaveTimer) clearTimeout(leaveTimer);
+        leaveTimer = setTimeout(() => show(false), 180);
+      });
+    }
+
+    document.addEventListener("click", (e) => { if (!wrap.contains(e.target)) show(false); });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && !pop.hidden) { show(false); btn.focus(); }
+    });
+  })();
+
+  /* ── 脇の振替の受付 ────────────────────────
+     いま見ている便の振替として受け付ける */
+  (function () {
+    const input = document.getElementById("swap-input");
+    const addBtn = document.getElementById("swap-add");
+    const listEl = document.getElementById("swap-datalist");
+
+    /* 候補は利用者マスタから。マスタを直したら入れ直す */
+    window.refillSwapNames = function () {
+      listEl.innerHTML = "";
+      activeUsers().forEach((u) => {
+        const o = document.createElement("option");
+        o.value = u.name;
+        o.label = u.kana + "／" + u.addr;
+        listEl.append(o);
+      });
+    };
+    refillSwapNames();
+
+    const add = () => {
+      const leg = LEGS.find((l) => !document.getElementById("leg-" + l.key).hidden) || LEGS[0];
+      const name = input.value.trim();
+      if (!name) { input.focus(); return; }
+      const user = activeUsers().find((u) => u.name === name || u.kana === name);
+      if (!user) { notify("「" + name + "」は利用者マスタに見つかりません。", "warn"); return; }
+      if (swapEntry(leg.part, user.id)) { notify(user.name + " さんはもう振替に入っています。", "warn"); return; }
+
+      /* いつのぶんの振替かを聞く。業務日誌に「20日分 振替」と出るので、
+         あとから思い出せなくならないよう、受け付けるときに一度だけ尋ねる */
+      let dayEl = null;
+      openUserDialog({
+        title: user.name + " さんの振替",
+        lead: leg.partLabel + "の振替として受け付けます。いつのぶんの振替ですか。",
+        ok: "振替に追加",
+        build(body) {
+          dayEl = formRow(body, "振替元の日",
+            Object.assign(document.createElement("input"), { type: "date", value: currentDate }),
+            "業務日誌の状態欄に「20日分 振替」の形で出ます。分からなければ空欄のままで構いません。");
+        },
+        submit() {
+          SWAP[leg.part].push({ id: user.id, from: dayEl.value || "" });
+          /* 出欠にも入れる。車に乗せたときに緑になり、人数にも入る */
+          ATTEND[leg.part][user.id] = "振替";
+          closeUserDialog();
+          input.value = "";
+          applyAttendToRows();
+          document.querySelectorAll(".stop.st-furikae").forEach(refillSelect);
+          refresh();
+          notify(user.name + " さんを" + leg.partLabel + "の振替に追加しました"
+            + (dayEl.value ? "（" + swapLabel(dayEl.value) + "）" : "")
+            + "。脇の「振替利用」から乗せる車を選べます。");
+        }
+      });
+    };
+
+    addBtn.addEventListener("click", add);
+    input.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); add(); } });
+  })();
 
   /* 凡例の見本にも同じ絵を入れる */
   document.querySelectorAll(".legend .swatch[data-icon]").forEach((s) => {
