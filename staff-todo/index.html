@@ -27,8 +27,14 @@
       <span class="appbar__eyebrow">職員間で共有</span>
       <h1 class="appbar__name">職員Todo</h1>
     </div>
-    <div class="appbar__you" id="youBadge" title="設定画面で名前を選べます">
-      <span id="youInitial">?</span>
+    <div class="appbar__actions">
+      <button type="button" class="icon-btn appbar__bell" id="notifyBtn" aria-label="お知らせ">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6"/><path d="M9.5 20a2.5 2.5 0 0 0 5 0"/></svg>
+        <span class="notify-badge" id="notifyBadge" hidden>0</span>
+      </button>
+      <div class="appbar__you" id="youBadge" title="設定画面で名前を選べます">
+        <span id="youInitial">?</span>
+      </div>
     </div>
   </div>
   <div class="modebar" id="modebar" hidden>
@@ -45,7 +51,16 @@
       <p class="pagehead__note">みんなで共有するタスク一覧です。</p>
     </div>
 
-    <div class="filters" role="group" aria-label="表示するTodoを絞り込む">
+    <div class="search-box">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      <input type="search" id="todoSearchInput" placeholder="タスクを検索（完了済みもさかのぼって探せます）" aria-label="タスクを検索">
+      <button type="button" id="todoSearchClear" class="search-box__clear" hidden aria-label="検索をクリア">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <p class="search-note" id="todoSearchNote" hidden></p>
+
+    <div class="filters" id="todoFilters" role="group" aria-label="表示するTodoを絞り込む">
       <button class="chip is-active" type="button" data-todo-filter="open">未完了</button>
       <button class="chip" type="button" data-todo-filter="today">今日まで</button>
       <button class="chip" type="button" data-todo-filter="mine">自分の担当</button>

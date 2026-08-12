@@ -67,6 +67,7 @@ function colorForStaff(staff) {
 const ME_KEY = "staffTodo:me";
 const LARGE_TEXT_KEY = "staffTodo:largeText";
 const HIDE_HEADER_KEY = "staffTodo:hideHeader";
+const NOTIFY_LAST_SEEN_KEY = "staffTodo:notifyLastSeenAt";
 
 // ---------------- 状態 ----------------
 
@@ -80,6 +81,7 @@ const state = {
   meId: localStorage.getItem(ME_KEY) || null,
   screen: "todo",
   todoFilter: "open",
+  todoSearch: "",
   routineCat: "daily",
   calMonth: (() => { const d = new Date(); d.setDate(1); return d; })(),
   calSelected: todayKey(),
@@ -245,8 +247,34 @@ function dueLabel(dueDate) {
   return dueDate.slice(5).replace("-", "/");
 }
 
+function dateKeyWeekday(dateKey) {
+  const [y, m, d] = dateKey.split("-").map(Number);
+  return WEEKDAYS_JA[new Date(y, m - 1, d).getDay()];
+}
+
+// 日付ごとに積み重なっても見分けやすいよう、Todoをグループ見出しの単位に振り分ける。
+function todoGroupLabel(t) {
+  if (t.done) return "完了済み";
+  if (!t.dueDate) return "期限なし";
+  const tKey = todayKey();
+  if (t.dueDate < tKey) return "期限切れ";
+  if (t.dueDate === tKey) return "今日";
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  if (t.dueDate === toDateKey(tomorrow)) return "明日";
+  const [, m, d] = t.dueDate.split("-");
+  return `${Number(m)}月${Number(d)}日(${dateKeyWeekday(t.dueDate)})`;
+}
+
 function filteredTodos() {
   const t = todayKey();
+  const q = state.todoSearch.trim().toLowerCase();
+  if (q) {
+    // 検索中はフィルターの絞り込みを無視し、完了済みも含めて全件からさかのぼって探す。
+    return state.todos
+      .filter((x) => x.title.toLowerCase().includes(q) || (x.memo || "").toLowerCase().includes(q))
+      .sort((a, b) => (b.updatedAt || b.createdAt || 0) - (a.updatedAt || a.createdAt || 0));
+  }
   let list = [...state.todos];
   if (state.todoFilter === "open") list = list.filter((x) => !x.done);
   else if (state.todoFilter === "today") list = list.filter((x) => !x.done && x.dueDate && x.dueDate <= t);
@@ -264,21 +292,38 @@ function renderTodoList() {
   const list = filteredTodos();
   const el = document.getElementById("todoList");
   const empty = document.getElementById("todoEmpty");
-  if (state.todoFilter === "mine" && !state.meId) {
+  const searching = !!state.todoSearch.trim();
+
+  document.getElementById("todoFilters").hidden = searching;
+  const note = document.getElementById("todoSearchNote");
+  note.hidden = !searching;
+  note.textContent = searching ? `「${state.todoSearch.trim()}」の検索結果: ${list.length}件` : "";
+
+  if (!searching && state.todoFilter === "mine" && !state.meId) {
     el.innerHTML = "";
     empty.hidden = false;
     empty.textContent = "設定画面で「あなたの名前」を選ぶと、自分の担当タスクを表示できます。";
     return;
   }
-  empty.textContent = "Todoはまだありません。右下の＋から追加できます。";
+  empty.textContent = searching ? `「${state.todoSearch.trim()}」に一致するタスクが見つかりません。` : "Todoはまだありません。右下の＋から追加できます。";
   empty.hidden = list.length > 0;
-  el.innerHTML = list.map((t) => {
+
+  let lastGroup = null;
+  const parts = [];
+  list.forEach((t) => {
+    if (!searching) {
+      const group = todoGroupLabel(t);
+      if (group !== lastGroup) {
+        parts.push(`<div class="list-group-header">${escapeHtml(group)}</div>`);
+        lastGroup = group;
+      }
+    }
     const assignees = todoAssigneeIds(t).map((id) => staffById(id)).filter(Boolean);
     const badges = [];
     if (t.dueDate) badges.push(`<span class="badge ${!t.done && t.dueDate < todayKey() ? "badge--danger" : t.dueDate === todayKey() ? "badge--warning" : ""}">${escapeHtml(dueLabel(t.dueDate))}</span>`);
     if (t.priority === "high") badges.push(`<span class="badge badge--danger">重要</span>`);
     assignees.forEach((a) => badges.push(`<span class="badge">${escapeHtml(a.name)}</span>`));
-    return `
+    parts.push(`
       <div class="card" data-id="${t.id}">
         <button type="button" class="check ${t.done ? "is-done" : ""}" data-action="toggle" aria-label="完了にする">
           <svg viewBox="0 0 24 24"><path d="M5 12l4 4 10-10"/></svg>
@@ -288,8 +333,9 @@ function renderTodoList() {
           ${t.memo ? `<div class="card__memo">${escapeHtml(t.memo)}</div>` : ""}
           ${badges.length ? `<div class="card__meta">${badges.join("")}</div>` : ""}
         </div>
-      </div>`;
-  }).join("");
+      </div>`);
+  });
+  el.innerHTML = parts.join("");
 
   el.querySelectorAll('[data-action="toggle"]').forEach((btn) => {
     btn.addEventListener("click", (e) => {
@@ -309,6 +355,21 @@ function renderTodoList() {
     });
   });
 }
+
+const todoSearchInput = document.getElementById("todoSearchInput");
+const todoSearchClear = document.getElementById("todoSearchClear");
+todoSearchInput.addEventListener("input", () => {
+  state.todoSearch = todoSearchInput.value;
+  todoSearchClear.hidden = !state.todoSearch;
+  renderTodoList();
+});
+todoSearchClear.addEventListener("click", () => {
+  state.todoSearch = "";
+  todoSearchInput.value = "";
+  todoSearchClear.hidden = true;
+  renderTodoList();
+  todoSearchInput.focus();
+});
 
 function todoAssigneeIds(todo) {
   return todo?.assigneeIds || (todo?.assigneeId ? [todo.assigneeId] : []);
@@ -737,6 +798,7 @@ function renderStaffPicker() {
       localStorage.setItem(ME_KEY, state.meId);
       renderStaffPicker();
       renderYouBadge();
+      updateNotifyBadge();
       toast(`${meStaff().name}として利用します`);
     });
   });
@@ -839,6 +901,69 @@ hideHeaderToggle.addEventListener("change", () => {
 });
 
 // ================================================================
+// お知らせ
+// ================================================================
+// 自分以外が追加した新着の Todo・予定・定型タスクを、最後に確認した時刻と比べて数える。
+// ベルアイコンに件数を重ねて表示し、開くと既読になる。
+
+function notifyLastSeenAt() {
+  return Number(localStorage.getItem(NOTIFY_LAST_SEEN_KEY) || 0);
+}
+
+function collectNewItems() {
+  const lastSeen = notifyLastSeenAt();
+  const myName = meStaff()?.name || null;
+  const items = [];
+  const push = (list, label) => {
+    list.forEach((it) => {
+      if ((it.createdAt || 0) > lastSeen && it.createdBy !== myName) {
+        items.push({ label, title: it.title, by: it.createdBy, at: it.createdAt });
+      }
+    });
+  };
+  push(state.todos, "Todo");
+  push(state.events, "予定");
+  push(state.routineTasks, "定型タスク");
+  items.sort((a, b) => b.at - a.at);
+  return items;
+}
+
+function relativeTimeLabel(ts) {
+  const minutes = Math.max(0, Math.floor((Date.now() - ts) / 60000));
+  if (minutes < 1) return "たった今";
+  if (minutes < 60) return `${minutes}分前`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}時間前`;
+  return `${Math.floor(hours / 24)}日前`;
+}
+
+function updateNotifyBadge() {
+  const badge = document.getElementById("notifyBadge");
+  const count = collectNewItems().length;
+  badge.hidden = count === 0;
+  badge.textContent = count > 99 ? "99+" : String(count);
+}
+
+function openNotifyPanel() {
+  const items = collectNewItems();
+  localStorage.setItem(NOTIFY_LAST_SEEN_KEY, String(Date.now()));
+  updateNotifyBadge();
+  const html = items.length
+    ? `<div class="list">${items.map((it) => `
+        <div class="card" style="cursor:default;">
+          <div class="card__body">
+            <div class="card__meta"><span class="badge badge--info">${escapeHtml(it.label)}</span></div>
+            <div class="card__title">${escapeHtml(it.title)}</div>
+            <div class="card__memo">${escapeHtml(it.by || "不明な職員")}が追加・${escapeHtml(relativeTimeLabel(it.at))}</div>
+          </div>
+        </div>`).join("")}</div>`
+    : `<p class="empty">新しいお知らせはありません。</p>`;
+  openSheet("お知らせ", html, { onSubmit: async () => {}, submitLabel: "閉じる" });
+}
+
+document.getElementById("notifyBtn").addEventListener("click", openNotifyPanel);
+
+// ================================================================
 // 起動
 // ================================================================
 
@@ -855,14 +980,17 @@ async function main() {
   todoStore.subscribe((list) => {
     state.todos = list;
     if (state.screen === "todo") renderTodoList();
+    updateNotifyBadge();
   });
   eventStore.subscribe((list) => {
     state.events = list;
     if (state.screen === "calendar") renderCalendar();
+    updateNotifyBadge();
   });
   routineTaskStore.subscribe((list) => {
     state.routineTasks = list;
     if (state.screen === "routine") renderRoutineList();
+    updateNotifyBadge();
   });
   routineLogStore.subscribe((list) => {
     state.routineLogs = list;
