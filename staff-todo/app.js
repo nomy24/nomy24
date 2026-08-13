@@ -903,8 +903,21 @@ function openRoutineTaskSheet(cat, existing) {
 }
 
 // ================================================================
-// 写真
+// 資料（写真・ファイル）
 // ================================================================
+
+const MAX_FILE_BYTES = 4 * 1024 * 1024; // 画像以外のファイルはlocalStorageを圧迫しやすいため上限を設ける
+
+function isImageAttachment(item) {
+  return !item.type || item.type === "image"; // 旧データ(typeフィールドなし)は写真として扱う
+}
+
+function formatBytes(n) {
+  if (!n) return "";
+  if (n < 1024) return `${n}B`;
+  if (n < 1024 * 1024) return `${Math.round(n / 1024)}KB`;
+  return `${(n / 1024 / 1024).toFixed(1)}MB`;
+}
 
 // 端末の保存容量を圧迫しないよう、長辺を縮小してJPEGに再エンコードしてから保存する。
 function compressImageToDataUrl(file) {
@@ -933,15 +946,38 @@ function compressImageToDataUrl(file) {
   });
 }
 
-async function addPhotoFromFile(file) {
-  if (!file || !file.type.startsWith("image/")) return;
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(reader.error);
+    reader.onload = () => resolve(reader.result);
+    reader.readAsDataURL(file);
+  });
+}
+
+async function addAttachmentFromFile(file) {
+  if (!file) return;
+  const isImage = file.type.startsWith("image/");
+  if (!isImage && file.size > MAX_FILE_BYTES) {
+    toast(`ファイルが大きすぎます（上限${Math.round(MAX_FILE_BYTES / 1024 / 1024)}MB）。`);
+    return;
+  }
   try {
-    const dataUrl = await compressImageToDataUrl(file);
-    await photoStore.add({ dataUrl, memo: "", createdBy: meStaff()?.name || null });
-    toast("写真を追加しました");
+    if (isImage) {
+      const dataUrl = await compressImageToDataUrl(file);
+      await photoStore.add({ type: "image", dataUrl, memo: "", createdBy: meStaff()?.name || null });
+      toast("写真を追加しました");
+    } else {
+      const dataUrl = await readFileAsDataUrl(file);
+      await photoStore.add({
+        type: "file", dataUrl, fileName: file.name, fileType: file.type || "application/octet-stream",
+        sizeBytes: file.size, memo: "", createdBy: meStaff()?.name || null,
+      });
+      toast("ファイルを追加しました");
+    }
   } catch (e) {
     console.error(e);
-    toast("写真を保存できませんでした。容量が足りない可能性があります。");
+    toast("保存できませんでした。容量が足りない可能性があります。");
   }
 }
 
@@ -949,16 +985,16 @@ const photoFileInput = document.getElementById("photoFileInput");
 photoFileInput.addEventListener("change", () => {
   const file = photoFileInput.files?.[0];
   photoFileInput.value = "";
-  if (file) addPhotoFromFile(file);
+  if (file) addAttachmentFromFile(file);
 });
 
-// クリップボードに画像をコピーしていれば、写真画面上での貼り付け（Ctrl/Cmd+V）でも追加できる。
+// クリップボードに画像をコピーしていれば、資料画面上での貼り付け（Ctrl/Cmd+V）でも追加できる。
 document.addEventListener("paste", (e) => {
   if (state.screen !== "photos") return;
   const item = [...(e.clipboardData?.items || [])].find((it) => it.type.startsWith("image/"));
   if (!item) return;
   const file = item.getAsFile();
-  if (file) addPhotoFromFile(file);
+  if (file) addAttachmentFromFile(file);
 });
 
 function monthLabelJa(monthKey) {
@@ -969,71 +1005,89 @@ function monthLabelJa(monthKey) {
 function renderPhotoTimeline() {
   const el = document.getElementById("photoTimeline");
   const empty = document.getElementById("photoEmpty");
-  const photos = [...state.photos].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-  empty.hidden = photos.length > 0;
+  const items = [...state.photos].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  empty.hidden = items.length > 0;
   const seenAt = getSeenAt("photos");
 
+  // 日付ごとにひとまとめにし、月が変わったところにも見出しを挟む
+  const dateGroups = [];
   let lastMonth = null;
   let lastDate = null;
-  const parts = [];
-  photos.forEach((p) => {
+  items.forEach((p) => {
     const d = new Date(p.createdAt || 0);
     const monthKey = `${d.getFullYear()}-${pad2(d.getMonth() + 1)}`;
     const dateKey = toDateKey(d);
-    if (monthKey !== lastMonth) {
-      parts.push(`<h3 class="agenda__title photo-month-header">${escapeHtml(monthLabelJa(monthKey))}</h3>`);
-      lastMonth = monthKey;
-      lastDate = null;
-    }
     if (dateKey !== lastDate) {
-      const label = dateKey === todayKey() ? "今日" : `${Number(dateKey.slice(5, 7))}月${Number(dateKey.slice(8, 10))}日(${dateKeyWeekday(dateKey)})`;
-      parts.push(`<div class="list-group-header">${escapeHtml(label)}</div>`);
+      dateGroups.push({ monthKey, dateKey, showMonthHeader: monthKey !== lastMonth, items: [] });
       lastDate = dateKey;
-      parts.push(`<div class="photo-grid"></div>`);
+      lastMonth = monthKey;
     }
+    dateGroups[dateGroups.length - 1].items.push(p);
   });
-  el.innerHTML = parts.join("");
 
-  // 日付ごとのグリッドへ、対応する写真のサムネイルを流し込む
-  const grids = el.querySelectorAll(".photo-grid");
-  let gridIndex = -1;
-  lastDate = null;
-  photos.forEach((p) => {
-    const dateKey = toDateKey(new Date(p.createdAt || 0));
-    if (dateKey !== lastDate) { gridIndex++; lastDate = dateKey; }
-    const grid = grids[gridIndex];
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "photo-thumb";
-    btn.dataset.id = p.id;
-    btn.innerHTML = `<img src="${p.dataUrl}" alt="">${newTagHtml(isNewItem(p, seenAt))}`;
-    grid.appendChild(btn);
-  });
+  el.innerHTML = dateGroups.map((group) => {
+    const dateLabel = group.dateKey === todayKey() ? "今日" : `${Number(group.dateKey.slice(5, 7))}月${Number(group.dateKey.slice(8, 10))}日(${dateKeyWeekday(group.dateKey)})`;
+    const images = group.items.filter(isImageAttachment);
+    const files = group.items.filter((p) => !isImageAttachment(p));
+    const monthHeaderHtml = group.showMonthHeader ? `<h3 class="agenda__title photo-month-header">${escapeHtml(monthLabelJa(group.monthKey))}</h3>` : "";
+    const gridHtml = images.length ? `<div class="photo-grid">${images.map((p) => `
+      <button type="button" class="photo-thumb" data-id="${p.id}">
+        <img src="${p.dataUrl}" alt="">${newTagHtml(isNewItem(p, seenAt))}
+      </button>`).join("")}</div>` : "";
+    const filesHtml = files.length ? `<div class="list file-list">${files.map((p) => `
+      <div class="card" data-id="${p.id}" data-action="open-file">
+        <div class="file-icon">${escapeHtml(fileExtLabel(p))}</div>
+        <div class="card__body">
+          <div class="card__title">${newTagHtml(isNewItem(p, seenAt))}${escapeHtml(p.fileName || "ファイル")}</div>
+          <div class="card__meta">${p.sizeBytes ? `<span class="badge">${formatBytes(p.sizeBytes)}</span>` : ""}</div>
+        </div>
+      </div>`).join("")}</div>` : "";
+    return `${monthHeaderHtml}<div class="list-group-header">${escapeHtml(dateLabel)}</div>${gridHtml}${filesHtml}`;
+  }).join("");
   markSeen("photos");
 
-  el.querySelectorAll(".photo-thumb").forEach((btn) => {
-    btn.addEventListener("click", () => openPhotoSheet(state.photos.find((x) => x.id === btn.dataset.id)));
+  el.querySelectorAll(".photo-thumb, [data-action=\"open-file\"]").forEach((node) => {
+    node.addEventListener("click", () => openAttachmentSheet(state.photos.find((x) => x.id === node.dataset.id)));
   });
 }
 
-function openPhotoSheet(photo) {
-  if (!photo) return;
-  const d = new Date(photo.createdAt || 0);
+function fileExtLabel(item) {
+  const fromName = (item.fileName || "").split(".").pop();
+  if (fromName && fromName.length <= 5) return fromName.toUpperCase();
+  return (item.fileType || "").split("/").pop()?.slice(0, 4).toUpperCase() || "FILE";
+}
+
+function openAttachmentSheet(item) {
+  if (!item) return;
+  const d = new Date(item.createdAt || 0);
   const label = `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日 ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+  const meta = `${escapeHtml(label)}${item.createdBy ? ` ・ ${escapeHtml(item.createdBy)}` : ""}`;
+  const previewHtml = isImageAttachment(item)
+    ? `<img class="photo-sheet__img" src="${item.dataUrl}" alt="">`
+    : `
+      <div class="file-preview">
+        <div class="file-icon file-icon--lg">${escapeHtml(fileExtLabel(item))}</div>
+        <div class="file-preview__body">
+          <div class="card__title">${escapeHtml(item.fileName || "ファイル")}</div>
+          <div class="card__meta">${item.sizeBytes ? `<span class="badge">${formatBytes(item.sizeBytes)}</span>` : ""}</div>
+        </div>
+      </div>
+      <a class="ghost-btn" href="${item.dataUrl}" download="${escapeHtml(item.fileName || "file")}" target="_blank" rel="noopener">開く・ダウンロード</a>
+    `;
   const html = `
-    <img class="photo-sheet__img" src="${photo.dataUrl}" alt="">
-    <p class="field__hint">${escapeHtml(label)}${photo.createdBy ? ` ・ ${escapeHtml(photo.createdBy)}` : ""}</p>
+    ${previewHtml}
+    <p class="field__hint">${meta}</p>
     <div class="field">
       <label for="p-memo">メモ（任意）</label>
-      <textarea id="p-memo" name="memo" maxlength="300" placeholder="気づいたことなど">${escapeHtml(photo.memo || "")}</textarea>
+      <textarea id="p-memo" name="memo" maxlength="300" placeholder="気づいたことなど">${escapeHtml(item.memo || "")}</textarea>
     </div>
   `;
-  openSheet("写真", html, {
+  openSheet(isImageAttachment(item) ? "写真" : "ファイル", html, {
     onSubmit: async (data) => {
-      await photoStore.update(photo.id, { memo: data.memo?.trim() || "" });
+      await photoStore.update(item.id, { memo: data.memo?.trim() || "" });
       toast("保存しました");
     },
-    onDelete: async () => { await photoStore.remove(photo.id); toast("削除しました"); },
+    onDelete: async () => { await photoStore.remove(item.id); toast("削除しました"); },
   });
 }
 
