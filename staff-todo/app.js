@@ -1,4 +1,4 @@
-import { mode as storeModeRef, ready as storeReady, staffStore, todoStore, eventStore, routineTaskStore, routineLogStore, groupStore } from "./store.js";
+import { mode as storeModeRef, ready as storeReady, staffStore, todoStore, eventStore, routineTaskStore, routineLogStore, groupStore, photoStore } from "./store.js";
 
 // ---------------- 共通ユーティリティ ----------------
 
@@ -80,6 +80,7 @@ const state = {
   routineTasks: [],
   routineLogs: [],
   groups: [],
+  photos: [],
   meId: localStorage.getItem(ME_KEY) || null,
   screen: "todo",
   todoFilter: "open",
@@ -218,6 +219,7 @@ function renderScreen(name) {
   if (name === "todo") renderTodoList();
   else if (name === "calendar") renderCalendar();
   else if (name === "routine") renderRoutineList();
+  else if (name === "photos") renderPhotoTimeline();
   else if (name === "settings") renderSettings();
 }
 
@@ -227,7 +229,8 @@ document.getElementById("fab").addEventListener("click", () => {
   if (state.screen === "todo") openTodoSheet();
   else if (state.screen === "calendar") openEventSheet(state.calSelected);
   else if (state.screen === "routine") openRoutineTaskSheet(state.routineCat);
-  else openStaffSheet();
+  else if (state.screen === "photos") document.getElementById("photoFileInput").click();
+  else if (state.screen === "settings") openStaffSheet();
 });
 
 // ================================================================
@@ -482,9 +485,34 @@ document.getElementById("calMonthLabel").addEventListener("click", () => {
   renderCalendar();
 });
 
+let calAnimating = false;
+const CAL_SLIDE_MS = 170;
+
 function shiftMonth(delta) {
-  state.calMonth = new Date(state.calMonth.getFullYear(), state.calMonth.getMonth() + delta, 1);
-  renderCalendar();
+  const grid = document.getElementById("calGrid");
+  const applyChange = () => {
+    state.calMonth = new Date(state.calMonth.getFullYear(), state.calMonth.getMonth() + delta, 1);
+    renderCalendar();
+  };
+  if (calAnimating || prefersReducedMotion()) {
+    applyChange();
+    return;
+  }
+  calAnimating = true;
+  // 次の月へは左へ、前の月へは右へ抜けていき、逆側から新しい月が入ってくる。
+  grid.classList.add(delta > 0 ? "is-sliding-out-left" : "is-sliding-out-right");
+  setTimeout(() => {
+    applyChange();
+    const freshGrid = document.getElementById("calGrid");
+    freshGrid.classList.remove("is-sliding-out-left", "is-sliding-out-right");
+    freshGrid.classList.add(delta > 0 ? "is-sliding-in-from-right" : "is-sliding-in-from-left");
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        freshGrid.classList.remove("is-sliding-in-from-right", "is-sliding-in-from-left");
+        calAnimating = false;
+      });
+    });
+  }, CAL_SLIDE_MS);
 }
 
 function eventsOn(dateKey) { return state.events.filter((e) => e.date === dateKey); }
@@ -875,6 +903,141 @@ function openRoutineTaskSheet(cat, existing) {
 }
 
 // ================================================================
+// 写真
+// ================================================================
+
+// 端末の保存容量を圧迫しないよう、長辺を縮小してJPEGに再エンコードしてから保存する。
+function compressImageToDataUrl(file) {
+  const MAX_DIM = 1280;
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(reader.error);
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = reject;
+      img.onload = () => {
+        let { width, height } = img;
+        if (width > MAX_DIM || height > MAX_DIM) {
+          if (width > height) { height = Math.round((height * MAX_DIM) / width); width = MAX_DIM; }
+          else { width = Math.round((width * MAX_DIM) / height); height = MAX_DIM; }
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL("image/jpeg", 0.72));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+async function addPhotoFromFile(file) {
+  if (!file || !file.type.startsWith("image/")) return;
+  try {
+    const dataUrl = await compressImageToDataUrl(file);
+    await photoStore.add({ dataUrl, memo: "", createdBy: meStaff()?.name || null });
+    toast("写真を追加しました");
+  } catch (e) {
+    console.error(e);
+    toast("写真を保存できませんでした。容量が足りない可能性があります。");
+  }
+}
+
+const photoFileInput = document.getElementById("photoFileInput");
+photoFileInput.addEventListener("change", () => {
+  const file = photoFileInput.files?.[0];
+  photoFileInput.value = "";
+  if (file) addPhotoFromFile(file);
+});
+
+// クリップボードに画像をコピーしていれば、写真画面上での貼り付け（Ctrl/Cmd+V）でも追加できる。
+document.addEventListener("paste", (e) => {
+  if (state.screen !== "photos") return;
+  const item = [...(e.clipboardData?.items || [])].find((it) => it.type.startsWith("image/"));
+  if (!item) return;
+  const file = item.getAsFile();
+  if (file) addPhotoFromFile(file);
+});
+
+function monthLabelJa(monthKey) {
+  const [y, m] = monthKey.split("-");
+  return `${y}年${Number(m)}月`;
+}
+
+function renderPhotoTimeline() {
+  const el = document.getElementById("photoTimeline");
+  const empty = document.getElementById("photoEmpty");
+  const photos = [...state.photos].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  empty.hidden = photos.length > 0;
+  const seenAt = getSeenAt("photos");
+
+  let lastMonth = null;
+  let lastDate = null;
+  const parts = [];
+  photos.forEach((p) => {
+    const d = new Date(p.createdAt || 0);
+    const monthKey = `${d.getFullYear()}-${pad2(d.getMonth() + 1)}`;
+    const dateKey = toDateKey(d);
+    if (monthKey !== lastMonth) {
+      parts.push(`<h3 class="agenda__title photo-month-header">${escapeHtml(monthLabelJa(monthKey))}</h3>`);
+      lastMonth = monthKey;
+      lastDate = null;
+    }
+    if (dateKey !== lastDate) {
+      const label = dateKey === todayKey() ? "今日" : `${Number(dateKey.slice(5, 7))}月${Number(dateKey.slice(8, 10))}日(${dateKeyWeekday(dateKey)})`;
+      parts.push(`<div class="list-group-header">${escapeHtml(label)}</div>`);
+      lastDate = dateKey;
+      parts.push(`<div class="photo-grid"></div>`);
+    }
+  });
+  el.innerHTML = parts.join("");
+
+  // 日付ごとのグリッドへ、対応する写真のサムネイルを流し込む
+  const grids = el.querySelectorAll(".photo-grid");
+  let gridIndex = -1;
+  lastDate = null;
+  photos.forEach((p) => {
+    const dateKey = toDateKey(new Date(p.createdAt || 0));
+    if (dateKey !== lastDate) { gridIndex++; lastDate = dateKey; }
+    const grid = grids[gridIndex];
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "photo-thumb";
+    btn.dataset.id = p.id;
+    btn.innerHTML = `<img src="${p.dataUrl}" alt="">${newTagHtml(isNewItem(p, seenAt))}`;
+    grid.appendChild(btn);
+  });
+  markSeen("photos");
+
+  el.querySelectorAll(".photo-thumb").forEach((btn) => {
+    btn.addEventListener("click", () => openPhotoSheet(state.photos.find((x) => x.id === btn.dataset.id)));
+  });
+}
+
+function openPhotoSheet(photo) {
+  if (!photo) return;
+  const d = new Date(photo.createdAt || 0);
+  const label = `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日 ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+  const html = `
+    <img class="photo-sheet__img" src="${photo.dataUrl}" alt="">
+    <p class="field__hint">${escapeHtml(label)}${photo.createdBy ? ` ・ ${escapeHtml(photo.createdBy)}` : ""}</p>
+    <div class="field">
+      <label for="p-memo">メモ（任意）</label>
+      <textarea id="p-memo" name="memo" maxlength="300" placeholder="気づいたことなど">${escapeHtml(photo.memo || "")}</textarea>
+    </div>
+  `;
+  openSheet("写真", html, {
+    onSubmit: async (data) => {
+      await photoStore.update(photo.id, { memo: data.memo?.trim() || "" });
+      toast("保存しました");
+    },
+    onDelete: async () => { await photoStore.remove(photo.id); toast("削除しました"); },
+  });
+}
+
+// ================================================================
 // 設定
 // ================================================================
 
@@ -1184,6 +1347,10 @@ async function main() {
       localStorage.setItem(GROUPS_SEEDED_KEY, "1");
       DEFAULT_GROUPS.forEach((name, i) => groupStore.add({ name, order: i }));
     }
+  });
+  photoStore.subscribe((list) => {
+    state.photos = list;
+    if (state.screen === "photos") renderPhotoTimeline();
   });
 
   renderScreen(state.screen);

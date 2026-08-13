@@ -110,6 +110,17 @@
     <p class="empty" id="routineEmpty" hidden>このカテゴリのタスクはまだありません。右下の＋から追加できます。</p>
   </section>
 
+  <!-- 写真 -->
+  <section class="screen" id="screen-photos" aria-labelledby="photosHeading" hidden>
+    <div class="pagehead">
+      <h2 id="photosHeading" class="pagehead__title">写真</h2>
+      <p class="pagehead__note">右下の＋から貼り付け・アップロードできます。日付・月ごとにまとまります。</p>
+    </div>
+    <input type="file" id="photoFileInput" accept="image/*" hidden>
+    <div id="photoTimeline"></div>
+    <p class="empty" id="photoEmpty" hidden>まだ写真はありません。右下の＋から追加できます。</p>
+  </section>
+
   <!-- 設定 -->
   <section class="screen" id="screen-settings" aria-labelledby="settingsHeading" hidden>
     <div class="pagehead">
@@ -177,6 +188,10 @@
   <button class="tab" type="button" data-screen="routine">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6h14M5 12h14M5 18h9"/><circle cx="19" cy="18" r="2"/></svg>
     <span>定型タスク</span>
+  </button>
+  <button class="tab" type="button" data-screen="photos">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M21 15l-5-5-4 4-3-3-6 6"/></svg>
+    <span>写真</span>
   </button>
   <button class="tab" type="button" data-screen="settings">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10m4 0h2M4 12h3m4 0h9M4 17h8m4 0h4"/><circle cx="16" cy="7" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="14" cy="17" r="2"/></svg>
