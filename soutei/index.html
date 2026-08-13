@@ -35,7 +35,8 @@
     --wc-soft: #FBE9E6;
     --furikae: #5F8A28;    /* 黄緑　振替利用 */
     --furikae-soft: #EDF3E3;
-    --shinki: #D2731A;     /* 橙　　新規・増回 */
+    --shinki: #D2731A;     /* 橙　　新規・増回・変更 */
+    --shinki-soft: #FAEEE0;
 
     --accent: var(--ai);
     --accent-soft: var(--ai-soft);
@@ -72,6 +73,7 @@
       --furikae: #A9CC72;
       --furikae-soft: #232D1B;
       --shinki: #E5A063;
+      --shinki-soft: #2E241A;
     }
   }
 
@@ -100,6 +102,7 @@
     --furikae: #A9CC72;
     --furikae-soft: #232D1B;
     --shinki: #E5A063;
+    --shinki-soft: #2E241A;
   }
 
   :root[data-theme="light"] {
@@ -127,6 +130,7 @@
     --furikae: #5F8A28;
     --furikae-soft: #EDF3E3;
     --shinki: #D2731A;
+    --shinki-soft: #FAEEE0;
   }
 
   /* ── ベース ───────────────────────────────── */
@@ -577,6 +581,73 @@
     border: 1px solid var(--rule-2);
     border-radius: 0;
     cursor: pointer;
+  }
+
+  /* ── 折りたたみ ────────────────────────────
+     説明文と担当表は、慣れたら畳んでおける。開いた／閉じたは覚える */
+  .fold {
+    margin-top: calc(var(--step) * 4);
+    border: 1px solid var(--rule);
+    border-radius: 9px;
+    background: var(--card);
+    overflow: hidden;
+  }
+
+  .fold > summary {
+    display: flex;
+    align-items: baseline;
+    gap: calc(var(--step) * 3);
+    flex-wrap: wrap;
+    padding: 9px 14px 9px 32px;
+    position: relative;
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+  }
+
+  .fold > summary::-webkit-details-marker { display: none; }
+
+  /* 開き具合を示す三角。畳んであることが分かるように必ず出す */
+  .fold > summary::before {
+    content: "▸";
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--ink-3);
+    font-size: 11px;
+    transition: transform .15s;
+  }
+
+  .fold[open] > summary::before { transform: translateY(-50%) rotate(90deg); }
+  .fold > summary:hover { background: var(--sub); }
+  .fd-title { font-size: 13px; font-weight: 600; letter-spacing: .06em; color: var(--ink); }
+  .fd-note { font-size: 11px; color: var(--ink-3); }
+
+  .fold-body {
+    padding: 0 14px 12px;
+    border-top: 1px solid var(--rule);
+    animation: fold-in .16s ease-out;
+  }
+
+  @keyframes fold-in {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  .fold .legend { margin-top: calc(var(--step) * 3); border: 0; padding: 0; }
+
+  /* 印刷レイアウトの説明文。見出しの下に細く置く */
+  .fold.is-lead { margin-top: calc(var(--step) * 2); background: transparent; border-color: var(--rule-2); }
+  .fold.is-lead .fold-body { padding-bottom: 10px; }
+  .fold.is-lead .pp-lead { margin: 10px 0 0; }
+
+  /* 送迎表の下端に置く担当表 */
+  .pp-roles.is-inline { margin-top: calc(var(--step) * 3); padding: 0; border: 0; background: none; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .fold-body { animation: none; }
+    .fold > summary::before { transition: none; }
   }
 
   /* ── 未割当のサイドバー ────────────────────
@@ -1554,6 +1625,14 @@
   .stop.st-furikae .ord { border-color: var(--furikae); background: var(--furikae); color: var(--card); }
   .stop.st-shinki .ord { border-color: var(--shinki); background: var(--shinki); color: var(--card); }
 
+  /* 振替・新規は番号だけでなく行そのものに色を敷く。
+     欠席の赤い取り消し線と違って、離れて見ると番号の色は目に入りにくいため */
+  .stop.st-furikae { background: var(--furikae-soft); box-shadow: inset 3px 0 0 var(--furikae); }
+  .stop.st-shinki  { background: var(--shinki-soft);  box-shadow: inset 3px 0 0 var(--shinki); }
+  .stop.st-furikae .who { color: var(--furikae); font-weight: 600; }
+  .stop.st-shinki  .who { color: var(--shinki);  font-weight: 600; }
+  .stop.st-furikae .t, .stop.st-shinki .t { font-weight: 600; }
+
   /* 欠席：予定時刻は消し、赤線で立ち寄らないことを示す */
   .stop.st-absent .who,
   .stop.st-absent .area { color: var(--ink-3); }
@@ -2301,6 +2380,9 @@
     min-width: 0;
     display: flex;
     align-items: center;
+    /* 行が詰まると字の箱が罫に触れて、上下の名前が重なって見える。
+       行送りを字の高さちょうどに寝かせて、上下に逃げを作る */
+    line-height: 1;
     padding: 0 1.1mm;
     border-right: .5pt solid #8B9199;
     overflow: hidden;
@@ -2384,6 +2466,9 @@
   }
 
   .ns-name { font-size: var(--ns-name-size, 9.5pt); letter-spacing: .02em; white-space: nowrap; }
+
+  /* 「佐々木 とみ子」のように長い氏名は、字を少し落として桝に収める */
+  .ns-name.is-long { font-size: calc(var(--ns-name-size, 9.5pt) * 0.86); letter-spacing: -.01em; }
   .ns-slash { justify-content: center; color: #9AA1A9; font-size: 9pt; }
   .ns-bp { font-size: var(--ns-note-size, 7.5pt); color: #000; white-space: nowrap; }
   .ns-bp.is-shunt { color: #C4172A; font-weight: 700; }
@@ -3492,6 +3577,8 @@
       --furikae: #3C5C15;
       --furikae-soft: #E7EEDC;
       --shinki: #8E480C;
+      --shinki-soft: #F6E7D6;
+      --shinki-soft: #F6E7D6;
     }
 
     /* 下地の色を落とさずに刷る。カードの色分けはここが要 */
@@ -3506,7 +3593,7 @@
        紙の上では通常のブロックに戻して便ごとの改ページを確実にする */
     .sheet { display: block; max-width: none; padding: 0; gap: 0; }
 
-    .controls, .modal, .saved-note, .date-step, .toast,
+    .controls, .modal, .saved-note, .date-step, .toast, .fold,
     .page-master, .page-print, .page-attend, .side { display: none !important; }
 
     .work { display: block; }
@@ -3884,6 +3971,23 @@
   <option value="自己都合"></option>
 </datalist>
 
+  <!-- 電話連絡表の担当表。刷る前でなく、ここでも直せるようにしておく -->
+  <details class="fold" id="fold-roles">
+    <summary><span class="fd-title">担当表</span><span class="fd-note">電話連絡表に出る職員名。曜日ごとに覚えます</span></summary>
+    <div class="fold-body">
+      <div class="pp-roles is-inline">
+        <div class="ppr-head">
+          <span class="ppr-day" data-role-day></span>
+          <span class="ppr-note">ここで入れた名前がそのまま電話連絡表に出ます。</span>
+        </div>
+        <div class="ppr-grid" data-role-grid></div>
+      </div>
+    </div>
+  </details>
+
+  <details class="fold" id="fold-legend">
+    <summary><span class="fd-title">この画面の使い方</span><span class="fd-note">記号の意味と操作のまとめ</span></summary>
+    <div class="fold-body">
   <div class="legend">
     <span class="item"><span class="swatch s-wc" data-icon="wc"></span>車椅子（リフト・スロープ使用）</span>
     <span class="item"><span class="swatch s-aid" data-icon="aid"></span>歩行器・車椅子持参もしくは貸出</span>
@@ -3900,6 +4004,8 @@
     <span class="item">※印は自動で入った時刻を手で書き換えた欄です。住所はマスタからの自動表示で、当日の変更は「備考」に書いてください。</span>
     <span class="item">利用者名・運転手のプルダウンは<b>右クリックで空欄</b>に戻せます。運転手は他の車で選ぶとそちらへ移ります。</span>
   </div>
+    </div>
+  </details>
 </div>
 
 <!-- ── 利用者の追加・終了・削除 ───────────── -->
@@ -3960,7 +4066,10 @@
     <div class="pp-lede">
       <p class="eyebrow office-name-echo"></p>
       <h1>印刷レイアウト<span class="pp-count" id="pp-count"></span></h1>
-      <p class="pp-lead" id="pp-lead"></p>
+      <details class="fold is-lead" id="fold-lead" open>
+        <summary><span class="fd-title">この紙について</span></summary>
+        <div class="fold-body"><p class="pp-lead" id="pp-lead"></p></div>
+      </details>
     </div>
     <div class="pp-docs" role="tablist" aria-label="刷るもの">
       <button type="button" role="tab" id="ppdoc-soutei" aria-selected="true">
@@ -3982,10 +4091,10 @@
   <div class="pp-roles" id="pp-roles" hidden>
     <div class="ppr-head">
       <span class="ppr-title">担当表</span>
-      <span class="ppr-day" id="ppr-day"></span>
+      <span class="ppr-day" data-role-day></span>
       <span class="ppr-note">ここで入れた名前がそのまま紙に出ます。曜日ごとに覚えます。</span>
     </div>
-    <div class="ppr-grid" id="ppr-grid"></div>
+    <div class="ppr-grid" data-role-grid></div>
   </div>
   <div class="pp-stage" id="pp-stage"></div>
 </div>
@@ -4173,12 +4282,14 @@
      利用者が入っていない行は、これから入れる枠として 振替 → 新規 だけを回す。 */
   /* 業務日誌の状態欄（I列・S列）と同じ語をそのまま使う。
      日誌のプルダウン：体調・受診・都合・入院・SS・新規・増回・再開・振替 */
-  const STATUS_CODES = ["体調", "受診", "都合", "入院", "SS", "新規", "増回", "再開", "振替"];
+  const STATUS_CODES = ["体調", "受診", "都合", "入院", "SS", "新規", "増回", "再開", "変更", "振替"];
 
   /* 送迎表の行の状態への割り当て */
   const CODE_TO_STATE = {
     "": "", "体調": "absent", "受診": "absent", "都合": "absent", "入院": "absent", "SS": "absent",
-    "振替": "furikae", "新規": "shinki", "増回": "shinki", "再開": "shinki"
+    "振替": "furikae", "新規": "shinki", "増回": "shinki", "再開": "shinki",
+    /* 曜日を変えて来た方。新規と同じ橙で示す */
+    "変更": "shinki"
   };
 
   /* ── 振替の受付 ────────────────────────────
@@ -6489,6 +6600,7 @@
     pushHistory(snapshot);
     updateDateOptions();
     updateSavedNote();
+    drawRoleEditor();   /* 下端の担当表は、その日の曜日の面を出す */
   }
 
   function openDay(date) {
@@ -7954,7 +8066,7 @@
       if (picked) picked.setAttribute("selected", "");
     });
 
-    sheet.querySelectorAll(".controls, .saved-note, .date-step, .side").forEach((n) => n.remove());
+    sheet.querySelectorAll(".controls, .saved-note, .date-step, .side, .fold").forEach((n) => n.remove());
     sheet.querySelectorAll(".leg").forEach((n) => n.removeAttribute("hidden"));
 
     const pages = [...sheet.querySelectorAll(".leg")].map((leg) => {
@@ -8229,8 +8341,9 @@
     if (st === "absent") code = (why && why.value) || "都合";
     else if (st === "furikae") code = "振替";
     else if (st === "shinki") {
+      /* 新規・増回・再開・変更は同じ橙。すでに選んである語はそのまま残す */
       const now = ATTEND[leg.part][id];
-      code = (now === "増回" || now === "再開") ? now : "新規";
+      code = CODE_TO_STATE[now] === "shinki" ? now : "新規";
     }
 
     if (code) ATTEND[leg.part][id] = code;
@@ -8404,7 +8517,10 @@
     if (codeState(code) === "absent") row.classList.add("is-away");
 
     row.append(nisshiCell("ns-no", no ? String(no) : ""));
-    row.append(nisshiCell("ns-name", u ? u.name : ""));
+    const nameCell = nisshiCell("ns-name", u ? u.name : "");
+    /* 長い氏名は桝からはみ出して切れるので、その1件だけ字を落とす */
+    if (u && u.name.replace(/\s/g, "").length >= 7) nameCell.classList.add("is-long");
+    row.append(nameCell);
 
     if (kind === "temp") {
       row.append(nisshiCell("ns-temp-cell", ""));
@@ -8451,10 +8567,11 @@
 
   /* 行が増えたぶんだけ字を落として、1枚に収めたまま読めるようにする */
   function nisshiScale(rows) {
-    if (rows > 54) return { name: "6.6pt", head: "6.2pt", note: "5.8pt" };
-    if (rows > 46) return { name: "7.6pt", head: "7pt", note: "6.4pt" };
+    if (rows > 60) return { name: "6.2pt", head: "5.8pt", note: "5.5pt" };
+    if (rows > 54) return { name: "6.9pt", head: "6.2pt", note: "5.8pt" };
+    if (rows > 46) return { name: "7.8pt", head: "7pt", note: "6.4pt" };
     if (rows > 40) return { name: "8.6pt", head: "7.5pt", note: "7pt" };
-    return { name: "9.5pt", head: "8pt", note: "7.5pt" };
+    return { name: "9.2pt", head: "8pt", note: "7.5pt" };
   }
 
   /* 午前・午後それぞれの一面 */
@@ -8820,30 +8937,38 @@
   /* 担当表の書き換え。曜日ごとに持つので、その日の曜日の面を出す */
   function drawRoleEditor() {
     const day = weekdayOf(currentDate);
-    document.getElementById("ppr-day").textContent =
-      day ? "【" + day + "】" + titleDate(currentDate) : "この日は利用曜日の対象外です";
+    const label = day ? "【" + day + "】" + titleDate(currentDate) : "この日は利用曜日の対象外です";
+    document.querySelectorAll("[data-role-day]").forEach((n) => { n.textContent = label; });
 
-    const grid = document.getElementById("ppr-grid");
-    grid.innerHTML = "";
-    if (!day) return;
+    /* 送迎表の下端と印刷レイアウトの2か所に出る。どちらで直しても同じところに入る */
+    document.querySelectorAll("[data-role-grid]").forEach((grid) => {
+      grid.innerHTML = "";
+      if (!day) return;
 
-    grid.append(el("span", "ppr-h", ""));
-    ROLE_NAMES.forEach((r) => grid.append(el("span", "ppr-h", r)));
+      grid.append(el("span", "ppr-h", ""));
+      ROLE_NAMES.forEach((r) => grid.append(el("span", "ppr-h", r)));
 
-    ["AM", "PM"].forEach((part, i) => {
-      grid.append(el("span", "ppr-p", part));
-      ROLE_NAMES.forEach((role) => {
-        const input = document.createElement("input");
-        input.type = "text";
-        input.value = ROLES[day][role][i];
-        input.placeholder = "職員名";
-        input.setAttribute("aria-label", day + "曜日 " + part + " " + role);
-        input.addEventListener("input", () => {
-          ROLES[day][role][i] = input.value;
-          STORE.setJSON("roles", ROLES);
-          queueRolePreview();
+      ["AM", "PM"].forEach((part, i) => {
+        grid.append(el("span", "ppr-p", part));
+        ROLE_NAMES.forEach((role) => {
+          const input = document.createElement("input");
+          input.type = "text";
+          input.value = ROLES[day][role][i];
+          input.placeholder = "職員名";
+          input.setAttribute("aria-label", day + "曜日 " + part + " " + role);
+          input.addEventListener("input", () => {
+            ROLES[day][role][i] = input.value;
+            STORE.setJSON("roles", ROLES);
+            /* もう一方の面にも同じ値を映す */
+            document.querySelectorAll("[data-role-grid]").forEach((other) => {
+              if (other === grid) return;
+              const twin = other.querySelectorAll("input")[ROLE_NAMES.length * i + ROLE_NAMES.indexOf(role)];
+              if (twin && twin.value !== input.value) twin.value = input.value;
+            });
+            queueRolePreview();
+          });
+          grid.append(input);
         });
-        grid.append(input);
       });
     });
   }
@@ -9326,6 +9451,20 @@
   document.querySelector("#btn-dispatch .bd-van").innerHTML = ICONS.van;
   document.querySelector("#btn-dispatch .bd-auto").innerHTML = ICONS.auto;
   document.getElementById("btn-attend").addEventListener("click", openAttendPage);
+
+  /* 折りたたみの開閉を覚える。毎朝たたみ直さなくてよいように */
+  (function () {
+    const KEY = "folds";
+    const saved = STORE.getJSON(KEY) || {};
+    document.querySelectorAll("details.fold").forEach((d) => {
+      if (Object.prototype.hasOwnProperty.call(saved, d.id)) d.open = !!saved[d.id];
+      d.addEventListener("toggle", () => {
+        const now = STORE.getJSON(KEY) || {};
+        now[d.id] = d.open;
+        STORE.setJSON(KEY, now);
+      });
+    });
+  })();
 
   /* ── 右上のメニュー ────────────────────────
      押しても、カーソルを合わせても開く。選べば閉じる */
