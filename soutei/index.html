@@ -4088,14 +4088,6 @@
       <button type="button" class="btn primary" id="print-go">印刷</button>
     </div>
   </header>
-  <div class="pp-roles" id="pp-roles" hidden>
-    <div class="ppr-head">
-      <span class="ppr-title">担当表</span>
-      <span class="ppr-day" data-role-day></span>
-      <span class="ppr-note">ここで入れた名前がそのまま紙に出ます。曜日ごとに覚えます。</span>
-    </div>
-    <div class="ppr-grid" data-role-grid></div>
-  </div>
   <div class="pp-stage" id="pp-stage"></div>
 </div>
 
@@ -8633,7 +8625,7 @@
     };
 
     line([{ lead: "勤務者" }, { text: "生活相談員：" }, {}, { text: "看護師：" }, {}]);
-    line([{ text: "看護師：" }, {}, { text: "機能訓練指導員　個別イ：" }, {}, { text: "個別ロ：" }, {}]);
+    line([{ text: "機能訓練指導員　個別イ：" }, {}, { text: "個別ロ：" }, {}]);
     line([{ text: "介護職員：" }, {}]);
 
     const final = el("div", "ns-final");
@@ -8915,8 +8907,7 @@
     });
     stage.append(frame);
 
-    /* 担当表は電話連絡表のときだけ出す */
-    document.getElementById("pp-roles").hidden = printDoc !== "denwa";
+    /* 担当表の記入欄は送迎表の下端にある。ここでは中身だけ引き直す */
     if (printDoc === "denwa") drawRoleEditor();
 
     const n = doc.pages();
