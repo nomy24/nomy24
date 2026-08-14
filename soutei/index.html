@@ -572,16 +572,66 @@
     color: var(--ink-3);
   }
 
+  /* 出勤人数。4つしかないので開かずに押せる形にし、
+     選ばれている版がひと目で分かるようにする。
+     もとのプルダウンは値の置き場として残すが、画面には出さない */
   .crew select {
-    font: inherit;
-    font-size: 13px;
-    padding: 6px 10px;
-    color: var(--ink);
-    background: var(--card);
-    border: 1px solid var(--rule-2);
-    border-radius: 0;
-    cursor: pointer;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    border: 0;
+    opacity: 0;
+    pointer-events: none;
   }
+
+  .crew-pick {
+    display: flex;
+    align-items: stretch;
+    gap: calc(var(--step) * 2);
+    padding: 3px 4px 3px 10px;
+    border: 1px solid var(--rule-2);
+    border-radius: 8px;
+    background: var(--card);
+  }
+
+  .cp-label {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    line-height: 1.1;
+    font-size: 11px;
+    letter-spacing: .08em;
+    color: var(--ink-2);
+    white-space: nowrap;
+  }
+
+  .cp-label small { font-size: 9px; color: var(--ink-3); letter-spacing: .04em; }
+
+  .cp-btns { display: flex; gap: 2px; align-items: center; }
+
+  .tools .cp-btns button {
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    min-width: 32px;
+    padding: 5px 0;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--ink-2);
+  }
+
+  .tools .cp-btns button:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+
+  .tools .cp-btns button[aria-checked="true"] {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--card);
+  }
+
+  .crew-pick:focus-within { border-color: var(--accent); }
 
   /* ── 折りたたみ ────────────────────────────
      説明文と担当表は、慣れたら畳んでおける。開いた／閉じたは覚える */
@@ -1856,6 +1906,8 @@
 
   .toast[hidden] { display: none; }
   .toast.warn { background: var(--warn); color: #fff; }
+  .toast.how { background: var(--accent); color: #fff; font-size: 14px; }
+  .toast.how b { font-weight: 700; }
 
   /* ── マスタ編集 ───────────────────────────── */
   .modal[hidden] { display: none; }
@@ -3370,6 +3422,11 @@
   .sw-quick button:hover { border-color: var(--furikae); background: var(--furikae-soft); color: var(--furikae); }
   .sw-quick button[aria-pressed="true"] { border-color: var(--furikae); background: var(--furikae); color: var(--card); font-weight: 600; }
 
+  /* 「分からない」は日付ではないので、少し離して置く */
+  .sw-quick .is-none { margin-left: auto; color: var(--ink-3); }
+  .sw-quick .is-none:hover { border-color: var(--ink-3); background: var(--sub); color: var(--ink-2); }
+  .sw-quick .is-none[aria-pressed="true"] { border-color: var(--ink-2); background: var(--ink-2); color: var(--card); }
+
   /* 何が紙に出るのかを、決める前に見せる */
   .sw-preview {
     display: flex;
@@ -3961,7 +4018,17 @@
     <div class="legs" role="tablist" aria-label="便の切替"></div>
     <div class="tools">
       <span class="crew">
-        <select id="crew-size" aria-label="出勤人数の版">
+        <!-- 4つしかない選び方なので、開かずにそのまま押せる形にする -->
+        <span class="crew-pick" role="radiogroup" aria-label="出勤人数の版">
+          <span class="cp-label">出勤<small>人数</small></span>
+          <span class="cp-btns">
+            <button type="button" data-size="5" role="radio" aria-checked="false">5</button>
+            <button type="button" data-size="6" role="radio" aria-checked="false">6</button>
+            <button type="button" data-size="7" role="radio" aria-checked="false">7</button>
+            <button type="button" data-size="8" role="radio" aria-checked="true">8</button>
+          </span>
+        </span>
+        <select id="crew-size" aria-label="出勤人数の版" tabindex="-1">
           <option value="5">5人版</option>
           <option value="6">6人版</option>
           <option value="7">7人版</option>
@@ -4192,7 +4259,7 @@
     </div>
     <div class="pp-actions">
       <button type="button" class="btn" id="print-back" title="Esc キーでも戻れます">送迎表へ戻る<small class="btn-key">Esc</small></button>
-      <button type="button" class="btn" id="print-save">ファイルに保存</button>
+      <button type="button" class="btn" id="print-save">PDFで保存<small class="btn-key">印刷から</small></button>
       <button type="button" class="btn primary" id="print-go">印刷</button>
     </div>
   </header>
@@ -5075,11 +5142,14 @@
   /* 埋め込み先によっては alert/confirm が抑制されるので、画面内で知らせる */
   function notify(message, kind) {
     const box = document.getElementById("toast");
-    box.textContent = message;
+    /* 手順の案内だけは太字を使い、読む時間も長めに取る */
+    if (kind === "how") box.innerHTML = message;
+    else box.textContent = message;
     box.classList.toggle("warn", kind === "warn");
+    box.classList.toggle("how", kind === "how");
     box.hidden = false;
     if (toastTimer) clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => { box.hidden = true; }, 4200);
+    toastTimer = setTimeout(() => { box.hidden = true; }, kind === "how" ? 9000 : 4200);
   }
 
   const el = (tag, cls, text) => {
@@ -6847,6 +6917,22 @@
   function retimeAll(section, leg) {
     section.querySelectorAll(".car").forEach((car, i) => retimeCar(car, leg, i));
   }
+
+  /* 出勤人数の選び方。押した版をもとのプルダウンへ写す。
+     ほかの処理は今までどおりプルダウンの値だけを見ればよい */
+  (function () {
+    const sel = document.getElementById("crew-size");
+    const btns = [...document.querySelectorAll(".cp-btns button")];
+    const mark = () => btns.forEach((b) => b.setAttribute("aria-checked", String(b.dataset.size === sel.value)));
+    btns.forEach((b) => b.addEventListener("click", () => {
+      if (sel.value === b.dataset.size) return;
+      sel.value = b.dataset.size;
+      sel.dispatchEvent(new Event("change", { bubbles: true }));
+      mark();
+    }));
+    sel.addEventListener("change", mark);
+    mark();
+  })();
 
   document.getElementById("btn-dispatch").addEventListener("click", () => {
     const size = document.getElementById("crew-size").value;
@@ -9116,15 +9202,30 @@
   document.getElementById("btn-print").addEventListener("click", () => openPrintPage("soutei"));
   document.getElementById("btn-nisshi").addEventListener("click", () => openPrintPage("nisshi"));
   document.getElementById("print-back").addEventListener("click", closePrintPage);
-  document.getElementById("print-save").addEventListener("click", () => {
+  /* ── PDF で保存 ────────────────────────────
+     PDF そのものを作る道具は入れていない。外から取り込む部品が要るうえ、
+     日本語の字を埋め込むと1つで数MBになり、電波の無いところで開けなくなる。
+     代わりに、ブラウザの印刷の「送信先」で PDF を選んでもらう。
+     出来上がる PDF は印刷とまったく同じ組み方になる。 */
+  document.getElementById("print-save").addEventListener("click", () => askBeforePrint(() => {
+    const doc = DOCS[printDoc];
+    const how = "印刷の画面が出たら、<b>送信先（プリンター）で「PDFに保存」</b>を選んでください（"
+      + doc.sheets() + "）。";
+
+    if (openPrintView()) { notify(how, "how"); return; }
+    if (printPreviewFrame()) { notify(how, "how"); return; }
+
+    /* 印刷の画面を開けない場所（枠の中など）では、いったんファイルに落として
+       そちらから印刷してもらう。開けば同じ紙になる */
     if (hostSave()) { saveViaHost(); return; }
     if (downloadPrintView()) {
-      notify("印刷用のファイルを保存しました。開いて印刷すると" + DOCS[printDoc].sheets() + "で出ます。");
+      notify("この画面からは印刷を開けなかったので、印刷用のファイルを保存しました。"
+        + "開いて印刷し、送信先で「PDFに保存」を選ぶと" + doc.sheets() + "の PDF になります。", "warn");
       return;
     }
-    notify("この環境ではファイルに保存できませんでした。"
-      + "送迎表を別のタブ（別ウィンドウ）で開いてから印刷してください。", "warn");
-  });
+    notify("この環境では保存できませんでした。"
+      + "送迎表を別のタブ（別ウィンドウ）で開いてから、印刷 → PDFに保存 をお使いください。", "warn");
+  }));
 
   /* 刷る前に、乗る車が決まっていない方がいないか見る。
      欠席の方は乗らなくてよいので数えない（車から降ろすと未割当になるため、
@@ -9649,27 +9750,33 @@
           field.querySelector(".sw-label").setAttribute("for", "sw-date");
           field.append(dayEl);
 
-          /* よく使う日はそのまま押せるようにする。数字を打ち込む手間を省く */
+          /* その週の月〜土をそのまま押せるようにする。振替はたいてい同じ週の中で
+             動かすので、数字を打ち込まずに選べる。当日は振替元にならないので出さない */
           const quick = el("div", "sw-quick");
-          const picks = [
-            { label: "先週の同じ曜日", days: -7 },
-            { label: "先々週", days: -14 },
-            { label: "昨日", days: -1 },
-            { label: "分からない", days: null }
-          ];
-          const shift = (n) => {
-            const d = new Date(currentDate + "T00:00:00");
-            d.setDate(d.getDate() + n);
-            return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0")
-              + "-" + String(d.getDate()).padStart(2, "0");
-          };
-          picks.forEach((q) => {
-            const b = el("button", null, q.label);
+          const iso = (d) => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0")
+            + "-" + String(d.getDate()).padStart(2, "0");
+          const base = new Date(currentDate + "T00:00:00");
+          /* 日曜始まりの週なので、月曜まで戻してから6日ぶん並べる */
+          const monday = new Date(base);
+          monday.setDate(base.getDate() - ((base.getDay() + 6) % 7));
+
+          for (let i = 0; i < 6; i++) {
+            const d = new Date(monday);
+            d.setDate(monday.getDate() + i);
+            const v = iso(d);
+            if (v === currentDate) continue;   /* 当日ぶんの振替は無い */
+            const b = el("button", null, WEEKDAYS[i] + " " + d.getDate() + "日");
             b.type = "button";
-            b.dataset.val = q.days === null ? "" : shift(q.days);
-            b.addEventListener("click", () => { dayEl.value = b.dataset.val; sync(); });
+            b.dataset.val = v;
+            b.addEventListener("click", () => { dayEl.value = v; sync(); });
             quick.append(b);
-          });
+          }
+
+          const none = el("button", "is-none", "分からない");
+          none.type = "button";
+          none.dataset.val = "";
+          none.addEventListener("click", () => { dayEl.value = ""; sync(); });
+          quick.append(none);
           field.append(quick);
           form.append(field);
 
