@@ -443,7 +443,7 @@ function openTodoSheet(existing) {
       } else {
         await todoStore.add({ ...payload, done: false, createdBy: meStaff()?.name || null });
       }
-      toast("保存しました");
+      toast(existing ? "保存しました" : "Todoを追加しました");
     },
     onDelete: existing ? async () => { await todoStore.remove(existing.id); toast("削除しました"); } : null,
   });
@@ -732,7 +732,7 @@ function openEventSheet(dateKey, existing) {
       if (existing) await eventStore.update(existing.id, payload);
       else await eventStore.add({ ...payload, createdBy: meStaff()?.name || null });
       state.calSelected = payload.date;
-      toast("保存しました");
+      toast(existing ? "保存しました" : "予定を追加しました");
     },
     onDelete: existing ? async () => { await eventStore.remove(existing.id); toast("削除しました"); } : null,
   });
@@ -896,7 +896,7 @@ function openRoutineTaskSheet(cat, existing) {
         b.classList.toggle("is-active", active);
         b.setAttribute("aria-selected", String(active));
       });
-      toast("保存しました");
+      toast(existing ? "保存しました" : "定型タスクを追加しました");
     },
     onDelete: existing ? async () => { await routineTaskStore.remove(existing.id); toast("削除しました"); } : null,
   });
@@ -1213,7 +1213,7 @@ function openMemoSheet(existing) {
       if (!payload.content) return;
       if (existing) await phoneMemoStore.update(existing.id, payload);
       else await phoneMemoStore.add({ ...payload, createdBy: meStaff()?.name || null });
-      toast("保存しました");
+      toast(existing ? "保存しました" : "電話メモを追加しました");
     },
     onDelete: existing ? async () => { await phoneMemoStore.remove(existing.id); toast("削除しました"); } : null,
   });
@@ -1305,7 +1305,7 @@ function openStaffSheet(existing) {
         const id = await staffStore.add({ ...payload, order: Date.now() });
         if (!state.meId) { state.meId = id; localStorage.setItem(ME_KEY, id); }
       }
-      toast("保存しました");
+      toast(existing ? "保存しました" : "職員を追加しました");
     },
     onDelete: existing ? async () => {
       await staffStore.remove(existing.id);
@@ -1366,7 +1366,7 @@ function openGroupSheet(existing) {
       if (!payload.name) return;
       if (existing) await groupStore.update(existing.id, payload);
       else await groupStore.add({ ...payload, order: Date.now() });
-      toast("保存しました");
+      toast(existing ? "保存しました" : "グループを追加しました");
     },
     onDelete: existing ? async () => {
       await groupStore.remove(existing.id);
