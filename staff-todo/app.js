@@ -1103,6 +1103,14 @@ function openAttachmentSheet(item) {
 const MEMO_STATUSES = ["未対応", "対応中", "完了"];
 const MEMO_STATUS_BADGE = { 未対応: "badge--danger", 対応中: "badge--warning", 完了: "" };
 
+// タブのアイコンに、未対応・対応中（＝まだ完了していない）件数を数字で重ねて表示する。
+function updateMemoTabBadge() {
+  const badge = document.getElementById("memoTabBadge");
+  const count = state.phoneMemos.filter((m) => m.status !== "完了").length;
+  badge.hidden = count === 0;
+  badge.textContent = count > 99 ? "99+" : String(count);
+}
+
 document.getElementById("memoFilters").addEventListener("click", (e) => {
   const btn = e.target.closest("[data-memo-filter]");
   if (!btn) return;
@@ -1165,6 +1173,10 @@ function renderMemoList() {
 
 function openMemoSheet(existing) {
   const status = existing?.status || "未対応";
+  const currentStaffName = existing?.staff ?? meStaff()?.name ?? "";
+  // 過去に手入力された名前が今の職員一覧にない場合(退職・改名など)も選択肢から消えないようにする
+  const extraStaffOption = currentStaffName && !state.staff.some((s) => s.name === currentStaffName)
+    ? `<option value="${escapeHtml(currentStaffName)}" selected>${escapeHtml(currentStaffName)}（一覧になし）</option>` : "";
   const html = `
     <div class="field">
       <label for="m-caller">相手先（氏名・施設名など）</label>
@@ -1176,7 +1188,11 @@ function openMemoSheet(existing) {
     </div>
     <div class="field">
       <label for="m-staff">受けた担当者</label>
-      <input id="m-staff" name="staff" type="text" maxlength="20" value="${escapeHtml(existing?.staff ?? meStaff()?.name ?? "")}" placeholder="例：佐藤">
+      <select id="m-staff" name="staff">
+        <option value="">選択してください</option>
+        ${extraStaffOption}
+        ${state.staff.map((s) => `<option value="${escapeHtml(s.name)}" ${currentStaffName === s.name ? "selected" : ""}>${escapeHtml(s.name)}</option>`).join("")}
+      </select>
     </div>
     <div class="field">
       <label>対応状況</label>
@@ -1521,6 +1537,7 @@ async function main() {
   phoneMemoStore.subscribe((list) => {
     state.phoneMemos = list;
     if (state.screen === "phoneMemo") renderMemoList();
+    updateMemoTabBadge();
   });
 
   renderScreen(state.screen);

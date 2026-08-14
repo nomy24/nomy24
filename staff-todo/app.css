@@ -487,6 +487,15 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
   font-size: 11px; font-weight: 600; cursor: pointer; min-height: 56px;
 }
 .tab svg { width: 22px; height: 22px; }
+.tab__icon-wrap { position: relative; display: flex; }
+.tab-badge {
+  position: absolute; top: -4px; right: -8px; min-width: 16px; height: 16px; padding: 0 4px;
+  border-radius: var(--radius-pill); background: var(--color-danger); color: #fff;
+  font-size: 10px; font-weight: 700; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  border: 2px solid var(--color-surface);
+}
+.tab-badge[hidden] { display: none; }
 .tab.is-active { color: var(--color-primary); }
 
 /* ---------------- Bottom sheet ---------------- */
