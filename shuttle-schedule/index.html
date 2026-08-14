@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<title>送迎運行ボード｜8台運用</title>
+<meta name="description" content="8台の送迎車両の運行状況を朝礼・出発前チェックでひと目で確認できる運行ボードです。">
+<meta name="theme-color" content="#F6F1E4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1B2126" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<a class="skip-link" href="#main">本文へ移動</a>
+
+<header class="appbar">
+  <div class="appbar__inner">
+    <div class="appbar__title">
+      <span class="appbar__eyebrow">職員向け運行ボード</span>
+      <h1 class="appbar__name">送迎表<span class="appbar__unit">8台運用</span></h1>
+    </div>
+    <div class="appbar__date">
+      <span class="appbar__day" id="todayLabel">8月14日（金）</span>
+      <span class="appbar__now">現在時刻 <time id="clock">--:--</time></span>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+
+  <section class="control" aria-label="表示の切り替え">
+    <div class="control__inner">
+      <div class="runtoggle" role="group" aria-label="お迎え・送りの切り替え">
+        <button type="button" class="runtoggle__btn is-active" data-period="am" aria-pressed="true">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v3M5 7l2 2M19 7l-2 2M4 15h16M6 15a6 6 0 0 1 12 0"/></svg>
+          午前・お迎え
+        </button>
+        <button type="button" class="runtoggle__btn" data-period="pm" aria-pressed="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>
+          午後・お送り
+        </button>
+      </div>
+
+      <div class="kpis" id="kpis" aria-label="本日の概況">
+        <div class="kpi"><span class="kpi__n" id="kpiActive">0</span><span class="kpi__label">稼働</span></div>
+        <div class="kpi"><span class="kpi__n" id="kpiDone">0</span><span class="kpi__label">到着済</span></div>
+        <div class="kpi"><span class="kpi__n" id="kpiPax">0</span><span class="kpi__label">利用者</span></div>
+        <div class="kpi kpi--alert" id="kpiAlertWrap" hidden><span class="kpi__n" id="kpiAlert">0</span><span class="kpi__label">要確認</span></div>
+      </div>
+
+      <button type="button" class="printbtn" id="printBtn">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9V3h12v6M6 18H4a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-2M6 14h12v7H6z"/></svg>
+        印刷用に表示
+      </button>
+    </div>
+
+    <div class="legend" aria-hidden="true">
+      <span class="legend__item"><i class="dot dot--wait"></i>待機</span>
+      <span class="legend__item"><i class="dot dot--go"></i>走行中</span>
+      <span class="legend__item"><i class="dot dot--done"></i>到着済</span>
+      <span class="legend__item"><i class="dot dot--alert"></i>要確認</span>
+    </div>
+  </section>
+
+  <section class="board" id="board" aria-label="車両ごとの運行状況">
+    <!-- 車両カードは app.js が描画 -->
+  </section>
+
+  <p class="disclaimer">※ 表示中のお名前・地区名はデザイン確認用のサンプルです。実際の利用者情報には差し替えてご利用ください。</p>
+
+</main>
+
+<template id="vehicleTemplate">
+  <article class="vcard">
+    <div class="vcard__id">
+      <span class="vcard__badge"></span>
+      <div class="vcard__who">
+        <span class="vcard__driver"></span>
+        <span class="vcard__attendant"></span>
+      </div>
+      <span class="vcard__status"></span>
+    </div>
+
+    <div class="vcard__road" role="img">
+      <div class="road">
+        <div class="road__track">
+          <div class="road__fill"></div>
+          <div class="road__now" aria-hidden="true">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 16h14M6 16l1.5-5h9L18 16M8 16v2M16 16v2M7 9h10l1 2H6z"/></svg>
+          </div>
+        </div>
+        <div class="road__stops"></div>
+      </div>
+    </div>
+
+    <div class="vcard__meta">
+      <span class="vcard__cap"></span>
+      <span class="vcard__window"></span>
+    </div>
+  </article>
+</template>
+
+<template id="stopTemplate">
+  <div class="stop">
+    <span class="stop__time"></span>
+    <span class="stop__dot"></span>
+    <span class="stop__label"></span>
+  </div>
+</template>
+
+<script src="app.js"></script>
+</body>
+</html>

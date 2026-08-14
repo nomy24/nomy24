@@ -1,0 +1,503 @@
+/* =========================================================
+   送迎運行ボード — デザイントークン
+   紙の運行日誌 × 道路。あじさい色の「南区インフォ」、
+   ティール×オレンジの「職員Todo」とは別系統の、
+   紙とアスファルト・方向指示器の配色でまとめる。
+   ========================================================= */
+
+:root {
+  --paper:      #F6F1E4;  /* 温かみのある紙 */
+  --paper-deep: #EEE5CF;  /* 行の縞・凹み */
+  --surface:    #FFFFFF;
+  --ink:        #241D15;  /* 本文・見出し */
+  --ink-soft:   #6B5D48;
+  --ink-faint:  #726650;
+  --line:       #E2D5B5;
+  --asphalt:    #333B42;  /* 車両バッジ・構造 */
+  --asphalt-2:  #4A545C;
+
+  --wait:   #5B6771;  /* 待機（文字用・AA対応） */
+  --go:     #8F5312;  /* 走行中（文字用・AA対応） */
+  --done:   #2E6146;  /* 到着済（文字用・AA対応） */
+  --alert:  #9C3925;  /* 要確認（文字用・AA対応） */
+
+  --wait-bg:  #E7EAEC;
+  --go-bg:    #FBE7CB;
+  --done-bg:  #DCEDE1;
+  --alert-bg: #F6DCD5;
+
+  --wait-vivid:  #7C8894;  /* 装飾用（ライン・マーカー・凡例） */
+  --go-vivid:    #DE8B2E;  /* 方向指示器の橙 */
+  --done-vivid:  #3F7A57;
+  --alert-vivid: #BE4430;
+
+  --font-display: "Zen Kaku Gothic New", "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+  --font-body: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+
+  --radius: 16px;
+  --radius-sm: 10px;
+  --shadow: 0 1px 2px rgba(36, 29, 21, .06), 0 8px 20px -14px rgba(36, 29, 21, .35);
+  --appbar-h: 76px;
+  --text-scale: 1;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper:      #1B2126;
+    --paper-deep: #232A30;
+    --surface:    #262E35;
+    --ink:        #F2ECDE;
+    --ink-soft:   #B9AF9B;
+    --ink-faint:  #837A69;
+    --line:       #3A434B;
+    --asphalt:    #E8E2D2;
+    --asphalt-2:  #C9C1AC;
+
+    --wait:   #9CA9B5;
+    --go:     #F0A64B;
+    --done:   #59B27E;
+    --alert:  #E07156;
+
+    --wait-bg:  #303A42;
+    --go-bg:    #3B2E19;
+    --done-bg:  #1E3628;
+    --alert-bg: #3C241E;
+
+    --wait-vivid:  #93A0AC;
+    --go-vivid:    #F0A64B;
+    --done-vivid:  #59B27E;
+    --alert-vivid: #E07156;
+
+    --shadow: 0 1px 2px rgba(0, 0, 0, .35), 0 10px 24px -14px rgba(0, 0, 0, .7);
+  }
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: calc(15.5px * var(--text-scale));
+  line-height: 1.6;
+  -webkit-tap-highlight-color: transparent;
+}
+
+h1, h2 { margin: 0; }
+p { margin: 0; }
+button { font: inherit; color: inherit; }
+svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+
+:focus-visible {
+  outline: 2.5px solid var(--go);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+.skip-link {
+  position: absolute; left: -9999px; top: 0; z-index: 100;
+  background: var(--surface); padding: .6rem 1rem; border-radius: 0 0 var(--radius-sm) 0;
+}
+.skip-link:focus { left: 0; }
+
+/* ---------- アプリバー ---------- */
+
+.appbar {
+  background: var(--asphalt);
+  color: var(--paper);
+  padding: .9rem 1.1rem;
+  padding-top: calc(.9rem + env(safe-area-inset-top, 0px));
+}
+
+.appbar__inner {
+  max-width: 1180px;
+  margin: 0 auto;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: .5rem 1.5rem;
+}
+
+.appbar__title { display: flex; flex-direction: column; gap: .15rem; }
+
+.appbar__eyebrow {
+  font-size: .68rem;
+  letter-spacing: .16em;
+  color: color-mix(in srgb, var(--paper) 70%, transparent);
+}
+
+.appbar__name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.5rem;
+  letter-spacing: .04em;
+  display: flex;
+  align-items: baseline;
+  gap: .6rem;
+}
+
+.appbar__unit {
+  font-family: var(--font-body);
+  font-size: .68rem;
+  font-weight: 600;
+  letter-spacing: .04em;
+  padding: .18rem .55rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--go-vivid) 85%, transparent);
+  color: #241a08;
+}
+
+.appbar__date {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: .2rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.appbar__day { font-size: .95rem; font-weight: 600; }
+.appbar__now { font-size: .74rem; color: color-mix(in srgb, var(--paper) 72%, transparent); }
+.appbar__now time { font-weight: 700; color: var(--paper); }
+
+/* ---------- コントロール帯 ---------- */
+
+.control {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: color-mix(in srgb, var(--paper) 94%, transparent);
+  backdrop-filter: saturate(1.4) blur(14px);
+  -webkit-backdrop-filter: saturate(1.4) blur(14px);
+  border-bottom: 1px solid var(--line);
+  padding: .75rem 1.1rem;
+}
+
+.control__inner {
+  max-width: 1180px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: .9rem 1.2rem;
+  flex-wrap: wrap;
+}
+
+.runtoggle {
+  display: inline-flex;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--paper-deep);
+  border: 1px solid var(--line);
+}
+
+.runtoggle__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  border: 0;
+  border-radius: 999px;
+  padding: .5rem 1rem;
+  min-height: 44px;
+  background: transparent;
+  color: var(--ink-soft);
+  font-size: .86rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color .18s ease, color .18s ease, box-shadow .18s ease;
+}
+.runtoggle__btn svg { width: 17px; height: 17px; }
+.runtoggle__btn.is-active {
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--shadow);
+}
+
+.kpis { display: flex; gap: 1.1rem; margin-left: .2rem; flex-wrap: wrap; }
+.kpi { display: flex; align-items: baseline; gap: .3rem; }
+.kpi__n {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--asphalt-2);
+}
+.kpi__label { font-size: .72rem; color: var(--ink-faint); }
+.kpi--alert .kpi__n { color: var(--alert); }
+.kpi--alert .kpi__label { color: var(--alert); }
+
+.printbtn {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  min-height: 44px;
+  padding: .5rem .9rem;
+  background: var(--surface);
+  color: var(--ink-soft);
+  font-size: .82rem;
+  cursor: pointer;
+  transition: border-color .18s ease, color .18s ease;
+}
+.printbtn:hover { border-color: var(--asphalt-2); color: var(--ink); }
+.printbtn svg { width: 17px; height: 17px; }
+
+.legend {
+  max-width: 1180px;
+  margin: .6rem auto 0;
+  display: flex;
+  gap: 1rem 1.3rem;
+  flex-wrap: wrap;
+}
+.legend__item { display: inline-flex; align-items: center; gap: .4rem; font-size: .74rem; color: var(--ink-soft); }
+.dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+.dot--wait { background: var(--wait-vivid); }
+.dot--go { background: var(--go-vivid); }
+.dot--done { background: var(--done-vivid); }
+.dot--alert { background: var(--alert-vivid); }
+
+/* ---------- ボード（車両カード） ---------- */
+
+.board {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 1rem 1.1rem 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: .7rem;
+}
+
+.vcard {
+  min-width: 0;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: .95rem 1.1rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: .8rem;
+  animation: reveal .4s cubic-bezier(.22, 1, .36, 1) both;
+}
+@keyframes reveal { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+.vcard[data-status="done"] { border-left: 4px solid var(--done-vivid); }
+.vcard[data-status="go"] { border-left: 4px solid var(--go-vivid); }
+.vcard[data-status="alert"] { border-left: 4px solid var(--alert-vivid); }
+.vcard[data-status="wait"] { border-left: 4px solid var(--wait-vivid); }
+
+.vcard__id { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem .8rem; min-width: 0; }
+
+.vcard__badge {
+  flex: none;
+  width: 46px;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  background: var(--asphalt);
+  color: var(--paper);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 1.05rem;
+  letter-spacing: -.02em;
+}
+
+.vcard__who { display: flex; flex-direction: column; gap: .1rem; min-width: 0; flex: 1 1 auto; }
+.vcard__driver { font-weight: 700; font-size: .96rem; }
+.vcard__attendant { font-size: .76rem; color: var(--ink-faint); }
+.vcard__attendant:empty { display: none; }
+
+.vcard__status {
+  margin-left: auto;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  padding: .32rem .75rem;
+  border-radius: 999px;
+  font-size: .78rem;
+  font-weight: 700;
+}
+.vcard__status::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.vcard[data-status="wait"] .vcard__status { background: var(--wait-bg); color: var(--wait); }
+.vcard[data-status="go"] .vcard__status { background: var(--go-bg); color: var(--go); }
+.vcard[data-status="done"] .vcard__status { background: var(--done-bg); color: var(--done); }
+.vcard[data-status="alert"] .vcard__status { background: var(--alert-bg); color: var(--alert); }
+
+/* ---------- 道路（運行ライン） ---------- */
+
+.vcard__road {
+  min-width: 0;
+  padding: .1rem .2rem .4rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.road { width: 100%; }
+
+@media (max-width: 759px) {
+  .road { min-width: 34rem; }
+}
+
+.road__track {
+  position: relative;
+  height: 3px;
+  border-radius: 3px;
+  background-image: repeating-linear-gradient(
+    to right,
+    var(--line) 0 10px,
+    transparent 10px 18px
+  );
+}
+
+.road__fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  height: 100%;
+  border-radius: 3px;
+  background: var(--asphalt-2);
+  transition: width .3s ease;
+}
+.vcard[data-status="wait"] .road__fill { background: var(--wait-vivid); opacity: .55; }
+.vcard[data-status="go"] .road__fill { background: var(--go-vivid); }
+.vcard[data-status="done"] .road__fill { background: var(--done-vivid); }
+.vcard[data-status="alert"] .road__fill { background: var(--alert-vivid); }
+
+.road__now {
+  position: absolute;
+  top: 50%;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 2px solid var(--asphalt-2);
+  color: var(--asphalt-2);
+  transform: translate(-50%, -50%);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, .18);
+  transition: left .3s ease;
+}
+.road__now svg { width: 14px; height: 14px; }
+.vcard[data-status="wait"] .road__now { border-color: var(--wait-vivid); color: var(--wait-vivid); }
+.vcard[data-status="go"] .road__now { border-color: var(--go-vivid); color: var(--go-vivid); }
+.vcard[data-status="done"] .road__now { border-color: var(--done-vivid); color: var(--done-vivid); }
+.vcard[data-status="alert"] .road__now { border-color: var(--alert-vivid); color: var(--alert-vivid); }
+
+.road__stops {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  margin-top: .55rem;
+}
+
+.stop { display: flex; flex-direction: column; align-items: center; gap: .3rem; flex: 1; min-width: 0; }
+.stop:first-child { align-items: flex-start; }
+.stop:last-child { align-items: flex-end; }
+
+.stop__time {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: .78rem;
+  color: var(--ink);
+}
+
+.stop__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 2px solid var(--asphalt-2);
+}
+.stop:first-child .stop__dot, .stop:last-child .stop__dot {
+  width: 11px; height: 11px; background: var(--asphalt);
+}
+
+.stop__label {
+  font-size: .72rem;
+  color: var(--ink-faint);
+  text-align: center;
+  max-width: 6.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.stop:first-child .stop__label, .stop:last-child .stop__label { text-align: inherit; }
+
+.vcard__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem 1rem;
+  min-width: 0;
+  padding-top: .3rem;
+  border-top: 1px dashed var(--line);
+  font-size: .78rem;
+  color: var(--ink-soft);
+}
+.vcard__cap, .vcard__window { display: inline-flex; align-items: center; gap: .35rem; }
+
+.disclaimer {
+  max-width: 1180px;
+  margin: 0 auto 2.5rem;
+  padding: 0 1.1rem;
+  font-size: .72rem;
+  color: var(--ink-faint);
+}
+
+/* ---------- 動きを抑える設定を尊重 ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+  }
+}
+
+/* ---------- タブレット以上：横並びの運行ボード ---------- */
+
+@media (max-width: 640px) {
+  .printbtn { flex: 1 1 100%; justify-content: center; margin-left: 0; order: 3; }
+  .kpis { order: 2; }
+}
+
+@media (min-width: 760px) {
+  .vcard {
+    grid-template-columns: 15rem minmax(0, 1fr) 8.5rem;
+    align-items: center;
+    padding: .85rem 1.3rem;
+  }
+  .vcard__id { flex-direction: row; }
+  .vcard__status { margin-left: 0; }
+  .vcard__road { padding: 0; }
+  .vcard__meta {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: .3rem;
+    border-top: 0;
+    border-left: 1px dashed var(--line);
+    padding-top: 0;
+    padding-left: 1rem;
+  }
+}
+
+@media (min-width: 1000px) {
+  .stop__label { max-width: 8rem; }
+}
+
+/* ---------- 印刷用 ---------- */
+
+@media print {
+  body { background: #fff; font-size: 11pt; }
+  .appbar, .control, .disclaimer { position: static; }
+  .printbtn, .appbar__now { display: none; }
+  .control { backdrop-filter: none; background: #fff; }
+  .vcard { box-shadow: none; break-inside: avoid; border-color: #999; }
+  .road__now { display: none; }
+}
