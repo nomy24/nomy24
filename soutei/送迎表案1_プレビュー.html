@@ -147,13 +147,13 @@
 
   .car-drv { font-size: 10.5pt; font-weight: 700; color: var(--ink); letter-spacing: .08em; }
 
-  /* 運転手が決まっていない日のために、書き込める下線も残す */
-  .car-drv.blank { min-width: 22mm; border-bottom: .6pt solid var(--rule); }
+  /* 号車の右は運転手名を書く欄。手書きなので下線だけ引く */
+  .car-drv.blank { min-width: 24mm; height: 3.6mm; border-bottom: .9pt solid var(--rule); }
 
   .car-kind { font-size: 7.5pt; font-weight: 600; }
   .car-sp { flex: 1; }
   .car-start { font-size: 7.5pt; font-weight: 600; }
-  .car-start i { display: inline-block; min-width: 16mm; border-bottom: .6pt solid var(--rule); font-style: normal; }
+  .car-start i { display: inline-block; min-width: 16mm; height: 3.4mm; border-bottom: .9pt solid var(--rule); font-style: normal; }
   .car-dep { font-weight: 600; }
   .car-dep b { font-size: 11pt; color: var(--ink); margin-left: .8mm; }
 
@@ -231,8 +231,9 @@
   .t-sh  { color: #fff; background: var(--shin); border-color: var(--shin); }
 
   /* 実績は1本の記入欄にまとめる。書く場所を1か所に */
-  /* 実績は書き込む枠。丸みのある箱にして「ここに書く」と分かるようにする */
-  .box { border: .7pt solid var(--rule); border-radius: 1.2mm; height: 3.6mm; }
+  /* 手で書き入れる欄は、すべて同じ下線でそろえる。
+     枠で囲むと罫が増えて紙がうるさくなるうえ、鉛筆が引っかかる */
+  .box { border-bottom: .9pt solid var(--rule); height: 3.6mm; }
 
   /* 状態ごとの見え方。行ぜんたいに色を敷く */
   .row.off { background: var(--warn-soft); }
@@ -266,7 +267,8 @@
   }
 
   .car-foot b { font-size: 11pt; color: var(--ink); }
-  .car-foot i { display: inline-block; min-width: 12mm; border-bottom: .6pt solid var(--rule); font-style: normal; }
+  /* 事業所着の右は到着の実績を書く欄。ここも下線 */
+  .car-foot i { display: inline-block; min-width: 16mm; height: 3.4mm; border-bottom: .9pt solid var(--rule); font-style: normal; }
   .car-foot .cap { margin-left: auto; font-size: 8pt; font-weight: 600; }
   .car-foot .cap b { font-size: 10.5pt; }
 
@@ -561,7 +563,7 @@
   </div>
 
   <p class="legend">
-    <b>記号</b>　車椅子＝リフト・スロープ使用／荷物＝歩行器・車椅子の持参もしくは貸出／玄関＝玄関先まで送迎
+    <b>記号</b>　車椅子＝リフト・スロープ使用／荷物＝持ち物の積み下ろしあり／玄関＝玄関先まで送迎
     <b>行の色</b>　赤＝欠席（取り消し線）／黄緑＝振替利用／橙＝新規・増回・変更
     <b>朱色の車両</b>＝車椅子の方が乗るため定員1名減
     「実績」欄は実際の到着時刻の記入用です。号車・運転手・出発位置は走る前に書き入れてください。
