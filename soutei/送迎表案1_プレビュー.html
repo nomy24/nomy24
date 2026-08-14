@@ -98,11 +98,13 @@
   .band .who  { font-size: 8.5pt; font-weight: 600; letter-spacing: .04em; }
 
   /* ── 車両カード ─────────────────────────── */
+  /* 下の段は6人乗り（ノア・リフト車）。行が2つ多いぶん高さを配る。
+     こうすると1行あたりの高さが上下で近くなり、どの車も同じ調子で読める */
   .fleet {
     flex: 1;
     display: grid;
     grid-template-columns: 1fr 1fr;
-    grid-auto-rows: 1fr;
+    grid-template-rows: 1fr 1fr 1fr 1.3fr;
     gap: 1.6mm 2.4mm;
     padding: 0 3mm;
     min-height: 0;
@@ -526,6 +528,8 @@
         </div>
         <div class="row blank"><span class="ord">3</span><span class="t">--:--</span><span></span><span></span><span class="box"></span></div>
         <div class="row blank"><span class="ord">4</span><span class="t">--:--</span><span></span><span></span><span class="box"></span></div>
+        <div class="row blank"><span class="ord">5</span><span class="t">--:--</span><span></span><span></span><span class="box"></span></div>
+        <div class="row blank"><span class="ord">6</span><span class="t">--:--</span><span></span><span></span><span class="box"></span></div>
       </div>
       <div class="car-foot">事業所 着 目標 <b>08:55</b>　実績 <i></i><span class="cap">乗車 <b>1</b> / 6名（欠席1）</span></div>
     </article>
@@ -556,6 +560,8 @@
         </div>
         <div class="row blank"><span class="ord">3</span><span class="t">--:--</span><span></span><span></span><span class="box"></span></div>
         <div class="row blank"><span class="ord">4</span><span class="t">--:--</span><span></span><span></span><span class="box"></span></div>
+        <div class="row blank"><span class="ord">5</span><span class="t">--:--</span><span></span><span></span><span class="box"></span></div>
+        <div class="row blank"><span class="ord">6</span><span class="t">--:--</span><span></span><span></span><span class="box"></span></div>
       </div>
       <div class="car-foot">事業所 着 目標 <b>08:55</b>　実績 <i></i><span class="cap">乗車 <b>2</b> / 5名</span></div>
     </article>
