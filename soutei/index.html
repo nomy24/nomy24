@@ -17,9 +17,9 @@
     /* 午前＝藍、午後＝臙脂。お迎えとお送りは色を分けず、
        便の名と「自宅 → 事業所」の向きで見分ける */
     --ai: #1B3557;        /* 藍　　午前 */
-    --ai-soft: #DEE7F1;
+    --ai-soft: #E6F0FC;
     --enji: #63263A;      /* 臙脂　午後 */
-    --enji-soft: #EFDCE2;
+    --enji-soft: #FCEAF1;
 
     /* 記号は便によらず一定 */
     --tag-wc: #B23A2C;
@@ -116,9 +116,9 @@
     --rule: #D9DED6;
     --rule-2: #C3CABE;
     --ai: #1B3557;
-    --ai-soft: #DEE7F1;
+    --ai-soft: #E6F0FC;
     --enji: #63263A;
-    --enji-soft: #EFDCE2;
+    --enji-soft: #FCEAF1;
     --tag-wc: #B23A2C;
     --tag-aid: #1B87C9;
     --tag-door: #3F6B4E;
@@ -1189,9 +1189,11 @@
     .car { grid-template-columns: minmax(0, 1fr); }
   }
 
+  /* 車両カードの見出し。左袖・事業所発・桝の名前をひとつの帯としてまとめ、
+     便の色を明るく敷く。どこからどこまでが1台ぶんかを目で追えるようにする */
   .car-id {
     background: var(--accent-soft);
-    border-right: 1px solid var(--rule);
+    border-right: 1px solid var(--accent-line, var(--rule));
     padding: calc(var(--step) * 3);
     display: flex;
     flex-direction: column;
@@ -1407,7 +1409,13 @@
     background: var(--sub);
   }
 
-  .car-depart { border-bottom: 1px solid var(--rule); }
+  .car-depart {
+    background: var(--accent-soft);
+    background: color-mix(in srgb, var(--accent-soft) 55%, var(--card));
+    border-bottom: 1px solid var(--accent-line, var(--rule));
+  }
+
+  .car-depart .lbl { color: var(--accent); font-weight: 600; }
 
   /* 午後お迎えのように事業所発を持たない便の説明 */
   .car-depart[data-nodepart] .flow-note {
@@ -1547,10 +1555,12 @@
     padding-bottom: 3px;
     min-height: 0;
     font-size: 10px;
-    font-weight: 500;
+    font-weight: 600;
     letter-spacing: .1em;
-    color: var(--ink-3);
-    background: var(--sub);
+    color: var(--accent);
+    background: var(--accent-soft);
+    background: color-mix(in srgb, var(--accent-soft) 42%, var(--card));
+    border-bottom: 1px solid var(--accent-line, var(--rule));
   }
 
   .stop.head .ord { visibility: hidden; }
@@ -1810,6 +1820,13 @@
 
   .tag svg { width: 13px; height: 13px; display: block; }
   .tag:hover { color: var(--ink-3); }
+
+  /* 利用者のいない行の記号は押せない。触れる前に見た目で分かるようにする */
+  .stop.empty .tag {
+    pointer-events: none;
+    opacity: .32;
+    cursor: default;
+  }
 
   /* 付いている記号は塗って、走行前にひと目で拾えるようにする */
   .tag[aria-pressed="true"] {
@@ -3838,6 +3855,9 @@
 
     /* 紙は帳票なので、画面用の丸みと陰影は落とす。
        そのぶん、便の色をカードの縁と左袖に回して1台ずつを見分けやすくする */
+    /* 未割当と重複は、画面で直すための印。刷った紙では手の打ちようがないので出さない */
+    .stat.s-left, .stat.s-dup { display: none !important; }
+
     .car {
       border-radius: 2.4mm;
       box-shadow: none;
@@ -5409,6 +5429,9 @@
     TAGS.forEach((t) => {
       const b = tagButton(t, false);
       b.addEventListener("click", () => {
+        /* 利用者が入っていない行の記号は意味を持たない。
+           押せてしまうと、誰も乗っていない行に記号だけが残る */
+        if (!li.querySelector(".who").value) return;
         b.setAttribute("aria-pressed", b.getAttribute("aria-pressed") === "true" ? "false" : "true");
       });
       tags.append(b);
@@ -5665,6 +5688,8 @@
     section.setAttribute("aria-labelledby", "tab-" + leg.key);
     section.style.setProperty("--accent", "var(--" + leg.accent + ")");
     section.style.setProperty("--accent-soft", "var(--" + leg.accent + "-soft)");
+    /* 見出しの区切り線も便の色に寄せる。灰色の罫より帯のまとまりが分かる */
+    section.style.setProperty("--accent-line", "color-mix(in srgb, var(--" + leg.accent + ") 26%, var(--rule))");
 
     const head = el("div", "leg-head");
     const title = el("p", "leg-title", leg.partLabel + "　" + leg.dir);
