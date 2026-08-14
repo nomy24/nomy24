@@ -3839,9 +3839,9 @@
     /* 紙は帳票なので、画面用の丸みと陰影は落とす。
        そのぶん、便の色をカードの縁と左袖に回して1台ずつを見分けやすくする */
     .car {
-      border-radius: 0;
+      border-radius: 2.4mm;
       box-shadow: none;
-      overflow: visible;
+      overflow: hidden;
       border: 1.1pt solid var(--accent);
       background: #F7F9FB;
       background: color-mix(in srgb, var(--accent-soft) 26%, #fff);
@@ -3852,6 +3852,9 @@
       border-right: 1pt solid var(--accent);
       border-left: 2.2mm solid var(--accent);
     }
+
+    /* 便の見出しの帯にも丸みを付ける。かどが立っていると紙全体が硬く見える */
+    .leg-head { border-radius: 2.4mm; }
 
     .car-depart {
       background: #EDF1F5;
@@ -3880,7 +3883,30 @@
     }
 
 
-    .no-box, .start-box, .driver-select, .tag, .left-name { border-radius: 0; }
+    .no-box, .start-box, .driver-select, .left-name { border-radius: 1.2mm; }
+
+    /* ── 記号は絵ではなく言葉で出す ──────────
+       慣れていない職員でも読めるように。付いている記号だけを出し、
+       付いていないものは紙から落とす（枠だけが並ぶと読みにくい） */
+    .tag {
+      width: auto;
+      height: auto;
+      min-width: 0;
+      display: inline-block;
+      padding: 0 1.1mm;
+      border: .8pt solid currentColor;
+      border-radius: 2.4mm;
+      font-size: 5.6pt;
+      font-weight: 700;
+      line-height: 1.65;
+      letter-spacing: .01em;
+      white-space: nowrap;
+    }
+
+    .tag svg { display: none; }
+    .tag::after { content: attr(data-label); }
+    .tag[aria-pressed="false"] { display: none; }
+    .tag-cell { gap: .7mm; flex-wrap: nowrap; overflow: hidden; }
 
     /* 画面幅がどうであれ、紙の上では必ず2列4段の8台に組む。
        高さを mm で決め打ちして、環境ごとのフォント寸法で
@@ -3904,24 +3930,26 @@
     .route { flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0; }
     .route .stop { flex: 1 1 0; min-height: 0; }
     .route .stop.head { flex: 0 0 auto; }
-    .car-id { padding: 0.9mm; gap: 0.6mm; }
-    .no-box { width: 9mm; height: 9mm; font-size: 12pt; }
+    /* 左袖は号車・出発位置・定員・運転手の4段。
+       氏名を大きくしたぶん、こちらを詰めてカードの高さに収める */
+    .car-id { padding: 0.6mm; gap: 0.3mm; }
+    .no-box { width: 8.2mm; height: 8.2mm; font-size: 11.5pt; font-weight: 700; }
     .car-no .unit { font-size: 7pt; }
-    .car-name { font-size: 10.5pt; }
+    .car-name { font-size: 11pt; font-weight: 700; }
     .car-start .lbl { font-size: 5.5pt; }
-    .start-box { font-size: 7.5pt; padding: 0.5mm 0.6mm; min-height: 3.5mm; }
+    .start-box { font-size: 7.5pt; padding: 0.3mm 0.6mm; min-height: 3.2mm; }
     .car-driver .lbl { font-size: 5.5pt; }
-    .driver-select { font-size: 8.5pt; padding: 0.5mm 0; }
-    .car-size { font-size: 6.5pt; }
+    .driver-select { font-size: 9.5pt; font-weight: 700; padding: 0.2mm 0; }
+    .car-size { font-size: 6pt; line-height: 1.15; }
     .pip { width: 5px; height: 5px; }
 
     .route::before { top: 10px; bottom: 4px; left: calc(1.6mm + 6.5px); }
 
-    .car-depart, .car-foot { padding: 0.22mm 1.6mm; font-size: 6.5pt; gap: 1.4mm; line-height: 1.15; }
-    .dep { font-size: 8.5pt; min-width: 9mm; }
+    .car-depart, .car-foot { padding: 0.22mm 1.6mm; font-size: 7pt; font-weight: 600; gap: 1.4mm; line-height: 1.15; }
+    .dep { font-size: 9.5pt; font-weight: 700; min-width: 9mm; }
     .actual-box { min-width: 11mm; font-size: 8.5pt; border-bottom-color: #7C838A; }
-    .arrive-box { min-width: 13mm; font-size: 8.5pt; border-bottom-color: #7C838A; }
-    .eta { font-size: 8.5pt; min-width: 0; padding: 0 2px; }
+    .arrive-box { min-width: 13mm; font-size: 9pt; border-bottom-color: #7C838A; }
+    .eta { font-size: 9.5pt; font-weight: 700; min-width: 0; padding: 0 2px; }
     .eta[data-note]:not([data-note=""])::after { content: none; }
     .eta[data-target="1"]:empty::before { content: ""; }
 
@@ -3929,10 +3957,10 @@
        そのぶんを氏名と住所に回して、7桝を6桝に詰める */
     .stop {
       min-height: 0;
-      padding: 0.28mm 1.6mm;
+      padding: 0.1mm 1.6mm;
       gap: 1.2mm;
-      grid-template-columns: 13px 2.8rem 2.9rem 49px minmax(4.2rem, 1.15fr) minmax(4.4rem, 1.1fr);
-      line-height: 1.25;
+      grid-template-columns: 14px 2.8rem 2.9rem 21mm minmax(4.4rem, 1.2fr) minmax(3.6rem, 0.95fr);
+      line-height: 1.1;
     }
 
     .stop > *:nth-child(7) { display: none; }
@@ -3946,10 +3974,12 @@
       color: var(--warn);
     }
 
-    .ord { width: 13px; height: 13px; font-size: 6.5pt; }
-    .t, .who { font-size: 8.5pt; }
-    .actual { font-size: 8.5pt; border-bottom-color: #7C838A; }
-    .area { font-size: 7.5pt; }
+    /* 走る前に一目で読めるよう、氏名と時刻は太く大きく取る */
+    .ord { width: 14px; height: 14px; font-size: 7pt; font-weight: 700; }
+    .t { font-size: 9.5pt; font-weight: 700; }
+    .who { font-size: 9.5pt; font-weight: 700; letter-spacing: .03em; }
+    .actual { font-size: 9pt; font-weight: 600; border-bottom-color: #7C838A; }
+    .area { font-size: 7.5pt; font-weight: 600; }
     .note { font-size: 7.5pt; border-bottom-color: #8B9199; }
     [contenteditable]:empty::before { content: ""; }
 
@@ -3958,8 +3988,6 @@
     .stop.empty .area { border-bottom: 1px dotted #9AA0A6; }
     .who[data-empty="true"] { border-bottom: 1px dotted #9AA0A6; }
 
-    .tag { width: 14.5px; height: 14.5px; border-radius: 3px; }
-    .tag svg { width: 11px; height: 11px; stroke-width: 2.3; }
 
     /* 未割当は1行に収める。名前が多いときは画面側で確認する */
     .leftover {
@@ -4165,7 +4193,7 @@
     <div class="fold-body">
   <div class="legend">
     <span class="item"><span class="swatch s-wc" data-icon="wc"></span>車椅子（リフト・スロープ使用）</span>
-    <span class="item"><span class="swatch s-aid" data-icon="aid"></span>歩行器・車椅子持参もしくは貸出</span>
+    <span class="item"><span class="swatch s-aid" data-icon="aid"></span>荷物（持ち物の積み下ろしあり）</span>
     <span class="item"><span class="swatch s-door" data-icon="door"></span>玄関先まで送迎</span>
     <span class="item">■＝乗車　□＝空席（定員は運転手を除く人数）</span>
     <span class="item">利用者名のプルダウンには、その曜日・その便（午前／午後）に来る方だけが並びます。選ぶと住所と記号がマスタから自動で入ります。</span>
@@ -4501,9 +4529,10 @@
     wc: svg('<circle cx="15.4" cy="4.1" r="2.1" fill="currentColor" stroke="none"/>'
       + '<path d="M13.6 8v5.5h4.9l2.3 4.6"/>'
       + '<circle cx="11" cy="15.4" r="6.1"/>'),
-    /* 歩行器：握りの付いた枠と接地脚。小さくても「H」に見えないよう握りと脚を出す */
-    aid: svg('<path d="M4.6 4.4h3.1v11.4M19.4 4.4h-3.1v11.4M7.7 10h8.6"/>'
-      + '<circle cx="7.7" cy="18.6" r="2.2"/><circle cx="16.3" cy="18.6" r="2.2"/>'),
+    /* 荷物：持ち手の付いた鞄。歩行器・車椅子など、積み下ろしのある持ち物 */
+    aid: svg('<path d="M3.4 8.2h17.2v11.4a1.6 1.6 0 0 1-1.6 1.6H5a1.6 1.6 0 0 1-1.6-1.6Z"/>'
+      + '<path d="M8.6 8.2V5.6a2.2 2.2 0 0 1 2.2-2.2h2.4a2.2 2.2 0 0 1 2.2 2.2v2.6"/>'
+      + '<path d="M3.4 12.6h17.2"/>'),
     /* 玄関：扉と、そこへ向かう矢印 */
     door: svg('<path d="M9.5 21V4.6a1 1 0 0 1 1.2-1l7.3-1.5a1 1 0 0 1 1.2 1V21"/>'
       + '<path d="M7 21h14"/>'
@@ -4563,17 +4592,21 @@
       + '<path d="M7.6 8.4h1.8M11.2 8.4H13M7.6 12.4h1.8M11.2 12.4H13M7.6 16.4h5.4"/>')
   };
 
+  /* key は控えに入っている文字なので変えない。label は見せる言葉で、
+     紙の上ではこちらを出す（絵より言葉のほうが慣れなくても読める） */
   const TAGS = [
-    { key: "車", cls: "t-wc", icon: ICONS.wc, title: "車椅子（リフト・スロープ使用）" },
-    { key: "補", cls: "t-aid", icon: ICONS.aid, title: "歩行器・車椅子持参もしくは貸出" },
-    { key: "玄", cls: "t-door", icon: ICONS.door, title: "玄関先まで送迎" }
+    { key: "車", cls: "t-wc",   label: "車椅子", icon: ICONS.wc,   title: "車椅子（リフト・スロープ使用）" },
+    { key: "補", cls: "t-aid",  label: "荷物",   icon: ICONS.aid,  title: "荷物（持ち物の積み下ろしあり）" },
+    { key: "玄", cls: "t-door", label: "玄関",   icon: ICONS.door, title: "玄関先まで送迎" }
   ];
 
   function tagButton(t, pressed) {
     const b = el("button", "tag " + t.cls);
     b.type = "button";
     b.dataset.key = t.key;
-    b.title = t.key + "＝" + t.title;
+    /* 紙では絵ではなく言葉を出す。CSS から拾えるよう属性に持たせておく */
+    b.dataset.label = t.label;
+    b.title = t.label + "＝" + t.title;
     b.setAttribute("aria-label", t.title);
     b.setAttribute("aria-pressed", String(!!pressed));
     b.innerHTML = t.icon;
@@ -5371,7 +5404,7 @@
     actual.contentEditable = "true";
     li.append(actual);
 
-    /* 記号は氏名の手前。名前を読むより先に、車椅子か歩行器かが目に入る */
+    /* 記号は氏名の手前。名前を読むより先に、車椅子か荷物かが目に入る */
     const tags = el("span", "tags");
     TAGS.forEach((t) => {
       const b = tagButton(t, false);
@@ -5666,7 +5699,7 @@
     leftover.hidden = true;
 
     const legend = el("p", "leg-legend",
-      "記号　車＝車椅子（リフト・スロープ使用）／補＝歩行器・車椅子持参もしくは貸出／玄＝玄関先まで送迎　　"
+      "記号　車椅子＝リフト・スロープ使用／荷物＝持ち物の積み下ろしあり／玄関＝玄関先まで送迎　　"
       + "■＝乗車　□＝空席（定員は運転手を除く人数）　　※印＝手で書き換えた欄　　"
       + "番号の色　赤＝欠席（取り消し線）／黄緑＝振替利用／橙＝新規・増回　　朱色の車両＝車椅子の方が乗るため定員1名減　　"
       + "「実績」欄は実際の到着時刻の記入用です。");
@@ -7184,7 +7217,7 @@
         const tel = Object.assign(document.createElement("input"), { type: "text", placeholder: "TELなし など" });
         tel.setAttribute("list", "tel-notes");
         formRow(body, "電話", tel, "午後お迎えの電話連絡表に出ます。空欄でも構いません。");
-        formRow(body, "記号", tagPicker(draft.tags), "車椅子・歩行器・玄関先まで");
+        formRow(body, "記号", tagPicker(draft.tags), "車椅子・荷物・玄関先まで");
         formRow(body, "利用曜日", dayPicker(draft.days), "押すたびに 空 → AM → PM と変わります");
         body.dataset.ready = "1";
         draft.el = { name, kana, addr, care, bp, tel };
