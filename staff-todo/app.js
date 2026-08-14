@@ -357,7 +357,10 @@ function renderTodoList() {
       const id = btn.closest(".card").dataset.id;
       const todo = state.todos.find((x) => x.id === id);
       const nowDone = !todo.done;
-      const commit = () => todoStore.update(id, { done: nowDone, doneBy: nowDone ? (meStaff()?.name || null) : null });
+      const commit = () => {
+        todoStore.update(id, { done: nowDone, doneBy: nowDone ? (meStaff()?.name || null) : null });
+        if (nowDone) toast("完了しました");
+      };
       if (nowDone) animateCheck(btn, commit);
       else commit();
     });
@@ -820,12 +823,15 @@ function renderRoutineList() {
       const logId = `${taskId}__${periodKey}`;
       const log = routineLogFor(taskId, cat);
       const nowDone = !log?.done;
-      const commit = () => routineLogStore.set(logId, {
-        taskId, category: cat, periodKey,
-        done: nowDone,
-        doneBy: nowDone ? (meStaff()?.name || "スタッフ") : null,
-        doneAt: nowDone ? Date.now() : null,
-      });
+      const commit = () => {
+        routineLogStore.set(logId, {
+          taskId, category: cat, periodKey,
+          done: nowDone,
+          doneBy: nowDone ? (meStaff()?.name || "スタッフ") : null,
+          doneAt: nowDone ? Date.now() : null,
+        });
+        if (nowDone) toast("完了しました");
+      };
       if (nowDone) animateCheck(btn, commit);
       else commit();
     });
