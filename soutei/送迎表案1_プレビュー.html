@@ -76,23 +76,26 @@
   }
 
   /* ── 見出しの帯 ─────────────────────────── */
+  /* 角は少し落とす。かどが立っていると紙全体が硬く見える */
   .band {
     display: flex;
     align-items: baseline;
     gap: 4mm;
     background: var(--ai);
     color: #fff;
-    padding: 1.6mm 3mm;
+    padding: 1.8mm 4mm;
+    border-radius: 2.4mm;
+    margin: 0 3mm;
   }
 
   .band .part { font-size: 13pt; font-weight: 700; letter-spacing: .12em; }
   .band .dir  { font-size: 11.5pt; letter-spacing: .08em; }
-  .band .flow { font-size: 7.5pt; opacity: .85; }
+  .band .flow { font-size: 8pt; font-weight: 600; opacity: .88; }
   .band .sp   { flex: 1; }
-  .band .num  { font-size: 8pt; letter-spacing: .04em; }
-  .band .num b { font-size: 11pt; margin-right: .4mm; }
+  .band .num  { font-size: 8.5pt; font-weight: 600; letter-spacing: .04em; }
+  .band .num b { font-size: 12pt; margin-right: .5mm; }
   .band .num .ok { color: #A9CC72; }
-  .band .who  { font-size: 8pt; letter-spacing: .04em; }
+  .band .who  { font-size: 8.5pt; font-weight: 600; letter-spacing: .04em; }
 
   /* ── 車両カード ─────────────────────────── */
   .fleet {
@@ -106,7 +109,8 @@
   }
 
   .car {
-    border: .6pt solid var(--rule);
+    border: .8pt solid var(--rule);
+    border-radius: 2.4mm;
     display: flex;
     flex-direction: column;
     min-height: 0;
@@ -132,24 +136,26 @@
   .car-no {
     background: var(--ai);
     color: #fff;
-    font-size: 9pt;
+    font-size: 9.5pt;
     font-weight: 700;
-    padding: .3mm 2.4mm;
-    letter-spacing: .04em;
+    padding: .5mm 2.6mm;
+    border-radius: 1.6mm;
+    letter-spacing: .06em;
   }
 
   .car.lift .car-no { background: var(--wc); }
 
-  .car-drv { font-size: 10pt; font-weight: 700; color: var(--ink); letter-spacing: .06em; }
+  .car-drv { font-size: 10.5pt; font-weight: 700; color: var(--ink); letter-spacing: .08em; }
 
   /* 運転手が決まっていない日のために、書き込める下線も残す */
   .car-drv.blank { min-width: 22mm; border-bottom: .6pt solid var(--rule); }
 
-  .car-kind { font-size: 7pt; }
+  .car-kind { font-size: 7.5pt; font-weight: 600; }
   .car-sp { flex: 1; }
-  .car-start { font-size: 7pt; }
+  .car-start { font-size: 7.5pt; font-weight: 600; }
   .car-start i { display: inline-block; min-width: 16mm; border-bottom: .6pt solid var(--rule); font-style: normal; }
-  .car-dep b { font-size: 10pt; color: var(--ink); margin-left: .6mm; }
+  .car-dep { font-weight: 600; }
+  .car-dep b { font-size: 11pt; color: var(--ink); margin-left: .8mm; }
 
   /* 見出し行 */
   .row {
@@ -168,7 +174,8 @@
   .row.hd {
     flex: none;
     background: #F2F4EE;
-    font-size: 6pt;
+    font-size: 6.5pt;
+    font-weight: 600;
     color: var(--ink-2);
     letter-spacing: .04em;
     padding-top: .3mm;
@@ -182,16 +189,16 @@
   .row:last-of-type { border-bottom: 0; }
 
   .ord {
-    width: 5mm; height: 5mm; flex: none;
+    width: 5.2mm; height: 5.2mm; flex: none;
     border-radius: 50%;
     background: var(--ai);
     color: #fff;
     display: grid; place-items: center;
-    font-size: 6.5pt; font-weight: 700;
+    font-size: 7pt; font-weight: 700;
   }
 
   .t {
-    font-size: 10pt;
+    font-size: 11pt;
     font-weight: 700;
     font-variant-numeric: tabular-nums;
     letter-spacing: -.01em;
@@ -200,19 +207,19 @@
   /* 氏名のすぐ隣に住所を置く。離れた列にあると目が横に飛ぶ。
      1行に並べるので、行が狭くなっても上下でぶつからない */
   .who { display: flex; align-items: baseline; gap: 2mm; min-width: 0; overflow: hidden; }
-  .nm { font-size: 9.5pt; font-weight: 600; letter-spacing: .02em; white-space: nowrap; }
-  .ad { font-size: 6.5pt; color: var(--ink-2); white-space: nowrap; }
+  .nm { font-size: 10pt; font-weight: 700; letter-spacing: .04em; white-space: nowrap; }
+  .ad { font-size: 7pt; font-weight: 600; color: var(--ink-2); white-space: nowrap; }
 
   /* 記号は絵ではなく言葉。慣れていなくても読める */
   .tags { display: flex; gap: .8mm; flex-wrap: wrap; }
 
   .tag {
-    font-size: 6pt;
+    font-size: 6.5pt;
     font-weight: 700;
-    line-height: 1.5;
-    padding: 0 1.2mm;
-    border: .6pt solid;
-    border-radius: 2mm;
+    line-height: 1.6;
+    padding: 0 1.4mm;
+    border: .8pt solid;
+    border-radius: 2.4mm;
     white-space: nowrap;
   }
 
@@ -224,7 +231,8 @@
   .t-sh  { color: #fff; background: var(--shin); border-color: var(--shin); }
 
   /* 実績は1本の記入欄にまとめる。書く場所を1か所に */
-  .box { border-bottom: .6pt solid var(--rule); height: 3.2mm; }
+  /* 実績は書き込む枠。丸みのある箱にして「ここに書く」と分かるようにする */
+  .box { border: .7pt solid var(--rule); border-radius: 1.2mm; height: 3.6mm; }
 
   /* 状態ごとの見え方。行ぜんたいに色を敷く */
   .row.off { background: var(--warn-soft); }
@@ -250,20 +258,21 @@
     gap: 2mm;
     background: #F2F4EE;
     border-top: .6pt solid var(--rule-2);
-    padding: .4mm 2mm;
-    font-size: 6.5pt;
+    padding: .5mm 2mm;
+    font-size: 7pt;
+    font-weight: 600;
     color: var(--ink-2);
     white-space: nowrap;
   }
 
-  .car-foot b { font-size: 10pt; color: var(--ink); }
+  .car-foot b { font-size: 11pt; color: var(--ink); }
   .car-foot i { display: inline-block; min-width: 12mm; border-bottom: .6pt solid var(--rule); font-style: normal; }
-  .car-foot .cap { margin-left: auto; font-size: 7.5pt; }
-  .car-foot .cap b { font-size: 9.5pt; }
+  .car-foot .cap { margin-left: auto; font-size: 8pt; font-weight: 600; }
+  .car-foot .cap b { font-size: 10.5pt; }
 
   .legend {
-    padding: 0 3mm;
-    font-size: 6pt;
+    padding: 0 4mm;
+    font-size: 6.5pt;
     line-height: 1.5;
     color: var(--ink-2);
     letter-spacing: .02em;
@@ -317,7 +326,7 @@
         <div class="row off">
           <span class="ord">1</span><span class="t">08:00</span>
           <span class="who"><span class="nm">田中 ハル</span><span class="ad">中央町3-14-2</span></span>
-          <span class="tags"><span class="tag t-off">SS</span><span class="tag t-aid">歩行器</span></span>
+          <span class="tags"><span class="tag t-off">SS</span><span class="tag t-aid">荷物</span></span>
           <span class="box"></span>
         </div>
         <div class="row">
@@ -360,7 +369,7 @@
         <div class="row">
           <span class="ord">2</span><span class="t">08:40</span>
           <span class="who"><span class="nm">大野 スミ</span><span class="ad">桜ヶ丘1-2-7</span></span>
-          <span class="tags"><span class="tag t-aid">歩行器</span></span>
+          <span class="tags"><span class="tag t-aid">荷物</span></span>
           <span class="box"></span>
         </div>
         <div class="row blank"><span class="ord">3</span><span class="t">--:--</span><span></span><span></span><span class="box"></span></div>
@@ -510,7 +519,7 @@
         <div class="row">
           <span class="ord">2</span><span class="t">08:30</span>
           <span class="who"><span class="nm">上田 ノブ</span><span class="ad">新町5-9-2</span></span>
-          <span class="tags"><span class="tag t-aid">歩行器</span></span>
+          <span class="tags"><span class="tag t-aid">荷物</span></span>
           <span class="box"></span>
         </div>
         <div class="row blank"><span class="ord">3</span><span class="t">--:--</span><span></span><span></span><span class="box"></span></div>
@@ -552,7 +561,7 @@
   </div>
 
   <p class="legend">
-    <b>記号</b>　車椅子＝リフト・スロープ使用／歩行器＝持参もしくは貸出／玄関＝玄関先まで送迎
+    <b>記号</b>　車椅子＝リフト・スロープ使用／荷物＝歩行器・車椅子の持参もしくは貸出／玄関＝玄関先まで送迎
     <b>行の色</b>　赤＝欠席（取り消し線）／黄緑＝振替利用／橙＝新規・増回・変更
     <b>朱色の車両</b>＝車椅子の方が乗るため定員1名減
     「実績」欄は実際の到着時刻の記入用です。号車・運転手・出発位置は走る前に書き入れてください。
