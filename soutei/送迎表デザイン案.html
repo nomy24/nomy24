@@ -1,0 +1,864 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>送迎表（紙）デザイン案</title>
+<style>
+  /* 提案書の色。前回のデザイン案と同じ組み方でそろえてある */
+  :root {
+    --pg:      #F6F8F6;
+    --card:    #FFFFFF;
+    --ink:     #1E2A2D;
+    --ink-2:   #55666A;
+    --ink-3:   #8A9A9D;
+    --rule:    #E0E6E1;
+    --rule-2:  #C9D3CB;
+    --accent:  #0E7C86;
+    --accent-s:#E2F0F0;
+    --gothic: "Hiragino Kaku Gothic ProN", "Yu Gothic", "YuGothic", "Noto Sans JP", "Meiryo", system-ui, sans-serif;
+    --mincho: "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", "Noto Serif JP", "MS PMincho", serif;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --pg: #141A1B; --card: #1C2426; --ink: #E8EEEA; --ink-2: #A9B8B9;
+      --ink-3: #7C8C8E; --rule: #2C3739; --rule-2: #3C4A4C;
+      --accent: #57BFC4; --accent-s: #183034;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --pg: #141A1B; --card: #1C2426; --ink: #E8EEEA; --ink-2: #A9B8B9;
+    --ink-3: #7C8C8E; --rule: #2C3739; --rule-2: #3C4A4C;
+    --accent: #57BFC4; --accent-s: #183034;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--pg);
+    color: var(--ink);
+    font-family: var(--gothic);
+    font-size: 15px;
+    line-height: 1.8;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 56px 24px 120px; display: flex; flex-direction: column; gap: 72px; }
+
+  .cover { display: flex; flex-direction: column; gap: 18px; }
+
+  .kicker { font-size: 12px; letter-spacing: .22em; color: var(--accent); font-weight: 700; }
+
+  .cover h1 {
+    margin: 0;
+    font-family: var(--mincho);
+    font-size: clamp(30px, 5vw, 44px);
+    font-weight: 600;
+    letter-spacing: .04em;
+    line-height: 1.3;
+    text-wrap: balance;
+  }
+
+  .lede { margin: 0; max-width: 62ch; font-size: 16px; color: var(--ink-2); }
+
+  .cover-meta {
+    display: flex; flex-wrap: wrap; gap: 8px 28px;
+    padding-top: 14px; border-top: 1px solid var(--rule);
+    font-size: 12.5px; color: var(--ink-3); letter-spacing: .04em;
+  }
+
+  .sec { display: flex; flex-direction: column; gap: 20px; }
+  .sec-head { display: flex; flex-direction: column; gap: 6px; }
+  .sec-eyebrow { font-size: 11.5px; letter-spacing: .2em; color: var(--ink-3); font-weight: 700; }
+
+  .sec h2 {
+    margin: 0; font-family: var(--mincho); font-size: 26px; font-weight: 600;
+    letter-spacing: .03em; text-wrap: balance;
+  }
+
+  .sec h2 small {
+    display: block; margin-top: 4px; font-family: var(--gothic);
+    font-size: 14px; font-weight: 400; color: var(--ink-2); letter-spacing: 0;
+  }
+
+  .sec p { margin: 0; max-width: 66ch; color: var(--ink-2); }
+  .sec p strong { color: var(--ink); font-weight: 700; }
+
+  .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; }
+
+  .note {
+    background: var(--card); border: 1px solid var(--rule); border-radius: 3px;
+    padding: 18px 20px; display: flex; flex-direction: column; gap: 8px;
+  }
+
+  .note h3 { margin: 0; font-size: 13px; letter-spacing: .08em; color: var(--accent); }
+  .note ul { margin: 0; padding-left: 1.15em; color: var(--ink-2); font-size: 14px; }
+  .note li { margin-bottom: 5px; }
+  .note li:last-child { margin-bottom: 0; }
+  .note li b { color: var(--ink); }
+
+  /* 紙の見本。A4 の比で置き、影を付けて「紙」と分かるようにする */
+  .paper-wrap { overflow-x: auto; padding: 4px; }
+
+  .paper {
+    background: #fff;
+    color: #16202A;
+    box-shadow: 0 8px 28px rgba(20, 34, 36, .16);
+    border: 1px solid var(--rule-2);
+    font-family: var(--gothic);
+    line-height: 1.35;
+    font-size: 11px;
+  }
+
+  .paper.land { width: 1000px; height: 707px; padding: 10px 12px; }
+  .paper.port { width: 720px; height: 1018px; padding: 12px 14px; }
+  .paper-cap { font-size: 11.5px; color: var(--ink-3); letter-spacing: .06em; padding-top: 8px; }
+
+  .cmp-wrap { overflow-x: auto; }
+
+  table.cmp { width: 100%; min-width: 700px; border-collapse: collapse; font-size: 14px; background: var(--card); }
+  table.cmp th, table.cmp td { border: 1px solid var(--rule); padding: 11px 14px; text-align: left; vertical-align: top; }
+  table.cmp thead th { background: var(--accent-s); color: var(--ink); font-size: 13px; letter-spacing: .06em; }
+  table.cmp tbody th { font-weight: 700; color: var(--ink); white-space: nowrap; width: 8.5em; }
+  table.cmp td { color: var(--ink-2); }
+
+  .tail { border-top: 2px solid var(--ink); padding-top: 22px; display: flex; flex-direction: column; gap: 14px; }
+
+  .verdict {
+    background: var(--accent-s); border-left: 3px solid var(--accent);
+    padding: 16px 20px; font-size: 15px; color: var(--ink); max-width: 66ch;
+  }
+
+  /* ══════════════════════════════════════════
+     ここから下は紙の中身。各案に閉じた形で書く
+     ══════════════════════════════════════════ */
+  .paper .ink   { color: #1B3557; }
+  .paper .warn  { color: #9C2B2B; }
+  .paper .furi  { color: #4C7A1E; }
+  .paper .shin  { color: #B4610E; }
+
+  /* 共通の帯 */
+  .p-band {
+    display: flex; align-items: baseline; gap: 10px;
+    background: #1B3557; color: #fff; padding: 5px 10px;
+  }
+
+  .p-band .big { font-size: 15px; font-weight: 700; letter-spacing: .12em; }
+  .p-band .mid { font-size: 13px; letter-spacing: .06em; }
+  .p-band .sm  { font-size: 9.5px; opacity: .9; }
+  .p-band .sp  { flex: 1; }
+
+  /* ── 案1：運転手の手元 ── */
+  .a1 { display: flex; flex-direction: column; height: 100%; gap: 7px; }
+  .a1-body { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 7px; min-height: 0; }
+
+  .a1-car { border: 1.4px solid #1B3557; display: flex; flex-direction: column; }
+
+  .a1-head {
+    display: flex; align-items: center; gap: 8px;
+    background: #DEE7F1; border-bottom: 1.4px solid #1B3557; padding: 5px 8px;
+  }
+
+  .a1-no { background: #1B3557; color: #fff; font-size: 15px; font-weight: 700; padding: 2px 10px; }
+  .a1-drv { font-size: 15px; font-weight: 700; letter-spacing: .06em; }
+  .a1-drv small { font-size: 9.5px; font-weight: 400; color: #4A5765; letter-spacing: .02em; }
+  .a1-cap { margin-left: auto; font-size: 10px; color: #16202A; }
+  .a1-cap b { font-size: 14px; }
+
+  .a1-time { display: flex; border-bottom: 1px solid #C3CABE; }
+  .a1-time div { flex: 1; padding: 3px 8px; font-size: 9px; color: #4A5765; }
+  .a1-time div + div { border-left: 1px solid #C3CABE; }
+  .a1-time b { font-size: 15px; color: #16202A; margin-left: 5px; }
+
+  /* 1枚に2台にする意味は、1人ぶんを広く取れること。行は紙の高さに合わせて伸ばす */
+  .a1-row { flex: 1 1 0; display: grid; grid-template-columns: 26px 66px 1fr 78px; align-items: center;
+            gap: 8px; padding: 5px 10px; border-bottom: 1px solid #E1E5DC; }
+  .a1-row:last-child { border-bottom: 0; }
+  .a1-ord { width: 26px; height: 26px; border-radius: 50%; background: #1B3557; color: #fff;
+            display: grid; place-items: center; font-size: 12px; font-weight: 700; }
+  .a1-t { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .a1-nm { font-size: 17px; font-weight: 600; }
+  .a1-ad { font-size: 11px; color: #4A5765; }
+  .a1-tag { font-size: 10px; font-weight: 700; padding: 1px 7px; border: 1px solid; border-radius: 9px; margin-left: 6px; }
+  .t-wc  { color: #B23A2C; border-color: #B23A2C; }
+  .t-aid { color: #1B6FA8; border-color: #1B6FA8; }
+  .t-dr  { color: #3F6B4E; border-color: #3F6B4E; }
+  .a1-box { border: 1px solid #8A96A3; height: 30px; }
+  .a1-blank .a1-ord { background: #E1E5DC; color: #8A96A3; }
+  .a1-blank .a1-t, .a1-blank .a1-nm { color: #C3CABE; }
+
+  .a1-row.off { background: #F6E7E5; }
+  .a1-row.off .a1-ord { background: #9C2B2B; }
+  .a1-row.off .a1-t, .a1-row.off .a1-nm, .a1-row.off .a1-ad { color: #9C2B2B; text-decoration: line-through; }
+  .a1-row.furikae .a1-ord { background: #4C7A1E; }
+  .a1-row.furikae { background: #EDF3E3; }
+
+  .a1-foot { margin-top: auto; display: flex; align-items: center; gap: 8px;
+             background: #F0F2EC; border-top: 1px solid #C3CABE; padding: 3px 8px; font-size: 9.5px; }
+
+  /* ── 案2：時刻の軸 ── */
+  .a2 { display: flex; flex-direction: column; height: 100%; gap: 7px; }
+  .a2-grid { flex: 1; display: grid; grid-template-columns: 46px repeat(6, 1fr); font-size: 10px; min-height: 0; }
+  .a2-h { background: #DEE7F1; border: 1px solid #8A96A3; border-left: 0; padding: 3px 5px;
+          font-size: 10.5px; font-weight: 700; text-align: center; }
+  .a2-h:first-child { border-left: 1px solid #8A96A3; }
+  .a2-h small { display: block; font-size: 8.5px; font-weight: 400; color: #4A5765; }
+  .a2-t { border: 1px solid #C3CABE; border-top: 0; border-right: 0; padding: 2px 4px;
+          font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; background: #F7F8F4; }
+  .a2-c { border-bottom: 1px solid #C3CABE; border-right: 1px solid #C3CABE; padding: 2px 4px; min-height: 0; }
+  .a2-c:last-child { }
+  .a2-p { font-size: 10.5px; font-weight: 600; line-height: 1.25; }
+  .a2-p small { display: block; font-size: 8px; color: #4A5765; font-weight: 400; }
+  .a2-c.on { background: #EDF1F7; }
+  .a2-c.off { background: #F6E7E5; }
+  .a2-c.off .a2-p { color: #9C2B2B; text-decoration: line-through; }
+
+  /* ── 案3：1台1枚 ── */
+  .a3 { display: flex; flex-direction: column; height: 100%; gap: 10px; }
+  .a3-top { display: flex; align-items: flex-end; gap: 14px; border-bottom: 2.5px solid #1B3557; padding-bottom: 7px; }
+  .a3-no { background: #1B3557; color: #fff; font-size: 30px; font-weight: 700; padding: 2px 16px; letter-spacing: .06em; }
+  .a3-drv { font-size: 26px; font-weight: 700; letter-spacing: .08em; }
+  .a3-drv small { display: block; font-size: 11px; font-weight: 400; color: #4A5765; letter-spacing: .04em; }
+  .a3-meta { margin-left: auto; text-align: right; font-size: 11px; color: #4A5765; }
+  .a3-meta b { font-size: 20px; color: #16202A; }
+
+  /* 行は紙の高さに合わせて伸ばす。1台1枚にする意味は、
+     1人ぶんを大きく取れることにある */
+  .a3-list { display: flex; flex-direction: column; }
+  .a3-row { min-height: 96px; display: grid; grid-template-columns: 34px 104px 1fr 132px 96px;
+            align-items: center; gap: 12px; padding: 9px 6px; border-bottom: 1.2px solid #C3CABE; }
+  .a3-ord { width: 34px; height: 34px; border-radius: 50%; background: #1B3557; color: #fff;
+            display: grid; place-items: center; font-size: 14px; font-weight: 700; }
+  .a3-t { font-size: 30px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .a3-nm { font-size: 23px; font-weight: 600; letter-spacing: .04em; }
+  .a3-ad { font-size: 13px; color: #4A5765; }
+  .a3-tags { display: flex; gap: 4px; flex-wrap: wrap; }
+  .a3-tag { font-size: 11px; font-weight: 700; padding: 1px 9px; border: 1.2px solid; border-radius: 10px; }
+  .a3-box { border: 1.2px solid #8A96A3; height: 40px; }
+  .a3-row.off { background: #F6E7E5; }
+  .a3-row.off .a3-ord { background: #9C2B2B; }
+  .a3-row.off .a3-t, .a3-row.off .a3-nm, .a3-row.off .a3-ad { color: #9C2B2B; text-decoration: line-through; }
+  .a3-row.blank .a3-ord { background: #E1E5DC; color: #8A96A3; }
+  .a3-row.blank .a3-t { color: #C3CABE; }
+
+  /* 余った紙は書き込みに回す。走ってから気づいたことを持ち帰れるように */
+  .a3-memo { flex: 1; border: 1.2px solid #C3CABE; margin-top: 8px; padding: 6px 9px;
+             font-size: 11px; color: #4A5765; min-height: 90px;
+             background: repeating-linear-gradient(#fff 0 25px, #EDF0EA 25px 26px); }
+
+  .a3-foot { display: flex; gap: 16px; align-items: center; border-top: 2.5px solid #1B3557;
+             padding-top: 8px; font-size: 12px; }
+  .a3-foot b { font-size: 20px; }
+  .a3-foot .box { flex: 1; border-bottom: 1.2px solid #8A96A3; height: 22px; }
+
+  /* ── 案4：いまの形を整える ── */
+  .a4 { display: flex; flex-direction: column; height: 100%; gap: 6px; }
+  .a4-body { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; min-height: 0; }
+  .a4-car { border: 1px solid #8A96A3; display: flex; flex-direction: column; }
+  .a4-head { display: flex; align-items: center; gap: 7px; background: #DEE7F1;
+             border-bottom: 1px solid #8A96A3; padding: 3px 7px; font-size: 10px; }
+  .a4-head .no { background: #1B3557; color: #fff; padding: 1px 8px; font-weight: 700; font-size: 11px; }
+  .a4-head .dv { border-bottom: 1px solid #8A96A3; min-width: 74px; height: 14px; }
+  .a4-head .sp { flex: 1; }
+  .a4-head b { font-size: 12px; }
+  .a4-r { display: grid; grid-template-columns: 17px 46px 1fr 54px 46px;
+          align-items: center; gap: 5px; padding: 3px 7px; border-bottom: 1px solid #E1E5DC; }
+  .a4-r.hd { background: #F0F2EC; font-size: 8.5px; color: #4A5765; padding-top: 1px; padding-bottom: 1px; }
+  .a4-ord { width: 17px; height: 17px; border-radius: 50%; background: #1B3557; color: #fff;
+            display: grid; place-items: center; font-size: 9px; font-weight: 700; }
+  .a4-t { font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .a4-nm { font-size: 12.5px; font-weight: 600; }
+  .a4-ad { font-size: 8.5px; color: #4A5765; }
+  .a4-tg { font-size: 8px; font-weight: 700; padding: 0 4px; border: 1px solid; border-radius: 7px; }
+  .a4-bx { border-bottom: 1px solid #8A96A3; height: 15px; }
+  .a4-r.off { background: #F6E7E5; }
+  .a4-r.off .a4-ord { background: #9C2B2B; }
+  .a4-r.off .a4-t, .a4-r.off .a4-nm, .a4-r.off .a4-ad { color: #9C2B2B; text-decoration: line-through; }
+  .a4-r.blank .a4-ord { background: #E1E5DC; color: #8A96A3; }
+  .a4-foot { margin-top: auto; display: flex; gap: 8px; align-items: center; background: #F0F2EC;
+             border-top: 1px solid #C3CABE; padding: 2px 7px; font-size: 9px; }
+  .a4-foot b { font-size: 12px; }
+
+  @media (max-width: 720px) {
+    .wrap { padding: 36px 14px 80px; gap: 52px; }
+    .cover h1 { font-size: 28px; }
+    .sec h2 { font-size: 21px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <header class="cover">
+    <p class="kicker">送迎表（紙）／ デザイン案</p>
+    <h1>刷った送迎表を<br>どう読ませるか</h1>
+    <p class="lede">
+      いまの紙は<strong>1枚に4台・A4横4枚</strong>で、事務所で全体を見渡すのに向いています。
+      一方、走っている車の中で読むには字が小さめで、実績を書き込む欄も細めです。
+      <strong>誰が、どこで読むのか</strong>で最適な形は変わるので、
+      使う場面ごとに4案をお出しします。いずれも仮案で、実装はしていません。
+    </p>
+    <div class="cover-meta">
+      <span>対象：送迎表の印刷（午前お迎えの面）</span>
+      <span>色・記号の意味は現行のまま</span>
+      <span>見本は原寸ではありません（A4の比で縮小）</span>
+    </div>
+  </header>
+
+  <section class="sec">
+    <div class="sec-head">
+      <p class="sec-eyebrow">いまの紙</p>
+      <h2>できていること、足りないこと<small>4台×2列で1枚。A4横4枚（午前お迎え・お送り／午後お迎え・お送り）</small></h2>
+    </div>
+    <div class="cols">
+      <div class="note">
+        <h3>できていること</h3>
+        <ul>
+          <li><b>1枚で4台ぶん見渡せる。</b>事務所の壁に貼って全体を確かめるのに向く。</li>
+          <li><b>欠席が赤い取り消し線</b>で、遠目でも分かる。</li>
+          <li>号車・出発位置・運転手・実績が<b>すべて手書きできる空欄</b>になっている。</li>
+        </ul>
+      </div>
+      <div class="note">
+        <h3>足りないこと</h3>
+        <ul>
+          <li><b>走行中に読むには字が小さい。</b>氏名 12pt・時刻 12pt ほど。</li>
+          <li><b>記号が小さな絵</b>なので、慣れないと意味が取りにくい。</li>
+          <li>住所が名前から離れた列にあり、<b>目が横に飛ぶ</b>。</li>
+          <li>乗っていない行も枠が出るので、<b>使う行と空きの差が弱い</b>。</li>
+        </ul>
+      </div>
+      <div class="note">
+        <h3>案を分ける軸</h3>
+        <ul>
+          <li><b>どこで読むか</b>（事務所の机 ／ 走っている車の中）</li>
+          <li><b>何枚まで許すか</b>（4枚のまま ／ 増やす ／ 減らす）</li>
+          <li><b>手書きの量</b>（実績・出発位置・気づき）</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ 案1 ══ -->
+  <section class="sec">
+    <div class="sec-head">
+      <p class="sec-eyebrow">案 1</p>
+      <h2>いまの形を、読みやすく整える<small>枚数も並びもそのまま。字づかいと欄の取り方だけを直す</small></h2>
+    </div>
+
+    <div class="paper-wrap">
+      <div class="paper land">
+        <div class="a4">
+          <div class="p-band">
+            <span class="big">午前</span><span class="mid">お迎え</span>
+            <span class="sm">自宅 → 事業所</span>
+            <span class="sp"></span>
+            <span class="sm">8台 稼働　17名 登録　15名 乗車　2名 欠席</span>
+            <span class="sm">通所介護事業所 デイサービス あさひ　令和8年7月22日（水曜日）</span>
+          </div>
+
+          <div class="a4-body">
+            <article class="a4-car">
+              <div class="a4-head">
+                <span class="no">1</span><b>佐藤 健</b>
+                <span>5人乗り・定員4名</span>
+                <span class="sp"></span>
+                <span>出発位置</span><span class="dv"></span>
+                <span>発 <b>07:15</b></span>
+              </div>
+              <div class="a4-r hd"><span></span><span>予定</span><span>利用者名・住所</span><span>記号</span><span>実績</span></div>
+              <div class="a4-r">
+                <span class="a4-ord">1</span><span class="a4-t">08:10</span>
+                <span><span class="a4-nm">田中 ハル</span><br><span class="a4-ad">中央町3-14-2</span></span>
+                <span><span class="a4-tg t-aid">歩行器</span></span><span class="a4-bx"></span>
+              </div>
+              <div class="a4-r">
+                <span class="a4-ord">2</span><span class="a4-t">08:25</span>
+                <span><span class="a4-nm">高橋 キヨ</span><br><span class="a4-ad">本町5-3-11</span></span>
+                <span><span class="a4-tg t-dr">玄関</span></span><span class="a4-bx"></span>
+              </div>
+              <div class="a4-r off">
+                <span class="a4-ord">3</span><span class="a4-t">08:40</span>
+                <span><span class="a4-nm">渡部 秀夫</span><br><span class="a4-ad">若葉台4-11-8</span></span>
+                <span><span class="a4-tg" style="color:#9C2B2B;border-color:#9C2B2B">入院</span></span><span class="a4-bx"></span>
+              </div>
+              <div class="a4-r blank">
+                <span class="a4-ord">4</span><span class="a4-t">--:--</span><span></span><span></span><span class="a4-bx"></span>
+              </div>
+              <div class="a4-foot">事業所 着 目標 <b>08:55</b>　実績<span class="a4-bx" style="width:60px"></span>　乗車 2 / 4名（欠席1）</div>
+            </article>
+
+            <article class="a4-car">
+              <div class="a4-head">
+                <span class="no">2</span><b>鈴木 明</b>
+                <span>リフト車・定員4名</span>
+                <span class="sp"></span>
+                <span>出発位置</span><span class="dv"></span>
+                <span>発 <b>08:10</b></span>
+              </div>
+              <div class="a4-r hd"><span></span><span>予定</span><span>利用者名・住所</span><span>記号</span><span>実績</span></div>
+              <div class="a4-r">
+                <span class="a4-ord">1</span><span class="a4-t">08:25</span>
+                <span><span class="a4-nm">山田 トシ子</span><br><span class="a4-ad">緑町1-4-16</span></span>
+                <span><span class="a4-tg t-wc">車椅子</span></span><span class="a4-bx"></span>
+              </div>
+              <div class="a4-r">
+                <span class="a4-ord">2</span><span class="a4-t">08:40</span>
+                <span><span class="a4-nm">大野 スミ</span><br><span class="a4-ad">桜ヶ丘1-2-7</span></span>
+                <span><span class="a4-tg t-dr">玄関</span></span><span class="a4-bx"></span>
+              </div>
+              <div class="a4-r blank">
+                <span class="a4-ord">3</span><span class="a4-t">--:--</span><span></span><span></span><span class="a4-bx"></span>
+              </div>
+              <div class="a4-r blank">
+                <span class="a4-ord">4</span><span class="a4-t">--:--</span><span></span><span></span><span class="a4-bx"></span>
+              </div>
+              <div class="a4-foot">事業所 着 目標 <b>08:55</b>　実績<span class="a4-bx" style="width:60px"></span>　乗車 2 / 4名</div>
+            </article>
+
+            <article class="a4-car">
+              <div class="a4-head">
+                <span class="no">3</span><b>高木 進</b>
+                <span>5人乗り・定員4名</span>
+                <span class="sp"></span>
+                <span>出発位置</span><span class="dv"></span>
+                <span>発 <b>08:10</b></span>
+              </div>
+              <div class="a4-r hd"><span></span><span>予定</span><span>利用者名・住所</span><span>記号</span><span>実績</span></div>
+              <div class="a4-r">
+                <span class="a4-ord">1</span><span class="a4-t">08:25</span>
+                <span><span class="a4-nm">森田 光子</span><br><span class="a4-ad">旭ヶ丘5-1-12</span></span>
+                <span></span><span class="a4-bx"></span>
+              </div>
+              <div class="a4-r">
+                <span class="a4-ord">2</span><span class="a4-t">08:40</span>
+                <span><span class="a4-nm">村上 三郎</span><br><span class="a4-ad">東雲2-11-6</span></span>
+                <span></span><span class="a4-bx"></span>
+              </div>
+              <div class="a4-r blank"><span class="a4-ord">3</span><span class="a4-t">--:--</span><span></span><span></span><span class="a4-bx"></span></div>
+              <div class="a4-r blank"><span class="a4-ord">4</span><span class="a4-t">--:--</span><span></span><span></span><span class="a4-bx"></span></div>
+              <div class="a4-foot">事業所 着 目標 <b>08:55</b>　実績<span class="a4-bx" style="width:60px"></span>　乗車 2 / 4名</div>
+            </article>
+
+            <article class="a4-car">
+              <div class="a4-head">
+                <span class="no">4</span><b>中村 恵</b>
+                <span>5人乗り・定員4名</span>
+                <span class="sp"></span>
+                <span>出発位置</span><span class="dv"></span>
+                <span>発 <b>07:50</b></span>
+              </div>
+              <div class="a4-r hd"><span></span><span>予定</span><span>利用者名・住所</span><span>記号</span><span>実績</span></div>
+              <div class="a4-r">
+                <span class="a4-ord">1</span><span class="a4-t">08:05</span>
+                <span><span class="a4-nm">菅原 テル</span><br><span class="a4-ad">川井町1-22-4</span></span>
+                <span><span class="a4-tg t-wc">車椅子</span></span><span class="a4-bx"></span>
+              </div>
+              <div class="a4-r">
+                <span class="a4-ord">2</span><span class="a4-t">08:35</span>
+                <span><span class="a4-nm">白石 ミツ</span><br><span class="a4-ad">南台2-5-9</span></span>
+                <span></span><span class="a4-bx"></span>
+              </div>
+              <div class="a4-r blank"><span class="a4-ord">3</span><span class="a4-t">--:--</span><span></span><span></span><span class="a4-bx"></span></div>
+              <div class="a4-r blank"><span class="a4-ord">4</span><span class="a4-t">--:--</span><span></span><span></span><span class="a4-bx"></span></div>
+              <div class="a4-foot">事業所 着 目標 <b>08:55</b>　実績<span class="a4-bx" style="width:60px"></span>　乗車 2 / 4名</div>
+            </article>
+          </div>
+        </div>
+      </div>
+      <p class="paper-cap">A4横 × 4枚（いまと同じ）／ 上半分だけを見本にしています</p>
+    </div>
+
+    <div class="cols">
+      <div class="note">
+        <h3>変わるところ</h3>
+        <ul>
+          <li><b>住所を氏名の真下へ。</b>いまは離れた列にあるので、目が横に飛ぶ。</li>
+          <li><b>記号を絵から言葉へ</b>（車椅子・歩行器・玄関）。慣れなくても読める。</li>
+          <li><b>実績を1本の記入欄</b>にまとめ、書く場所を1か所に。</li>
+          <li>運転手名を車の見出しに大きく置く（いまは左の枠に手書き）。</li>
+        </ul>
+      </div>
+      <div class="note">
+        <h3>向いていること</h3>
+        <ul>
+          <li><b>枚数も並びも変わらない</b>ので、今日から差し替えられる。</li>
+          <li>事務所での見渡しやすさはそのまま。</li>
+          <li>改修がいちばん小さい。</li>
+        </ul>
+      </div>
+      <div class="note">
+        <h3>物足りないところ</h3>
+        <ul>
+          <li>字の大きさは1〜2pt上がる程度。<b>走行中に読むにはまだ小さい。</b></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ 案2 ══ -->
+  <section class="sec">
+    <div class="sec-head">
+      <p class="sec-eyebrow">案 2</p>
+      <h2>1台1枚・運転手の手元<small>車ごとに1枚。走る前に見て、走りながら確かめられる大きさに振り切る</small></h2>
+    </div>
+
+    <div class="paper-wrap">
+      <div class="paper port">
+        <div class="a3">
+          <div class="a3-top">
+            <span class="a3-no">1</span>
+            <span class="a3-drv">佐藤 健<small>ハイエース・5人乗り／定員4名</small></span>
+            <span class="a3-meta">午前 お迎え<br>令和8年7月22日（水）<br>事業所 発 <b>07:15</b></span>
+          </div>
+
+          <div class="a3-list">
+            <div class="a3-row">
+              <span class="a3-ord">1</span>
+              <span class="a3-t">08:10</span>
+              <span><span class="a3-nm">田中 ハル</span><br><span class="a3-ad">中央町3-14-2</span></span>
+              <span class="a3-tags"><span class="a3-tag t-aid">歩行器</span></span>
+              <span class="a3-box"></span>
+            </div>
+            <div class="a3-row furikae">
+              <span class="a3-ord" style="background:#4C7A1E">2</span>
+              <span class="a3-t">08:25</span>
+              <span><span class="a3-nm">高橋 キヨ</span><br><span class="a3-ad">本町5-3-11</span></span>
+              <span class="a3-tags"><span class="a3-tag" style="color:#4C7A1E;border-color:#4C7A1E">振替</span><span class="a3-tag t-dr">玄関</span></span>
+              <span class="a3-box"></span>
+            </div>
+            <div class="a3-row off">
+              <span class="a3-ord">3</span>
+              <span class="a3-t">08:40</span>
+              <span><span class="a3-nm">渡部 秀夫</span><br><span class="a3-ad">若葉台4-11-8</span></span>
+              <span class="a3-tags"><span class="a3-tag" style="color:#9C2B2B;border-color:#9C2B2B">入院</span></span>
+              <span class="a3-box"></span>
+            </div>
+            <div class="a3-row blank">
+              <span class="a3-ord">4</span><span class="a3-t">--:--</span><span></span><span></span><span class="a3-box"></span>
+            </div>
+          </div>
+
+          <div class="a3-memo">気づいたこと（玄関の様子・道の混み・ご家族への伝言など）</div>
+
+          <div class="a3-foot">
+            事業所 着 目標 <b>08:55</b>　実績<span class="box"></span>
+          </div>
+        </div>
+      </div>
+      <p class="paper-cap">A4縦 × 稼働台数ぶん（8台なら8枚）／ 1台ぶんの全体</p>
+    </div>
+
+    <div class="cols">
+      <div class="note">
+        <h3>変わるところ</h3>
+        <ul>
+          <li><b>時刻30pt・氏名23pt。</b>いまの倍以上。運転席から目を落として読める。</li>
+          <li><b>1台1枚</b>なので、運転手はその1枚だけを持てばよい。ほかの車の情報が視界に入らない。</li>
+          <li>実績の記入欄が<b>高さ40ptの箱</b>。走ってから鉛筆で書き込める。行そのものも紙の高さいっぱいに伸ばす。</li>
+          <li>余った紙は<b>「気づいたこと」の記入欄</b>に回す。玄関の様子・道の混み・ご家族への伝言を持ち帰れる。</li>
+        </ul>
+      </div>
+      <div class="note">
+        <h3>向いていること</h3>
+        <ul>
+          <li><b>当日の運行そのもの。</b>いちばん読み間違いが起きにくい。</li>
+          <li>運転手ごとに配れる。持ち替えの手間がない。</li>
+          <li>新しい運転手・応援の職員に渡しても伝わる。</li>
+        </ul>
+      </div>
+      <div class="note">
+        <h3>物足りないところ</h3>
+        <ul>
+          <li><b>枚数が増える。</b>8台×4便なら32枚。実際は運転手に渡すぶんだけ刷る運用になる。</li>
+          <li>全体の見渡しには向かない。事務所用は別に1枚要る。</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ 案3 ══ -->
+  <section class="sec">
+    <div class="sec-head">
+      <p class="sec-eyebrow">案 3</p>
+      <h2>時刻の軸で並べる<small>縦が時刻、横が車。何時にどこで誰を拾うかを、8台まとめて見る</small></h2>
+    </div>
+
+    <div class="paper-wrap">
+      <div class="paper land">
+        <div class="a2">
+          <div class="p-band">
+            <span class="big">午前</span><span class="mid">お迎え</span>
+            <span class="sm">自宅 → 事業所　／　縦＝時刻　横＝車</span>
+            <span class="sp"></span>
+            <span class="sm">令和8年7月22日（水曜日）　通所介護事業所 デイサービス あさひ</span>
+          </div>
+
+          <div class="a2-grid">
+            <span class="a2-h">時刻</span>
+            <span class="a2-h">1号車<small>佐藤 健</small></span>
+            <span class="a2-h">2号車<small>鈴木 明・リフト</small></span>
+            <span class="a2-h">3号車<small>高木 進</small></span>
+            <span class="a2-h">4号車<small>中村 恵</small></span>
+            <span class="a2-h">5号車<small>小林 剛</small></span>
+            <span class="a2-h">6号車<small>渡辺 睦</small></span>
+
+            <span class="a2-t">07:50</span>
+            <span class="a2-c"></span><span class="a2-c"></span><span class="a2-c"></span>
+            <span class="a2-c on"><span class="a2-p">発<small>事業所</small></span></span>
+            <span class="a2-c"></span><span class="a2-c"></span>
+
+            <span class="a2-t">08:05</span>
+            <span class="a2-c"></span><span class="a2-c"></span><span class="a2-c"></span>
+            <span class="a2-c on"><span class="a2-p">菅原 テル<small>川井町1-22-4・車椅子</small></span></span>
+            <span class="a2-c"></span><span class="a2-c on"><span class="a2-p">堀 かず子<small>中央町1-2-9</small></span></span>
+
+            <span class="a2-t">08:10</span>
+            <span class="a2-c on"><span class="a2-p">田中 ハル<small>中央町3-14-2・歩行器</small></span></span>
+            <span class="a2-c"></span>
+            <span class="a2-c on"><span class="a2-p">発<small>事業所</small></span></span>
+            <span class="a2-c"></span><span class="a2-c"></span><span class="a2-c"></span>
+
+            <span class="a2-t">08:25</span>
+            <span class="a2-c on"><span class="a2-p">高橋 キヨ<small>本町5-3-11・玄関</small></span></span>
+            <span class="a2-c on"><span class="a2-p">山田 トシ子<small>緑町1-4-16・車椅子</small></span></span>
+            <span class="a2-c on"><span class="a2-p">森田 光子<small>旭ヶ丘5-1-12</small></span></span>
+            <span class="a2-c"></span>
+            <span class="a2-c on"><span class="a2-p">野口 定雄<small>南台5-13-2・玄関</small></span></span>
+            <span class="a2-c"></span>
+
+            <span class="a2-t">08:35</span>
+            <span class="a2-c"></span><span class="a2-c"></span><span class="a2-c"></span>
+            <span class="a2-c on"><span class="a2-p">白石 ミツ<small>南台2-5-9</small></span></span>
+            <span class="a2-c"></span>
+            <span class="a2-c on"><span class="a2-p">宮本 サダ<small>本町2-4-6</small></span></span>
+
+            <span class="a2-t">08:40</span>
+            <span class="a2-c off"><span class="a2-p">渡部 秀夫<small>若葉台4-11-8・入院</small></span></span>
+            <span class="a2-c on"><span class="a2-p">大野 スミ<small>桜ヶ丘1-2-7・玄関</small></span></span>
+            <span class="a2-c on"><span class="a2-p">村上 三郎<small>東雲2-11-6</small></span></span>
+            <span class="a2-c"></span>
+            <span class="a2-c on"><span class="a2-p">石田 正治<small>上野原3-12-1</small></span></span>
+            <span class="a2-c"></span>
+
+            <span class="a2-t">08:55</span>
+            <span class="a2-c on"><span class="a2-p">着</span></span>
+            <span class="a2-c on"><span class="a2-p">着</span></span>
+            <span class="a2-c on"><span class="a2-p">着</span></span>
+            <span class="a2-c on"><span class="a2-p">着</span></span>
+            <span class="a2-c on"><span class="a2-p">着</span></span>
+            <span class="a2-c on"><span class="a2-p">着</span></span>
+          </div>
+        </div>
+      </div>
+      <p class="paper-cap">A4横 × 1〜2枚（1便ぶん）／ 車が多い日は右へ続く</p>
+    </div>
+
+    <div class="cols">
+      <div class="note">
+        <h3>変わるところ</h3>
+        <ul>
+          <li><b>縦が時刻、横が車。</b>「8時25分に何台が動いているか」が一目で分かる。</li>
+          <li>事業所の発と着が同じ列に並ぶので、<b>到着の集中</b>も読める。</li>
+          <li>1便が1枚に収まるので、<b>紙が4枚から1〜2枚に減る。</b></li>
+        </ul>
+      </div>
+      <div class="note">
+        <h3>向いていること</h3>
+        <ul>
+          <li><b>事務所での全体把握。</b>電話が入ったとき「いまどの車が近いか」を探しやすい。</li>
+          <li>組み替えの検討（この人を隣の車へ回せるか）に向く。</li>
+          <li>壁に貼る1枚として使える。</li>
+        </ul>
+      </div>
+      <div class="note">
+        <h3>物足りないところ</h3>
+        <ul>
+          <li><b>運転手には向かない。</b>自分の車だけを追うには目が横に散る。</li>
+          <li>実績を書き込む欄が取りにくい。<b>読む専用の紙</b>になる。</li>
+          <li>時刻の刻みをどう取るかで、間延びしたり詰まったりする。</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ 案4 ══ -->
+  <section class="sec">
+    <div class="sec-head">
+      <p class="sec-eyebrow">案 4</p>
+      <h2>1枚に2台・大きめ<small>案1と案2の中間。枚数は倍だが、走行中でも読める大きさを確保する</small></h2>
+    </div>
+
+    <div class="paper-wrap">
+      <div class="paper land">
+        <div class="a1">
+          <div class="p-band">
+            <span class="big">午前</span><span class="mid">お迎え</span>
+            <span class="sm">自宅 → 事業所</span>
+            <span class="sp"></span>
+            <span class="sm">令和8年7月22日（水曜日）　1〜2号車　（1/4枚）</span>
+          </div>
+
+          <div class="a1-body" style="grid-template-columns:1fr 1fr">
+            <article class="a1-car">
+              <div class="a1-head">
+                <span class="a1-no">1号車</span>
+                <span class="a1-drv">佐藤 健<small>　ハイエース・定員4名</small></span>
+                <span class="a1-cap">乗車 <b>2</b>/4</span>
+              </div>
+              <div class="a1-time">
+                <div>事業所 発 <b>07:15</b></div>
+                <div>事業所 着 目標 <b>08:55</b></div>
+              </div>
+              <div class="a1-row">
+                <span class="a1-ord">1</span><span class="a1-t">08:10</span>
+                <span><span class="a1-nm">田中 ハル</span><span class="a1-tag t-aid">歩行器</span><br><span class="a1-ad">中央町3-14-2</span></span>
+                <span class="a1-box"></span>
+              </div>
+              <div class="a1-row furikae">
+                <span class="a1-ord">2</span><span class="a1-t">08:25</span>
+                <span><span class="a1-nm">高橋 キヨ</span><span class="a1-tag" style="color:#4C7A1E;border-color:#4C7A1E">振替</span><span class="a1-tag t-dr">玄関</span><br><span class="a1-ad">本町5-3-11</span></span>
+                <span class="a1-box"></span>
+              </div>
+              <div class="a1-row off">
+                <span class="a1-ord">3</span><span class="a1-t">08:40</span>
+                <span><span class="a1-nm">渡部 秀夫</span><span class="a1-tag" style="color:#9C2B2B;border-color:#9C2B2B">入院</span><br><span class="a1-ad">若葉台4-11-8</span></span>
+                <span class="a1-box"></span>
+              </div>
+              <div class="a1-row a1-blank">
+                <span class="a1-ord">4</span><span class="a1-t">--:--</span><span></span><span class="a1-box"></span>
+              </div>
+              <div class="a1-foot">出発位置<span style="border-bottom:1px solid #8A96A3;flex:1;height:12px"></span>　着 実績<span style="border-bottom:1px solid #8A96A3;width:60px;height:12px"></span></div>
+            </article>
+
+            <article class="a1-car">
+              <div class="a1-head">
+                <span class="a1-no" style="background:#B23A2C">2号車</span>
+                <span class="a1-drv">鈴木 明<small>　リフト車・定員4名</small></span>
+                <span class="a1-cap">乗車 <b>2</b>/4</span>
+              </div>
+              <div class="a1-time">
+                <div>事業所 発 <b>08:10</b></div>
+                <div>事業所 着 目標 <b>08:55</b></div>
+              </div>
+              <div class="a1-row">
+                <span class="a1-ord">1</span><span class="a1-t">08:25</span>
+                <span><span class="a1-nm">山田 トシ子</span><span class="a1-tag t-wc">車椅子</span><br><span class="a1-ad">緑町1-4-16</span></span>
+                <span class="a1-box"></span>
+              </div>
+              <div class="a1-row">
+                <span class="a1-ord">2</span><span class="a1-t">08:40</span>
+                <span><span class="a1-nm">大野 スミ</span><span class="a1-tag t-dr">玄関</span><br><span class="a1-ad">桜ヶ丘1-2-7</span></span>
+                <span class="a1-box"></span>
+              </div>
+              <div class="a1-row a1-blank">
+                <span class="a1-ord">3</span><span class="a1-t">--:--</span><span></span><span class="a1-box"></span>
+              </div>
+              <div class="a1-row a1-blank">
+                <span class="a1-ord">4</span><span class="a1-t">--:--</span><span></span><span class="a1-box"></span>
+              </div>
+              <div class="a1-foot">出発位置<span style="border-bottom:1px solid #8A96A3;flex:1;height:12px"></span>　着 実績<span style="border-bottom:1px solid #8A96A3;width:60px;height:12px"></span></div>
+            </article>
+          </div>
+
+          <p style="margin:0;font-size:8.5px;color:#4A5765">
+            記号　車椅子＝リフト・スロープ使用／歩行器＝持参もしくは貸出／玄関＝玄関先まで送迎
+            赤＝欠席（取り消し線）／黄緑＝振替／橙＝新規・増回・変更　　右端の枠は実際の到着時刻の記入用です。
+          </p>
+        </div>
+      </div>
+      <p class="paper-cap">A4横 × 8枚（1便あたり4枚 × …ではなく、稼働8台なら1便4枚）／ 1枚ぶんの全体</p>
+    </div>
+
+    <div class="cols">
+      <div class="note">
+        <h3>変わるところ</h3>
+        <ul>
+          <li><b>1枚に2台。</b>1台あたりの面積が倍になり、時刻20pt・氏名17ptまで上がる。行も紙の高さに合わせて伸びる。</li>
+          <li>記号を氏名の<b>すぐ横</b>に置き、住所を下に回す。目の動きが縦だけで済む。</li>
+          <li>実績の枠が<b>四角い箱</b>になり、走ってから書き込みやすい。</li>
+          <li>リフト車は号車の札が朱色。<b>車椅子の方の割り当て間違い</b>に気づける。</li>
+        </ul>
+      </div>
+      <div class="note">
+        <h3>向いていること</h3>
+        <ul>
+          <li>事務所の見渡しと、車内での読みやすさの<b>ちょうど中間</b>。</li>
+          <li>2台ぶんなので、<b>2人で1枚を分け合う</b>こともできる。</li>
+          <li>いまの並び（左に車の情報、右に行）を引き継ぐので、慣れが要らない。</li>
+        </ul>
+      </div>
+      <div class="note">
+        <h3>物足りないところ</h3>
+        <ul>
+          <li><b>枚数が倍</b>（4枚 → 8枚）。紙とインクの量が増える。</li>
+          <li>1枚で全台を見渡すことはできない。</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head">
+      <p class="sec-eyebrow">見比べ</p>
+      <h2>4案のちがい</h2>
+    </div>
+    <div class="cmp-wrap">
+      <table class="cmp">
+        <thead>
+          <tr><th>　</th><th>案1 整える</th><th>案2 1台1枚</th><th>案3 時刻の軸</th><th>案4 1枚に2台</th></tr>
+        </thead>
+        <tbody>
+          <tr><th>読む人</th><td>事務所</td><td>運転手</td><td>事務所</td><td>両方</td></tr>
+          <tr><th>枚数（1便）</th><td>1枚（4台）</td><td>稼働台数ぶん</td><td>1〜2枚</td><td>4枚（2台ずつ）</td></tr>
+          <tr><th>氏名の大きさ</th><td>12.5pt</td><td><b>23pt</b></td><td>10.5pt</td><td>17pt</td></tr>
+          <tr><th>時刻の大きさ</th><td>13pt</td><td><b>30pt</b></td><td>11pt</td><td>20pt</td></tr>
+          <tr><th>実績の書きやすさ</th><td>線1本</td><td><b>大きな箱</b></td><td>ほぼ書けない</td><td>四角い箱</td></tr>
+          <tr><th>全体の見渡し</th><td>できる</td><td>できない</td><td><b>いちばん良い</b></td><td>半分ずつ</td></tr>
+          <tr><th>改修の大きさ</th><td>小</td><td>中</td><td>大</td><td>中</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="sec tail">
+    <div class="sec-head">
+      <p class="sec-eyebrow">おすすめ</p>
+      <h2>案1をすぐ入れて、案2を運転手用に足す</h2>
+    </div>
+    <p class="verdict">
+      いまの紙の役割は「事務所で全体を確かめる」ことなので、<strong>案1</strong>で読みやすさだけを上げるのが
+      いちばん外れがありません。そのうえで、<strong>案2（1台1枚）</strong>を
+      <b>運転手に渡すぶんだけ刷る</b>形で足すと、車内での読み違いが減ります。
+      1つの紙で両方をまかなおうとすると、どちらつかずになりがちです。
+      案3は面白い見え方ですが、実績が書けないので<b>置き換えではなく追加の1枚</b>という位置づけになります。
+      案4は「1枚で済ませたいが大きくもしたい」ときの折衷案です。
+    </p>
+    <div class="cols">
+      <div class="note">
+        <h3>お決めいただきたいこと</h3>
+        <ul>
+          <li><b>進める方向</b>はどれか（組み合わせも可）。</li>
+          <li>記号は<b>絵のままか、言葉のピルか</b>。</li>
+          <li>運転手に渡す紙を<b>別に用意するか</b>、1種類でまかなうか。</li>
+          <li>実績欄に<b>何を書くか</b>（到着時刻だけか、気づきも残すか）。</li>
+        </ul>
+      </div>
+      <div class="note">
+        <h3>決まったあとの進め方</h3>
+        <ul>
+          <li>選ばれた案で、<b>実際に刷れる PDF</b> を1便ぶんお渡しします。</li>
+          <li>現場で1週間使っていただき、字の大きさや欄の位置を詰めます。</li>
+          <li>そのあと4便すべてに広げます。寸法はあとから数値ひとつで変えられます。</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+</div>
+</body>
+</html>
