@@ -1,4 +1,4 @@
-import { mode as storeModeRef, ready as storeReady, staffStore, todoStore, eventStore, routineTaskStore, routineLogStore, groupStore, photoStore } from "./store.js";
+import { mode as storeModeRef, ready as storeReady, staffStore, todoStore, eventStore, routineTaskStore, routineLogStore, groupStore, photoStore, phoneMemoStore } from "./store.js";
 
 // ---------------- 共通ユーティリティ ----------------
 
@@ -81,10 +81,13 @@ const state = {
   routineLogs: [],
   groups: [],
   photos: [],
+  phoneMemos: [],
   meId: localStorage.getItem(ME_KEY) || null,
   screen: "todo",
   todoFilter: "open",
   todoSearch: "",
+  memoFilter: "all",
+  memoSearch: "",
   routineCat: "daily",
   calMonth: (() => { const d = new Date(); d.setDate(1); return d; })(),
   calSelected: todayKey(),
@@ -220,6 +223,7 @@ function renderScreen(name) {
   else if (name === "calendar") renderCalendar();
   else if (name === "routine") renderRoutineList();
   else if (name === "photos") renderPhotoTimeline();
+  else if (name === "phoneMemo") renderMemoList();
   else if (name === "settings") renderSettings();
 }
 
@@ -230,6 +234,7 @@ document.getElementById("fab").addEventListener("click", () => {
   else if (state.screen === "calendar") openEventSheet(state.calSelected);
   else if (state.screen === "routine") openRoutineTaskSheet(state.routineCat);
   else if (state.screen === "photos") document.getElementById("photoFileInput").click();
+  else if (state.screen === "phoneMemo") openMemoSheet();
   else if (state.screen === "settings") openStaffSheet();
 });
 
@@ -1092,6 +1097,113 @@ function openAttachmentSheet(item) {
 }
 
 // ================================================================
+// 電話メモ
+// ================================================================
+
+const MEMO_STATUSES = ["未対応", "対応中", "完了"];
+const MEMO_STATUS_BADGE = { 未対応: "badge--danger", 対応中: "badge--warning", 完了: "" };
+
+document.getElementById("memoFilters").addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-memo-filter]");
+  if (!btn) return;
+  state.memoFilter = btn.dataset.memoFilter;
+  document.querySelectorAll("[data-memo-filter]").forEach((b) => b.classList.toggle("is-active", b === btn));
+  renderMemoList();
+});
+
+const memoSearchInput = document.getElementById("memoSearchInput");
+memoSearchInput.addEventListener("input", () => {
+  state.memoSearch = memoSearchInput.value;
+  renderMemoList();
+});
+
+function filteredMemos() {
+  const q = state.memoSearch.trim().toLowerCase();
+  let list = [...state.phoneMemos];
+  if (state.memoFilter !== "all") list = list.filter((m) => m.status === state.memoFilter);
+  if (q) list = list.filter((m) => (m.caller || "").toLowerCase().includes(q) || (m.content || "").toLowerCase().includes(q));
+  list.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  return list;
+}
+
+function renderMemoList() {
+  const list = filteredMemos();
+  const el = document.getElementById("memoList");
+  const empty = document.getElementById("memoEmpty");
+  empty.hidden = list.length > 0;
+  const seenAt = getSeenAt("phoneMemo");
+  el.innerHTML = list.map((m) => {
+    const time = new Date(m.createdAt || 0).toLocaleString("ja-JP", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" });
+    const badgeClass = MEMO_STATUS_BADGE[m.status] || "";
+    const options = MEMO_STATUSES.map((s) => `<option value="${s}" ${s === m.status ? "selected" : ""}>${s}</option>`).join("");
+    return `
+      <div class="card ${m.status === "完了" ? "card--done" : ""}" data-id="${m.id}">
+        <div class="card__body" data-action="edit">
+          <div class="memo-top">
+            <span class="memo-caller">${newTagHtml(isNewItem(m, seenAt))}${escapeHtml(m.caller || "(相手先未入力)")}</span>
+            <span class="badge ${badgeClass}">${escapeHtml(m.status)}</span>
+          </div>
+          <div class="card__memo">${escapeHtml(m.content || "")}</div>
+          <div class="card__meta"><span class="badge">${escapeHtml(time)}受電</span><span class="badge">受: ${escapeHtml(m.staff || "-")}</span></div>
+        </div>
+        <select class="memo-select" data-action="quick-status" aria-label="対応状況を変更">${options}</select>
+      </div>`;
+  }).join("");
+  markSeen("phoneMemo");
+
+  el.querySelectorAll('[data-action="edit"]').forEach((body) => {
+    body.addEventListener("click", () => openMemoSheet(state.phoneMemos.find((x) => x.id === body.closest(".card").dataset.id)));
+  });
+  el.querySelectorAll('[data-action="quick-status"]').forEach((select) => {
+    select.addEventListener("click", (e) => e.stopPropagation());
+    select.addEventListener("change", () => {
+      const id = select.closest(".card").dataset.id;
+      phoneMemoStore.update(id, { status: select.value });
+    });
+  });
+}
+
+function openMemoSheet(existing) {
+  const status = existing?.status || "未対応";
+  const html = `
+    <div class="field">
+      <label for="m-caller">相手先（氏名・施設名など）</label>
+      <input id="m-caller" name="caller" type="text" maxlength="60" value="${escapeHtml(existing?.caller || "")}" placeholder="例：田中様（ご家族）">
+    </div>
+    <div class="field">
+      <label for="m-content">要件</label>
+      <textarea id="m-content" name="content" required maxlength="500" placeholder="例：来週の送迎時間を変更したい">${escapeHtml(existing?.content || "")}</textarea>
+    </div>
+    <div class="field">
+      <label for="m-staff">受けた担当者</label>
+      <input id="m-staff" name="staff" type="text" maxlength="20" value="${escapeHtml(existing?.staff ?? meStaff()?.name ?? "")}" placeholder="例：佐藤">
+    </div>
+    <div class="field">
+      <label>対応状況</label>
+      <input type="hidden" name="status" value="${status}">
+      <div class="pill-group">
+        ${MEMO_STATUSES.map((s) => `<button type="button" class="pill-option ${status === s ? "is-active" : ""}" data-value="${s}">${s}</button>`).join("")}
+      </div>
+    </div>
+  `;
+  openSheet(existing ? "電話メモを編集" : "電話メモを追加", html, {
+    onSubmit: async (data) => {
+      const payload = {
+        caller: data.caller.trim(),
+        content: data.content.trim(),
+        staff: data.staff.trim(),
+        status: data.status || "未対応",
+      };
+      if (!payload.content) return;
+      if (existing) await phoneMemoStore.update(existing.id, payload);
+      else await phoneMemoStore.add({ ...payload, createdBy: meStaff()?.name || null });
+      toast("保存しました");
+    },
+    onDelete: existing ? async () => { await phoneMemoStore.remove(existing.id); toast("削除しました"); } : null,
+  });
+}
+
+// ================================================================
 // 設定
 // ================================================================
 
@@ -1405,6 +1517,10 @@ async function main() {
   photoStore.subscribe((list) => {
     state.photos = list;
     if (state.screen === "photos") renderPhotoTimeline();
+  });
+  phoneMemoStore.subscribe((list) => {
+    state.phoneMemos = list;
+    if (state.screen === "phoneMemo") renderMemoList();
   });
 
   renderScreen(state.screen);

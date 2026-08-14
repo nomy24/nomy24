@@ -219,6 +219,7 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
   border-radius: var(--radius-md); padding: 14px; box-shadow: var(--shadow-card);
   display: flex; gap: 12px; align-items: flex-start; cursor: pointer;
 }
+.card--done { opacity: 0.7; }
 
 .check {
   position: relative;
@@ -337,6 +338,15 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .badge--warning { background: var(--color-warning-bg); color: var(--color-warning); }
 .badge--info { background: var(--color-info-bg); color: var(--color-info); }
 .badge--purple { background: var(--color-purple-bg); color: var(--color-purple); }
+
+/* ---------------- Phone memo ---------------- */
+.memo-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+.memo-caller { font-size: 15px; font-weight: 700; }
+.memo-select {
+  font-size: 12.5px; padding: 7px 9px; border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text);
+  flex-shrink: 0;
+}
 .badge--primary { background: var(--cat-daily-bg); color: var(--cat-daily); }
 .badge--cat-daily { background: var(--cat-daily-bg); color: var(--cat-daily); }
 .badge--cat-monthStart { background: var(--cat-monthStart-bg); color: var(--cat-monthStart); }
@@ -466,7 +476,7 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 /* ---------------- Tabbar ---------------- */
 .tabbar {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
-  display: grid; grid-template-columns: repeat(5, 1fr);
+  display: grid; grid-template-columns: repeat(6, 1fr);
   background: var(--color-surface); border-top: 1px solid var(--color-border);
   padding-bottom: env(safe-area-inset-bottom);
   max-width: 640px; margin: 0 auto;
