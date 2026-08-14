@@ -1,0 +1,564 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>送迎表 案1（読みやすく整える）</title>
+<style>
+  /* ══════════════════════════════════════════════
+     送迎表 案1「いまの形を、読みやすく整える」
+     A4横1枚に8台。並びも枚数も今と同じで、
+     字づかいと欄の取り方だけを直したもの。
+     このまま Ctrl/⌘ + P → 送信先「PDFに保存」で刷れます。
+     ══════════════════════════════════════════════ */
+
+  @page { size: A4 landscape; margin: 6mm; }
+
+  * { box-sizing: border-box; }
+
+  :root {
+    --ai:      #1B3557;   /* 藍　午前 */
+    --ai-soft: #DEE7F1;
+    --enji:    #63263A;   /* 臙脂　午後 */
+    --enji-soft:#EFDCE2;
+    --warn:    #9C2B2B;   /* 欠席 */
+    --warn-soft:#F6E7E5;
+    --furi:    #4C7A1E;   /* 振替 */
+    --furi-soft:#EDF3E3;
+    --shin:    #B4610E;   /* 新規・増回・変更 */
+    --shin-soft:#FAEEE0;
+    --wc:      #B23A2C;   /* 車椅子の乗る車 */
+    --rule:    #8A96A3;
+    --rule-2:  #C3CABE;
+    --ink:     #16202A;
+    --ink-2:   #4A5765;
+    --ink-3:   #8A96A3;
+    --gothic: "Hiragino Kaku Gothic ProN", "Yu Gothic", "YuGothic", "Noto Sans JP", "Meiryo", system-ui, sans-serif;
+  }
+
+  html, body { margin: 0; padding: 0; background: #E7E9E4; }
+
+  body {
+    font-family: var(--gothic);
+    color: var(--ink);
+    line-height: 1.3;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* 画面で見るときだけの案内。紙には出ない */
+  .hint {
+    max-width: 1120px;
+    margin: 22px auto 14px;
+    padding: 14px 18px;
+    background: #fff;
+    border-left: 3px solid var(--ai);
+    font-size: 13.5px;
+    line-height: 1.8;
+    color: var(--ink-2);
+  }
+
+  .hint b { color: var(--ink); }
+  .hint .k { font-family: inherit; background: #EEF1EC; border: 1px solid var(--rule-2); border-radius: 4px; padding: 1px 6px; font-size: 12.5px; }
+
+  /* 紙。A4横 297×210mm から余白を引いた寸法 */
+  .paper {
+    width: 285mm;
+    height: 198mm;
+    margin: 0 auto 22px;
+    padding: 0;
+    background: #fff;
+    box-shadow: 0 8px 26px rgba(20, 34, 36, .18);
+    display: flex;
+    flex-direction: column;
+    gap: 1.6mm;
+    overflow: hidden;
+  }
+
+  /* ── 見出しの帯 ─────────────────────────── */
+  .band {
+    display: flex;
+    align-items: baseline;
+    gap: 4mm;
+    background: var(--ai);
+    color: #fff;
+    padding: 1.6mm 3mm;
+  }
+
+  .band .part { font-size: 13pt; font-weight: 700; letter-spacing: .12em; }
+  .band .dir  { font-size: 11.5pt; letter-spacing: .08em; }
+  .band .flow { font-size: 7.5pt; opacity: .85; }
+  .band .sp   { flex: 1; }
+  .band .num  { font-size: 8pt; letter-spacing: .04em; }
+  .band .num b { font-size: 11pt; margin-right: .4mm; }
+  .band .num .ok { color: #A9CC72; }
+  .band .who  { font-size: 8pt; letter-spacing: .04em; }
+
+  /* ── 車両カード ─────────────────────────── */
+  .fleet {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-auto-rows: 1fr;
+    gap: 1.6mm 2.4mm;
+    padding: 0 3mm;
+    min-height: 0;
+  }
+
+  .car {
+    border: .6pt solid var(--rule);
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+    break-inside: avoid;
+  }
+
+  .car-head {
+    display: flex;
+    align-items: center;
+    gap: 2mm;
+    flex: none;
+    background: var(--ai-soft);
+    border-bottom: .6pt solid var(--rule);
+    padding: .5mm 2mm;
+    font-size: 7pt;
+    color: var(--ink-2);
+    white-space: nowrap;
+  }
+
+  .car.lift .car-head { background: #F6E3DF; }
+
+  .car-no {
+    background: var(--ai);
+    color: #fff;
+    font-size: 9pt;
+    font-weight: 700;
+    padding: .3mm 2.4mm;
+    letter-spacing: .04em;
+  }
+
+  .car.lift .car-no { background: var(--wc); }
+
+  .car-drv { font-size: 10pt; font-weight: 700; color: var(--ink); letter-spacing: .06em; }
+
+  /* 運転手が決まっていない日のために、書き込める下線も残す */
+  .car-drv.blank { min-width: 22mm; border-bottom: .6pt solid var(--rule); }
+
+  .car-kind { font-size: 7pt; }
+  .car-sp { flex: 1; }
+  .car-start { font-size: 7pt; }
+  .car-start i { display: inline-block; min-width: 16mm; border-bottom: .6pt solid var(--rule); font-style: normal; }
+  .car-dep b { font-size: 10pt; color: var(--ink); margin-left: .6mm; }
+
+  /* 見出し行 */
+  .row {
+    display: grid;
+    grid-template-columns: 5mm 12mm 1fr 17mm 13mm;
+    align-items: center;
+    gap: 1.6mm;
+    padding: .3mm 2mm;
+    border-bottom: .4pt solid #E1E5DC;
+    overflow: hidden;
+  }
+
+  /* 4行がカードの高さを分け合う。定員が変わっても紙からはみ出さない */
+  .stops .row { flex: 1 1 0; min-height: 0; }
+
+  .row.hd {
+    flex: none;
+    background: #F2F4EE;
+    font-size: 6pt;
+    color: var(--ink-2);
+    letter-spacing: .04em;
+    padding-top: .3mm;
+    padding-bottom: .3mm;
+  }
+
+  .row.hd span { text-align: center; }
+  .row.hd span:nth-child(3) { text-align: left; }
+
+  .stops { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+  .row:last-of-type { border-bottom: 0; }
+
+  .ord {
+    width: 5mm; height: 5mm; flex: none;
+    border-radius: 50%;
+    background: var(--ai);
+    color: #fff;
+    display: grid; place-items: center;
+    font-size: 6.5pt; font-weight: 700;
+  }
+
+  .t {
+    font-size: 10pt;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -.01em;
+  }
+
+  /* 氏名のすぐ隣に住所を置く。離れた列にあると目が横に飛ぶ。
+     1行に並べるので、行が狭くなっても上下でぶつからない */
+  .who { display: flex; align-items: baseline; gap: 2mm; min-width: 0; overflow: hidden; }
+  .nm { font-size: 9.5pt; font-weight: 600; letter-spacing: .02em; white-space: nowrap; }
+  .ad { font-size: 6.5pt; color: var(--ink-2); white-space: nowrap; }
+
+  /* 記号は絵ではなく言葉。慣れていなくても読める */
+  .tags { display: flex; gap: .8mm; flex-wrap: wrap; }
+
+  .tag {
+    font-size: 6pt;
+    font-weight: 700;
+    line-height: 1.5;
+    padding: 0 1.2mm;
+    border: .6pt solid;
+    border-radius: 2mm;
+    white-space: nowrap;
+  }
+
+  .t-wc  { color: var(--wc);  border-color: var(--wc); }
+  .t-aid { color: #1B6FA8;    border-color: #1B6FA8; }
+  .t-dr  { color: #3F6B4E;    border-color: #3F6B4E; }
+  .t-off { color: #fff; background: var(--warn); border-color: var(--warn); }
+  .t-fu  { color: #fff; background: var(--furi); border-color: var(--furi); }
+  .t-sh  { color: #fff; background: var(--shin); border-color: var(--shin); }
+
+  /* 実績は1本の記入欄にまとめる。書く場所を1か所に */
+  .box { border-bottom: .6pt solid var(--rule); height: 3.2mm; }
+
+  /* 状態ごとの見え方。行ぜんたいに色を敷く */
+  .row.off { background: var(--warn-soft); }
+  .row.off .ord { background: var(--warn); }
+  .row.off .t, .row.off .nm, .row.off .ad { color: var(--warn); text-decoration: line-through; }
+
+  .row.fu { background: var(--furi-soft); }
+  .row.fu .ord { background: var(--furi); }
+  .row.fu .nm { color: var(--furi); }
+
+  .row.sh { background: var(--shin-soft); }
+  .row.sh .ord { background: var(--shin); }
+  .row.sh .nm { color: var(--shin); }
+
+  .row.blank .ord { background: #E7EAE3; color: var(--ink-3); font-weight: 400; }
+  .row.blank .t { color: #CBD2D8; font-weight: 400; }
+
+  .car-foot {
+    margin-top: auto;
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 2mm;
+    background: #F2F4EE;
+    border-top: .6pt solid var(--rule-2);
+    padding: .4mm 2mm;
+    font-size: 6.5pt;
+    color: var(--ink-2);
+    white-space: nowrap;
+  }
+
+  .car-foot b { font-size: 10pt; color: var(--ink); }
+  .car-foot i { display: inline-block; min-width: 12mm; border-bottom: .6pt solid var(--rule); font-style: normal; }
+  .car-foot .cap { margin-left: auto; font-size: 7.5pt; }
+  .car-foot .cap b { font-size: 9.5pt; }
+
+  .legend {
+    padding: 0 3mm;
+    font-size: 6pt;
+    line-height: 1.5;
+    color: var(--ink-2);
+    letter-spacing: .02em;
+  }
+
+  .legend b { color: var(--ink); }
+
+  @media print {
+    html, body { background: #fff; margin: 0; padding: 0; }
+    .hint { display: none; }
+    /* 紙の寸法は mm で決め打つ。100% だと親の高さが定まらず2枚に割れる */
+    .paper { box-shadow: none; margin: 0; width: 285mm; height: 198mm; }
+  }
+</style>
+</head>
+<body>
+
+<p class="hint">
+  <b>案1「いまの形を、読みやすく整える」の見本です。</b>
+  午前お迎え・8台ぶんを A4横1枚に組んであります（枚数も並びも今と同じ）。<br>
+  <span class="k">Ctrl</span> ＋ <span class="k">P</span>（Mac は <span class="k">⌘</span> ＋ <span class="k">P</span>）→ 送信先で
+  <b>「PDFに保存」</b>を選ぶと、そのままの形で刷れます。用紙は <b>A4・横</b>、余白は <b>なし〜狭め</b>、
+  <b>背景のグラフィック</b>にチェックを入れてください。
+</p>
+
+<div class="paper">
+
+  <div class="band">
+    <span class="part">午前</span>
+    <span class="dir">お迎え</span>
+    <span class="flow">自宅 → 事業所</span>
+    <span class="sp"></span>
+    <span class="num"><b>8</b>台 稼働　<b>17</b>名 登録　<b>15</b>名 乗車　<span class="ok"><b>0</b>名 未割当</span>　<b>2</b>名 欠席</span>
+    <span class="who">通所介護事業所 デイサービス あさひ　令和8年7月22日（水曜日）　送迎表</span>
+  </div>
+
+  <div class="fleet">
+
+    <!-- 1号車 -->
+    <article class="car">
+      <div class="car-head">
+        <span class="car-no">1号車</span>
+        <span class="car-drv blank"></span>
+        <span class="car-kind">5人乗り・定員4名</span>
+        <span class="car-sp"></span>
+        <span class="car-start">出発位置 <i></i></span>
+        <span class="car-dep">事業所 発 <b>08:15</b></span>
+      </div>
+      <div class="row hd"><span></span><span>予定</span><span>利用者名・住所</span><span>記号</span><span>実績</span></div>
+      <div class="stops">
+        <div class="row off">
+          <span class="ord">1</span><span class="t">08:00</span>
+          <span class="who"><span class="nm">田中 ハル</span><span class="ad">中央町3-14-2</span></span>
+          <span class="tags"><span class="tag t-off">SS</span><span class="tag t-aid">歩行器</span></span>
+          <span class="box"></span>
+        </div>
+        <div class="row">
+          <span class="ord">2</span><span class="t">08:25</span>
+          <span class="who"><span class="nm">高橋 キヨ</span><span class="ad">本町5-3-11</span></span>
+          <span class="tags"><span class="tag t-dr">玄関</span></span>
+          <span class="box"></span>
+        </div>
+        <div class="row">
+          <span class="ord">3</span><span class="t">08:40</span>
+          <span class="who"><span class="nm">渡部 秀夫</span><span class="ad">若葉台4-11-8</span></span>
+          <span class="tags"></span>
+          <span class="box"></span>
+        </div>
+        <div class="row blank">
+          <span class="ord">4</span><span class="t">--:--</span><span></span><span></span><span class="box"></span>
+        </div>
+      </div>
+      <div class="car-foot">事業所 着 目標 <b>08:55</b>　実績 <i></i><span class="cap">乗車 <b>2</b> / 4名（欠席1）</span></div>
+    </article>
+
+    <!-- 2号車 -->
+    <article class="car">
+      <div class="car-head">
+        <span class="car-no">2号車</span>
+        <span class="car-drv blank"></span>
+        <span class="car-kind">5人乗り・定員4名</span>
+        <span class="car-sp"></span>
+        <span class="car-start">出発位置 <i></i></span>
+        <span class="car-dep">事業所 発 <b>08:10</b></span>
+      </div>
+      <div class="row hd"><span></span><span>予定</span><span>利用者名・住所</span><span>記号</span><span>実績</span></div>
+      <div class="stops">
+        <div class="row">
+          <span class="ord">1</span><span class="t">08:25</span>
+          <span class="who"><span class="nm">山田 トシ子</span><span class="ad">緑町1-4-16</span></span>
+          <span class="tags"><span class="tag t-dr">玄関</span></span>
+          <span class="box"></span>
+        </div>
+        <div class="row">
+          <span class="ord">2</span><span class="t">08:40</span>
+          <span class="who"><span class="nm">大野 スミ</span><span class="ad">桜ヶ丘1-2-7</span></span>
+          <span class="tags"><span class="tag t-aid">歩行器</span></span>
+          <span class="box"></span>
+        </div>
+        <div class="row blank"><span class="ord">3</span><span class="t">--:--</span><span></span><span></span><span class="box"></span></div>
+        <div class="row blank"><span class="ord">4</span><span class="t">--:--</span><span></span><span></span><span class="box"></span></div>
+      </div>
+      <div class="car-foot">事業所 着 目標 <b>08:55</b>　実績 <i></i><span class="cap">乗車 <b>2</b> / 4名</span></div>
+    </article>
+
+    <!-- 3号車 -->
+    <article class="car">
+      <div class="car-head">
+        <span class="car-no">3号車</span>
+        <span class="car-drv blank"></span>
+        <span class="car-kind">5人乗り・定員4名</span>
+        <span class="car-sp"></span>
+        <span class="car-start">出発位置 <i></i></span>
+        <span class="car-dep">事業所 発 <b>08:10</b></span>
+      </div>
+      <div class="row hd"><span></span><span>予定</span><span>利用者名・住所</span><span>記号</span><span>実績</span></div>
+      <div class="stops">
+        <div class="row">
+          <span class="ord">1</span><span class="t">08:25</span>
+          <span class="who"><span class="nm">森田 光子</span><span class="ad">旭ヶ丘5-1-12</span></span>
+          <span class="tags"></span>
+          <span class="box"></span>
+        </div>
+        <div class="row">
+          <span class="ord">2</span><span class="t">08:40</span>
+          <span class="who"><span class="nm">村上 三郎</span><span class="ad">東雲2-11-6</span></span>
+          <span class="tags"></span>
+          <span class="box"></span>
+        </div>
+        <div class="row blank"><span class="ord">3</span><span class="t">--:--</span><span></span><span></span><span class="box"></span></div>
+        <div class="row blank"><span class="ord">4</span><span class="t">--:--</span><span></span><span></span><span class="box"></span></div>
+      </div>
+      <div class="car-foot">事業所 着 目標 <b>08:55</b>　実績 <i></i><span class="cap">乗車 <b>2</b> / 4名</span></div>
+    </article>
+
+    <!-- 4号車 -->
+    <article class="car">
+      <div class="car-head">
+        <span class="car-no">4号車</span>
+        <span class="car-drv blank"></span>
+        <span class="car-kind">5人乗り・定員4名</span>
+        <span class="car-sp"></span>
+        <span class="car-start">出発位置 <i></i></span>
+        <span class="car-dep">事業所 発 <b>07:50</b></span>
+      </div>
+      <div class="row hd"><span></span><span>予定</span><span>利用者名・住所</span><span>記号</span><span>実績</span></div>
+      <div class="stops">
+        <div class="row">
+          <span class="ord">1</span><span class="t">08:05</span>
+          <span class="who"><span class="nm">菅原 テル</span><span class="ad">川井町1-22-4</span></span>
+          <span class="tags"><span class="tag t-dr">玄関</span></span>
+          <span class="box"></span>
+        </div>
+        <div class="row">
+          <span class="ord">2</span><span class="t">08:35</span>
+          <span class="who"><span class="nm">白石 ミツ</span><span class="ad">南台2-5-9</span></span>
+          <span class="tags"></span>
+          <span class="box"></span>
+        </div>
+        <div class="row blank"><span class="ord">3</span><span class="t">--:--</span><span></span><span></span><span class="box"></span></div>
+        <div class="row blank"><span class="ord">4</span><span class="t">--:--</span><span></span><span></span><span class="box"></span></div>
+      </div>
+      <div class="car-foot">事業所 着 目標 <b>08:55</b>　実績 <i></i><span class="cap">乗車 <b>2</b> / 4名</span></div>
+    </article>
+
+    <!-- 5号車 -->
+    <article class="car">
+      <div class="car-head">
+        <span class="car-no">5号車</span>
+        <span class="car-drv blank"></span>
+        <span class="car-kind">5人乗り・定員4名</span>
+        <span class="car-sp"></span>
+        <span class="car-start">出発位置 <i></i></span>
+        <span class="car-dep">事業所 発 <b>08:10</b></span>
+      </div>
+      <div class="row hd"><span></span><span>予定</span><span>利用者名・住所</span><span>記号</span><span>実績</span></div>
+      <div class="stops">
+        <div class="row">
+          <span class="ord">1</span><span class="t">08:25</span>
+          <span class="who"><span class="nm">野口 定雄</span><span class="ad">南台5-13-2</span></span>
+          <span class="tags"><span class="tag t-dr">玄関</span></span>
+          <span class="box"></span>
+        </div>
+        <div class="row">
+          <span class="ord">2</span><span class="t">08:40</span>
+          <span class="who"><span class="nm">谷口 良一</span><span class="ad">泉町4-2-11</span></span>
+          <span class="tags"></span>
+          <span class="box"></span>
+        </div>
+        <div class="row blank"><span class="ord">3</span><span class="t">--:--</span><span></span><span></span><span class="box"></span></div>
+        <div class="row blank"><span class="ord">4</span><span class="t">--:--</span><span></span><span></span><span class="box"></span></div>
+      </div>
+      <div class="car-foot">事業所 着 目標 <b>08:55</b>　実績 <i></i><span class="cap">乗車 <b>2</b> / 4名</span></div>
+    </article>
+
+    <!-- 6号車 -->
+    <article class="car">
+      <div class="car-head">
+        <span class="car-no">6号車</span>
+        <span class="car-drv blank"></span>
+        <span class="car-kind">5人乗り・定員4名</span>
+        <span class="car-sp"></span>
+        <span class="car-start">出発位置 <i></i></span>
+        <span class="car-dep">事業所 発 <b>07:55</b></span>
+      </div>
+      <div class="row hd"><span></span><span>予定</span><span>利用者名・住所</span><span>記号</span><span>実績</span></div>
+      <div class="stops">
+        <div class="row">
+          <span class="ord">1</span><span class="t">08:15</span>
+          <span class="who"><span class="nm">石田 正治</span><span class="ad">上野原3-12-1</span></span>
+          <span class="tags"></span>
+          <span class="box"></span>
+        </div>
+        <div class="row">
+          <span class="ord">2</span><span class="t">08:30</span>
+          <span class="who"><span class="nm">内藤 ハナ</span><span class="ad">戸倉2-7-14</span></span>
+          <span class="tags"><span class="tag t-dr">玄関</span></span>
+          <span class="box"></span>
+        </div>
+        <div class="row blank"><span class="ord">3</span><span class="t">--:--</span><span></span><span></span><span class="box"></span></div>
+        <div class="row blank"><span class="ord">4</span><span class="t">--:--</span><span></span><span></span><span class="box"></span></div>
+      </div>
+      <div class="car-foot">事業所 着 目標 <b>09:00</b>　実績 <i></i><span class="cap">乗車 <b>2</b> / 4名</span></div>
+    </article>
+
+    <!-- 7号車 ノア -->
+    <article class="car">
+      <div class="car-head">
+        <span class="car-no">ノア</span>
+        <span class="car-drv blank"></span>
+        <span class="car-kind">7人乗り・定員6名</span>
+        <span class="car-sp"></span>
+        <span class="car-start">出発位置 <i></i></span>
+        <span class="car-dep">事業所 発 <b>08:10</b></span>
+      </div>
+      <div class="row hd"><span></span><span>予定</span><span>利用者名・住所</span><span>記号</span><span>実績</span></div>
+      <div class="stops">
+        <div class="row off">
+          <span class="ord">1</span><span class="t">08:15</span>
+          <span class="who"><span class="nm">小島 チヨ</span><span class="ad">梅林1-10-3</span></span>
+          <span class="tags"><span class="tag t-off">体調</span></span>
+          <span class="box"></span>
+        </div>
+        <div class="row">
+          <span class="ord">2</span><span class="t">08:30</span>
+          <span class="who"><span class="nm">上田 ノブ</span><span class="ad">新町5-9-2</span></span>
+          <span class="tags"><span class="tag t-aid">歩行器</span></span>
+          <span class="box"></span>
+        </div>
+        <div class="row blank"><span class="ord">3</span><span class="t">--:--</span><span></span><span></span><span class="box"></span></div>
+        <div class="row blank"><span class="ord">4</span><span class="t">--:--</span><span></span><span></span><span class="box"></span></div>
+      </div>
+      <div class="car-foot">事業所 着 目標 <b>08:55</b>　実績 <i></i><span class="cap">乗車 <b>1</b> / 6名（欠席1）</span></div>
+    </article>
+
+    <!-- 8号車 リフト車 -->
+    <article class="car lift">
+      <div class="car-head">
+        <span class="car-no">リフト車</span>
+        <span class="car-drv blank"></span>
+        <span class="car-kind">7人乗り・定員 6→<b>5名</b></span>
+        <span class="car-sp"></span>
+        <span class="car-start">出発位置 <i></i></span>
+        <span class="car-dep">事業所 発 <b>07:50</b></span>
+      </div>
+      <div class="row hd"><span></span><span>予定</span><span>利用者名・住所</span><span>記号</span><span>実績</span></div>
+      <div class="stops">
+        <div class="row">
+          <span class="ord">1</span><span class="t">08:15</span>
+          <span class="who"><span class="nm">河合 秀子</span><span class="ad">曙1-7-5</span></span>
+          <span class="tags"><span class="tag t-wc">車椅子</span></span>
+          <span class="box"></span>
+        </div>
+        <div class="row sh">
+          <span class="ord">2</span><span class="t">08:25</span>
+          <span class="who"><span class="nm">宮本 サダ</span><span class="ad">花見川2-8-1</span></span>
+          <span class="tags"><span class="tag t-sh">新規</span><span class="tag t-dr">玄関</span></span>
+          <span class="box"></span>
+        </div>
+        <div class="row blank"><span class="ord">3</span><span class="t">--:--</span><span></span><span></span><span class="box"></span></div>
+        <div class="row blank"><span class="ord">4</span><span class="t">--:--</span><span></span><span></span><span class="box"></span></div>
+      </div>
+      <div class="car-foot">事業所 着 目標 <b>08:55</b>　実績 <i></i><span class="cap">乗車 <b>2</b> / 5名</span></div>
+    </article>
+
+  </div>
+
+  <p class="legend">
+    <b>記号</b>　車椅子＝リフト・スロープ使用／歩行器＝持参もしくは貸出／玄関＝玄関先まで送迎
+    <b>行の色</b>　赤＝欠席（取り消し線）／黄緑＝振替利用／橙＝新規・増回・変更
+    <b>朱色の車両</b>＝車椅子の方が乗るため定員1名減
+    「実績」欄は実際の到着時刻の記入用です。号車・運転手・出発位置は走る前に書き入れてください。
+  </p>
+
+</div>
+
+</body>
+</html>
