@@ -1,0 +1,759 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>業務日誌・電話連絡表 デザイン案</title>
+<style>
+  :root {
+    --pg:#F6F8F6; --card:#FFFFFF; --ink:#1E2A2D; --ink-2:#55666A; --ink-3:#8A9A9D;
+    --rule:#E0E6E1; --rule-2:#C9D3CB; --accent:#0E7C86; --accent-s:#E2F0F0;
+    --gothic:"Hiragino Kaku Gothic ProN","Yu Gothic","YuGothic","Noto Sans JP","Meiryo",system-ui,sans-serif;
+    --mincho:"Hiragino Mincho ProN","Yu Mincho","YuMincho","Noto Serif JP","MS PMincho",serif;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --pg:#141A1B; --card:#1C2426; --ink:#E8EEEA; --ink-2:#A9B8B9; --ink-3:#7C8C8E;
+      --rule:#2C3739; --rule-2:#3C4A4C; --accent:#57BFC4; --accent-s:#183034;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --pg:#141A1B; --card:#1C2426; --ink:#E8EEEA; --ink-2:#A9B8B9; --ink-3:#7C8C8E;
+    --rule:#2C3739; --rule-2:#3C4A4C; --accent:#57BFC4; --accent-s:#183034;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin:0; background:var(--pg); color:var(--ink);
+    font-family:var(--gothic); font-size:15px; line-height:1.8;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .wrap { max-width:1180px; margin:0 auto; padding:56px 24px 120px; display:flex; flex-direction:column; gap:72px; }
+  .cover { display:flex; flex-direction:column; gap:18px; }
+  .kicker { font-size:12px; letter-spacing:.22em; color:var(--accent); font-weight:700; }
+
+  .cover h1 {
+    margin:0; font-family:var(--mincho); font-size:clamp(30px,5vw,44px);
+    font-weight:600; letter-spacing:.04em; line-height:1.3; text-wrap:balance;
+  }
+
+  .lede { margin:0; max-width:62ch; font-size:16px; color:var(--ink-2); }
+
+  .cover-meta {
+    display:flex; flex-wrap:wrap; gap:8px 28px; padding-top:14px;
+    border-top:1px solid var(--rule); font-size:12.5px; color:var(--ink-3); letter-spacing:.04em;
+  }
+
+  .sec { display:flex; flex-direction:column; gap:20px; }
+  .sec-head { display:flex; flex-direction:column; gap:6px; }
+  .sec-eyebrow { font-size:11.5px; letter-spacing:.2em; color:var(--ink-3); font-weight:700; }
+
+  .sec h2 {
+    margin:0; font-family:var(--mincho); font-size:26px; font-weight:600;
+    letter-spacing:.03em; text-wrap:balance;
+  }
+
+  .sec h2 small {
+    display:block; margin-top:4px; font-family:var(--gothic); font-size:14px;
+    font-weight:400; color:var(--ink-2); letter-spacing:0;
+  }
+
+  .sec p { margin:0; max-width:66ch; color:var(--ink-2); }
+  .sec p strong { color:var(--ink); font-weight:700; }
+
+  .divider { border:0; border-top:2px solid var(--ink); margin:0; }
+
+  .cols { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:20px; }
+
+  .note {
+    background:var(--card); border:1px solid var(--rule); border-radius:3px;
+    padding:18px 20px; display:flex; flex-direction:column; gap:8px;
+  }
+
+  .note h3 { margin:0; font-size:13px; letter-spacing:.08em; color:var(--accent); }
+  .note ul { margin:0; padding-left:1.15em; color:var(--ink-2); font-size:14px; }
+  .note li { margin-bottom:5px; }
+  .note li:last-child { margin-bottom:0; }
+  .note li b { color:var(--ink); }
+
+  .paper-wrap { overflow-x:auto; padding:4px; }
+
+  .paper {
+    background:#fff; color:#16202A; border:1px solid var(--rule-2);
+    box-shadow:0 8px 28px rgba(20,34,36,.16);
+    font-family:var(--gothic); line-height:1.3;
+  }
+
+  .paper-cap { font-size:11.5px; color:var(--ink-3); letter-spacing:.06em; padding-top:8px; }
+
+  .cmp-wrap { overflow-x:auto; }
+  table.cmp { width:100%; min-width:660px; border-collapse:collapse; font-size:14px; background:var(--card); }
+  table.cmp th, table.cmp td { border:1px solid var(--rule); padding:11px 14px; text-align:left; vertical-align:top; }
+  table.cmp thead th { background:var(--accent-s); color:var(--ink); font-size:13px; letter-spacing:.06em; }
+  table.cmp tbody th { font-weight:700; color:var(--ink); white-space:nowrap; width:9em; }
+  table.cmp td { color:var(--ink-2); }
+
+  .verdict {
+    background:var(--accent-s); border-left:3px solid var(--accent);
+    padding:16px 20px; font-size:15px; color:var(--ink); max-width:66ch;
+  }
+
+  /* ══════════ 紙の中身 ══════════ */
+  .paper .nsw { color:#1B3557; }
+  .paper .red { color:#C4172A; }
+
+  /* ── 業務日誌 ───────────────────────────── */
+  .ns { width:760px; padding:10px 12px; font-size:11px; }
+  .ns-cap { display:flex; align-items:baseline; gap:10px; padding-bottom:5px; }
+  .ns-cap b { font-size:15px; font-weight:700; letter-spacing:.1em; color:#1B3557; }
+  .ns-cap span { font-size:10px; color:#4A5765; }
+  .ns-cap .sp { flex:1; }
+
+  .ns-grid { border:1.2px solid #6B7480; }
+
+  .ns-band {
+    display:flex; align-items:baseline; gap:8px;
+    background:#DEE7F1; padding:3px 7px; border-bottom:1px solid #6B7480;
+  }
+  .ns-band b { font-size:13px; font-weight:700; color:#1B3557; letter-spacing:.14em; }
+  .ns-band span { font-size:9.5px; color:#3C434A; }
+  .ns-band .sp { flex:1; }
+
+  .ns-r { display:grid; align-items:center; }
+  .ns-r > * { padding:1px 4px; border-right:.5px solid #A7AEB6; overflow:hidden; }
+  .ns-r > *:last-child { border-right:0; }
+
+  .ns-h { background:#EDF1F6; font-size:8.5px; font-weight:700; color:#1B3557; letter-spacing:.04em; }
+  .ns-h > * { text-align:center; border-bottom:1px solid #6B7480; }
+  .ns-h > *:nth-child(2) { text-align:left; }
+
+  .ns-r.body { border-bottom:.5px solid #C4CAD1; height:19px; }
+  .ns-no { text-align:right; font-size:9px; color:#4A5765; font-variant-numeric:tabular-nums; }
+  .ns-nm { font-size:11.5px; font-weight:700; letter-spacing:.02em; white-space:nowrap; }
+  .ns-sl { text-align:center; color:#9AA1A9; }
+
+  /* 5行ごとに濃い区切りを入れて、目が横に流れないようにする */
+  .ns-r.body.mark5 { border-bottom-color:#6B7480; border-bottom-width:1px; }
+
+  .ns-r.empty { background:#FBFCFD; }
+  .ns-r.empty .ns-no { color:#B9C0C7; }
+
+  .ns-r.off { background:#F8E9E7; }
+  .ns-r.off .ns-nm { color:#C4172A; text-decoration:line-through; }
+  .ns-r.off .ns-no { color:#C4172A; }
+
+  .ns-sub { background:#DEE7F1; text-align:center; font-size:10px; font-weight:700; letter-spacing:.3em; color:#1B3557; padding:2px; border-bottom:1px solid #6B7480; }
+
+  /* 状態の札 */
+  .ns-st { font-size:8.5px; font-weight:700; padding:0 5px; border-radius:8px; white-space:nowrap; }
+  .st-off { background:#C4172A; color:#fff; }
+  .st-sh  { background:#B4610E; color:#fff; }
+  .st-fu  { background:#4C7A1E; color:#fff; }
+
+  /* 血圧の測り方を記号で */
+  .bp { display:inline-block; font-size:8.5px; font-weight:700; padding:0 4px; border:1px solid; border-radius:7px; }
+  .bp-a { color:#3C434A; border-color:#8A9199; }
+  .bp-b { color:#1B6FA8; border-color:#1B6FA8; }
+  .bp-s { color:#C4172A; border-color:#C4172A; background:#FBE9E7; }
+
+  /* ── 電話連絡表 ─────────────────────────── */
+  .tw { width:520px; padding:10px 12px; font-size:11px; }
+  .tw-cap { display:flex; align-items:baseline; gap:8px; padding-bottom:6px; border-bottom:1.6px solid #63263A; margin-bottom:6px; }
+  .tw-cap b { font-size:14px; font-weight:700; color:#63263A; letter-spacing:.1em; }
+  .tw-cap span { font-size:9.5px; color:#4A5765; }
+  .tw-cap .sp { flex:1; }
+
+  .tw-grp { border:1px solid #A98795; border-radius:5px; margin-bottom:5px; overflow:hidden; }
+
+  .tw-gh {
+    display:flex; align-items:center; gap:7px;
+    background:#EFDCE2; padding:2px 7px; border-bottom:1px solid #A98795;
+    font-size:9.5px; color:#63263A;
+  }
+  .tw-gh b { font-size:11.5px; font-weight:700; letter-spacing:.06em; }
+  .tw-gh .sp { flex:1; }
+  .tw-gh .n { font-size:9px; }
+
+  .tw-p { display:grid; grid-template-columns:1fr 42px 1fr; align-items:center; gap:6px;
+          padding:3px 7px; border-bottom:.5px solid #DCC9D0; }
+  .tw-p:last-child { border-bottom:0; }
+  .tw-nm { font-size:12.5px; font-weight:700; letter-spacing:.02em; }
+  .tw-nm small { font-size:8.5px; font-weight:400; color:#4A5765; margin-left:2px; }
+  .tw-t { font-size:13px; font-weight:700; font-variant-numeric:tabular-nums; text-align:center; }
+  .tw-memo { border-bottom:.7px solid #A98795; height:13px; }
+
+  .tw-p.off { background:#F8E9E7; }
+  .tw-p.off .tw-nm, .tw-p.off .tw-t { color:#C4172A; text-decoration:line-through; }
+
+  /* 電話のチェック欄 */
+  .tw-ck { display:flex; gap:3px; }
+  .tw-ck i {
+    display:grid; place-items:center; width:22px; height:14px;
+    border:.8px solid #A98795; border-radius:3px;
+    font-size:7.5px; font-style:normal; color:#8A6473;
+    white-space:nowrap; letter-spacing:0;
+  }
+
+  .tw-note { font-size:8.5px; color:#63263A; background:#FBF2F5; border-radius:3px; padding:0 4px; }
+
+  @media (max-width:720px) {
+    .wrap { padding:36px 14px 80px; gap:52px; }
+    .cover h1 { font-size:28px; }
+    .sec h2 { font-size:21px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <header class="cover">
+    <p class="kicker">業務日誌・電話連絡表 ／ デザイン案</p>
+    <h1>書き入れる紙を、<br>書きやすくする</h1>
+    <p class="lede">
+      送迎表が<strong>読むための紙</strong>なのに対し、業務日誌と電話連絡表は
+      <strong>その場で書き込むための紙</strong>です。だから直しどころも変わります。
+      「どこに書くのか」「書いた欄と書いていない欄がすぐ分かるか」を軸に、
+      それぞれ3案お出しします。いずれも仮案で、実装はしていません。
+    </p>
+    <div class="cover-meta">
+      <span>業務日誌：A4横2枚（日誌・検温）</span>
+      <span>電話連絡表：A4縦1枚</span>
+      <span>色・記号の意味は現行のまま</span>
+      <span>見本は原寸ではありません</span>
+    </div>
+  </header>
+
+  <hr class="divider">
+
+  <!-- ══════════ 業務日誌 ══════════ -->
+  <section class="sec">
+    <div class="sec-head">
+      <p class="sec-eyebrow">業務日誌</p>
+      <h2>いまの紙で困っていること<small>お預かりした様式に忠実。だからこそ、画面から起こしたときに出る不便がある</small></h2>
+    </div>
+    <div class="cols">
+      <div class="note">
+        <h3>できていること</h3>
+        <ul>
+          <li><b>様式どおり。</b>そのまま綴じて残せる。</li>
+          <li><b>欠席は赤い取り消し線</b>で遠目にも分かる。</li>
+          <li>人数が増えても<b>1枚に収まる</b>（行数を融通する）。</li>
+        </ul>
+      </div>
+      <div class="note">
+        <h3>困っていること</h3>
+        <ul>
+          <li><b>状態（体調・SS・増回）が右端</b>にあり、氏名から遠い。目が横に飛ぶ。</li>
+          <li><b>備考の「上腕計」「実測」が毎行くり返す。</b>同じ語が縦に並んで読みにくい。</li>
+          <li><b>空行が半分以上</b>あり、どこまでが今日の名簿か目で追いにくい。</li>
+          <li>罫がすべて同じ太さなので、<b>行を数えるのに指が要る</b>。</li>
+        </ul>
+      </div>
+      <div class="note">
+        <h3>案を分ける軸</h3>
+        <ul>
+          <li><b>様式をどこまで動かすか</b>（桝の並びは変えない／変えてよい）</li>
+          <li><b>書く欄の広さ</b>（血圧・脈・体温・SPO2）</li>
+          <li><b>今日の名簿と空欄の差</b>をどう付けるか</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 日誌 案1 -->
+  <section class="sec">
+    <div class="sec-head">
+      <p class="sec-eyebrow">日誌 案 1</p>
+      <h2>罫で読ませる<small>桝の並びは変えない。罫の太さと空行の色だけで、今日の名簿を浮かせる</small></h2>
+    </div>
+
+    <div class="paper-wrap">
+      <div class="paper ns">
+        <div class="ns-cap">
+          <b>業務日誌</b><span>令和8年7月22日（水曜日）</span>
+          <span class="sp"></span><span>通所介護事業所 デイサービス あさひ</span>
+        </div>
+        <div class="ns-grid">
+          <div class="ns-band">
+            <b>午前</b><span class="sp"></span>
+            <span>利用者数：______名（要介護者______名　要支援者______名）</span>
+          </div>
+          <div class="ns-r ns-h" style="grid-template-columns:22px 1fr 40px 62px 34px 34px 40px 74px 46px">
+            <span></span><span>氏名</span><span>運動</span><span>血圧</span><span>脈</span><span>体温</span><span>SPO2</span><span>備考</span><span>状態</span>
+          </div>
+          <div class="ns-r body" style="grid-template-columns:22px 1fr 40px 62px 34px 34px 40px 74px 46px">
+            <span class="ns-no">1</span><span class="ns-nm">上田 ノブ</span><span></span><span class="ns-sl">／</span><span></span><span></span><span></span><span></span><span></span>
+          </div>
+          <div class="ns-r body" style="grid-template-columns:22px 1fr 40px 62px 34px 34px 40px 74px 46px">
+            <span class="ns-no">2</span><span class="ns-nm">大野 スミ</span><span></span><span class="ns-sl">／</span><span></span><span></span><span></span><span><span class="bp bp-b">実測</span></span><span></span>
+          </div>
+          <div class="ns-r body off" style="grid-template-columns:22px 1fr 40px 62px 34px 34px 40px 74px 46px">
+            <span class="ns-no">3</span><span class="ns-nm">小島 チヨ</span><span></span><span class="ns-sl">／</span><span></span><span></span><span></span><span><span class="bp bp-s">右シャント</span></span><span><span class="ns-st st-off">体調</span></span>
+          </div>
+          <div class="ns-r body" style="grid-template-columns:22px 1fr 40px 62px 34px 34px 40px 74px 46px">
+            <span class="ns-no">4</span><span class="ns-nm">白石 ミツ</span><span></span><span class="ns-sl">／</span><span></span><span></span><span></span><span><span class="bp bp-b">実測</span></span><span></span>
+          </div>
+          <div class="ns-r body mark5" style="grid-template-columns:22px 1fr 40px 62px 34px 34px 40px 74px 46px">
+            <span class="ns-no">5</span><span class="ns-nm">菅原 テル</span><span></span><span class="ns-sl">／</span><span></span><span></span><span></span><span><span class="bp bp-a">上腕計</span></span><span></span>
+          </div>
+          <div class="ns-r body off" style="grid-template-columns:22px 1fr 40px 62px 34px 34px 40px 74px 46px">
+            <span class="ns-no">6</span><span class="ns-nm">田中 ハル</span><span></span><span class="ns-sl">／</span><span></span><span></span><span></span><span><span class="bp bp-a">上腕計</span></span><span><span class="ns-st st-off">SS</span></span>
+          </div>
+          <div class="ns-r body" style="grid-template-columns:22px 1fr 40px 62px 34px 34px 40px 74px 46px">
+            <span class="ns-no">7</span><span class="ns-nm">内藤 ハナ</span><span></span><span class="ns-sl">／</span><span></span><span></span><span></span><span></span><span></span>
+          </div>
+          <div class="ns-r body" style="grid-template-columns:22px 1fr 40px 62px 34px 34px 40px 74px 46px">
+            <span class="ns-no">8</span><span class="ns-nm">野口 定雄</span><span></span><span class="ns-sl">／</span><span></span><span></span><span></span><span><span class="bp bp-a">上腕計</span></span><span></span>
+          </div>
+          <div class="ns-r body" style="grid-template-columns:22px 1fr 40px 62px 34px 34px 40px 74px 46px">
+            <span class="ns-no">9</span><span class="ns-nm">宮本 サダ</span><span></span><span class="ns-sl">／</span><span></span><span></span><span></span><span><span class="bp bp-a">上腕計</span></span><span><span class="ns-st st-sh">増回</span></span>
+          </div>
+          <div class="ns-r body mark5" style="grid-template-columns:22px 1fr 40px 62px 34px 34px 40px 74px 46px">
+            <span class="ns-no">10</span><span class="ns-nm">村上 三郎</span><span></span><span class="ns-sl">／</span><span></span><span></span><span></span><span><span class="bp bp-s">右シャント</span></span><span></span>
+          </div>
+          <div class="ns-r body empty" style="grid-template-columns:22px 1fr 40px 62px 34px 34px 40px 74px 46px">
+            <span class="ns-no">11</span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+          </div>
+          <div class="ns-r body empty" style="grid-template-columns:22px 1fr 40px 62px 34px 34px 40px 74px 46px">
+            <span class="ns-no">12</span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+          </div>
+          <div class="ns-sub">介 護 予 防</div>
+          <div class="ns-r body" style="grid-template-columns:22px 1fr 40px 62px 34px 34px 40px 74px 46px">
+            <span class="ns-no">13</span><span class="ns-nm">石田 正治</span><span></span><span class="ns-sl">／</span><span></span><span></span><span></span><span><span class="bp bp-a">上腕計</span></span><span></span>
+          </div>
+          <div class="ns-r body" style="grid-template-columns:22px 1fr 40px 62px 34px 34px 40px 74px 46px">
+            <span class="ns-no">14</span><span class="ns-nm">河合 秀子</span><span></span><span class="ns-sl">／</span><span></span><span></span><span></span><span><span class="bp bp-a">上腕計</span></span><span></span>
+          </div>
+          <div class="ns-r body empty" style="grid-template-columns:22px 1fr 40px 62px 34px 34px 40px 74px 46px">
+            <span class="ns-no">15</span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+          </div>
+        </div>
+      </div>
+      <p class="paper-cap">A4横 × 2枚（いまと同じ）／ 午前の面の上部だけを見本にしています</p>
+    </div>
+
+    <div class="cols">
+      <div class="note">
+        <h3>変わるところ</h3>
+        <ul>
+          <li><b>5行ごとに濃い罫。</b>行を数えるときに指で押さえなくてよい。</li>
+          <li><b>空行はごく薄い地色。</b>今日の名簿がどこまでかが一目で分かる。</li>
+          <li><b>血圧の測り方を小さな札に。</b>上腕計＝灰／実測＝青／シャント＝赤。
+            同じ語が縦に並んでも、色で読み分けられる。</li>
+          <li><b>状態も札に。</b>体調・SS は赤、増回・変更は橙、振替は緑。</li>
+        </ul>
+      </div>
+      <div class="note">
+        <h3>向いていること</h3>
+        <ul>
+          <li><b>桝の並びは1つも動かさない。</b>様式どおりのまま綴じられる。</li>
+          <li>いまの紙と見比べても違和感がない。今日から差し替えられる。</li>
+          <li>改修がいちばん小さい。</li>
+        </ul>
+      </div>
+      <div class="note">
+        <h3>物足りないところ</h3>
+        <ul>
+          <li>状態は右端のまま。<b>氏名からは遠い。</b></li>
+          <li>書き入れる欄（血圧・脈・体温）の広さは変わらない。</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 日誌 案2 -->
+  <section class="sec">
+    <div class="sec-head">
+      <p class="sec-eyebrow">日誌 案 2</p>
+      <h2>状態を氏名の隣へ<small>右端の「状態」欄をやめ、氏名のすぐ後ろに札で置く。空いた幅は測る欄に回す</small></h2>
+    </div>
+
+    <div class="paper-wrap">
+      <div class="paper ns">
+        <div class="ns-cap">
+          <b>業務日誌</b><span>令和8年7月22日（水曜日）</span>
+          <span class="sp"></span><span>通所介護事業所 デイサービス あさひ</span>
+        </div>
+        <div class="ns-grid">
+          <div class="ns-band">
+            <b>午前</b><span class="sp"></span>
+            <span>利用者数：______名（要介護者______名　要支援者______名）</span>
+          </div>
+          <div class="ns-r ns-h" style="grid-template-columns:22px 1fr 44px 76px 42px 42px 48px 62px">
+            <span></span><span>氏名・状態</span><span>運動</span><span>血圧</span><span>脈</span><span>体温</span><span>SPO2</span><span>備考</span>
+          </div>
+          <div class="ns-r body" style="grid-template-columns:22px 1fr 44px 76px 42px 42px 48px 62px">
+            <span class="ns-no">1</span><span class="ns-nm">上田 ノブ</span><span></span><span class="ns-sl">／</span><span></span><span></span><span></span><span></span>
+          </div>
+          <div class="ns-r body" style="grid-template-columns:22px 1fr 44px 76px 42px 42px 48px 62px">
+            <span class="ns-no">2</span><span class="ns-nm">大野 スミ</span><span></span><span class="ns-sl">／</span><span></span><span></span><span></span><span><span class="bp bp-b">実測</span></span>
+          </div>
+          <div class="ns-r body off" style="grid-template-columns:22px 1fr 44px 76px 42px 42px 48px 62px">
+            <span class="ns-no">3</span><span class="ns-nm">小島 チヨ <span class="ns-st st-off">体調</span></span><span></span><span class="ns-sl">／</span><span></span><span></span><span></span><span><span class="bp bp-s">右シャント</span></span>
+          </div>
+          <div class="ns-r body" style="grid-template-columns:22px 1fr 44px 76px 42px 42px 48px 62px">
+            <span class="ns-no">4</span><span class="ns-nm">白石 ミツ</span><span></span><span class="ns-sl">／</span><span></span><span></span><span></span><span><span class="bp bp-b">実測</span></span>
+          </div>
+          <div class="ns-r body" style="grid-template-columns:22px 1fr 44px 76px 42px 42px 48px 62px">
+            <span class="ns-no">5</span><span class="ns-nm">菅原 テル</span><span></span><span class="ns-sl">／</span><span></span><span></span><span></span><span><span class="bp bp-a">上腕計</span></span>
+          </div>
+          <div class="ns-r body off" style="grid-template-columns:22px 1fr 44px 76px 42px 42px 48px 62px">
+            <span class="ns-no">6</span><span class="ns-nm">田中 ハル <span class="ns-st st-off">SS</span></span><span></span><span class="ns-sl">／</span><span></span><span></span><span></span><span><span class="bp bp-a">上腕計</span></span>
+          </div>
+          <div class="ns-r body" style="grid-template-columns:22px 1fr 44px 76px 42px 42px 48px 62px">
+            <span class="ns-no">7</span><span class="ns-nm">内藤 ハナ</span><span></span><span class="ns-sl">／</span><span></span><span></span><span></span><span></span>
+          </div>
+          <div class="ns-r body" style="grid-template-columns:22px 1fr 44px 76px 42px 42px 48px 62px">
+            <span class="ns-no">8</span><span class="ns-nm">野口 定雄</span><span></span><span class="ns-sl">／</span><span></span><span></span><span></span><span><span class="bp bp-a">上腕計</span></span>
+          </div>
+          <div class="ns-r body" style="grid-template-columns:22px 1fr 44px 76px 42px 42px 48px 62px">
+            <span class="ns-no">9</span><span class="ns-nm">宮本 サダ <span class="ns-st st-sh">増回</span></span><span></span><span class="ns-sl">／</span><span></span><span></span><span></span><span><span class="bp bp-a">上腕計</span></span>
+          </div>
+          <div class="ns-r body" style="grid-template-columns:22px 1fr 44px 76px 42px 42px 48px 62px">
+            <span class="ns-no">10</span><span class="ns-nm">村上 三郎</span><span></span><span class="ns-sl">／</span><span></span><span></span><span></span><span><span class="bp bp-s">右シャント</span></span>
+          </div>
+          <div class="ns-r body empty" style="grid-template-columns:22px 1fr 44px 76px 42px 42px 48px 62px">
+            <span class="ns-no">11</span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+          </div>
+          <div class="ns-sub">介 護 予 防</div>
+          <div class="ns-r body" style="grid-template-columns:22px 1fr 44px 76px 42px 42px 48px 62px">
+            <span class="ns-no">12</span><span class="ns-nm">石田 正治</span><span></span><span class="ns-sl">／</span><span></span><span></span><span></span><span><span class="bp bp-a">上腕計</span></span>
+          </div>
+          <div class="ns-r body" style="grid-template-columns:22px 1fr 44px 76px 42px 42px 48px 62px">
+            <span class="ns-no">13</span><span class="ns-nm">高橋 キヨ <span class="ns-st st-fu">20日分 振替</span></span><span></span><span class="ns-sl">／</span><span></span><span></span><span></span><span><span class="bp bp-a">上腕計</span></span>
+          </div>
+        </div>
+      </div>
+      <p class="paper-cap">A4横 × 2枚／ 桝が9つから8つになり、血圧・脈・体温・SPO2 が広くなる</p>
+    </div>
+
+    <div class="cols">
+      <div class="note">
+        <h3>変わるところ</h3>
+        <ul>
+          <li><b>状態を氏名のすぐ後ろへ。</b>「小島 チヨ ［体調］」と1か所で読める。</li>
+          <li><b>右端の状態欄をなくす。</b>空いた幅を血圧・脈・体温・SPO2 に回す
+            （血圧 62→76px、脈と体温 34→42px）。手書きの数字が入れやすい。</li>
+          <li>振替は「20日分 振替」がそのまま氏名の後ろに付く。</li>
+          <li>案1の罫と札はそのまま引き継ぐ。</li>
+        </ul>
+      </div>
+      <div class="note">
+        <h3>向いていること</h3>
+        <ul>
+          <li><b>書き入れる欄がいちばん広い。</b>数字を書くのが仕事の紙なので効く。</li>
+          <li>状態の見落としが減る。氏名と同じ場所を見れば分かる。</li>
+        </ul>
+      </div>
+      <div class="note">
+        <h3>物足りないところ</h3>
+        <ul>
+          <li><b>様式の桝が1つ減る。</b>お預かりした form とは並びが変わるので、
+            提出先の決まりがある場合は確認が要る。</li>
+          <li>氏名が長い方＋長い状態（20日分 振替）だと、氏名の桝が窮屈になる。</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 日誌 案3 -->
+  <section class="sec">
+    <div class="sec-head">
+      <p class="sec-eyebrow">日誌 案 3</p>
+      <h2>今日のぶんだけ刷る<small>空行を出さない。名簿の人数ぶんで紙を切り、余白は自由記入に回す</small></h2>
+    </div>
+    <div class="cols">
+      <div class="note">
+        <h3>考え方</h3>
+        <ul>
+          <li>いまは<b>37行の枠を必ず刷る</b>ので、17名の日は半分以上が空の罫になる。</li>
+          <li>案3は<b>名簿の人数＋予備3行</b>だけ刷り、残りを
+            <b>「申し送り」の自由記入欄</b>にする。</li>
+          <li>行が減るぶん<b>1行を高く取れる</b>ので、数字が書きやすくなる
+            （19px → 26px ほど）。</li>
+        </ul>
+      </div>
+      <div class="note">
+        <h3>向いていること</h3>
+        <ul>
+          <li><b>書く欄がいちばん大きい。</b>ペンが走る。</li>
+          <li>申し送りを同じ紙に残せる。日誌が1枚で完結する。</li>
+          <li>インクの量が減る（罫が半分になる）。</li>
+        </ul>
+      </div>
+      <div class="note">
+        <h3>物足りないところ</h3>
+        <ul>
+          <li><b>日によって行数が変わる。</b>綴じたときに紙の見え方がそろわない。</li>
+          <li>あとから利用者を書き足す余地が3行しかない。</li>
+          <li>様式から離れるので、<b>提出先の決まりがあると使えない。</b></li>
+        </ul>
+      </div>
+    </div>
+    <p>
+      この案だけ見本を作っていません。<strong>様式の決まりが外せるかどうか</strong>で
+      成立するかが決まるためです。もし「事業所の中で使う控えなので自由にしてよい」ということでしたら、
+      すぐ組んでお見せします。
+    </p>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ══════════ 電話連絡表 ══════════ -->
+  <section class="sec">
+    <div class="sec-head">
+      <p class="sec-eyebrow">電話連絡表</p>
+      <h2>いまの紙で困っていること<small>午後のお迎え前に、ご家族へ電話をかけながら使う紙</small></h2>
+    </div>
+    <div class="cols">
+      <div class="note">
+        <h3>できていること</h3>
+        <ul>
+          <li><b>運転手ごとにまとまっている。</b>かける順に並ぶ。</li>
+          <li>欠席の方も<b>赤い取り消し線</b>で載る。かけ忘れ・かけ間違いを防げる。</li>
+          <li>氏名の下に<b>「TELなし」などを書ける欄</b>がある。</li>
+        </ul>
+      </div>
+      <div class="note">
+        <h3>困っていること</h3>
+        <ul>
+          <li><b>1組6列を必ず出す</b>ので、1〜2名の運転手では4〜5列が空欄になる。
+            紙の6割が空いている。</li>
+          <li><b>担当（運転手）の名前が空欄。</b>下の担当表を見ないと誰の車か分からない。</li>
+          <li><b>かけ終わった印を付ける場所がない。</b>電話中に指で押さえることになる。</li>
+          <li>氏名・時刻・メモが縦3段なので、<b>1人ぶんが縦に散る</b>。</li>
+        </ul>
+      </div>
+      <div class="note">
+        <h3>案を分ける軸</h3>
+        <ul>
+          <li><b>空欄をどうするか</b>（出す／人数ぶんだけ）</li>
+          <li><b>かけた印</b>を置くかどうか</li>
+          <li><b>1人ぶんを縦に置くか、横に置くか</b></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 電話 案1 -->
+  <section class="sec">
+    <div class="sec-head">
+      <p class="sec-eyebrow">電話 案 1</p>
+      <h2>人数ぶんだけ、1人1行<small>空の列を出さない。1人を横1行にして、氏名・時刻・メモ・かけた印を一直線に置く</small></h2>
+    </div>
+
+    <div class="paper-wrap">
+      <div class="paper tw">
+        <div class="tw-cap">
+          <b>午後お迎え　電話連絡表</b><span>令和8年7月22日（水曜日）</span>
+          <span class="sp"></span><span>デイサービス あさひ</span>
+        </div>
+
+        <div class="tw-grp">
+          <div class="tw-gh"><b>佐藤 健</b><span>1号車</span><span class="sp"></span><span class="n">2名</span></div>
+          <div class="tw-p">
+            <span class="tw-nm">佐野 ハツ<small>様</small></span><span class="tw-t">12:45</span>
+            <span style="display:flex;gap:5px;align-items:center">
+              <span class="tw-memo" style="flex:1"></span>
+              <span class="tw-ck"><i>済</i><i>不在</i></span>
+            </span>
+          </div>
+          <div class="tw-p">
+            <span class="tw-nm">早川 春夫<small>様</small></span><span class="tw-t">12:55</span>
+            <span style="display:flex;gap:5px;align-items:center">
+              <span class="tw-note">携帯へ</span><span class="tw-memo" style="flex:1"></span>
+              <span class="tw-ck"><i>済</i><i>不在</i></span>
+            </span>
+          </div>
+        </div>
+
+        <div class="tw-grp">
+          <div class="tw-gh"><b>鈴木 明</b><span>2号車</span><span class="sp"></span><span class="n">1名</span></div>
+          <div class="tw-p">
+            <span class="tw-nm">秋山 三男<small>様</small></span><span class="tw-t">12:55</span>
+            <span style="display:flex;gap:5px;align-items:center">
+              <span class="tw-note">TELなし</span><span class="tw-memo" style="flex:1"></span>
+              <span class="tw-ck"><i>済</i><i>不在</i></span>
+            </span>
+          </div>
+        </div>
+
+        <div class="tw-grp">
+          <div class="tw-gh"><b>高木 進</b><span>3号車</span><span class="sp"></span><span class="n">2名（欠席1）</span></div>
+          <div class="tw-p">
+            <span class="tw-nm">富田 サキ<small>様</small></span><span class="tw-t">12:50</span>
+            <span style="display:flex;gap:5px;align-items:center">
+              <span class="tw-memo" style="flex:1"></span>
+              <span class="tw-ck"><i>済</i><i>不在</i></span>
+            </span>
+          </div>
+          <div class="tw-p off">
+            <span class="tw-nm">沢田 正義<small>様</small></span><span class="tw-t">入院</span>
+            <span style="display:flex;gap:5px;align-items:center">
+              <span class="tw-memo" style="flex:1"></span>
+              <span class="tw-ck"><i>—</i><i>—</i></span>
+            </span>
+          </div>
+        </div>
+
+        <div class="tw-grp">
+          <div class="tw-gh"><b>島田 文夫</b><span>5号車</span><span class="sp"></span><span class="n">3名</span></div>
+          <div class="tw-p">
+            <span class="tw-nm">島田 文夫<small>様</small></span><span class="tw-t">12:30</span>
+            <span style="display:flex;gap:5px;align-items:center">
+              <span class="tw-memo" style="flex:1"></span>
+              <span class="tw-ck"><i>済</i><i>不在</i></span>
+            </span>
+          </div>
+          <div class="tw-p">
+            <span class="tw-nm">岡部 ウメ<small>様</small></span><span class="tw-t">12:35</span>
+            <span style="display:flex;gap:5px;align-items:center">
+              <span class="tw-memo" style="flex:1"></span>
+              <span class="tw-ck"><i>済</i><i>不在</i></span>
+            </span>
+          </div>
+          <div class="tw-p">
+            <span class="tw-nm">柴田 ハツエ<small>様</small></span><span class="tw-t">12:50</span>
+            <span style="display:flex;gap:5px;align-items:center">
+              <span class="tw-memo" style="flex:1"></span>
+              <span class="tw-ck"><i>済</i><i>不在</i></span>
+            </span>
+          </div>
+        </div>
+      </div>
+      <p class="paper-cap">A4縦 × 1枚（いまと同じ）／ 上から4組ぶんを見本にしています</p>
+    </div>
+
+    <div class="cols">
+      <div class="note">
+        <h3>変わるところ</h3>
+        <ul>
+          <li><b>空の列を出さない。</b>1〜2名の運転手はその行数だけ。紙の詰まりが変わる。</li>
+          <li><b>担当（運転手）の名前を印字。</b>下の担当表を見に行かなくてよい。
+            号車と人数も添える。</li>
+          <li><b>かけた印の枠</b>（済／不在）を人ごとに置く。電話中に鉛筆で埋められる。</li>
+          <li><b>1人＝横1行。</b>氏名・時刻・メモ・印が一直線に並ぶ。</li>
+        </ul>
+      </div>
+      <div class="note">
+        <h3>向いていること</h3>
+        <ul>
+          <li><b>電話をかけながら使う</b>という、この紙の仕事にいちばん合う。</li>
+          <li>「誰にかけ終わったか」が紙の上に残る。交代しても引き継げる。</li>
+          <li>空欄が減るぶん、1人ぶんを大きく取れる（氏名12.5px・時刻13px）。</li>
+        </ul>
+      </div>
+      <div class="note">
+        <h3>物足りないところ</h3>
+        <ul>
+          <li>人数が多い日は<b>縦に長くなる</b>。20名を超えると2枚になることがある。</li>
+          <li>いまの「6列の枠」に慣れていると、しばらく戸惑うかもしれない。</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 電話 案2・案3 -->
+  <section class="sec">
+    <div class="sec-head">
+      <p class="sec-eyebrow">電話 案 2・案 3</p>
+      <h2>もう2つの方向<small>見本は作っていません。方向として合うかどうかだけご覧ください</small></h2>
+    </div>
+    <div class="cols">
+      <div class="note">
+        <h3>案2　時刻順に1本の名簿</h3>
+        <ul>
+          <li>運転手で分けず、<b>お迎え時刻の早い順に1本</b>で並べる。</li>
+          <li>右端に号車を小さく添える。</li>
+          <li><b>向く</b>：かける順番を迷わない。上から順に潰していける。</li>
+          <li><b>向かない</b>：「この車の方にまとめてかける」ができない。
+            車ごとに遅れが出たときの連絡がしにくい。</li>
+        </ul>
+      </div>
+      <div class="note">
+        <h3>案3　2つ折りの手持ち</h3>
+        <ul>
+          <li>A4縦を<b>半分に折って持てる</b>ように、内容を左半分に寄せる。</li>
+          <li>右半分は<b>まるごと自由記入</b>（ご家族からの伝言・折り返しの番号）。</li>
+          <li><b>向く</b>：受話器を持ったまま片手で扱える。伝言が残せる。</li>
+          <li><b>向かない</b>：1枚に載る人数が減る。2枚になる日が増える。</li>
+        </ul>
+      </div>
+      <div class="note">
+        <h3>どちらも足せること</h3>
+        <ul>
+          <li>案1の<b>かけた印</b>と<b>担当名の印字</b>は、案2・案3にもそのまま付けられます。</li>
+          <li>まず案1で「印」と「担当名」を試して、
+            並べ方（運転手ごと／時刻順）はあとから決める、という進め方もできます。</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <section class="sec">
+    <div class="sec-head">
+      <p class="sec-eyebrow">見比べ</p>
+      <h2>6案のちがい</h2>
+    </div>
+    <div class="cmp-wrap">
+      <table class="cmp">
+        <thead>
+          <tr><th>　</th><th>ねらい</th><th>様式を動かすか</th><th>枚数</th><th>改修</th></tr>
+        </thead>
+        <tbody>
+          <tr><th>日誌 案1</th><td>罫と色で今日の名簿を浮かせる</td><td>動かさない</td><td>2枚のまま</td><td>小</td></tr>
+          <tr><th>日誌 案2</th><td>状態を氏名の隣へ／書く欄を広く</td><td>桝が1つ減る</td><td>2枚のまま</td><td>中</td></tr>
+          <tr><th>日誌 案3</th><td>今日のぶんだけ刷る／申し送り欄</td><td>大きく動かす</td><td>1〜2枚</td><td>中</td></tr>
+          <tr><th>電話 案1</th><td>1人1行／かけた印／担当名</td><td>組み替える</td><td>1枚（多い日は2枚）</td><td>中</td></tr>
+          <tr><th>電話 案2</th><td>時刻順に1本</td><td>組み替える</td><td>1枚</td><td>中</td></tr>
+          <tr><th>電話 案3</th><td>2つ折りで片手持ち</td><td>組み替える</td><td>1〜2枚</td><td>中</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head">
+      <p class="sec-eyebrow">おすすめ</p>
+      <h2>日誌は案1から、電話連絡表は案1をそのまま</h2>
+    </div>
+    <p class="verdict">
+      <b>業務日誌</b>は様式が決まっている紙なので、まず<strong>案1（罫と色）</strong>で
+      読みやすさだけを取るのが安全です。状態を氏名の隣へ動かす<strong>案2</strong>は効果が大きいぶん
+      様式が変わるので、<b>提出先の決まりがあるか</b>を確かめてからにしましょう。<br><br>
+      <b>電話連絡表</b>は事業所の中で使う紙なので、様式に縛られません。
+      <strong>案1</strong>は空欄が減り、担当名が出て、かけた印も付く——
+      いま困っていること3つがそのまま片づくので、これで進めてよいと思います。
+    </p>
+    <div class="cols">
+      <div class="note">
+        <h3>お決めいただきたいこと</h3>
+        <ul>
+          <li>業務日誌の様式に<b>提出先の決まりがあるか</b>（あれば案1のみ）。</li>
+          <li>血圧の測り方を<b>札にしてよいか</b>（上腕計・実測・シャント）。</li>
+          <li>電話連絡表の<b>かけた印</b>は「済／不在」の2つでよいか。
+            「かけ直し」も要りますか。</li>
+          <li>電話連絡表の並びは<b>運転手ごと</b>のままでよいか。</li>
+        </ul>
+      </div>
+      <div class="note">
+        <h3>決まったあとの進め方</h3>
+        <ul>
+          <li>選ばれた案で、<b>実際に刷れる PDF</b> をお渡しします（送迎表と同じ手順）。</li>
+          <li>1週間ほど現場で使っていただき、欄の広さを詰めます。</li>
+          <li>そのあと本体アプリの印刷レイアウトに入れ込みます。</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+</div>
+</body>
+</html>
