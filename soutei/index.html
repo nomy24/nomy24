@@ -3301,6 +3301,114 @@
   .modal-panel.narrow { width: min(660px, 100%); }
   .modal-panel.narrow .modal-head h2 { font-size: 17px; letter-spacing: .06em; }
 
+  /* ── 振替の受付 ────────────────────────────
+     打つのは日付ひとつだけなので、小さい欄をぽつんと置くより
+     「誰の、いつのぶんか」が一目で読める形にする */
+  .modal-panel.swap { width: min(560px, 100%); }
+  .modal-panel.swap .modal-head { display: block; }
+  .modal-panel.swap .modal-head h2 { font-size: 19px; }
+  .modal-panel.swap .modal-head p { margin-top: 5px; font-size: 12.5px; color: var(--ink-2); }
+  .modal-panel.swap .modal-body { gap: calc(var(--step) * 5); }
+  .modal-panel.swap .modal-foot { padding: calc(var(--step) * 4) calc(var(--step) * 5); }
+  .modal-panel.swap .modal-foot .btn { font-size: 14px; padding: 10px 22px; min-height: 46px; }
+
+  .sw-form { display: flex; flex-direction: column; gap: calc(var(--step) * 5); }
+
+  /* 誰のぶんかを大きく置く。名前を取り違えたまま登録するのを防ぐ */
+  .sw-who {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--step) * 3);
+    padding: 13px 15px;
+    border: 1px solid var(--furikae);
+    border-left-width: 4px;
+    border-radius: 10px;
+    background: var(--furikae-soft);
+  }
+
+  .sw-who .nm { font-size: 19px; font-weight: 700; letter-spacing: .04em; color: var(--ink); }
+  .sw-who .kana { font-size: 11.5px; color: var(--ink-3); letter-spacing: .06em; }
+  .sw-who .addr { margin-left: auto; font-size: 12.5px; color: var(--ink-2); text-align: right; }
+  .sw-who .col { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+
+  .sw-field { display: flex; flex-direction: column; gap: calc(var(--step) * 2); }
+
+  .sw-label { font-size: 13px; font-weight: 600; letter-spacing: .06em; color: var(--ink); }
+
+  /* 日付の欄。指でも押せる大きさに取る */
+  .modal .sw-date {
+    font: inherit;
+    font-size: 19px;
+    font-variant-numeric: tabular-nums;
+    width: 100%;
+    min-height: 54px;
+    padding: 8px 14px;
+    color: var(--ink);
+    background: var(--card);
+    border: 1.5px solid var(--rule-2);
+    border-radius: 10px;
+    letter-spacing: .04em;
+  }
+
+  .modal .sw-date:focus { border-color: var(--furikae); outline: none; }
+
+  /* よく使う日をそのまま押せるようにする */
+  .sw-quick { display: flex; flex-wrap: wrap; gap: 6px; }
+
+  .sw-quick button {
+    font: inherit;
+    font-size: 13px;
+    padding: 8px 15px;
+    min-height: 42px;
+    border: 1px solid var(--rule-2);
+    border-radius: 999px;
+    background: var(--card);
+    color: var(--ink-2);
+    cursor: pointer;
+  }
+
+  .sw-quick button:hover { border-color: var(--furikae); background: var(--furikae-soft); color: var(--furikae); }
+  .sw-quick button[aria-pressed="true"] { border-color: var(--furikae); background: var(--furikae); color: var(--card); font-weight: 600; }
+
+  /* 何が紙に出るのかを、決める前に見せる */
+  .sw-preview {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--step) * 3);
+    padding: 12px 15px;
+    border: 1px dashed var(--rule-2);
+    border-radius: 10px;
+    background: var(--sub);
+    font-size: 12.5px;
+    color: var(--ink-2);
+  }
+
+  .sw-preview b {
+    font-size: 15px;
+    color: var(--furikae);
+    letter-spacing: .04em;
+  }
+
+  .sw-preview .sw-tag {
+    flex: none;
+    width: auto;
+    height: auto;
+    display: inline-block;
+    white-space: nowrap;
+    font-size: 10.5px;
+    letter-spacing: .08em;
+    padding: 2px 9px;
+    border-radius: 999px;
+    background: var(--furikae);
+    color: var(--card);
+    font-weight: 700;
+  }
+
+  @media screen and (max-width: 760px) {
+    .sw-who { flex-wrap: wrap; }
+    .sw-who .addr { margin-left: 0; text-align: left; width: 100%; }
+  }
+
   .modal h3 .h3-note,
   .page-master h3 .h3-note {
     font-size: 11px;
@@ -6827,7 +6935,10 @@
     document.getElementById("mu-body").innerHTML = "";
   }
 
-  function openUserDialog({ title, lead, ok, cancel, danger, build, submit }) {
+  function openUserDialog({ title, lead, ok, cancel, danger, panel, build, submit }) {
+    /* 中身に合わせて枠の作りを変える。指定がなければ今までどおり */
+    const box = document.querySelector("#modal-user .modal-panel");
+    box.className = "modal-panel narrow" + (panel ? " " + panel : "");
     document.getElementById("mu-title").textContent = title;
     document.getElementById("mu-lead").textContent = lead || "";
     const body = document.getElementById("mu-body");
@@ -9514,12 +9625,72 @@
       let dayEl = null;
       openUserDialog({
         title: user.name + " さんの振替",
-        lead: leg.partLabel + "の振替として受け付けます。いつのぶんの振替ですか。",
+        lead: leg.partLabel + "の振替として受け付けます。いつのぶんを振り替えますか。",
         ok: "振替に追加",
+        panel: "swap",
         build(body) {
-          dayEl = formRow(body, "振替元の日",
-            Object.assign(document.createElement("input"), { type: "date", value: currentDate }),
-            "業務日誌の状態欄に「20日分 振替」の形で出ます。分からなければ空欄のままで構いません。");
+          const form = el("div", "sw-form");
+
+          /* 誰のぶんかを大きく置く。名前を取り違えたまま登録するのを防ぐ */
+          const who = el("div", "sw-who");
+          const col = el("span", "col");
+          col.append(el("span", "nm", user.name), el("span", "kana", user.kana || ""));
+          who.append(col, el("span", "addr", user.addr || ""));
+          form.append(who);
+
+          const field = el("div", "sw-field");
+          field.append(el("label", "sw-label", "いつのぶんの振替ですか"));
+
+          dayEl = document.createElement("input");
+          dayEl.type = "date";
+          dayEl.className = "sw-date";
+          dayEl.value = currentDate;
+          dayEl.id = "sw-date";
+          field.querySelector(".sw-label").setAttribute("for", "sw-date");
+          field.append(dayEl);
+
+          /* よく使う日はそのまま押せるようにする。数字を打ち込む手間を省く */
+          const quick = el("div", "sw-quick");
+          const picks = [
+            { label: "先週の同じ曜日", days: -7 },
+            { label: "先々週", days: -14 },
+            { label: "昨日", days: -1 },
+            { label: "分からない", days: null }
+          ];
+          const shift = (n) => {
+            const d = new Date(currentDate + "T00:00:00");
+            d.setDate(d.getDate() + n);
+            return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0")
+              + "-" + String(d.getDate()).padStart(2, "0");
+          };
+          picks.forEach((q) => {
+            const b = el("button", null, q.label);
+            b.type = "button";
+            b.dataset.val = q.days === null ? "" : shift(q.days);
+            b.addEventListener("click", () => { dayEl.value = b.dataset.val; sync(); });
+            quick.append(b);
+          });
+          field.append(quick);
+          form.append(field);
+
+          /* 何が紙に出るのかを、決める前に見せる */
+          const prev = el("div", "sw-preview");
+          prev.append(el("span", "sw-tag", "業務日誌"), el("span", "txt"));
+          form.append(prev);
+
+          const sync = () => {
+            const v = dayEl.value;
+            prev.querySelector(".txt").innerHTML = v
+              ? "状態欄に <b>" + swapLabel(v) + " 振替</b> と出ます。"
+              : "状態欄に <b>振替</b> とだけ出ます。日付が分かったら、あとから入れ直せます。";
+            quick.querySelectorAll("button").forEach((b) => {
+              b.setAttribute("aria-pressed", String(b.dataset.val === v));
+            });
+          };
+          dayEl.addEventListener("input", sync);
+          sync();
+
+          body.append(form);
         },
         submit() {
           SWAP[leg.part].push({ id: user.id, from: dayEl.value || "" });
