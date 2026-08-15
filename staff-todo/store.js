@@ -17,6 +17,7 @@ const COLLECTIONS = {
   groups: "groups",
   photos: "photos",
   phoneMemos: "phoneMemos",
+  appConfig: "appConfig",
 };
 
 let firebase = null; // { db, firestore, auth } once ready, else null
@@ -178,3 +179,4 @@ export const routineLogStore = makeCrud(COLLECTIONS.routineLogs);
 export const groupStore = makeCrud(COLLECTIONS.groups, "order");
 export const photoStore = makeCrud(COLLECTIONS.photos);
 export const phoneMemoStore = makeCrud(COLLECTIONS.phoneMemos);
+export const configStore = makeCrud(COLLECTIONS.appConfig);

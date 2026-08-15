@@ -1,4 +1,4 @@
-import { mode as storeModeRef, ready as storeReady, staffStore, todoStore, eventStore, routineTaskStore, routineLogStore, groupStore, photoStore, phoneMemoStore } from "./store.js";
+import { mode as storeModeRef, ready as storeReady, staffStore, todoStore, eventStore, routineTaskStore, routineLogStore, groupStore, photoStore, phoneMemoStore, configStore } from "./store.js";
 
 // ---------------- 共通ユーティリティ ----------------
 
@@ -1431,6 +1431,84 @@ hideHeaderToggle.addEventListener("change", () => {
 });
 
 // ================================================================
+// ロック画面（アプリ全体の合言葉）
+// ================================================================
+// クライアント側だけの簡易チェックであり、Firestoreのデータ自体を守る本格的な
+// セキュリティではない。「知らない人がうっかり開かない」ための入口の声掛け。
+
+const UNLOCKED_KEY = "staffTodo:unlocked";
+const lockForm = document.getElementById("lockForm");
+const lockNote = document.getElementById("lockNote");
+const lockPasscodeInput = document.getElementById("lockPasscodeInput");
+const lockPasscodeConfirm = document.getElementById("lockPasscodeConfirm");
+const lockSubmitBtn = document.getElementById("lockSubmitBtn");
+const lockError = document.getElementById("lockError");
+
+let appPasscode; // undefined = 確認中, null = 未設定(初回), string = 設定済み
+
+function unlockApp() {
+  document.documentElement.classList.remove("is-locked");
+  document.getElementById("lockScreen").hidden = true;
+}
+
+function showLockUi() {
+  lockError.hidden = true;
+  if (appPasscode === undefined) {
+    lockNote.textContent = "確認中…";
+    lockPasscodeInput.hidden = true;
+    lockPasscodeConfirm.hidden = true;
+    lockSubmitBtn.hidden = true;
+  } else if (appPasscode === null) {
+    lockNote.textContent = "はじめに、みんなで使う合言葉を決めてください。";
+    lockPasscodeInput.placeholder = "合言葉を決める";
+    lockPasscodeInput.hidden = false;
+    lockPasscodeConfirm.hidden = false;
+    lockSubmitBtn.hidden = false;
+    lockSubmitBtn.textContent = "設定する";
+  } else {
+    lockNote.textContent = "合言葉を入力してください。";
+    lockPasscodeInput.placeholder = "合言葉";
+    lockPasscodeInput.hidden = false;
+    lockPasscodeConfirm.hidden = true;
+    lockSubmitBtn.hidden = false;
+    lockSubmitBtn.textContent = "入る";
+  }
+}
+
+lockForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if (appPasscode === undefined) return;
+  if (appPasscode === null) {
+    const value = lockPasscodeInput.value.trim();
+    if (!value) { lockError.textContent = "合言葉を入力してください。"; lockError.hidden = false; return; }
+    if (value !== lockPasscodeConfirm.value.trim()) { lockError.textContent = "確認用の合言葉が一致しません。"; lockError.hidden = false; return; }
+    await configStore.set("main", { passcode: value });
+    localStorage.setItem(UNLOCKED_KEY, "1");
+    unlockApp();
+  } else {
+    if (lockPasscodeInput.value === appPasscode) {
+      localStorage.setItem(UNLOCKED_KEY, "1");
+      unlockApp();
+    } else {
+      lockError.textContent = "合言葉が違います。";
+      lockError.hidden = false;
+      lockPasscodeInput.value = "";
+      lockPasscodeInput.focus();
+    }
+  }
+});
+
+document.getElementById("lockNowBtn").addEventListener("click", () => {
+  localStorage.removeItem(UNLOCKED_KEY);
+  document.documentElement.classList.add("is-locked");
+  document.getElementById("lockScreen").hidden = false;
+  lockPasscodeInput.value = "";
+  lockPasscodeConfirm.value = "";
+  showLockUi();
+  lockPasscodeInput.focus();
+});
+
+// ================================================================
 // 新着タグ
 // ================================================================
 // 自分以外が追加した新着の Todo・予定・定型タスクに「NEW」タグを表示する。
@@ -1544,6 +1622,12 @@ async function main() {
     state.phoneMemos = list;
     if (state.screen === "phoneMemo") renderMemoList();
     updateMemoTabBadge();
+  });
+  configStore.subscribe((list) => {
+    const doc = list.find((d) => d.id === "main");
+    appPasscode = doc ? doc.passcode : null;
+    showLockUi();
+    if (appPasscode && localStorage.getItem(UNLOCKED_KEY) === "1") unlockApp();
   });
 
   renderScreen(state.screen);
