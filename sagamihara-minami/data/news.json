@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-08-14T22:23:05.079Z",
+  "generatedAt": "2026-08-15T22:21:53.370Z",
   "source": "相模原市公式ホームページ",
   "sourceUrl": "https://www.city.sagamihara.kanagawa.jp",
   "counts": {
     "total": 400,
     "minami": 18,
     "citywide": 382,
-    "addedThisRun": 5
+    "addedThisRun": 1
   },
   "categories": [
     {
@@ -55,6 +55,34 @@
     }
   ],
   "items": [
+    {
+      "id": "2de8b19c5d56",
+      "title": "令和8年度実施 相模原市立学校教員採用候補者選考試験について",
+      "url": "https://www.city.sagamihara.kanagawa.jp/shisei/1026815/shokuin_annai/school/1005283.html",
+      "summary": "",
+      "category": "shisei",
+      "categoryLabel": "市政・お知らせ",
+      "scope": "citywide",
+      "areaHits": [],
+      "important": false,
+      "source": "相模原市 更新情報",
+      "publishedAt": "2026-08-15T15:05:03.000Z",
+      "firstSeenAt": "2026-08-15T22:21:53.370Z"
+    },
+    {
+      "id": "677b2311b27e",
+      "title": "学校で働く",
+      "url": "https://www.city.sagamihara.kanagawa.jp/shisei/1026815/shokuin_annai/school/index.html",
+      "summary": "",
+      "category": "shisei",
+      "categoryLabel": "市政・お知らせ",
+      "scope": "citywide",
+      "areaHits": [],
+      "important": false,
+      "source": "相模原市 更新情報",
+      "publishedAt": "2026-08-15T15:05:03.000Z",
+      "firstSeenAt": "2026-08-04T04:16:43.500Z"
+    },
     {
       "id": "1b341d6e2fff",
       "title": "史跡田名向原遺跡旧石器時代学習館（旧石器ハテナ館）のイベント等のご案内",
@@ -3596,20 +3624,6 @@
       "firstSeenAt": "2026-08-04T04:16:43.500Z"
     },
     {
-      "id": "677b2311b27e",
-      "title": "学校で働く",
-      "url": "https://www.city.sagamihara.kanagawa.jp/shisei/1026815/shokuin_annai/school/index.html",
-      "summary": "",
-      "category": "shisei",
-      "categoryLabel": "市政・お知らせ",
-      "scope": "citywide",
-      "areaHits": [],
-      "important": false,
-      "source": "相模原市 更新情報",
-      "publishedAt": "2026-08-02T15:05:03.000Z",
-      "firstSeenAt": "2026-08-04T04:16:43.500Z"
-    },
-    {
       "id": "69ed1a5a18c9",
       "title": "「市立大沢小学校外4校校舎LED改修修繕」外8件の条件付一般競争入札に係る結果について",
       "url": "https://www.city.sagamihara.kanagawa.jp/sangyo/1026667/1035913.html",
@@ -5677,21 +5691,7 @@
       "source": "相模原市 更新情報",
       "publishedAt": "2026-07-28T15:05:04.000Z",
       "firstSeenAt": "2026-08-04T04:16:43.500Z"
-    },
-    {
-      "id": "bc29045858d1",
-      "title": "マイナンバーカード（個人番号カード）を申請したい。",
-      "url": "https://www.city.sagamihara.kanagawa.jp/shisei/1026875/faq/koseki/1000731.html",
-      "summary": "",
-      "category": "kurashi",
-      "categoryLabel": "くらし・手続き",
-      "scope": "citywide",
-      "areaHits": [],
-      "important": false,
-      "source": "相模原市 更新情報",
-      "publishedAt": "2026-07-28T15:05:04.000Z",
-      "firstSeenAt": "2026-08-04T04:16:43.500Z"
     }
   ],
-  "revision": "f13030bae306"
+  "revision": "a477b58deef9"
 }
