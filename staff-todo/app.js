@@ -1,4 +1,5 @@
 import { mode as storeModeRef, ready as storeReady, staffStore, todoStore, eventStore, routineTaskStore, routineLogStore, groupStore, photoStore, phoneMemoStore, configStore } from "./store.js";
+import { isConfigured as firebaseConfigured, signIn, signOutUser, onAuthChange } from "./firebase-init.js";
 
 // ---------------- 共通ユーティリティ ----------------
 
@@ -1433,35 +1434,64 @@ hideHeaderToggle.addEventListener("change", () => {
 });
 
 // ================================================================
-// ロック画面（アプリ全体の合言葉）
+// ロック画面 / ログイン
 // ================================================================
-// クライアント側だけの簡易チェックであり、Firestoreのデータ自体を守る本格的な
-// セキュリティではない。「知らない人がうっかり開かない」ための入口の声掛け。
+// 共有モード(Firebase設定済み)では、Firebase Authenticationのメール+パスワードでの
+// ログインを必須にする（Firestoreのルール側でも匿名ユーザーを弾く設定にしてある前提）。
+// お試しモード(Firebase未設定)では、この端末だけの簡易合言葉で入口を塞ぐ
+// （こちらはクライアント側だけの簡易チェックで、本格的なセキュリティではない）。
 
 const UNLOCKED_KEY = "staffTodo:unlocked";
 const lockForm = document.getElementById("lockForm");
 const lockNote = document.getElementById("lockNote");
+const lockEmailInput = document.getElementById("lockEmailInput");
 const lockPasscodeInput = document.getElementById("lockPasscodeInput");
 const lockPasscodeConfirm = document.getElementById("lockPasscodeConfirm");
 const lockSubmitBtn = document.getElementById("lockSubmitBtn");
 const lockError = document.getElementById("lockError");
 
-let appPasscode; // undefined = 確認中, null = 未設定(初回), string = 設定済み
+let appPasscode; // お試しモードのみで使用。undefined = 確認中, null = 未設定(初回), string = 設定済み
+let appStarted = false;
+
+function startApp() {
+  if (appStarted) return;
+  appStarted = true;
+  main();
+}
 
 function unlockApp() {
   document.documentElement.classList.remove("is-locked");
   document.getElementById("lockScreen").hidden = true;
+  startApp();
+}
+
+function lockAppUi() {
+  document.documentElement.classList.add("is-locked");
+  document.getElementById("lockScreen").hidden = false;
 }
 
 function showLockUi() {
   lockError.hidden = true;
+  if (firebaseConfigured) {
+    lockNote.textContent = "職員用のメールアドレスとパスワードでログインしてください。";
+    lockEmailInput.hidden = false;
+    lockPasscodeInput.hidden = false;
+    lockPasscodeInput.type = "password";
+    lockPasscodeInput.placeholder = "パスワード";
+    lockPasscodeInput.autocomplete = "current-password";
+    lockPasscodeConfirm.hidden = true;
+    lockSubmitBtn.hidden = false;
+    lockSubmitBtn.textContent = "ログイン";
+    return;
+  }
+  lockEmailInput.hidden = true;
   if (appPasscode === undefined) {
     lockNote.textContent = "確認中…";
     lockPasscodeInput.hidden = true;
     lockPasscodeConfirm.hidden = true;
     lockSubmitBtn.hidden = true;
   } else if (appPasscode === null) {
-    lockNote.textContent = "はじめに、みんなで使う合言葉を決めてください。";
+    lockNote.textContent = "はじめに、この端末用の合言葉を決めてください。";
     lockPasscodeInput.placeholder = "合言葉を決める";
     lockPasscodeInput.hidden = false;
     lockPasscodeConfirm.hidden = false;
@@ -1479,6 +1509,30 @@ function showLockUi() {
 
 lockForm.addEventListener("submit", async (e) => {
   e.preventDefault();
+  lockError.hidden = true;
+
+  if (firebaseConfigured) {
+    const email = lockEmailInput.value.trim();
+    const password = lockPasscodeInput.value;
+    if (!email || !password) {
+      lockError.textContent = "メールアドレスとパスワードを入力してください。";
+      lockError.hidden = false;
+      return;
+    }
+    lockSubmitBtn.disabled = true;
+    try {
+      await signIn(email, password);
+      // unlockApp() は onAuthChange 側のコールバックで行う
+    } catch (err) {
+      console.error(err);
+      lockError.textContent = "ログインできませんでした。メールアドレスとパスワードを確認してください。";
+      lockError.hidden = false;
+    } finally {
+      lockSubmitBtn.disabled = false;
+    }
+    return;
+  }
+
   if (appPasscode === undefined) return;
   if (appPasscode === null) {
     const value = lockPasscodeInput.value.trim();
@@ -1500,15 +1554,42 @@ lockForm.addEventListener("submit", async (e) => {
   }
 });
 
-document.getElementById("lockNowBtn").addEventListener("click", () => {
+document.getElementById("lockNowBtn").addEventListener("click", async () => {
+  if (firebaseConfigured) {
+    await signOutUser();
+    // 画面の状態は onAuthChange のコールバックでリセットされる
+    return;
+  }
   localStorage.removeItem(UNLOCKED_KEY);
-  document.documentElement.classList.add("is-locked");
-  document.getElementById("lockScreen").hidden = false;
+  lockAppUi();
   lockPasscodeInput.value = "";
   lockPasscodeConfirm.value = "";
   showLockUi();
   lockPasscodeInput.focus();
 });
+
+document.getElementById("lockNowBtn").textContent = firebaseConfigured ? "ログアウトする" : "この端末をロックする";
+document.getElementById("lockNowDesc").textContent = firebaseConfigured
+  ? "ログアウトすると、次にアプリを開いたときにメールアドレスとパスワードの入力が必要になります。"
+  : "共有の合言葉でこの端末をロックし直せます。次にアプリを開いたときに合言葉の入力が必要になります。";
+
+showLockUi();
+
+if (firebaseConfigured) {
+  onAuthChange((user) => {
+    if (user) unlockApp();
+    else lockAppUi();
+  });
+} else {
+  // お試しモード: configStore(ローカル保存)から合言葉の有無を確認する
+  configStore.subscribe((list) => {
+    const doc = list.find((d) => d.id === "main");
+    appPasscode = doc ? doc.passcode : null;
+    showLockUi();
+    if (appPasscode && localStorage.getItem(UNLOCKED_KEY) === "1") unlockApp();
+  });
+  startApp();
+}
 
 // ================================================================
 // 新着タグ
@@ -1625,12 +1706,6 @@ async function main() {
     if (state.screen === "phoneMemo") renderMemoList();
     updateMemoTabBadge();
   });
-  configStore.subscribe((list) => {
-    const doc = list.find((d) => d.id === "main");
-    appPasscode = doc ? doc.passcode : null;
-    showLockUi();
-    if (appPasscode && localStorage.getItem(UNLOCKED_KEY) === "1") unlockApp();
-  });
 
   renderScreen(state.screen);
 
@@ -1638,5 +1713,3 @@ async function main() {
     navigator.serviceWorker.register("sw.js").catch(() => {});
   }
 }
-
-main();

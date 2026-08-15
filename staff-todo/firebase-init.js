@@ -6,6 +6,8 @@ export const isConfigured = !isPlaceholder;
 
 let dbExports = null;
 
+// 匿名サインインはせず、SDKの初期化だけ行う。
+// ログイン（メール+パスワード）はアプリ側からの明示的な signIn() 呼び出しで行う。
 async function boot() {
   if (isPlaceholder) return null;
   try {
@@ -23,16 +25,7 @@ async function boot() {
       console.warn("オフラインキャッシュを有効にできませんでした", e);
     }
     const auth = authMod.getAuth(app);
-    await new Promise((resolve, reject) => {
-      const unsub = authMod.onAuthStateChanged(auth, (user) => {
-        if (user) {
-          unsub();
-          resolve(user);
-        }
-      }, reject);
-      authMod.signInAnonymously(auth).catch(reject);
-    });
-    dbExports = { db, firestore, auth };
+    dbExports = { db, firestore, auth, authMod };
     return dbExports;
   } catch (e) {
     console.error("Firebase の初期化に失敗しました", e);
@@ -41,3 +34,22 @@ async function boot() {
 }
 
 export const ready = boot();
+
+export async function signIn(email, password) {
+  const fb = await ready;
+  if (!fb) throw new Error("Firebase が初期化されていません");
+  return fb.authMod.signInWithEmailAndPassword(fb.auth, email, password);
+}
+
+export async function signOutUser() {
+  const fb = await ready;
+  if (!fb) return;
+  return fb.authMod.signOut(fb.auth);
+}
+
+// user引数はFirebaseのUserオブジェクト、未ログインならnull
+export async function onAuthChange(cb) {
+  const fb = await ready;
+  if (!fb) { cb(null); return () => {}; }
+  return fb.authMod.onAuthStateChanged(fb.auth, cb);
+}
