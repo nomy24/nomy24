@@ -917,7 +917,9 @@ function openRoutineTaskSheet(cat, existing) {
 // 資料（写真・ファイル）
 // ================================================================
 
-const MAX_FILE_BYTES = 4 * 1024 * 1024; // 画像以外のファイルはlocalStorageを圧迫しやすいため上限を設ける
+// 共有モードではFirestoreの1ドキュメント1MiB制限に収まる必要がある（Base64化で約1.37倍に膨らむため余裕を持たせる）。
+// お試しモード(localStorage)側もこの範囲なら十分収まるため、共通の上限として扱う。
+const MAX_FILE_BYTES = 700 * 1024;
 
 function isImageAttachment(item) {
   return !item.type || item.type === "image"; // 旧データ(typeフィールドなし)は写真として扱う
@@ -970,7 +972,7 @@ async function addAttachmentFromFile(file) {
   if (!file) return;
   const isImage = file.type.startsWith("image/");
   if (!isImage && file.size > MAX_FILE_BYTES) {
-    toast(`ファイルが大きすぎます（上限${Math.round(MAX_FILE_BYTES / 1024 / 1024)}MB）。`);
+    toast(`ファイルが大きすぎます（上限${formatBytes(MAX_FILE_BYTES)}）。`);
     return;
   }
   try {
