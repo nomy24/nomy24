@@ -8,10 +8,10 @@
 // 書き換える前は、この端末の中だけに保存される「お試しモード」で動きます。
 
 export const firebaseConfig = {
-  apiKey: "REPLACE_ME",
-  authDomain: "REPLACE_ME.firebaseapp.com",
-  projectId: "REPLACE_ME",
-  storageBucket: "REPLACE_ME.appspot.com",
-  messagingSenderId: "REPLACE_ME",
-  appId: "REPLACE_ME",
+  apiKey: "AIzaSyBjSqOsD5nWwmu2pYu1Z1FFdmypoLDM5WA",
+  authDomain: "todo-asuka.firebaseapp.com",
+  projectId: "todo-asuka",
+  storageBucket: "todo-asuka.firebasestorage.app",
+  messagingSenderId: "963972934552",
+  appId: "1:963972934552:web:d11b474072e684c05699ed",
 };

@@ -14,6 +14,10 @@ const COLLECTIONS = {
   events: "events",
   routineTasks: "routineTasks",
   routineLogs: "routineLogs",
+  groups: "groups",
+  photos: "photos",
+  phoneMemos: "phoneMemos",
+  appConfig: "appConfig",
 };
 
 let firebase = null; // { db, firestore, auth } once ready, else null
@@ -172,3 +176,7 @@ export const todoStore = makeCrud(COLLECTIONS.todos);
 export const eventStore = makeCrud(COLLECTIONS.events);
 export const routineTaskStore = makeCrud(COLLECTIONS.routineTasks, "order");
 export const routineLogStore = makeCrud(COLLECTIONS.routineLogs);
+export const groupStore = makeCrud(COLLECTIONS.groups, "order");
+export const photoStore = makeCrud(COLLECTIONS.photos);
+export const phoneMemoStore = makeCrud(COLLECTIONS.phoneMemos);
+export const configStore = makeCrud(COLLECTIONS.appConfig);

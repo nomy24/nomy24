@@ -1,4 +1,4 @@
-import { mode as storeModeRef, ready as storeReady, staffStore, todoStore, eventStore, routineTaskStore, routineLogStore } from "./store.js";
+import { mode as storeModeRef, ready as storeReady, staffStore, todoStore, eventStore, routineTaskStore, routineLogStore, groupStore, photoStore, phoneMemoStore, configStore } from "./store.js";
 
 // ---------------- 共通ユーティリティ ----------------
 
@@ -9,6 +9,45 @@ function escapeHtml(str) {
 }
 
 function pad2(n) { return String(n).padStart(2, "0"); }
+
+function prefersReducedMotion() {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+const CHECK_ANIM_MS = 620;
+const SPARK_COLORS = ["var(--color-primary)", "var(--color-accent)", "var(--color-warning)"];
+
+function spawnSparkles(btn) {
+  const count = 10;
+  const frag = document.createDocumentFragment();
+  for (let i = 0; i < count; i++) {
+    const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.5;
+    const dist = 20 + Math.random() * 18;
+    const spark = document.createElement("span");
+    spark.className = "spark";
+    spark.style.setProperty("--dx", `${(Math.cos(angle) * dist).toFixed(1)}px`);
+    spark.style.setProperty("--dy", `${(Math.sin(angle) * dist).toFixed(1)}px`);
+    spark.style.setProperty("--delay", `${Math.round(Math.random() * 70)}ms`);
+    spark.style.background = SPARK_COLORS[i % SPARK_COLORS.length];
+    frag.appendChild(spark);
+  }
+  btn.appendChild(frag);
+}
+
+// 完了ボタンを押した瞬間にアニメーションを見せてから、実際の状態更新を確定する。
+// 更新は同期的に一覧を再描画してカードごと作り直してしまうため、
+// アニメーションが目に入るよう一呼吸だけ遅らせている。
+function animateCheck(btn, commit) {
+  if (prefersReducedMotion()) {
+    commit();
+    return;
+  }
+  btn.classList.add("is-checking");
+  btn.disabled = true;
+  spawnSparkles(btn);
+  btn.closest(".card")?.classList.add("is-completing");
+  setTimeout(commit, CHECK_ANIM_MS);
+}
 
 function toDateKey(date) {
   return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
@@ -27,6 +66,9 @@ function colorForStaff(staff) {
 
 const ME_KEY = "staffTodo:me";
 const LARGE_TEXT_KEY = "staffTodo:largeText";
+const HIDE_HEADER_KEY = "staffTodo:hideHeader";
+const GROUPS_SEEDED_KEY = "staffTodo:groupsSeeded";
+const DEFAULT_GROUPS = ["機能訓練指導員", "生活相談員"];
 
 // ---------------- 状態 ----------------
 
@@ -37,9 +79,15 @@ const state = {
   events: [],
   routineTasks: [],
   routineLogs: [],
+  groups: [],
+  photos: [],
+  phoneMemos: [],
   meId: localStorage.getItem(ME_KEY) || null,
   screen: "todo",
   todoFilter: "open",
+  todoSearch: "",
+  memoFilter: "all",
+  memoSearch: "",
   routineCat: "daily",
   calMonth: (() => { const d = new Date(); d.setDate(1); return d; })(),
   calSelected: todayKey(),
@@ -47,6 +95,7 @@ const state = {
 
 function meStaff() { return state.staff.find((s) => s.id === state.meId) || null; }
 function staffById(id) { return state.staff.find((s) => s.id === id) || null; }
+function groupById(id) { return state.groups.find((g) => g.id === id) || null; }
 
 // ---------------- トースト ----------------
 
@@ -70,18 +119,37 @@ let sheetSubmitHandler = null;
 function openSheet(title, bodyHtml, { onSubmit, onDelete, submitLabel = "保存" } = {}) {
   sheetTitle.textContent = title;
   sheetForm.innerHTML = bodyHtml + `
-    <div class="sheet__actions">
+    <div class="sheet__actions" id="sheetActions">
       ${onDelete ? `<button type="button" class="btn btn--danger" id="sheetDeleteBtn">削除</button>` : ""}
       <button type="submit" class="btn btn--primary">${submitLabel}</button>
     </div>
+    ${onDelete ? `
+    <div class="delete-confirm" id="deleteConfirm" hidden>
+      <p class="delete-confirm__text">削除しますか？この操作は取り消せません。</p>
+      <div class="delete-confirm__actions">
+        <button type="button" class="btn btn--ghost" id="deleteCancelBtn">キャンセル</button>
+        <button type="button" class="btn btn--danger-solid" id="deleteConfirmBtn">削除する</button>
+      </div>
+    </div>` : ""}
   `;
   sheetSubmitHandler = onSubmit;
   if (onDelete) {
-    sheetForm.querySelector("#sheetDeleteBtn").addEventListener("click", async () => {
-      if (confirm("削除しますか？この操作は取り消せません。")) {
-        await onDelete();
-        closeSheet();
-      }
+    // 埋め込み先(プレビューのサンドボックス等)では window.confirm が使えないことがあるため、
+    // シート内蔵の2段階確認に置き換えている。
+    const deleteBtn = sheetForm.querySelector("#sheetDeleteBtn");
+    const sheetActions = sheetForm.querySelector("#sheetActions");
+    const confirmBox = sheetForm.querySelector("#deleteConfirm");
+    deleteBtn.addEventListener("click", () => {
+      sheetActions.hidden = true;
+      confirmBox.hidden = false;
+    });
+    confirmBox.querySelector("#deleteCancelBtn").addEventListener("click", () => {
+      confirmBox.hidden = true;
+      sheetActions.hidden = false;
+    });
+    confirmBox.querySelector("#deleteConfirmBtn").addEventListener("click", async () => {
+      await onDelete();
+      closeSheet();
     });
   }
   wirePillGroups(sheetForm);
@@ -154,6 +222,8 @@ function renderScreen(name) {
   if (name === "todo") renderTodoList();
   else if (name === "calendar") renderCalendar();
   else if (name === "routine") renderRoutineList();
+  else if (name === "photos") renderPhotoTimeline();
+  else if (name === "phoneMemo") renderMemoList();
   else if (name === "settings") renderSettings();
 }
 
@@ -163,7 +233,9 @@ document.getElementById("fab").addEventListener("click", () => {
   if (state.screen === "todo") openTodoSheet();
   else if (state.screen === "calendar") openEventSheet(state.calSelected);
   else if (state.screen === "routine") openRoutineTaskSheet(state.routineCat);
-  else openStaffSheet();
+  else if (state.screen === "photos") document.getElementById("photoFileInput").click();
+  else if (state.screen === "phoneMemo") openMemoSheet();
+  else if (state.screen === "settings") openStaffSheet();
 });
 
 // ================================================================
@@ -186,12 +258,38 @@ function dueLabel(dueDate) {
   return dueDate.slice(5).replace("-", "/");
 }
 
+function dateKeyWeekday(dateKey) {
+  const [y, m, d] = dateKey.split("-").map(Number);
+  return WEEKDAYS_JA[new Date(y, m - 1, d).getDay()];
+}
+
+// 日付ごとに積み重なっても見分けやすいよう、Todoをグループ見出しの単位に振り分ける。
+function todoGroupLabel(t) {
+  if (t.done) return "完了済み";
+  if (!t.dueDate) return "期限なし";
+  const tKey = todayKey();
+  if (t.dueDate < tKey) return "期限切れ";
+  if (t.dueDate === tKey) return "今日";
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  if (t.dueDate === toDateKey(tomorrow)) return "明日";
+  const [, m, d] = t.dueDate.split("-");
+  return `${Number(m)}月${Number(d)}日(${dateKeyWeekday(t.dueDate)})`;
+}
+
 function filteredTodos() {
   const t = todayKey();
+  const q = state.todoSearch.trim().toLowerCase();
+  if (q) {
+    // 検索中はフィルターの絞り込みを無視し、完了済みも含めて全件からさかのぼって探す。
+    return state.todos
+      .filter((x) => x.title.toLowerCase().includes(q) || (x.memo || "").toLowerCase().includes(q))
+      .sort((a, b) => (b.updatedAt || b.createdAt || 0) - (a.updatedAt || a.createdAt || 0));
+  }
   let list = [...state.todos];
   if (state.todoFilter === "open") list = list.filter((x) => !x.done);
   else if (state.todoFilter === "today") list = list.filter((x) => !x.done && x.dueDate && x.dueDate <= t);
-  else if (state.todoFilter === "mine") list = state.meId ? list.filter((x) => x.assigneeId === state.meId) : [];
+  else if (state.todoFilter === "mine") list = state.meId ? list.filter((x) => todoAssigneeIds(x).includes(state.meId)) : [];
   list.sort((a, b) => {
     if (!!a.done !== !!b.done) return a.done ? 1 : -1;
     const ad = a.dueDate || "9999-99-99", bd = b.dueDate || "9999-99-99";
@@ -205,39 +303,66 @@ function renderTodoList() {
   const list = filteredTodos();
   const el = document.getElementById("todoList");
   const empty = document.getElementById("todoEmpty");
-  if (state.todoFilter === "mine" && !state.meId) {
+  const searching = !!state.todoSearch.trim();
+  const seenAt = getSeenAt("todo");
+
+  document.getElementById("todoFilters").hidden = searching;
+  const note = document.getElementById("todoSearchNote");
+  note.hidden = !searching;
+  note.textContent = searching ? `「${state.todoSearch.trim()}」の検索結果: ${list.length}件` : "";
+
+  if (!searching && state.todoFilter === "mine" && !state.meId) {
     el.innerHTML = "";
     empty.hidden = false;
     empty.textContent = "設定画面で「あなたの名前」を選ぶと、自分の担当タスクを表示できます。";
     return;
   }
-  empty.textContent = "Todoはまだありません。右下の＋から追加できます。";
+  empty.textContent = searching ? `「${state.todoSearch.trim()}」に一致するタスクが見つかりません。` : "Todoはまだありません。右下の＋から追加できます。";
   empty.hidden = list.length > 0;
-  el.innerHTML = list.map((t) => {
-    const assignee = staffById(t.assigneeId);
+
+  let lastGroup = null;
+  const parts = [];
+  list.forEach((t) => {
+    if (!searching) {
+      const group = todoGroupLabel(t);
+      if (group !== lastGroup) {
+        parts.push(`<div class="list-group-header">${escapeHtml(group)}</div>`);
+        lastGroup = group;
+      }
+    }
+    const assignees = todoAssigneeIds(t).map((id) => staffById(id)).filter(Boolean);
     const badges = [];
+    if (t.sourceRoutineTaskId) badges.push(`<span class="badge badge--purple">定型タスクから自動追加</span>`);
     if (t.dueDate) badges.push(`<span class="badge ${!t.done && t.dueDate < todayKey() ? "badge--danger" : t.dueDate === todayKey() ? "badge--warning" : ""}">${escapeHtml(dueLabel(t.dueDate))}</span>`);
     if (t.priority === "high") badges.push(`<span class="badge badge--danger">重要</span>`);
-    if (assignee) badges.push(`<span class="badge">${escapeHtml(assignee.name)}</span>`);
-    return `
+    assignees.forEach((a) => badges.push(`<span class="badge">${escapeHtml(a.name)}</span>`));
+    parts.push(`
       <div class="card" data-id="${t.id}">
         <button type="button" class="check ${t.done ? "is-done" : ""}" data-action="toggle" aria-label="完了にする">
           <svg viewBox="0 0 24 24"><path d="M5 12l4 4 10-10"/></svg>
         </button>
         <div class="card__body" data-action="edit">
-          <div class="card__title ${t.done ? "is-done" : ""}">${escapeHtml(t.title)}</div>
+          <div class="card__title ${t.done ? "is-done" : ""}">${newTagHtml(isNewItem(t, seenAt))}${escapeHtml(t.title)}</div>
           ${t.memo ? `<div class="card__memo">${escapeHtml(t.memo)}</div>` : ""}
           ${badges.length ? `<div class="card__meta">${badges.join("")}</div>` : ""}
         </div>
-      </div>`;
-  }).join("");
+      </div>`);
+  });
+  el.innerHTML = parts.join("");
+  markSeen("todo");
 
   el.querySelectorAll('[data-action="toggle"]').forEach((btn) => {
     btn.addEventListener("click", (e) => {
       e.stopPropagation();
       const id = btn.closest(".card").dataset.id;
       const todo = state.todos.find((x) => x.id === id);
-      todoStore.update(id, { done: !todo.done, doneBy: !todo.done ? (meStaff()?.name || null) : null });
+      const nowDone = !todo.done;
+      const commit = () => {
+        todoStore.update(id, { done: nowDone, doneBy: nowDone ? (meStaff()?.name || null) : null });
+        if (nowDone) toast("完了しました");
+      };
+      if (nowDone) animateCheck(btn, commit);
+      else commit();
     });
   });
   el.querySelectorAll('[data-action="edit"]').forEach((body) => {
@@ -248,12 +373,33 @@ function renderTodoList() {
   });
 }
 
-function staffOptionsHtml(selectedId) {
-  return `<option value="">誰でも</option>` + state.staff.map((s) => `<option value="${s.id}" ${s.id === selectedId ? "selected" : ""}>${escapeHtml(s.name)}</option>`).join("");
+const todoSearchInput = document.getElementById("todoSearchInput");
+const todoSearchClear = document.getElementById("todoSearchClear");
+todoSearchInput.addEventListener("input", () => {
+  state.todoSearch = todoSearchInput.value;
+  todoSearchClear.hidden = !state.todoSearch;
+  renderTodoList();
+});
+todoSearchClear.addEventListener("click", () => {
+  state.todoSearch = "";
+  todoSearchInput.value = "";
+  todoSearchClear.hidden = true;
+  renderTodoList();
+  todoSearchInput.focus();
+});
+
+function todoAssigneeIds(todo) {
+  return todo?.assigneeIds || (todo?.assigneeId ? [todo.assigneeId] : []);
+}
+
+function assigneeChipsHtml(selectedIds) {
+  if (!state.staff.length) return `<p class="note">まだ職員が登録されていません。設定画面から追加できます。</p>`;
+  return state.staff.map((s) => `<button type="button" class="chip ${selectedIds.includes(s.id) ? "is-active" : ""}" data-id="${s.id}">${escapeHtml(s.name)}</button>`).join("");
 }
 
 function openTodoSheet(existing) {
   const priority = existing?.priority || "normal";
+  const selectedAssigneeIds = new Set(todoAssigneeIds(existing));
   const html = `
     <div class="field">
       <label for="f-title">タイトル</label>
@@ -263,15 +409,17 @@ function openTodoSheet(existing) {
       <label for="f-memo">メモ（任意）</label>
       <textarea id="f-memo" name="memo" maxlength="500" placeholder="詳しい内容があれば">${escapeHtml(existing?.memo || "")}</textarea>
     </div>
-    <div class="field-row">
-      <div class="field">
-        <label for="f-assignee">担当</label>
-        <select id="f-assignee" name="assigneeId">${staffOptionsHtml(existing?.assigneeId)}</select>
-      </div>
-      <div class="field">
-        <label for="f-due">期限（任意）</label>
-        <input id="f-due" name="dueDate" type="date" value="${existing?.dueDate || ""}">
-      </div>
+    <div class="field">
+      <label>担当（複数選択可）</label>
+      ${state.groups.length ? `
+      <div class="chip-group" id="assigneeGroupChips">
+        ${state.groups.map((g) => `<button type="button" class="chip chip--group" data-group-id="${g.id}">${escapeHtml(g.name)}</button>`).join("")}
+      </div>` : ""}
+      <div class="chip-group" id="assigneeGroup">${assigneeChipsHtml([...selectedAssigneeIds])}</div>
+    </div>
+    <div class="field">
+      <label for="f-due">期限（任意）</label>
+      <input id="f-due" name="dueDate" type="date" value="${existing?.dueDate || ""}">
     </div>
     <div class="field">
       <label>優先度</label>
@@ -287,7 +435,8 @@ function openTodoSheet(existing) {
       const payload = {
         title: data.title.trim(),
         memo: data.memo?.trim() || "",
-        assigneeId: data.assigneeId || null,
+        assigneeIds: [...selectedAssigneeIds],
+        assigneeId: null,
         dueDate: data.dueDate || null,
         priority: data.priority || "normal",
       };
@@ -297,10 +446,39 @@ function openTodoSheet(existing) {
       } else {
         await todoStore.add({ ...payload, done: false, createdBy: meStaff()?.name || null });
       }
-      toast("保存しました");
+      toast(existing ? "保存しました" : "Todoを追加しました");
     },
     onDelete: existing ? async () => { await todoStore.remove(existing.id); toast("削除しました"); } : null,
   });
+  const groupMembers = (groupId) => state.staff.filter((s) => s.groupId === groupId).map((s) => s.id);
+  function syncAssigneeChipsUI() {
+    sheetForm.querySelectorAll("#assigneeGroup .chip").forEach((btn) => {
+      btn.classList.toggle("is-active", selectedAssigneeIds.has(btn.dataset.id));
+    });
+    sheetForm.querySelectorAll("#assigneeGroupChips .chip--group").forEach((btn) => {
+      const members = groupMembers(btn.dataset.groupId);
+      const allSelected = members.length > 0 && members.every((id) => selectedAssigneeIds.has(id));
+      btn.classList.toggle("is-active", allSelected);
+    });
+  }
+  sheetForm.querySelector("#assigneeGroup")?.querySelectorAll(".chip").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const id = btn.dataset.id;
+      if (selectedAssigneeIds.has(id)) selectedAssigneeIds.delete(id);
+      else selectedAssigneeIds.add(id);
+      syncAssigneeChipsUI();
+    });
+  });
+  sheetForm.querySelector("#assigneeGroupChips")?.querySelectorAll(".chip--group").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const members = groupMembers(btn.dataset.groupId);
+      const allSelected = members.length > 0 && members.every((id) => selectedAssigneeIds.has(id));
+      if (allSelected) members.forEach((id) => selectedAssigneeIds.delete(id));
+      else members.forEach((id) => selectedAssigneeIds.add(id));
+      syncAssigneeChipsUI();
+    });
+  });
+  syncAssigneeChipsUI();
 }
 
 // ================================================================
@@ -315,9 +493,34 @@ document.getElementById("calMonthLabel").addEventListener("click", () => {
   renderCalendar();
 });
 
+let calAnimating = false;
+const CAL_SLIDE_MS = 170;
+
 function shiftMonth(delta) {
-  state.calMonth = new Date(state.calMonth.getFullYear(), state.calMonth.getMonth() + delta, 1);
-  renderCalendar();
+  const grid = document.getElementById("calGrid");
+  const applyChange = () => {
+    state.calMonth = new Date(state.calMonth.getFullYear(), state.calMonth.getMonth() + delta, 1);
+    renderCalendar();
+  };
+  if (calAnimating || prefersReducedMotion()) {
+    applyChange();
+    return;
+  }
+  calAnimating = true;
+  // 次の月へは左へ、前の月へは右へ抜けていき、逆側から新しい月が入ってくる。
+  grid.classList.add(delta > 0 ? "is-sliding-out-left" : "is-sliding-out-right");
+  setTimeout(() => {
+    applyChange();
+    const freshGrid = document.getElementById("calGrid");
+    freshGrid.classList.remove("is-sliding-out-left", "is-sliding-out-right");
+    freshGrid.classList.add(delta > 0 ? "is-sliding-in-from-right" : "is-sliding-in-from-left");
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        freshGrid.classList.remove("is-sliding-in-from-right", "is-sliding-in-from-left");
+        calAnimating = false;
+      });
+    });
+  }, CAL_SLIDE_MS);
 }
 
 function eventsOn(dateKey) { return state.events.filter((e) => e.date === dateKey); }
@@ -365,35 +568,126 @@ function renderCalendar() {
   grid.querySelectorAll(".cal-day").forEach((btn) => {
     btn.addEventListener("click", () => {
       state.calSelected = btn.dataset.date;
-      renderCalendar();
+      grid.querySelectorAll(".cal-day").forEach((b) => b.classList.toggle("is-selected", b === btn));
+      openDayEventsSheet(btn.dataset.date);
     });
   });
 
-  renderAgenda();
+  renderMonthOverview();
 }
 
-function renderAgenda() {
-  const list = eventsOn(state.calSelected).sort((a, b) => (a.startTime || "") < (b.startTime || "") ? -1 : 1);
-  const [y, m, d] = state.calSelected.split("-");
-  document.getElementById("agendaTitle").textContent = `${y}年${Number(m)}月${Number(d)}日の予定${state.calSelected === todayKey() ? "（今日）" : ""}`;
+// 日付をタップすると、その日の予定をウィンドウ（ボトムシート）でまとめて確認できる。
+function openDayEventsSheet(dateKey) {
+  const list = eventsOn(dateKey).sort((a, b) => (a.startTime || "") < (b.startTime || "") ? -1 : 1);
+  const label = `${Number(dateKey.slice(5, 7))}月${Number(dateKey.slice(8, 10))}日(${dateKeyWeekday(dateKey)})の予定${dateKey === todayKey() ? "（今日）" : ""}`;
+  const seenAt = getSeenAt("calendar");
+  const html = list.length
+    ? `<div class="list">${list.map((e) => {
+        const time = e.allDay ? "終日" : [e.startTime, e.endTime].filter(Boolean).join(" - ");
+        return `
+          <div class="card" data-id="${e.id}" data-action="edit-event">
+            <div class="card__body">
+              <div class="card__title">${newTagHtml(isNewItem(e, seenAt))}${escapeHtml(e.title)}</div>
+              ${e.memo ? `<div class="card__memo">${escapeHtml(e.memo)}</div>` : ""}
+              <div class="card__meta">${time ? `<span class="badge badge--info">${escapeHtml(time)}</span>` : ""}</div>
+            </div>
+          </div>`;
+      }).join("")}</div>`
+    : `<p class="empty">この日の予定はまだありません。閉じてから右下の＋で追加できます。</p>`;
+  markSeen("calendar");
+  openSheet(label, html, { onSubmit: async () => {}, submitLabel: "閉じる" });
+  sheetForm.querySelectorAll('[data-action="edit-event"]').forEach((card) => {
+    card.addEventListener("click", () => {
+      openEventSheet(dateKey, state.events.find((x) => x.id === card.dataset.id));
+    });
+  });
+}
+
+// カレンダー画面下部には、選択中の1日ではなく表示中の月全体の予定を日付ごとにまとめて表示する。
+function renderMonthOverview() {
+  const year = state.calMonth.getFullYear();
+  const month = state.calMonth.getMonth();
+  const monthPrefix = `${year}-${pad2(month + 1)}`;
+  const list = state.events
+    .filter((e) => e.date && e.date.startsWith(monthPrefix))
+    .sort((a, b) => {
+      if (a.date !== b.date) return a.date < b.date ? -1 : 1;
+      return (a.startTime || "") < (b.startTime || "") ? -1 : 1;
+    });
+  document.getElementById("agendaTitle").textContent = `${month + 1}月の予定`;
   const el = document.getElementById("agendaList");
   const empty = document.getElementById("agendaEmpty");
   empty.hidden = list.length > 0;
-  el.innerHTML = list.map((e) => {
+  empty.textContent = "この月の予定はまだありません。日付をタップするか、右下の＋から追加できます。";
+  const seenAt = getSeenAt("calendar");
+  let lastDate = null;
+  const parts = [];
+  list.forEach((e) => {
+    if (e.date !== lastDate) {
+      const label = e.date === todayKey() ? "今日" : `${Number(e.date.slice(5, 7))}月${Number(e.date.slice(8, 10))}日(${dateKeyWeekday(e.date)})`;
+      parts.push(`<div class="list-group-header">${escapeHtml(label)}</div>`);
+      lastDate = e.date;
+    }
     const time = e.allDay ? "終日" : [e.startTime, e.endTime].filter(Boolean).join(" - ");
-    return `
+    parts.push(`
       <div class="card" data-id="${e.id}" data-action="edit-event">
         <div class="card__body">
-          <div class="card__title">${escapeHtml(e.title)}</div>
+          <div class="card__title">${newTagHtml(isNewItem(e, seenAt))}${escapeHtml(e.title)}</div>
           ${e.memo ? `<div class="card__memo">${escapeHtml(e.memo)}</div>` : ""}
           <div class="card__meta">${time ? `<span class="badge badge--info">${escapeHtml(time)}</span>` : ""}</div>
         </div>
-      </div>`;
-  }).join("");
+      </div>`);
+  });
+  el.innerHTML = parts.join("");
+  markSeen("calendar");
   el.querySelectorAll('[data-action="edit-event"]').forEach((card) => {
-    card.addEventListener("click", () => openEventSheet(state.calSelected, state.events.find((x) => x.id === card.dataset.id)));
+    card.addEventListener("click", () => {
+      const ev = state.events.find((x) => x.id === card.dataset.id);
+      if (ev) openEventSheet(ev.date, ev);
+    });
   });
 }
+
+// カレンダーをスワイプ／スクロールしても前後の月に切り替えられるようにする。
+// #calGrid の中身は毎回作り直されるが、要素自体は同じなのでリスナーは一度だけ張ればよい。
+(function setupCalendarScrollNav() {
+  const grid = document.getElementById("calGrid");
+  let touchStartX = null;
+  let touchStartY = null;
+  let touchHandled = false;
+
+  grid.addEventListener("touchstart", (e) => {
+    if (e.touches.length !== 1) return;
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+    touchHandled = false;
+  }, { passive: true });
+
+  grid.addEventListener("touchmove", (e) => {
+    if (touchStartX === null || touchHandled) return;
+    const dx = e.touches[0].clientX - touchStartX;
+    const dy = e.touches[0].clientY - touchStartY;
+    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
+      touchHandled = true;
+      shiftMonth(dx < 0 ? 1 : -1);
+    }
+  }, { passive: true });
+
+  grid.addEventListener("touchend", () => {
+    touchStartX = null;
+    touchStartY = null;
+  });
+
+  let wheelLocked = false;
+  grid.addEventListener("wheel", (e) => {
+    if (wheelLocked) return;
+    const delta = Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
+    if (Math.abs(delta) < 24) return;
+    wheelLocked = true;
+    shiftMonth(delta > 0 ? 1 : -1);
+    setTimeout(() => { wheelLocked = false; }, 350);
+  }, { passive: true });
+})();
 
 function openEventSheet(dateKey, existing) {
   const allDay = existing ? !!existing.allDay : true;
@@ -441,7 +735,7 @@ function openEventSheet(dateKey, existing) {
       if (existing) await eventStore.update(existing.id, payload);
       else await eventStore.add({ ...payload, createdBy: meStaff()?.name || null });
       state.calSelected = payload.date;
-      toast("保存しました");
+      toast(existing ? "保存しました" : "予定を追加しました");
     },
     onDelete: existing ? async () => { await eventStore.remove(existing.id); toast("削除しました"); } : null,
   });
@@ -493,6 +787,7 @@ function renderRoutineList() {
   const el = document.getElementById("routineList");
   const empty = document.getElementById("routineEmpty");
   empty.hidden = tasks.length > 0;
+  const seenAt = getSeenAt("routine");
   el.innerHTML = tasks.map((task) => {
     const log = routineLogFor(task.id, state.routineCat);
     const done = !!log?.done;
@@ -503,18 +798,21 @@ function renderRoutineList() {
     } else {
       statusHtml = `<span class="badge">未実施</span>`;
     }
+    const periodHtml = task.periodStartDay && task.periodEndDay
+      ? `<span class="badge badge--info">${task.periodStartDay}日〜${task.periodEndDay}日</span>` : "";
     return `
       <div class="card" data-id="${task.id}">
         <button type="button" class="check ${done ? "is-done" : ""}" data-action="toggle" aria-label="実施済みにする">
           <svg viewBox="0 0 24 24"><path d="M5 12l4 4 10-10"/></svg>
         </button>
         <div class="card__body" data-action="edit">
-          <div class="card__title ${done ? "is-done" : ""}">${escapeHtml(task.title)}</div>
+          <div class="card__title ${done ? "is-done" : ""}">${newTagHtml(isNewItem(task, seenAt))}${escapeHtml(task.title)}</div>
           ${task.memo ? `<div class="card__memo">${escapeHtml(task.memo)}</div>` : ""}
-          <div class="card__meta">${statusHtml}</div>
+          <div class="card__meta">${periodHtml}${statusHtml}</div>
         </div>
       </div>`;
   }).join("");
+  markSeen("routine");
 
   el.querySelectorAll('[data-action="toggle"]').forEach((btn) => {
     btn.addEventListener("click", (e) => {
@@ -525,12 +823,17 @@ function renderRoutineList() {
       const logId = `${taskId}__${periodKey}`;
       const log = routineLogFor(taskId, cat);
       const nowDone = !log?.done;
-      routineLogStore.set(logId, {
-        taskId, category: cat, periodKey,
-        done: nowDone,
-        doneBy: nowDone ? (meStaff()?.name || "スタッフ") : null,
-        doneAt: nowDone ? Date.now() : null,
-      });
+      const commit = () => {
+        routineLogStore.set(logId, {
+          taskId, category: cat, periodKey,
+          done: nowDone,
+          doneBy: nowDone ? (meStaff()?.name || "スタッフ") : null,
+          doneAt: nowDone ? Date.now() : null,
+        });
+        if (nowDone) toast("完了しました");
+      };
+      if (nowDone) animateCheck(btn, commit);
+      else commit();
     });
   });
   el.querySelectorAll('[data-action="edit"]').forEach((body) => {
@@ -539,6 +842,10 @@ function renderRoutineList() {
       openRoutineTaskSheet(state.routineCat, state.routineTasks.find((x) => x.id === id));
     });
   });
+}
+
+function routineHasPeriod(category) {
+  return category === "monthStart" || category === "monthEnd";
 }
 
 function openRoutineTaskSheet(cat, existing) {
@@ -551,8 +858,22 @@ function openRoutineTaskSheet(cat, existing) {
     <div class="field">
       <label>種類</label>
       <input type="hidden" name="category" value="${category}">
-      <div class="pill-group">
+      <div class="pill-group" id="r-category-group">
         ${Object.entries(ROUTINE_LABELS).map(([k, label]) => `<button type="button" class="pill-option ${category === k ? "is-active" : ""}" data-value="${k}">${label}</button>`).join("")}
+      </div>
+    </div>
+    <div class="field" id="r-period-field" ${routineHasPeriod(category) ? "" : "hidden"}>
+      <label>期間（任意・毎月の日付）</label>
+      <p class="field__hint">この日付の範囲になったら、自動でTodoにも追加されます。</p>
+      <div class="field-row">
+        <div class="field">
+          <label for="r-period-start">開始日</label>
+          <input id="r-period-start" name="periodStartDay" type="number" min="1" max="31" value="${existing?.periodStartDay || ""}" placeholder="例：1">
+        </div>
+        <div class="field">
+          <label for="r-period-end">終了日</label>
+          <input id="r-period-end" name="periodEndDay" type="number" min="1" max="31" value="${existing?.periodEndDay || ""}" placeholder="例：5">
+        </div>
       </div>
     </div>
     <div class="field">
@@ -562,7 +883,16 @@ function openRoutineTaskSheet(cat, existing) {
   `;
   openSheet(existing ? "定型タスクを編集" : "定型タスクを追加", html, {
     onSubmit: async (data) => {
-      const payload = { title: data.title.trim(), category: data.category, memo: data.memo?.trim() || "" };
+      const hasPeriod = routineHasPeriod(data.category);
+      const startDay = hasPeriod && data.periodStartDay ? Number(data.periodStartDay) : null;
+      const endDay = hasPeriod && data.periodEndDay ? Number(data.periodEndDay) : null;
+      const payload = {
+        title: data.title.trim(),
+        category: data.category,
+        memo: data.memo?.trim() || "",
+        periodStartDay: startDay && endDay ? Math.min(startDay, endDay) : startDay,
+        periodEndDay: startDay && endDay ? Math.max(startDay, endDay) : endDay,
+      };
       if (!payload.title) return;
       if (existing) await routineTaskStore.update(existing.id, payload);
       else await routineTaskStore.add({ ...payload, order: Date.now(), createdBy: meStaff()?.name || null });
@@ -572,9 +902,328 @@ function openRoutineTaskSheet(cat, existing) {
         b.classList.toggle("is-active", active);
         b.setAttribute("aria-selected", String(active));
       });
-      toast("保存しました");
+      toast(existing ? "保存しました" : "定型タスクを追加しました");
     },
     onDelete: existing ? async () => { await routineTaskStore.remove(existing.id); toast("削除しました"); } : null,
+  });
+  sheetForm.querySelector("#r-category-group").querySelectorAll(".pill-option").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      document.getElementById("r-period-field").hidden = !routineHasPeriod(btn.dataset.value);
+    });
+  });
+}
+
+// ================================================================
+// 資料（写真・ファイル）
+// ================================================================
+
+// 共有モードではFirestoreの1ドキュメント1MiB制限に収まる必要がある（Base64化で約1.37倍に膨らむため余裕を持たせる）。
+// お試しモード(localStorage)側もこの範囲なら十分収まるため、共通の上限として扱う。
+const MAX_FILE_BYTES = 700 * 1024;
+
+function isImageAttachment(item) {
+  return !item.type || item.type === "image"; // 旧データ(typeフィールドなし)は写真として扱う
+}
+
+function formatBytes(n) {
+  if (!n) return "";
+  if (n < 1024) return `${n}B`;
+  if (n < 1024 * 1024) return `${Math.round(n / 1024)}KB`;
+  return `${(n / 1024 / 1024).toFixed(1)}MB`;
+}
+
+// 端末の保存容量を圧迫しないよう、長辺を縮小してJPEGに再エンコードしてから保存する。
+function compressImageToDataUrl(file) {
+  const MAX_DIM = 1280;
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(reader.error);
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = reject;
+      img.onload = () => {
+        let { width, height } = img;
+        if (width > MAX_DIM || height > MAX_DIM) {
+          if (width > height) { height = Math.round((height * MAX_DIM) / width); width = MAX_DIM; }
+          else { width = Math.round((width * MAX_DIM) / height); height = MAX_DIM; }
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL("image/jpeg", 0.72));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(reader.error);
+    reader.onload = () => resolve(reader.result);
+    reader.readAsDataURL(file);
+  });
+}
+
+async function addAttachmentFromFile(file) {
+  if (!file) return;
+  const isImage = file.type.startsWith("image/");
+  if (!isImage && file.size > MAX_FILE_BYTES) {
+    toast(`ファイルが大きすぎます（上限${formatBytes(MAX_FILE_BYTES)}）。`);
+    return;
+  }
+  try {
+    if (isImage) {
+      const dataUrl = await compressImageToDataUrl(file);
+      await photoStore.add({ type: "image", dataUrl, memo: "", createdBy: meStaff()?.name || null });
+      toast("写真を追加しました");
+    } else {
+      const dataUrl = await readFileAsDataUrl(file);
+      await photoStore.add({
+        type: "file", dataUrl, fileName: file.name, fileType: file.type || "application/octet-stream",
+        sizeBytes: file.size, memo: "", createdBy: meStaff()?.name || null,
+      });
+      toast("ファイルを追加しました");
+    }
+  } catch (e) {
+    console.error(e);
+    toast("保存できませんでした。容量が足りない可能性があります。");
+  }
+}
+
+const photoFileInput = document.getElementById("photoFileInput");
+photoFileInput.addEventListener("change", () => {
+  const file = photoFileInput.files?.[0];
+  photoFileInput.value = "";
+  if (file) addAttachmentFromFile(file);
+});
+
+// クリップボードに画像をコピーしていれば、資料画面上での貼り付け（Ctrl/Cmd+V）でも追加できる。
+document.addEventListener("paste", (e) => {
+  if (state.screen !== "photos") return;
+  const item = [...(e.clipboardData?.items || [])].find((it) => it.type.startsWith("image/"));
+  if (!item) return;
+  const file = item.getAsFile();
+  if (file) addAttachmentFromFile(file);
+});
+
+function monthLabelJa(monthKey) {
+  const [y, m] = monthKey.split("-");
+  return `${y}年${Number(m)}月`;
+}
+
+function renderPhotoTimeline() {
+  const el = document.getElementById("photoTimeline");
+  const empty = document.getElementById("photoEmpty");
+  const items = [...state.photos].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  empty.hidden = items.length > 0;
+  const seenAt = getSeenAt("photos");
+
+  // 日付ごとにひとまとめにし、月が変わったところにも見出しを挟む
+  const dateGroups = [];
+  let lastMonth = null;
+  let lastDate = null;
+  items.forEach((p) => {
+    const d = new Date(p.createdAt || 0);
+    const monthKey = `${d.getFullYear()}-${pad2(d.getMonth() + 1)}`;
+    const dateKey = toDateKey(d);
+    if (dateKey !== lastDate) {
+      dateGroups.push({ monthKey, dateKey, showMonthHeader: monthKey !== lastMonth, items: [] });
+      lastDate = dateKey;
+      lastMonth = monthKey;
+    }
+    dateGroups[dateGroups.length - 1].items.push(p);
+  });
+
+  el.innerHTML = dateGroups.map((group) => {
+    const dateLabel = group.dateKey === todayKey() ? "今日" : `${Number(group.dateKey.slice(5, 7))}月${Number(group.dateKey.slice(8, 10))}日(${dateKeyWeekday(group.dateKey)})`;
+    const images = group.items.filter(isImageAttachment);
+    const files = group.items.filter((p) => !isImageAttachment(p));
+    const monthHeaderHtml = group.showMonthHeader ? `<h3 class="agenda__title photo-month-header">${escapeHtml(monthLabelJa(group.monthKey))}</h3>` : "";
+    const gridHtml = images.length ? `<div class="photo-grid">${images.map((p) => `
+      <button type="button" class="photo-thumb" data-id="${p.id}">
+        <img src="${p.dataUrl}" alt="">${newTagHtml(isNewItem(p, seenAt))}
+      </button>`).join("")}</div>` : "";
+    const filesHtml = files.length ? `<div class="list file-list">${files.map((p) => `
+      <div class="card" data-id="${p.id}" data-action="open-file">
+        <div class="file-icon">${escapeHtml(fileExtLabel(p))}</div>
+        <div class="card__body">
+          <div class="card__title">${newTagHtml(isNewItem(p, seenAt))}${escapeHtml(p.fileName || "ファイル")}</div>
+          <div class="card__meta">${p.sizeBytes ? `<span class="badge">${formatBytes(p.sizeBytes)}</span>` : ""}</div>
+        </div>
+      </div>`).join("")}</div>` : "";
+    return `${monthHeaderHtml}<div class="list-group-header">${escapeHtml(dateLabel)}</div>${gridHtml}${filesHtml}`;
+  }).join("");
+  markSeen("photos");
+
+  el.querySelectorAll(".photo-thumb, [data-action=\"open-file\"]").forEach((node) => {
+    node.addEventListener("click", () => openAttachmentSheet(state.photos.find((x) => x.id === node.dataset.id)));
+  });
+}
+
+function fileExtLabel(item) {
+  const fromName = (item.fileName || "").split(".").pop();
+  if (fromName && fromName.length <= 5) return fromName.toUpperCase();
+  return (item.fileType || "").split("/").pop()?.slice(0, 4).toUpperCase() || "FILE";
+}
+
+function openAttachmentSheet(item) {
+  if (!item) return;
+  const d = new Date(item.createdAt || 0);
+  const label = `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日 ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+  const meta = `${escapeHtml(label)}${item.createdBy ? ` ・ ${escapeHtml(item.createdBy)}` : ""}`;
+  const previewHtml = isImageAttachment(item)
+    ? `<img class="photo-sheet__img" src="${item.dataUrl}" alt="">`
+    : `
+      <div class="file-preview">
+        <div class="file-icon file-icon--lg">${escapeHtml(fileExtLabel(item))}</div>
+        <div class="file-preview__body">
+          <div class="card__title">${escapeHtml(item.fileName || "ファイル")}</div>
+          <div class="card__meta">${item.sizeBytes ? `<span class="badge">${formatBytes(item.sizeBytes)}</span>` : ""}</div>
+        </div>
+      </div>
+      <a class="ghost-btn" href="${item.dataUrl}" download="${escapeHtml(item.fileName || "file")}" target="_blank" rel="noopener">開く・ダウンロード</a>
+    `;
+  const html = `
+    ${previewHtml}
+    <p class="field__hint">${meta}</p>
+    <div class="field">
+      <label for="p-memo">メモ（任意）</label>
+      <textarea id="p-memo" name="memo" maxlength="300" placeholder="気づいたことなど">${escapeHtml(item.memo || "")}</textarea>
+    </div>
+  `;
+  openSheet(isImageAttachment(item) ? "写真" : "ファイル", html, {
+    onSubmit: async (data) => {
+      await photoStore.update(item.id, { memo: data.memo?.trim() || "" });
+      toast("保存しました");
+    },
+    onDelete: async () => { await photoStore.remove(item.id); toast("削除しました"); },
+  });
+}
+
+// ================================================================
+// 電話メモ
+// ================================================================
+
+const MEMO_STATUSES = ["未対応", "対応中", "完了"];
+const MEMO_STATUS_BADGE = { 未対応: "badge--danger", 対応中: "badge--warning", 完了: "" };
+
+// タブのアイコンに、未対応・対応中（＝まだ完了していない）件数を数字で重ねて表示する。
+function updateMemoTabBadge() {
+  const badge = document.getElementById("memoTabBadge");
+  const count = state.phoneMemos.filter((m) => m.status !== "完了").length;
+  badge.hidden = count === 0;
+  badge.textContent = count > 99 ? "99+" : String(count);
+}
+
+document.getElementById("memoFilters").addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-memo-filter]");
+  if (!btn) return;
+  state.memoFilter = btn.dataset.memoFilter;
+  document.querySelectorAll("[data-memo-filter]").forEach((b) => b.classList.toggle("is-active", b === btn));
+  renderMemoList();
+});
+
+const memoSearchInput = document.getElementById("memoSearchInput");
+memoSearchInput.addEventListener("input", () => {
+  state.memoSearch = memoSearchInput.value;
+  renderMemoList();
+});
+
+function filteredMemos() {
+  const q = state.memoSearch.trim().toLowerCase();
+  let list = [...state.phoneMemos];
+  if (state.memoFilter !== "all") list = list.filter((m) => m.status === state.memoFilter);
+  if (q) list = list.filter((m) => (m.caller || "").toLowerCase().includes(q) || (m.content || "").toLowerCase().includes(q));
+  list.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  return list;
+}
+
+function renderMemoList() {
+  const list = filteredMemos();
+  const el = document.getElementById("memoList");
+  const empty = document.getElementById("memoEmpty");
+  empty.hidden = list.length > 0;
+  const seenAt = getSeenAt("phoneMemo");
+  el.innerHTML = list.map((m) => {
+    const time = new Date(m.createdAt || 0).toLocaleString("ja-JP", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" });
+    const badgeClass = MEMO_STATUS_BADGE[m.status] || "";
+    const options = MEMO_STATUSES.map((s) => `<option value="${s}" ${s === m.status ? "selected" : ""}>${s}</option>`).join("");
+    return `
+      <div class="card ${m.status === "完了" ? "card--done" : ""}" data-id="${m.id}">
+        <div class="card__body" data-action="edit">
+          <div class="memo-top">
+            <span class="memo-caller">${newTagHtml(isNewItem(m, seenAt))}${escapeHtml(m.caller || "(相手先未入力)")}</span>
+            <span class="badge ${badgeClass}">${escapeHtml(m.status)}</span>
+          </div>
+          <div class="card__memo">${escapeHtml(m.content || "")}</div>
+          <div class="card__meta"><span class="badge">${escapeHtml(time)}受電</span><span class="badge">受: ${escapeHtml(m.staff || "-")}</span></div>
+        </div>
+        <select class="memo-select" data-action="quick-status" aria-label="対応状況を変更">${options}</select>
+      </div>`;
+  }).join("");
+  markSeen("phoneMemo");
+
+  el.querySelectorAll('[data-action="edit"]').forEach((body) => {
+    body.addEventListener("click", () => openMemoSheet(state.phoneMemos.find((x) => x.id === body.closest(".card").dataset.id)));
+  });
+  el.querySelectorAll('[data-action="quick-status"]').forEach((select) => {
+    select.addEventListener("click", (e) => e.stopPropagation());
+    select.addEventListener("change", () => {
+      const id = select.closest(".card").dataset.id;
+      phoneMemoStore.update(id, { status: select.value });
+    });
+  });
+}
+
+function openMemoSheet(existing) {
+  const status = existing?.status || "未対応";
+  const currentStaffName = existing?.staff ?? meStaff()?.name ?? "";
+  // 過去に手入力された名前が今の職員一覧にない場合(退職・改名など)も選択肢から消えないようにする
+  const extraStaffOption = currentStaffName && !state.staff.some((s) => s.name === currentStaffName)
+    ? `<option value="${escapeHtml(currentStaffName)}" selected>${escapeHtml(currentStaffName)}（一覧になし）</option>` : "";
+  const html = `
+    <div class="field">
+      <label for="m-caller">相手先（氏名・施設名など）</label>
+      <input id="m-caller" name="caller" type="text" maxlength="60" value="${escapeHtml(existing?.caller || "")}" placeholder="例：田中様（ご家族）">
+    </div>
+    <div class="field">
+      <label for="m-content">要件</label>
+      <textarea id="m-content" name="content" required maxlength="500" placeholder="例：来週の送迎時間を変更したい">${escapeHtml(existing?.content || "")}</textarea>
+    </div>
+    <div class="field">
+      <label for="m-staff">受けた担当者</label>
+      <select id="m-staff" name="staff">
+        <option value="">選択してください</option>
+        ${extraStaffOption}
+        ${state.staff.map((s) => `<option value="${escapeHtml(s.name)}" ${currentStaffName === s.name ? "selected" : ""}>${escapeHtml(s.name)}</option>`).join("")}
+      </select>
+    </div>
+    <div class="field">
+      <label>対応状況</label>
+      <input type="hidden" name="status" value="${status}">
+      <div class="pill-group">
+        ${MEMO_STATUSES.map((s) => `<button type="button" class="pill-option ${status === s ? "is-active" : ""}" data-value="${s}">${s}</button>`).join("")}
+      </div>
+    </div>
+  `;
+  openSheet(existing ? "電話メモを編集" : "電話メモを追加", html, {
+    onSubmit: async (data) => {
+      const payload = {
+        caller: data.caller.trim(),
+        content: data.content.trim(),
+        staff: data.staff.trim(),
+        status: data.status || "未対応",
+      };
+      if (!payload.content) return;
+      if (existing) await phoneMemoStore.update(existing.id, payload);
+      else await phoneMemoStore.add({ ...payload, createdBy: meStaff()?.name || null });
+      toast(existing ? "保存しました" : "電話メモを追加しました");
+    },
+    onDelete: existing ? async () => { await phoneMemoStore.remove(existing.id); toast("削除しました"); } : null,
   });
 }
 
@@ -633,6 +1282,7 @@ document.getElementById("addStaffBtn").addEventListener("click", () => openStaff
 
 function openStaffSheet(existing) {
   const color = existing?.color || AVATAR_COLORS[state.staff.length % AVATAR_COLORS.length];
+  const groupId = existing?.groupId || "";
   const html = `
     <div class="field">
       <label for="s-name">名前</label>
@@ -641,21 +1291,29 @@ function openStaffSheet(existing) {
     <div class="field">
       <label>色</label>
       <input type="hidden" name="color" value="${color}">
-      <div class="pill-group">
+      <div class="pill-group" id="s-color-group">
         ${AVATAR_COLORS.map((c) => `<button type="button" class="pill-option ${c === color ? "is-active" : ""}" data-value="${c}" style="background:${c === color ? c : "transparent"}; border-color:${c}; color:${c === color ? "#fff" : c};">●</button>`).join("")}
+      </div>
+    </div>
+    <div class="field">
+      <label>職種グループ（任意）</label>
+      <input type="hidden" name="groupId" value="${groupId}">
+      <div class="pill-group" id="s-group-group">
+        <button type="button" class="pill-option ${!groupId ? "is-active" : ""}" data-value="">なし</button>
+        ${state.groups.map((g) => `<button type="button" class="pill-option ${g.id === groupId ? "is-active" : ""}" data-value="${g.id}">${escapeHtml(g.name)}</button>`).join("")}
       </div>
     </div>
   `;
   openSheet(existing ? "職員を編集" : "職員を追加", html, {
     onSubmit: async (data) => {
-      const payload = { name: data.name.trim(), color: data.color };
+      const payload = { name: data.name.trim(), color: data.color, groupId: data.groupId || null };
       if (!payload.name) return;
       if (existing) await staffStore.update(existing.id, payload);
       else {
         const id = await staffStore.add({ ...payload, order: Date.now() });
         if (!state.meId) { state.meId = id; localStorage.setItem(ME_KEY, id); }
       }
-      toast("保存しました");
+      toast(existing ? "保存しました" : "職員を追加しました");
     },
     onDelete: existing ? async () => {
       await staffStore.remove(existing.id);
@@ -664,13 +1322,66 @@ function openStaffSheet(existing) {
     } : null,
   });
   // 色スウォッチのクリックで見た目も切り替える
-  const group = sheetForm.querySelector(".pill-group");
-  group.querySelectorAll(".pill-option").forEach((btn) => {
+  const colorGroup = sheetForm.querySelector("#s-color-group");
+  colorGroup.querySelectorAll(".pill-option").forEach((btn) => {
     btn.addEventListener("click", () => {
-      group.querySelectorAll(".pill-option").forEach((b) => { b.style.background = "transparent"; b.style.color = b.dataset.value; });
+      colorGroup.querySelectorAll(".pill-option").forEach((b) => { b.style.background = "transparent"; b.style.color = b.dataset.value; });
       btn.style.background = btn.dataset.value;
       btn.style.color = "#fff";
     });
+  });
+}
+
+// ================================================================
+// 職種グループ
+// ================================================================
+
+function renderGroupPicker() {
+  const el = document.getElementById("groupPicker");
+  if (!state.groups.length) {
+    el.innerHTML = `<p class="note">まだグループが登録されていません。「グループを追加する」から登録してください。</p>`;
+    return;
+  }
+  el.innerHTML = state.groups.map((g) => {
+    const count = state.staff.filter((s) => s.groupId === g.id).length;
+    return `
+    <div class="staff-row">
+      <span class="staff-chip">${escapeHtml(g.name)}<span class="badge">${count}人</span></span>
+      <button type="button" class="staff-chip__edit" data-edit-group-id="${g.id}" aria-label="${escapeHtml(g.name)}を編集する">
+        <svg viewBox="0 0 24 24"><path d="M4 20h4l10.5-10.5a2 2 0 0 0 0-2.8l-1.2-1.2a2 2 0 0 0-2.8 0L4 16v4Z"/></svg>
+      </button>
+    </div>`;
+  }).join("");
+  el.querySelectorAll("[data-edit-group-id]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      openGroupSheet(state.groups.find((g) => g.id === btn.dataset.editGroupId));
+    });
+  });
+}
+
+document.getElementById("addGroupBtn").addEventListener("click", () => openGroupSheet());
+
+function openGroupSheet(existing) {
+  const html = `
+    <div class="field">
+      <label for="g-name">グループ名</label>
+      <input id="g-name" name="name" type="text" required maxlength="20" value="${escapeHtml(existing?.name || "")}" placeholder="例：生活相談員">
+    </div>
+  `;
+  openSheet(existing ? "グループを編集" : "グループを追加", html, {
+    onSubmit: async (data) => {
+      const payload = { name: data.name.trim() };
+      if (!payload.name) return;
+      if (existing) await groupStore.update(existing.id, payload);
+      else await groupStore.add({ ...payload, order: Date.now() });
+      toast(existing ? "保存しました" : "グループを追加しました");
+    },
+    onDelete: existing ? async () => {
+      await groupStore.remove(existing.id);
+      const affected = state.staff.filter((s) => s.groupId === existing.id);
+      await Promise.all(affected.map((s) => staffStore.update(s.id, { groupId: null })));
+      toast("削除しました");
+    } : null,
   });
 }
 
@@ -693,6 +1404,7 @@ function renderModeInfo() {
 
 function renderSettings() {
   renderStaffPicker();
+  renderGroupPicker();
   renderModeInfo();
 }
 
@@ -712,9 +1424,161 @@ largeTextToggle.addEventListener("change", () => {
   document.body.classList.toggle("large-text", largeTextToggle.checked);
 });
 
+const hideHeaderToggle = document.getElementById("hideHeaderToggle");
+hideHeaderToggle.checked = localStorage.getItem(HIDE_HEADER_KEY) === "1";
+document.body.classList.toggle("header-hidden", hideHeaderToggle.checked);
+hideHeaderToggle.addEventListener("change", () => {
+  localStorage.setItem(HIDE_HEADER_KEY, hideHeaderToggle.checked ? "1" : "0");
+  document.body.classList.toggle("header-hidden", hideHeaderToggle.checked);
+});
+
+// ================================================================
+// ロック画面（アプリ全体の合言葉）
+// ================================================================
+// クライアント側だけの簡易チェックであり、Firestoreのデータ自体を守る本格的な
+// セキュリティではない。「知らない人がうっかり開かない」ための入口の声掛け。
+
+const UNLOCKED_KEY = "staffTodo:unlocked";
+const lockForm = document.getElementById("lockForm");
+const lockNote = document.getElementById("lockNote");
+const lockPasscodeInput = document.getElementById("lockPasscodeInput");
+const lockPasscodeConfirm = document.getElementById("lockPasscodeConfirm");
+const lockSubmitBtn = document.getElementById("lockSubmitBtn");
+const lockError = document.getElementById("lockError");
+
+let appPasscode; // undefined = 確認中, null = 未設定(初回), string = 設定済み
+
+function unlockApp() {
+  document.documentElement.classList.remove("is-locked");
+  document.getElementById("lockScreen").hidden = true;
+}
+
+function showLockUi() {
+  lockError.hidden = true;
+  if (appPasscode === undefined) {
+    lockNote.textContent = "確認中…";
+    lockPasscodeInput.hidden = true;
+    lockPasscodeConfirm.hidden = true;
+    lockSubmitBtn.hidden = true;
+  } else if (appPasscode === null) {
+    lockNote.textContent = "はじめに、みんなで使う合言葉を決めてください。";
+    lockPasscodeInput.placeholder = "合言葉を決める";
+    lockPasscodeInput.hidden = false;
+    lockPasscodeConfirm.hidden = false;
+    lockSubmitBtn.hidden = false;
+    lockSubmitBtn.textContent = "設定する";
+  } else {
+    lockNote.textContent = "合言葉を入力してください。";
+    lockPasscodeInput.placeholder = "合言葉";
+    lockPasscodeInput.hidden = false;
+    lockPasscodeConfirm.hidden = true;
+    lockSubmitBtn.hidden = false;
+    lockSubmitBtn.textContent = "入る";
+  }
+}
+
+lockForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if (appPasscode === undefined) return;
+  if (appPasscode === null) {
+    const value = lockPasscodeInput.value.trim();
+    if (!value) { lockError.textContent = "合言葉を入力してください。"; lockError.hidden = false; return; }
+    if (value !== lockPasscodeConfirm.value.trim()) { lockError.textContent = "確認用の合言葉が一致しません。"; lockError.hidden = false; return; }
+    await configStore.set("main", { passcode: value });
+    localStorage.setItem(UNLOCKED_KEY, "1");
+    unlockApp();
+  } else {
+    if (lockPasscodeInput.value === appPasscode) {
+      localStorage.setItem(UNLOCKED_KEY, "1");
+      unlockApp();
+    } else {
+      lockError.textContent = "合言葉が違います。";
+      lockError.hidden = false;
+      lockPasscodeInput.value = "";
+      lockPasscodeInput.focus();
+    }
+  }
+});
+
+document.getElementById("lockNowBtn").addEventListener("click", () => {
+  localStorage.removeItem(UNLOCKED_KEY);
+  document.documentElement.classList.add("is-locked");
+  document.getElementById("lockScreen").hidden = false;
+  lockPasscodeInput.value = "";
+  lockPasscodeConfirm.value = "";
+  showLockUi();
+  lockPasscodeInput.focus();
+});
+
+// ================================================================
+// 新着タグ
+// ================================================================
+// 自分以外が追加した新着の Todo・予定・定型タスクに「NEW」タグを表示する。
+// この端末は複数の職員が名前を切り替えて使うため、既読カーソルは
+// カテゴリ×自分の名前ごとに分けて記録する（他の人の閲覧で自分の未読が消えないように）。
+// 一覧を見た時点（その一覧を描画したタイミング）でそのカテゴリは既読になり、
+// 次に表示したときには同じ項目にはタグが付かなくなる。
+
+function seenKey(category) {
+  return `staffTodo:seenAt:${category}:${state.meId || "anon"}`;
+}
+
+function getSeenAt(category) {
+  return Number(localStorage.getItem(seenKey(category)) || 0);
+}
+
+function markSeen(category) {
+  localStorage.setItem(seenKey(category), String(Date.now()));
+}
+
+function isNewItem(item, seenAt) {
+  return !!item.createdBy && item.createdBy !== (meStaff()?.name || null) && (item.createdAt || 0) > seenAt;
+}
+
+function newTagHtml(isNew) {
+  return isNew ? `<span class="new-tag">NEW</span>` : "";
+}
+
 // ================================================================
 // 起動
 // ================================================================
+
+// 「月初」「月末」の定型タスクに期間（開始日〜終了日）が設定されていて、
+// 今日がその範囲に入っていれば、対応するTodoを自動でひとつ用意する。
+// 同じ月に二重生成しないよう、定型タスクID×月をキーにしたマーカーをTodo側に持たせて判定する。
+let syncingRoutineTodos = false;
+function syncRoutineTodos() {
+  if (syncingRoutineTodos) return;
+  syncingRoutineTodos = true;
+  try {
+    const now = new Date();
+    const day = now.getDate();
+    const monthKey = currentMonthKey();
+    const daysInThisMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    state.routineTasks.forEach((task) => {
+      if (!routineHasPeriod(task.category)) return;
+      if (!task.periodStartDay || !task.periodEndDay) return;
+      if (day < task.periodStartDay || day > task.periodEndDay) return;
+      const periodKey = `${task.id}__${monthKey}`;
+      const already = state.todos.some((t) => t.sourceRoutinePeriodKey === periodKey);
+      if (already) return;
+      const dueDay = Math.min(task.periodEndDay, daysInThisMonth);
+      todoStore.add({
+        title: task.title,
+        memo: task.memo || "",
+        assigneeIds: [],
+        dueDate: `${monthKey}-${pad2(dueDay)}`,
+        priority: "normal",
+        done: false,
+        createdBy: null,
+        sourceRoutineTaskId: task.id,
+        sourceRoutinePeriodKey: periodKey,
+      });
+    });
+  } finally {
+    syncingRoutineTodos = false;
+  }
+}
 
 async function main() {
   state.storeMode = await storeReady;
@@ -723,12 +1587,13 @@ async function main() {
   staffStore.subscribe((list) => {
     state.staff = list;
     renderYouBadge();
-    if (state.screen === "settings") renderStaffPicker();
+    if (state.screen === "settings") { renderStaffPicker(); renderGroupPicker(); }
     if (state.screen === "todo") renderTodoList();
   });
   todoStore.subscribe((list) => {
     state.todos = list;
     if (state.screen === "todo") renderTodoList();
+    syncRoutineTodos();
   });
   eventStore.subscribe((list) => {
     state.events = list;
@@ -737,10 +1602,34 @@ async function main() {
   routineTaskStore.subscribe((list) => {
     state.routineTasks = list;
     if (state.screen === "routine") renderRoutineList();
+    syncRoutineTodos();
   });
   routineLogStore.subscribe((list) => {
     state.routineLogs = list;
     if (state.screen === "routine") renderRoutineList();
+  });
+  groupStore.subscribe((list) => {
+    state.groups = list;
+    if (state.screen === "settings") renderGroupPicker();
+    if (!localStorage.getItem(GROUPS_SEEDED_KEY) && list.length === 0) {
+      localStorage.setItem(GROUPS_SEEDED_KEY, "1");
+      DEFAULT_GROUPS.forEach((name, i) => groupStore.add({ name, order: i }));
+    }
+  });
+  photoStore.subscribe((list) => {
+    state.photos = list;
+    if (state.screen === "photos") renderPhotoTimeline();
+  });
+  phoneMemoStore.subscribe((list) => {
+    state.phoneMemos = list;
+    if (state.screen === "phoneMemo") renderMemoList();
+    updateMemoTabBadge();
+  });
+  configStore.subscribe((list) => {
+    const doc = list.find((d) => d.id === "main");
+    appPasscode = doc ? doc.passcode : null;
+    showLockUi();
+    if (appPasscode && localStorage.getItem(UNLOCKED_KEY) === "1") unlockApp();
   });
 
   renderScreen(state.screen);
