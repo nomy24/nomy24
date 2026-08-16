@@ -155,17 +155,18 @@
   .st-fu  { background: var(--furi); font-size: 5.9pt; padding: 0 1mm; }
 
   /* ── 記名欄 ───────────────────────────────── */
-  /* 書き込む欄なので、行の高さも字も日誌の桝より大きく取る */
-  .foot { flex: none; border-top: 1.4pt solid var(--rule-3); padding: 1.6mm 2.4mm 1.4mm;
-          position: relative; font-size: 8.4pt; color: var(--ink); }
-  .fr { display: flex; align-items: baseline; gap: 2mm; padding: 1.1mm 0; padding-right: 23mm; }
-  .fr b { color: var(--ink); font-size: 8.8pt; }
-  .ln { flex: 1; border-bottom: 1pt solid var(--rule); height: 5mm; }
-  .fin { position: absolute; right: 2.4mm; top: 1.8mm; width: 20mm; text-align: center;
+  /* 書き込む欄なので、行の高さも字も日誌の桝より大きく取る。
+     いちど大きくしすぎたので、もとの大きさとのちょうど中間に戻してある */
+  .foot { flex: none; border-top: 1.4pt solid var(--rule-3); padding: 1.4mm 2.4mm 1.2mm;
+          position: relative; font-size: 7.8pt; color: var(--ink); }
+  .fr { display: flex; align-items: baseline; gap: 1.8mm; padding: .8mm 0; padding-right: 21.5mm; }
+  .fr b { color: var(--ink); font-size: 8.2pt; }
+  .ln { flex: 1; border-bottom: 1pt solid var(--rule); height: 4mm; }
+  .fin { position: absolute; right: 2.4mm; top: 1.6mm; width: 18.5mm; text-align: center;
          border: 1pt solid var(--rule); border-radius: 1.4mm; overflow: hidden; }
-  .fin b { display: block; font-size: 7.6pt; padding: .5mm 0; background: #F1F4F7; color: var(--ink);
+  .fin b { display: block; font-size: 7.2pt; padding: .4mm 0; background: #F1F4F7; color: var(--ink);
            border-bottom: 1pt solid var(--rule); font-weight: 700; }
-  .fin i { display: block; height: 13mm; }
+  .fin i { display: block; height: 10.5mm; }
 
   @media print {
     html, body { background: #fff; }
@@ -180,9 +181,11 @@
   <b>業務日誌 案1のプレビューです。</b>アプリの印刷レイアウトにはまだ入れていません。<br>
   今回の直し：<b>見出しを、左に日付・中央にタイトル・右に事業所名</b>に組み直しました。
   日付と事業所名は 10pt／9.5pt → <b>どちらも12pt・太字・黒</b>にしています。<br>
-  <b>下の勤務者欄を大きくしました</b>。1行 4mm → 7.2mm、字 7.2pt → 8.4pt、
-  下線 3mm → 5mm、最終確認の枠も 17×8mm → 20×13mm です。<br>
-  そのぶん日誌の桝は 1行 4.4mm → 4.0mm になっています（もとの様式は3.6mm）。<br>
+  <b>下の勤務者欄は、もとの大きさと前回のちょうど中間</b>にしました。
+  記名1行 5.11mm → 6.71mm（前回は8.40mm）、字 7.2pt → 7.8pt、
+  下線 3mm → 4mm、最終確認の枠 17×8mm → 18.5×10.5mm です。<br>
+  そのぶん日誌の桝は 1行 4.21mm（前回の広い勤務者欄では4.04mm、
+  勤務者欄がもとの大きさなら4.35mm）になっています。<br>
   状態の桝がないこと、脈・体温が13.25mm、桝が33、血圧が①②の2回ぶんは、前回のままです。<br>
   <span class="k">Ctrl</span>／<span class="k">⌘</span> ＋ <span class="k">P</span> →
   送信先「PDFに保存」で、A4横1枚として刷れます。
