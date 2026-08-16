@@ -112,10 +112,10 @@
     </div>
 
     <div class="segmented" role="tablist" aria-label="定型タスクの種類">
-      <button class="segmented__btn is-active" type="button" role="tab" data-routine-cat="daily" aria-selected="true">毎日</button>
-      <button class="segmented__btn" type="button" role="tab" data-routine-cat="monthStart" aria-selected="false">月初</button>
-      <button class="segmented__btn" type="button" role="tab" data-routine-cat="monthEnd" aria-selected="false">月末</button>
-      <button class="segmented__btn" type="button" role="tab" data-routine-cat="adhoc" aria-selected="false">随時</button>
+      <button class="segmented__btn is-active" type="button" role="tab" data-routine-cat="daily" aria-selected="true">毎日<span class="segmented__count" id="routineCatCount-daily" hidden>0</span></button>
+      <button class="segmented__btn" type="button" role="tab" data-routine-cat="monthStart" aria-selected="false">月初<span class="segmented__count" id="routineCatCount-monthStart" hidden>0</span></button>
+      <button class="segmented__btn" type="button" role="tab" data-routine-cat="monthEnd" aria-selected="false">月末<span class="segmented__count" id="routineCatCount-monthEnd" hidden>0</span></button>
+      <button class="segmented__btn" type="button" role="tab" data-routine-cat="adhoc" aria-selected="false">随時<span class="segmented__count" id="routineCatCount-adhoc" hidden>0</span></button>
     </div>
 
     <div id="routineList" class="list"></div>
@@ -227,10 +227,7 @@
     <span>カレンダー</span>
   </button>
   <button class="tab" type="button" data-screen="routine">
-    <span class="tab__icon-wrap">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6h14M5 12h14M5 18h9"/><circle cx="19" cy="18" r="2"/></svg>
-      <span class="tab-badge" id="routineTabBadge" hidden>0</span>
-    </span>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6h14M5 12h14M5 18h9"/><circle cx="19" cy="18" r="2"/></svg>
     <span>定型タスク</span>
   </button>
   <button class="tab" type="button" data-screen="photos">

@@ -962,20 +962,24 @@ function routineLogFor(taskId, cat) {
   return state.routineLogs.find((l) => l.id === id) || null;
 }
 
-// タブのアイコンに、今対応が必要な（＝期間内でまだ未実施の）定型タスクの件数を表示する。
-// 月初・月末のタスクは、その期間の日付になっているものだけを数える。
-function updateRoutineTabBadge() {
-  const badge = document.getElementById("routineTabBadge");
+// カテゴリタブ（毎日・月初・月末・随時）それぞれに、今対応が必要な（＝未実施の）
+// 定型タスクの件数を表示する。月初・月末は、その期間の日付になっているものだけを数える。
+function updateRoutineCatCounts() {
   const day = new Date().getDate();
-  const count = state.routineTasks.filter((task) => {
-    if (task.category === "monthStart" || task.category === "monthEnd") {
-      if (!task.periodStartDay || !task.periodEndDay) return false;
-      if (day < task.periodStartDay || day > task.periodEndDay) return false;
-    }
-    return !routineLogFor(task.id, task.category)?.done;
-  }).length;
-  badge.hidden = count === 0;
-  badge.textContent = count > 99 ? "99+" : String(count);
+  Object.keys(ROUTINE_LABELS).forEach((cat) => {
+    const badge = document.getElementById(`routineCatCount-${cat}`);
+    if (!badge) return;
+    const count = state.routineTasks.filter((task) => {
+      if (task.category !== cat) return false;
+      if (cat === "monthStart" || cat === "monthEnd") {
+        if (!task.periodStartDay || !task.periodEndDay) return false;
+        if (day < task.periodStartDay || day > task.periodEndDay) return false;
+      }
+      return !routineLogFor(task.id, cat)?.done;
+    }).length;
+    badge.hidden = count === 0;
+    badge.textContent = count > 99 ? "99+" : String(count);
+  });
 }
 
 function renderRoutineList() {
@@ -1989,12 +1993,12 @@ async function main() {
     state.routineTasks = list;
     if (state.screen === "routine") renderRoutineList();
     syncRoutineTodos();
-    updateRoutineTabBadge();
+    updateRoutineCatCounts();
   });
   routineLogStore.subscribe((list) => {
     state.routineLogs = list;
     if (state.screen === "routine") renderRoutineList();
-    updateRoutineTabBadge();
+    updateRoutineCatCounts();
   });
   groupStore.subscribe((list) => {
     state.groups = list;
