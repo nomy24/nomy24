@@ -1573,12 +1573,12 @@ function openStaffSheet(existing) {
     ${showAdminField ? `
     <div class="field">
       <label class="row" style="padding:0;">
-        <span class="row__label">管理者にする</span>
+        <span class="row__label">システム管理者にする</span>
         <input type="checkbox" class="switch" name="isAdmin" ${existing?.isAdmin ? "checked" : ""}>
       </label>
-      <p class="field__hint">管理者は、ログイン済みの職員を本人以外でも削除できます。</p>
+      <p class="field__hint">システム管理者は、ログイン済みの職員を本人以外でも削除できます。</p>
     </div>` : ""}
-    ${existing && existing.email && !deletable ? `<p class="note note--warn">この職員はログイン済みのため、本人か管理者のみ削除できます。</p>` : ""}
+    ${existing && existing.email && !deletable ? `<p class="note note--warn">この職員はログイン済みのため、本人かシステム管理者のみ削除できます。</p>` : ""}
   `;
   openSheet(existing ? "職員を編集" : "職員を追加", html, {
     onSubmit: async (data) => {
