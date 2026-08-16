@@ -51,6 +51,7 @@ function setupSwipeNav(el, getCurrent, order, onSwitch) {
   let touchHandled = false;
   el.addEventListener("touchstart", (e) => {
     if (e.touches.length !== 1) return;
+    if (!sheetEl.hidden) return; // 編集画面（シート）を開いている間はフリックでタブが切り替わらないようにする
     touchStartX = e.touches[0].clientX;
     touchStartY = e.touches[0].clientY;
     touchHandled = false;
