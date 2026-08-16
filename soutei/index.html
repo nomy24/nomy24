@@ -42,7 +42,10 @@
     --accent-soft: var(--ai-soft);
 
     --mincho: "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", "Noto Serif JP", "MS PMincho", serif;
-    --gothic: "Hiragino Kaku Gothic ProN", "Yu Gothic", "YuGothic", "Noto Sans JP", "Meiryo", system-ui, sans-serif;
+    /* 帳票のために作られたUD書体。Windows 10（1809）以降に標準で入っている。
+       入っていない端末のために、ヒラギノ→游ゴシック→メイリオの順で控えを置く */
+    --gothic: "BIZ UDPGothic", "BIZ UDPゴシック", "Hiragino Sans",
+              "Hiragino Kaku Gothic ProN", "Yu Gothic", "YuGothic", "Meiryo", system-ui, sans-serif;
 
     --step: 4px;
   }
@@ -2409,22 +2412,26 @@
     -webkit-print-color-adjust: exact;
   }
 
+  /* 左に日付、中央にタイトル、右に事業所名。3つに割って中央に来るようにする */
   .ns-top {
     flex: 0 0 auto;
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     align-items: baseline;
     gap: 4mm;
-    padding: 0 0 1mm;
+    padding: 0 1mm 1.2mm;
     margin-bottom: 1.6mm;
     border-bottom: 1.4pt solid #000;
   }
 
+  .ns-mid { display: flex; align-items: baseline; gap: 3mm; justify-content: center; }
+
   .ns-top h1 {
     margin: 0;
-    font-family: var(--mincho);
-    font-size: 15pt;
-    font-weight: 600;
-    letter-spacing: .2em;
+    font-size: 16pt;
+    font-weight: 700;
+    letter-spacing: .18em;
+    text-indent: .18em;
   }
 
   .ns-kind {
@@ -2435,8 +2442,9 @@
     padding: 0.5mm 2mm;
   }
 
-  .ns-date { font-size: 10pt; letter-spacing: .08em; }
-  .ns-office { margin-left: auto; font-size: 9pt; letter-spacing: .06em; color: #2B3138; }
+  .ns-date { font-size: 12pt; font-weight: 700; letter-spacing: .03em; white-space: nowrap; }
+  .ns-office { font-size: 12pt; font-weight: 700; letter-spacing: .04em;
+               text-align: right; white-space: nowrap; }
 
   .ns-cols {
     flex: 1 1 auto;
@@ -2476,14 +2484,18 @@
     color: var(--ns-ink);
   }
 
-  .ns-cap .ns-sum { margin-left: auto; font-size: 8.5pt; letter-spacing: .04em; }
+  /* 「午前」は左端と「利用者数」までの空きが同じになる位置に置く */
+  .ns-cap { justify-content: center; }
+  .ns-cap b { margin: 0 auto; }
+  .ns-cap .ns-sum { margin-left: auto; font-size: 10.2pt; font-weight: 700;
+                    letter-spacing: .02em; white-space: nowrap; }
 
   .ns-cap i {
     font-style: normal;
     font-weight: 700;
     font-size: 10.5pt;
     display: inline-block;
-    min-width: 2.2em;
+    min-width: 12.5mm;
     margin: 0 1px;
     padding: 0 1px;
     text-align: center;
@@ -2533,10 +2545,10 @@
 
   .ns-row > *:last-child { border-right: 0; }
 
-  /* 欠席：送迎表の行と同じく、No. から SPO2 までを赤線で消す。
-     備考（血圧の測り方）と状態は読めるまま残す */
+  /* 欠席：いまの紙と同じく、行の端から端まで赤線で消す。
+     状態の札は線の上に出して読めるまま残す */
   .ns-row > .ns-strike {
-    grid-column: 1 / 8;
+    grid-column: 1 / 10;
     grid-row: 1;
     align-self: center;
     height: 0;
@@ -2554,12 +2566,19 @@
   /* 検温の面は欄が3つ。No. から来所前検温まで通す */
   .ns-temp .ns-row > .ns-strike { grid-column: 1 / 4; }
 
-  /* 目が横に流れるよう、一行おきにごく薄く敷く。
-     送迎表と同じく、その部（午前・午後）の色で敷いて面をそろえる */
-  .ns-row.zebra {
-    background: #F4F6F9;
-    background: color-mix(in srgb, var(--ns-band) 38%, #fff);
+  /* 空いている桝は薄く塗る。書く場所と書かない場所が一目で分かる */
+  .ns-row.is-empty {
+    background: color-mix(in srgb, var(--ns-band) 30%, #fff);
   }
+
+  /* 5行ごとに濃い罫。ここで目を止めて、横にすべらないようにする */
+  .ns-row.mark5 { border-bottom: 1.1pt solid #1B2630; }
+
+  /* 振替の方。人数に数えないので番号を振らず、通常利用の方のすぐ下に続ける */
+  .ns-row.is-furi { background: #E9F1DE; }
+  .ns-row.is-furi .nsn { color: #2F4E11; }
+  .ns-row.is-furi + .ns-row:not(.is-furi) { border-top: 0; }
+  .ns-row:not(.is-furi) + .ns-row.is-furi { border-top: 1.1pt solid #3C5C15; }
 
   .ns-row.head {
     flex: 0 0 auto;
@@ -2597,44 +2616,81 @@
     font-variant-numeric: tabular-nums;
   }
 
-  .ns-name { font-size: var(--ns-name-size, 9.5pt); letter-spacing: .02em; white-space: nowrap; }
+  .ns-name { gap: 1.2mm; white-space: nowrap; }
+  .nsn { font-size: var(--ns-name-size, 9.5pt); font-weight: 700; letter-spacing: .01em; }
 
   /* 「佐々木 とみ子」のように長い氏名は、字を少し落として桝に収める */
-  .ns-name.is-long { font-size: calc(var(--ns-name-size, 9.5pt) * 0.86); letter-spacing: -.01em; }
-  .ns-slash { justify-content: center; color: #9AA1A9; font-size: 9pt; }
-  .ns-bp { font-size: var(--ns-note-size, 7.5pt); color: #000; white-space: nowrap; }
-  .ns-bp.is-shunt { color: #C4172A; font-weight: 700; }
-  /* 「右シャント実測」のように長いものは、様式と同じく字を落として1行に収める */
-  .ns-bp.is-long { font-size: calc(var(--ns-note-size, 7.5pt) * 0.85); letter-spacing: -.02em; }
-  .ns-state {
-    font-size: var(--ns-name-size, 9.5pt);
+  .nsn.is-long { font-size: calc(var(--ns-name-size, 9.5pt) * 0.88); letter-spacing: -.01em; }
+  .ns-row.is-furi .nsn { font-size: calc(var(--ns-name-size, 9.5pt) * 0.9); }
+
+  /* 状態の札。桝を持たず氏名のうしろに置く。
+     欠席の赤線が下を通るので、札は線より上に出す */
+  .nst {
+    position: relative;
+    z-index: 1;
+    font-size: calc(var(--ns-name-size, 9.5pt) * 0.63);
     font-weight: 700;
-    color: #C4172A;
-    letter-spacing: .06em;
+    line-height: 1.7;
+    padding: 0 1.2mm;
+    border-radius: 2.4mm;
+    color: #fff;
+    background: #3C434A;
     white-space: nowrap;
   }
+  .nst.st-absent { background: #9C1414; }
+  .nst.st-shinki { background: #8E480C; }
+  .nst.st-furikae { background: #3C5C15; }
+  .nst.is-long { font-size: calc(var(--ns-name-size, 9.5pt) * 0.56); padding: 0 1mm; }
 
-  /* 「20日分 振替」のように長いものは、字を落として1行に収める */
-  .ns-state.is-long { font-size: calc(var(--ns-name-size, 9.5pt) * 0.78); letter-spacing: -.01em; }
+  .ns-slash { justify-content: center; color: #46505B; font-size: 8pt; }
+
+  /* 備考は血圧の測り方。札にして、シャントと左右の指定が目に入るようにする */
+  .ns-bp { justify-content: center; padding: 0 .6mm; }
+  .bpc {
+    display: inline-block;
+    font-size: calc(var(--ns-note-size, 7.5pt) * 0.97);
+    font-weight: 700;
+    line-height: 1.6;
+    padding: 0 1mm;
+    border: .8pt solid #5C646C;
+    border-radius: 2.2mm;
+    color: #1C2228;
+    white-space: nowrap;
+  }
+  .bpc.is-real { color: #12547F; border-color: #12547F; }
+  .bpc.is-shunt { color: #A81124; border-color: #A81124; background: #FBE9E7; }
+  /* 「右シャント実測」のように長いものは字を落として桝に収める */
+  .bpc.is-long { font-size: calc(var(--ns-note-size, 7.5pt) * 0.83); padding: 0 .7mm; letter-spacing: -.005em; }
+  /* 左右の指定があるときは、その一字を白抜きにする。腕を間違えないように */
+  .bpc .lr {
+    display: inline-block;
+    background: #1C2228;
+    color: #fff;
+    border-radius: 1.4mm;
+    padding: 0 .8mm;
+    margin: 0 .5mm 0 -.5mm;
+    font-size: calc(var(--ns-note-size, 7.5pt) * 0.86);
+  }
 
   /* 欠席の行は氏名も赤に振って、離れた備考欄と取り違えないようにする */
-  .ns-row.is-away .ns-name { color: #C4172A; }
+  .ns-row.is-away .nsn { color: #C4172A; }
 
   .ns-sign {
     flex: 0 0 auto;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 21mm;
+    grid-template-columns: minmax(0, 1fr) 22mm;
     border: 1pt solid #000;
     border-top: 0;
   }
 
+  /* 書き込む欄なので、日誌の桝より行も字も大きく取る */
   .ns-staff {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    gap: 1.1mm;
-    padding: 1.2mm 2mm;
-    font-size: 8pt;
+    gap: 1.6mm;
+    padding: 1.6mm 2.4mm;
+    font-size: 8.8pt;
     letter-spacing: .04em;
   }
 
@@ -2645,9 +2701,9 @@
   .ns-blank {
     flex: 1 1 auto;
     min-width: 8mm;
-    border-bottom: .6pt dotted #6E757D;
+    border-bottom: .8pt solid #4A5765;
     align-self: flex-end;
-    height: 3.2mm;
+    height: 4.4mm;
   }
 
   .ns-final {
@@ -2657,9 +2713,9 @@
   }
 
   .ns-final .lbl {
-    padding: 0.6mm 0;
+    padding: 0.9mm 0;
     text-align: center;
-    font-size: 7.5pt;
+    font-size: 8.4pt;
     letter-spacing: .08em;
     background: var(--ns-tint);
     border-bottom: .5pt solid #8B9199;
@@ -2721,9 +2777,10 @@
     flex: 1 1 0;
     min-height: 0;
     /* 台数が少ない日に1台が間延びしないよう、伸びるほうだけ止める */
-    max-height: 30mm;
+    max-height: 33mm;
     display: grid;
-    grid-template-columns: 26mm repeat(6, minmax(0, 1fr));
+    /* 列の数はその日の人数に合わせて組み立て側で入れ替える */
+    grid-template-columns: 30mm repeat(6, minmax(0, 1fr));
     grid-template-rows: 1.15fr 1.15fr 1fr;
     border: 1.1pt solid #63263A;
   }
@@ -2792,6 +2849,17 @@
 
   .tel-person { font-size: 11pt; letter-spacing: .02em; white-space: nowrap; }
   .tel-sama { font-size: 8.5pt; margin-left: 1.5mm; }
+
+  /* 列が少ない日は1人ぶんの桝が広くなるので、そのぶん字も大きく取る。
+     多い日はいまの紙と同じ大きさまで落として、6名でも収まるようにする */
+  .tel-car[data-cols="2"] .tel-person,
+  .tel-car[data-cols="3"] .tel-person { font-size: 13pt; }
+  .tel-car[data-cols="2"] .tel-when,
+  .tel-car[data-cols="3"] .tel-when { font-size: 14pt; }
+  .tel-car[data-cols="4"] .tel-person { font-size: 12pt; }
+  .tel-car[data-cols="4"] .tel-when { font-size: 13pt; }
+  .tel-car[data-cols="5"] .tel-person { font-size: 11.5pt; }
+  .tel-car[data-cols="5"] .tel-when { font-size: 12.5pt; }
 
   /* 送迎表・業務日誌と同じく、振替と新規・増回は氏名の色で見分ける */
   .tel-who.st-furikae .tel-person, .tel-who.st-furikae .tel-sama { color: #3C5C15; font-weight: 700; }
@@ -4786,7 +4854,7 @@
      その方に付いて回る事柄としてマスタに持つ。
      シャントのある方だけ赤字にして、測る腕を間違えないようにする */
   const BP_NOTES = [
-    "上腕計", "実測", "左シャント", "右シャント",
+    "上腕計", "左上腕計", "右上腕計", "実測", "左シャント", "右シャント",
     "左シャント実測", "右シャント実測"
   ];
 
@@ -8816,13 +8884,15 @@
      お預かりした様式の作りをそのまま紙に起こす。
      名前と状態は出欠から、備考（血圧の測り方）は利用者マスタから引く。
      血圧・脈・体温・SPO2 は当日その場で書き入れる欄なので空けておく。 */
-  const NISSHI_CARE_ROWS = 25;   /* 要介護のうち欄（様式の6〜30行） */
-  const NISSHI_PREV_ROWS = 12;   /* 介護予防のうち欄（様式の32〜43行） */
+  const NISSHI_CARE_ROWS = 23;   /* 要介護のうち欄 */
+  const NISSHI_PREV_ROWS = 10;   /* 介護予防のうち欄。合わせて33桝あれば足りる */
   const NISSHI_SLACK = 2;        /* どちらの段にも残す、手書きで足すための空き */
 
   /* 列幅は様式の比を基にしつつ、「右シャント実測」が折り返さないよう
      氏名から備考へ少し回している */
-  const NISSHI_COLS = "3.1fr 11fr 5.7fr 10.7fr 7fr 7.5fr 7fr 13fr 11fr";
+  /* 番号 / 氏名（状態の札はここに入る）/ 運動 / 血圧①② / 脈 / 体温 / SPO2 / 備考。
+     状態の桝をやめたぶんを脈・体温・氏名・備考に配り、血圧は2回ぶんに割る */
+  const NISSHI_COLS = "5.2mm minmax(0, 1fr) 8.5mm 17mm 17mm 13.25mm 13.25mm 10.5mm 19.5mm";
   const KENON_COLS = "3.1fr 15.1fr 59.4fr";
 
   /* 送迎表と同じ午前＝藍・午後＝臙脂で通す */
@@ -8833,11 +8903,18 @@
 
   /* 日誌は要介護と介護予防の2段。介護度が未設定の方は要介護の段に置く
      （様式に置き場がないため）。数え違いに気付けるよう画面側で知らせる */
+  /* 振替の方は人数に数えないので、番号を振る方とは分けて持つ */
+  const isFuri = (part, u) => (ATTEND[part][u.id] || "") === "振替";
+
   function nisshiRoster(part) {
     const roster = attendRoster(part);
+    const care = roster.filter((u) => careGroupOf(u) !== "介護予防");
+    const prev = roster.filter((u) => careGroupOf(u) === "介護予防");
     return {
-      care: roster.filter((u) => careGroupOf(u) !== "介護予防"),
-      prev: roster.filter((u) => careGroupOf(u) === "介護予防"),
+      care: care.filter((u) => !isFuri(part, u)),
+      careFuri: care.filter((u) => isFuri(part, u)),
+      prev: prev.filter((u) => !isFuri(part, u)),
+      prevFuri: prev.filter((u) => isFuri(part, u)),
       unset: roster.filter((u) => careGroupOf(u) === "").length
     };
   }
@@ -8872,9 +8949,10 @@
   function nisshiLayout() {
     const am = nisshiRoster("am");
     const pm = nisshiRoster("pm");
+    const n = (r, k) => r[k].length + r[k + "Furi"].length;
     return nisshiSplit(
-      Math.max(am.care.length, pm.care.length),
-      Math.max(am.prev.length, pm.prev.length)
+      Math.max(n(am, "care"), n(pm, "care")),
+      Math.max(n(am, "prev"), n(pm, "prev"))
     );
   }
 
@@ -8884,16 +8962,55 @@
     return c;
   }
 
-  /* 名簿の1行。空欄の行も同じ形で出して、手書きで足せるようにする */
-  function nisshiRow(kind, part, u, no, zebra) {
-    const row = el("div", "ns-row" + (zebra ? " zebra" : ""));
+  /* 血圧の測り方の札。シャントは赤、左右の指定はその一字を白抜きにして
+     測る腕を間違えないようにする */
+  function nisshiBpCell(bp) {
+    const cell = nisshiCell("ns-bp", "");
+    if (!bp) return cell;
+    const chip = el("span", "bpc");
+    if (isShunt(bp)) chip.classList.add("is-shunt");
+    else if (bp.indexOf("実測") >= 0) chip.classList.add("is-real");
+    if (bp.length >= 6) chip.classList.add("is-long");
+    if ((bp[0] === "左" || bp[0] === "右") && !isShunt(bp)) {
+      chip.append(el("b", "lr", bp[0]));
+      chip.append(document.createTextNode(bp.slice(1)));
+    } else {
+      chip.textContent = bp;
+    }
+    cell.append(chip);
+    return cell;
+  }
+
+  /* 名簿の1行。空欄の行も同じ形で出して、手書きで足せるようにする。
+     状態（欠席の理由・増回・○日分振替）は、桝を持たず氏名のうしろに札で置く */
+  function nisshiRow(kind, part, u, no, opt) {
+    const o = opt || {};
+    const row = el("div", "ns-row" + (o.zebra ? " zebra" : "")
+      + (u ? "" : " is-empty") + (o.furi ? " is-furi" : "") + (o.mark5 ? " mark5" : ""));
     const code = u ? attendCode(part, u.id) : "";
     if (codeState(code) === "absent") row.classList.add("is-away");
 
     row.append(nisshiCell("ns-no", no ? String(no) : ""));
-    const nameCell = nisshiCell("ns-name", u ? u.name : "");
-    /* 長い氏名は桝からはみ出して切れるので、その1件だけ字を落とす */
-    if (u && u.name.replace(/\s/g, "").length >= 7) nameCell.classList.add("is-long");
+
+    const nameCell = nisshiCell("ns-name", "");
+    if (u) {
+      const nm = el("span", "nsn", u.name);
+      /* 長い氏名は桝からはみ出して切れるので、その1件だけ字を落とす */
+      if (u.name.replace(/\s/g, "").length >= 7) nm.classList.add("is-long");
+      nameCell.append(nm);
+
+      /* 振替は「いつのぶんか」まで書く。様式でも日付を添えていた */
+      let state = code;
+      if (code === "振替") {
+        const entry = swapEntry(part, u.id);
+        state = (entry && entry.from ? swapLabel(entry.from) : "") + code;
+      }
+      if (state) {
+        const st = el("span", "nst st-" + codeState(code), state);
+        if (state.length >= 5) st.classList.add("is-long");
+        nameCell.append(st);
+      }
+    }
     row.append(nameCell);
 
     if (kind === "temp") {
@@ -8903,49 +9020,43 @@
     }
 
     row.append(nisshiCell("ns-move", ""));            /* 運動 */
-    row.append(nisshiCell("ns-slash", u ? "／" : "")); /* 血圧：上／下を書き入れる */
+    row.append(nisshiCell("ns-slash", "／"));          /* 血圧① */
+    row.append(nisshiCell("ns-slash", "／"));          /* 血圧② */
     row.append(nisshiCell("ns-pulse", ""));           /* 脈 */
     row.append(nisshiCell("ns-temp2", ""));           /* 体温 */
     row.append(nisshiCell("ns-spo", ""));             /* SPO2 */
+    row.append(nisshiBpCell((u && u.bp) || ""));      /* 備考（血圧の測り方） */
 
-    const bp = (u && u.bp) || "";
-    const note = nisshiCell("ns-bp", bp);
-    if (isShunt(bp)) note.classList.add("is-shunt");
-    if (bp.length >= 6) note.classList.add("is-long");
-    row.append(note);
-
-    /* 振替は「いつのぶんか」まで書く。様式でも日付を添えていた */
-    let state = code;
-    if (code === "振替" && u) {
-      const entry = swapEntry(part, u.id);
-      if (entry && entry.from) state = swapLabel(entry.from) + " " + code;
-    }
-    const st = nisshiCell("ns-state", state);
-    if (state.length >= 6) st.classList.add("is-long");
-    row.append(st);
     /* 欠席を消す赤線。桝の上に重ねるので、桝をすべて置いたあとに足す */
     row.append(nisshiCell("ns-strike", ""));
     return row;
   }
 
-  function nisshiBlock(kind, part, list, rows, startNo) {
+  /* 上から順に：番号を振る方 → 振替の方 → 空の桝。
+     5行ごとの濃い罫は行の種類にかかわらず、段の頭から数えて引く */
+  function nisshiBlock(kind, part, list, furi, rows, startNo) {
     const out = [];
     let no = startNo;
     for (let i = 0; i < rows; i++) {
-      const u = list[i] || null;
-      if (u) no += 1;
-      out.push(nisshiRow(kind, part, u, u ? no : 0, i % 2 === 1));
+      const isF = i >= list.length && i < list.length + furi.length;
+      const u = isF ? furi[i - list.length] : (list[i] || null);
+      if (u && !isF) no += 1;
+      out.push(nisshiRow(kind, part, u, (u && !isF) ? no : 0, {
+        zebra: false,
+        furi: isF,
+        mark5: (i + 1) % 5 === 0 && i < rows - 1
+      }));
     }
     return { rows: out, next: no };
   }
 
   /* 行が増えたぶんだけ字を落として、1枚に収めたまま読めるようにする */
   function nisshiScale(rows) {
-    if (rows > 60) return { name: "6.2pt", head: "5.8pt", note: "5.5pt" };
-    if (rows > 54) return { name: "6.9pt", head: "6.2pt", note: "5.8pt" };
-    if (rows > 46) return { name: "7.8pt", head: "7pt", note: "6.4pt" };
-    if (rows > 40) return { name: "8.6pt", head: "7.5pt", note: "7pt" };
-    return { name: "9.2pt", head: "8pt", note: "7.5pt" };
+    if (rows > 60) return { name: "6.6pt", head: "6pt", note: "5.5pt" };
+    if (rows > 54) return { name: "7.4pt", head: "6.4pt", note: "5.8pt" };
+    if (rows > 46) return { name: "8.4pt", head: "7.2pt", note: "6.2pt" };
+    if (rows > 40) return { name: "9.4pt", head: "7.6pt", note: "6.6pt" };
+    return { name: "10.4pt", head: "7.8pt", note: "7pt" };
   }
 
   /* 午前・午後それぞれの一面 */
@@ -8960,7 +9071,7 @@
     col.style.setProperty("--ns-head-size", scale.head);
     col.style.setProperty("--ns-note-size", scale.note);
 
-    const { care, prev } = nisshiRoster(def.part);
+    const { care, careFuri, prev, prevFuri } = nisshiRoster(def.part);
 
     const cap = el("p", "ns-cap");
     cap.append(el("b", null, def.label));
@@ -8974,16 +9085,16 @@
     const head = el("div", "ns-row head");
     const heads = kind === "temp"
       ? ["", "氏名", "来所前　検温"]
-      : ["", "氏名", "運動", "血圧", "脈", "体温", "SPO2", "備考", "状態"];
+      : ["", "氏名", "運動", "血圧①", "血圧②", "脈", "体温", "SPO2", "備考"];
     heads.forEach((h) => head.append(nisshiCell(null, h)));
     grid.append(head);
 
-    const top = nisshiBlock(kind, def.part, care, layout.care, 0);
+    const top = nisshiBlock(kind, def.part, care, careFuri, layout.care, 0);
     top.rows.forEach((r) => grid.append(r));
 
     grid.append(el("div", "ns-row band", "介護予防"));
 
-    nisshiBlock(kind, def.part, prev, layout.prev, top.next)
+    nisshiBlock(kind, def.part, prev, prevFuri, layout.prev, top.next)
       .rows.forEach((r) => grid.append(r));
 
     col.append(grid);
@@ -9026,9 +9137,11 @@
     ].map((page) => {
       const sheet = el("div", "ns" + (page.kind === "temp" ? " ns-temp" : ""));
       const top = el("div", "ns-top");
-      top.append(el("h1", null, "業務日誌"));
-      if (page.kind === "temp") top.append(el("span", "ns-kind", "来所前　検温"));
       top.append(el("span", "ns-date", titleDate(currentDate)));
+      const mid = el("div", "ns-mid");
+      mid.append(el("h1", null, "業務日誌"));
+      if (page.kind === "temp") mid.append(el("span", "ns-kind", "来所前　検温"));
+      top.append(mid);
       top.append(el("span", "ns-office", OFFICE.name || ""));
       sheet.append(top);
 
@@ -9045,7 +9158,14 @@
      氏名とお迎え時刻を並べる。電話をかけながら上から追える形にする。
      中身は送迎表の「午後お迎え」の面をそのまま読むので、
      時刻を手で書き換えていればその時刻が出る。 */
-  const TEL_COLS = 6;   /* 7人乗りの定員6名に合わせる */
+  /* 列の数は、その日いちばん人数の多い車に合わせて詰める。
+     1列だと桝が横に間延びし、車はいちばん多くて6人乗りなので 2〜6 に収める */
+  const TEL_COLS_MIN = 2;
+  const TEL_COLS_MAX = 6;
+  const telCols = (cars) => Math.max(
+    TEL_COLS_MIN,
+    Math.min(TEL_COLS_MAX, cars.reduce((m, c) => Math.max(m, c.riders.length), 0))
+  );
 
   /* 車ごとの、その日の顔ぶれ。送迎表の面から読む。
      電話をかける側は号車ではなく「誰が回るか」で見るので、
@@ -9101,8 +9221,11 @@
       });
   }
 
-  function telBlock(car) {
+  function telBlock(car, cols) {
     const box = el("div", "tel-car" + (car.leftover ? " is-left" : ""));
+    /* その日の列の数に合わせて桝を割る。列が少ない日は1人ぶんが広くなる */
+    box.style.gridTemplateColumns = "30mm repeat(" + cols + ", minmax(0, 1fr))";
+    box.dataset.cols = String(cols);
 
     /* 見出しは担当。送迎表の運転手のプルダウンからそのまま入る */
     const tag = el("div", "tel-tag");
@@ -9116,7 +9239,7 @@
     }
     box.append(tag);
 
-    for (let i = 0; i < TEL_COLS; i++) {
+    for (let i = 0; i < cols; i++) {
       const r = car.riders[i] || null;
       const st = r && r.state ? " st-" + r.state : "";
 
@@ -9177,17 +9300,21 @@
     sheet.append(top);
 
     const list = el("div", "tel-list");
-    telCars().forEach((car) => list.append(telBlock(car)));
+    const cars = telCars();
+    const left = telLeftover();
+    /* 列の数は、車と未割当をあわせて、いちばん人数の多いまとまりに合わせる */
+    const cols = telCols(cars.concat([{ riders: left }]));
+
+    cars.forEach((car) => list.append(telBlock(car, cols)));
 
     /* どの車にも乗っていない方。欠席で車から降ろした方がここに来る。
-       6名を超えたら枠を足す */
-    const left = telLeftover();
-    for (let i = 0; i < left.length; i += TEL_COLS) {
-      list.append(telBlock({ car: "", driver: "", leftover: true, riders: left.slice(i, i + TEL_COLS) }));
+       列の数を超えたら枠を足す */
+    for (let i = 0; i < left.length; i += cols) {
+      list.append(telBlock({ car: "", driver: "", leftover: true, riders: left.slice(i, i + cols) }, cols));
     }
 
     /* 当日その場で足せるよう、空の枠をひとつ残す（様式にならう） */
-    list.append(telBlock({ car: "", driver: "", riders: [] }));
+    list.append(telBlock({ car: "", driver: "", riders: [] }, cols));
     sheet.append(list);
 
     sheet.append(telRoles());
