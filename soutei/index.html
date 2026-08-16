@@ -47,6 +47,18 @@
     --step: 4px;
   }
 
+  /* ── 曜日の色 ─────────────────────────────
+     どの曜日の紙・どの曜日の面かを、色で見分けられるようにする。
+     data-day を付けた要素とその中身に、この3色が伝わる。
+     敷き色は字が読めるところまで薄く、罫と札は刷って分かるところまで濃く取る */
+  :root { --day-on: #fff; }   /* 曜日色のベタ塗りに載せる字の色 */
+  [data-day="月"] { --day-soft: #FBE4E4; --day-line: #B34747; --day-ink: #8E2F2F; }
+  [data-day="火"] { --day-soft: #E4F1DF; --day-line: #4C7A3E; --day-ink: #2F5626; }
+  [data-day="水"] { --day-soft: #DEE9F6; --day-line: #2F5E9E; --day-ink: #1B3E70; }
+  [data-day="木"] { --day-soft: #FBF1D3; --day-line: #A88214; --day-ink: #6E5405; }
+  [data-day="金"] { --day-soft: #ECEEF0; --day-line: #6E7780; --day-ink: #3C444C; }
+  [data-day="土"] { --day-soft: #FBE3EE; --day-line: #B04A80; --day-ink: #832E5A; }
+
   @media (prefers-color-scheme: dark) {
     :root {
       color-scheme: dark;
@@ -132,6 +144,25 @@
     --shinki: #D2731A;
     --shinki-soft: #FAEEE0;
   }
+
+  /* 暗い面では、曜日の色も暗い地に合わせて取り直す。
+     色の並び（赤・緑・青・黄・シルバー・ピンク）は同じ */
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --day-on: #11161B; }
+    :root:not([data-theme="light"]) [data-day="月"] { --day-soft: #35211F; --day-line: #C97A7A; --day-ink: #E8B6B6; }
+    :root:not([data-theme="light"]) [data-day="火"] { --day-soft: #1F2C1B; --day-line: #86B36F; --day-ink: #BEDCAD; }
+    :root:not([data-theme="light"]) [data-day="水"] { --day-soft: #1B2735; --day-line: #6E9BD1; --day-ink: #AFC9E9; }
+    :root:not([data-theme="light"]) [data-day="木"] { --day-soft: #322A16; --day-line: #C9A63F; --day-ink: #E4CE85; }
+    :root:not([data-theme="light"]) [data-day="金"] { --day-soft: #262C31; --day-line: #97A2AC; --day-ink: #C6CED5; }
+    :root:not([data-theme="light"]) [data-day="土"] { --day-soft: #33202B; --day-line: #C97CA4; --day-ink: #E6B4CD; }
+  }
+  :root[data-theme="dark"] { --day-on: #11161B; }
+  :root[data-theme="dark"] [data-day="月"] { --day-soft: #35211F; --day-line: #C97A7A; --day-ink: #E8B6B6; }
+  :root[data-theme="dark"] [data-day="火"] { --day-soft: #1F2C1B; --day-line: #86B36F; --day-ink: #BEDCAD; }
+  :root[data-theme="dark"] [data-day="水"] { --day-soft: #1B2735; --day-line: #6E9BD1; --day-ink: #AFC9E9; }
+  :root[data-theme="dark"] [data-day="木"] { --day-soft: #322A16; --day-line: #C9A63F; --day-ink: #E4CE85; }
+  :root[data-theme="dark"] [data-day="金"] { --day-soft: #262C31; --day-line: #97A2AC; --day-ink: #C6CED5; }
+  :root[data-theme="dark"] [data-day="土"] { --day-soft: #33202B; --day-line: #C97CA4; --day-ink: #E6B4CD; }
 
   /* ── ベース ───────────────────────────────── */
   body {
@@ -240,6 +271,16 @@
 
   .date-slot:hover,
   .date-slot:focus-within { border-bottom-color: var(--accent); }
+
+  /* 見出しの日付は、その曜日の色で下線を引く。
+     いま何曜日の送迎表を開いているかが、目を上げなくても分かる */
+  .date-slot:has([data-day]) { border-bottom-style: solid; border-bottom-width: 2px; }
+  .date-slot:has([data-day="月"]) { border-bottom-color: #B34747; }
+  .date-slot:has([data-day="火"]) { border-bottom-color: #4C7A3E; }
+  .date-slot:has([data-day="水"]) { border-bottom-color: #2F5E9E; }
+  .date-slot:has([data-day="木"]) { border-bottom-color: #A88214; }
+  .date-slot:has([data-day="金"]) { border-bottom-color: #6E7780; }
+  .date-slot:has([data-day="土"]) { border-bottom-color: #B04A80; }
 
   .date-slot select,
   .date-slot input {
@@ -2299,6 +2340,28 @@
 
   .ppr-p { font-weight: 600; }
 
+  /* 曜日の色。どの曜日の担当表を直しているのかを、色でも分かるようにする */
+  .pp-roles[data-day] .ppr-day {
+    background: var(--day-line);
+    color: var(--day-on);
+    font-weight: 600;
+    border-radius: 5px;
+    padding: 2px 9px;
+  }
+
+  .pp-roles[data-day] .ppr-h { color: var(--day-ink); }
+
+  .pp-roles[data-day] .ppr-p {
+    color: var(--day-ink);
+    background: var(--day-soft);
+    border-radius: 4px;
+    padding: 4px 0;
+  }
+
+  .pp-roles[data-day] .ppr-grid input {
+    border-color: color-mix(in srgb, var(--day-line) 40%, var(--rule-2));
+  }
+
   .ppr-grid input {
     font: inherit;
     font-size: 14px;
@@ -2812,6 +2875,23 @@
 
   .trc { font-size: 11pt; letter-spacing: .02em; }
 
+  /* 担当表は曜日ごとに色を変える。刷った紙が何曜日のものか、
+     離れていても色で分かる。書き込む桝は白のままにして、鉛筆でも読めるようにする */
+  .tel-roles[data-day] { border-top-color: var(--day-line); }
+  .tel-roles[data-day] .tel-roles-title { color: var(--day-ink); }
+  .tel-roles[data-day] .tel-roles-day {
+    background: var(--day-line);
+    color: var(--day-on);
+    font-weight: 700;
+    border-radius: 1.2mm;
+    padding: .2mm 1.6mm;
+    letter-spacing: .04em;
+  }
+  .tel-roles[data-day] .tel-roles-grid { border-color: var(--day-line); }
+  .tel-roles[data-day] .tel-roles-grid > * { border-color: var(--day-line); }
+  .tel-roles[data-day] .trh,
+  .tel-roles[data-day] .trp { background: var(--day-soft); color: var(--day-ink); }
+
   /* ── マスタ編集ページ ─────────────────────── */
   .page-master[hidden] { display: none; }
 
@@ -3222,6 +3302,19 @@
     box-shadow: inset 0 -2px 0 var(--tab, var(--ai));
   }
 
+  /* 曜日のタブは、その曜日の色で示す */
+  .plan-tab[data-day]:hover {
+    background: color-mix(in srgb, var(--day-soft) 60%, transparent);
+  }
+
+  .plan-tab[data-day][aria-selected="true"] {
+    background: var(--day-soft);
+    border-color: var(--day-line);
+    color: var(--day-ink);
+    font-weight: 600;
+    box-shadow: inset 0 -2px 0 var(--day-line);
+  }
+
   .plan-car {
     display: grid;
     grid-template-columns: 6.5rem minmax(0, 1fr) 6.5rem;
@@ -3578,6 +3671,23 @@
   .modal .day[data-ap="終日"] .ap,
   .page-master .day[data-ap="終日"] .ap { font-size: 7px; }
 
+  /* 曜日の色。午前は薄い地、午後はベタ、終日はベタに白い縁を足して、
+     色が曜日を表しても午前・午後・終日の見分けは残るようにする */
+  .modal .day[data-day][data-ap="AM"],
+  .page-master .day[data-day][data-ap="AM"] {
+    border-color: var(--day-line); background: var(--day-soft);
+    color: var(--day-ink); font-weight: 600;
+  }
+  .modal .day[data-day][data-ap="PM"],
+  .page-master .day[data-day][data-ap="PM"] {
+    border-color: var(--day-line); background: var(--day-line); color: var(--day-on);
+  }
+  .modal .day[data-day][data-ap="終日"],
+  .page-master .day[data-day][data-ap="終日"] {
+    border-color: var(--day-line); background: var(--day-line); color: var(--day-on);
+    box-shadow: inset 0 0 0 1.4px var(--card);
+  }
+
   /* ── 携帯・タブレットの画面 ────────────────
      車内で開くのは携帯なので、指で押せて、名前と時刻が読めることを先に置く。
      幅が足りないぶんは、桝を横に詰めるのではなく段に折り返して逃がす。 */
@@ -3762,6 +3872,15 @@
       --shinki-soft: #F6E7D6;
       --shinki-soft: #F6E7D6;
     }
+
+    /* 曜日の色は紙の上のもの。画面が暗い面でも、刷るときは紙用に取り直す */
+    :root { --day-on: #fff; }
+    [data-day="月"] { --day-soft: #FBE4E4; --day-line: #B34747; --day-ink: #8E2F2F; }
+    [data-day="火"] { --day-soft: #E4F1DF; --day-line: #4C7A3E; --day-ink: #2F5626; }
+    [data-day="水"] { --day-soft: #DEE9F6; --day-line: #2F5E9E; --day-ink: #1B3E70; }
+    [data-day="木"] { --day-soft: #FBF1D3; --day-line: #A88214; --day-ink: #6E5405; }
+    [data-day="金"] { --day-soft: #ECEEF0; --day-line: #6E7780; --day-ink: #3C444C; }
+    [data-day="土"] { --day-soft: #FBE3EE; --day-line: #B04A80; --day-ink: #832E5A; }
 
     /* 下地の色を落とさずに刷る。カードの色分けはここが要 */
     *, *::before, *::after {
@@ -6769,7 +6888,11 @@
   function refreshStamps() {
     document.getElementById("date-picker").value = currentDate;
     const date = titleDate(currentDate);
-    document.getElementById("title-date").textContent = date;
+    const titleEl = document.getElementById("title-date");
+    titleEl.textContent = date;
+    /* 見出しの日付にも曜日の色を伝える */
+    const tw = weekdayOf(currentDate);
+    if (tw) titleEl.dataset.day = tw; else delete titleEl.dataset.day;
     LEGS.forEach((leg) => {
       const stamp = document.querySelector("#leg-" + leg.key + " .print-stamp");
       if (stamp) stamp.textContent = (OFFICE.name || "").replace(/\u3000/g, " ") + "　" + date + " 送迎表";
@@ -7180,6 +7303,7 @@
     WEEKDAYS.forEach((d) => {
       const b = el("button", "day");
       b.type = "button";
+      b.dataset.day = d;
       const label = el("span", "ap", "");
       b.append(el("span", "d", d), label);
       const draw = (ap) => {
@@ -7625,6 +7749,7 @@
     WEEKDAYS.forEach((d) => {
       const b = el("button", "day");
       b.type = "button";
+      b.dataset.day = d;
       const label = el("span", "ap", "");
       b.append(el("span", "d", d), label);
 
@@ -7765,6 +7890,7 @@
       WEEKDAYS.forEach((w) => {
         const b = el("button", "day");
         b.type = "button";
+        b.dataset.day = w;
         const label = el("span", "ap", "");
         b.append(el("span", "d", w), label);
         const draw = (ap) => {
@@ -7866,6 +7992,7 @@
         n + Object.values(cfg.plan[w][l.key] || {}).reduce((m, list) => m + list.length, 0), 0);
       const b = el("button", "plan-tab", w + (filled ? "・" + filled : ""));
       b.type = "button";
+      b.dataset.day = w;
       b.setAttribute("aria-selected", String(w === openPlanDay));
       if (w === today) b.classList.add("is-today");
       b.title = w + "曜日" + (w === today ? "（いま開いている送迎表の曜日）" : "");
@@ -9020,6 +9147,7 @@
     const roles = (day && ROLES[day]) || null;
 
     const wrap = el("div", "tel-roles");
+    if (day) wrap.dataset.day = day;
     const head = el("div", "tel-roles-head");
     head.append(el("span", "tel-roles-title", "担当表"));
     head.append(el("span", "tel-roles-day", "【" + (day || "　") + "】"));
@@ -9185,6 +9313,10 @@
     const day = weekdayOf(currentDate);
     const label = day ? "【" + day + "】" + titleDate(currentDate) : "この日は利用曜日の対象外です";
     document.querySelectorAll("[data-role-day]").forEach((n) => { n.textContent = label; });
+    /* その曜日の色を面に伝える。曜日が取れない日は色を外す */
+    document.querySelectorAll(".pp-roles").forEach((n) => {
+      if (day) n.dataset.day = day; else delete n.dataset.day;
+    });
 
     /* 送迎表の下端と印刷レイアウトの2か所に出る。どちらで直しても同じところに入る */
     document.querySelectorAll("[data-role-grid]").forEach((grid) => {
