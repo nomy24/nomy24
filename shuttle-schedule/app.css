@@ -1,73 +1,75 @@
 /* =========================================================
    送迎運行ボード — デザイントークン
-   紙の運行日誌 × 道路。あじさい色の「南区インフォ」、
+   晴れた朝の空と海。あじさい色の「南区インフォ」、
    ティール×オレンジの「職員Todo」とは別系統の、
-   紙とアスファルト・方向指示器の配色でまとめる。
+   淡い空色・海色・朝日の橙でまとめた、軽やかな配色。
    ========================================================= */
 
 :root {
-  --paper:      #F6F1E4;  /* 温かみのある紙 */
-  --paper-deep: #EEE5CF;  /* 行の縞・凹み */
+  --sky:        #F3F9FB;  /* 澄んだ朝の空（背景） */
+  --sky-deep:   #E4F0F3;  /* 行の縞・凹み */
   --surface:    #FFFFFF;
-  --ink:        #241D15;  /* 本文・見出し */
-  --ink-soft:   #6B5D48;
-  --ink-faint:  #726650;
-  --line:       #E2D5B5;
-  --asphalt:    #333B42;  /* 車両バッジ・構造 */
-  --asphalt-2:  #4A545C;
+  --ink:        #23434C;  /* 本文・見出し */
+  --ink-soft:   #4F6B76;
+  --ink-faint:  #557077;
+  --line:       #D9E9EC;
+  --ocean:      #2F7E93;  /* アクセント文字・フォーカスリング */
+  --ocean-deep: #206073;
+  --ocean-fill: #2F7E93;  /* バッジ・ピルの塗り（白文字前提、両テーマ共通） */
 
-  --wait:   #5B6771;  /* 待機（文字用・AA対応） */
-  --go:     #8F5312;  /* 走行中（文字用・AA対応） */
-  --done:   #2E6146;  /* 到着済（文字用・AA対応） */
-  --alert:  #9C3925;  /* 要確認（文字用・AA対応） */
+  --wait:   #4F6970;  /* 待機（文字用・AA対応） */
+  --go:     #8A5A12;  /* 走行中（文字用・AA対応） */
+  --done:   #256B49;  /* 到着済（文字用・AA対応） */
+  --alert:  #B14328;  /* 要確認（文字用・AA対応） */
 
-  --wait-bg:  #E7EAEC;
-  --go-bg:    #FBE7CB;
-  --done-bg:  #DCEDE1;
-  --alert-bg: #F6DCD5;
+  --wait-bg:  #E7EEF1;
+  --go-bg:    #FCEED2;
+  --done-bg:  #DFF3E7;
+  --alert-bg: #FBE1DA;
 
-  --wait-vivid:  #7C8894;  /* 装飾用（ライン・マーカー・凡例） */
-  --go-vivid:    #DE8B2E;  /* 方向指示器の橙 */
-  --done-vivid:  #3F7A57;
-  --alert-vivid: #BE4430;
+  --wait-vivid:  #8CA2AC;  /* 装飾用（ライン・マーカー・凡例） */
+  --go-vivid:    #E2A63B;  /* 朝日の橙 */
+  --done-vivid:  #3F9467;
+  --alert-vivid: #E2694F;
 
   --font-display: "Zen Kaku Gothic New", "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
   --font-body: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
 
   --radius: 16px;
   --radius-sm: 10px;
-  --shadow: 0 1px 2px rgba(36, 29, 21, .06), 0 8px 20px -14px rgba(36, 29, 21, .35);
+  --shadow: 0 1px 2px rgba(35, 67, 76, .05), 0 8px 20px -14px rgba(35, 67, 76, .25);
   --text-scale: 1;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --paper:      #1B2126;
-    --paper-deep: #232A30;
-    --surface:    #262E35;
-    --ink:        #F2ECDE;
-    --ink-soft:   #B9AF9B;
-    --ink-faint:  #837A69;
-    --line:       #3A434B;
-    --asphalt:    #E8E2D2;
-    --asphalt-2:  #C9C1AC;
+    --sky:        #16262C;
+    --sky-deep:   #1D323A;
+    --surface:    #1F343C;
+    --ink:        #E8F3F5;
+    --ink-soft:   #A9C3C9;
+    --ink-faint:  #7FA0A8;
+    --line:       #2C4750;
+    --ocean:      #6BC3D9;
+    --ocean-deep: #8FD4E6;
+    --ocean-fill: #2F7E93;
 
-    --wait:   #9CA9B5;
-    --go:     #F0A64B;
-    --done:   #59B27E;
-    --alert:  #E07156;
+    --wait:   #A9C3C9;
+    --go:     #F0C066;
+    --done:   #6FCB9B;
+    --alert:  #F0937B;
 
-    --wait-bg:  #303A42;
-    --go-bg:    #3B2E19;
-    --done-bg:  #1E3628;
-    --alert-bg: #3C241E;
+    --wait-bg:  #26404A;
+    --go-bg:    #3A2E12;
+    --done-bg:  #16382A;
+    --alert-bg: #3C2419;
 
-    --wait-vivid:  #93A0AC;
-    --go-vivid:    #F0A64B;
-    --done-vivid:  #59B27E;
-    --alert-vivid: #E07156;
+    --wait-vivid:  #8CA2AC;
+    --go-vivid:    #F0C066;
+    --done-vivid:  #6FCB9B;
+    --alert-vivid: #F0937B;
 
-    --shadow: 0 1px 2px rgba(0, 0, 0, .35), 0 10px 24px -14px rgba(0, 0, 0, .7);
+    --shadow: 0 1px 2px rgba(0, 0, 0, .35), 0 10px 24px -14px rgba(0, 0, 0, .6);
   }
 }
 
@@ -76,7 +78,7 @@ html { -webkit-text-size-adjust: 100%; }
 
 body {
   margin: 0;
-  background: var(--paper);
+  background: var(--sky);
   color: var(--ink);
   font-family: var(--font-body);
   font-size: calc(15.5px * var(--text-scale));
@@ -90,7 +92,7 @@ button { font: inherit; color: inherit; }
 svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: none; }
 
 :focus-visible {
-  outline: 2.5px solid var(--go);
+  outline: 2.5px solid var(--ocean);
   outline-offset: 2px;
   border-radius: 6px;
 }
@@ -104,8 +106,9 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width:
 /* ---------- アプリバー ---------- */
 
 .appbar {
-  background: var(--asphalt);
-  color: var(--paper);
+  background: var(--sky-deep);
+  color: var(--ink);
+  border-bottom: 1px solid var(--line);
   padding: .9rem 1.1rem;
   padding-top: calc(.9rem + env(safe-area-inset-top, 0px));
 }
@@ -125,7 +128,7 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width:
 .appbar__eyebrow {
   font-size: .68rem;
   letter-spacing: .16em;
-  color: color-mix(in srgb, var(--paper) 70%, transparent);
+  color: var(--ocean-deep);
 }
 
 .appbar__name {
@@ -145,8 +148,8 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width:
   letter-spacing: .04em;
   padding: .18rem .55rem;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--go-vivid) 85%, transparent);
-  color: #241a08;
+  background: var(--ocean-fill);
+  color: #ffffff;
 }
 
 .appbar__date {
@@ -158,8 +161,8 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width:
 }
 
 .appbar__day { font-size: .95rem; font-weight: 600; }
-.appbar__now { font-size: .74rem; color: color-mix(in srgb, var(--paper) 72%, transparent); }
-.appbar__now time { font-weight: 700; color: var(--paper); }
+.appbar__now { font-size: .74rem; color: var(--ink-soft); }
+.appbar__now time { font-weight: 700; color: var(--ink); }
 
 /* ---------- コントロール帯 ---------- */
 
@@ -167,7 +170,7 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width:
   position: sticky;
   top: 0;
   z-index: 20;
-  background: color-mix(in srgb, var(--paper) 94%, transparent);
+  background: color-mix(in srgb, var(--sky) 94%, transparent);
   backdrop-filter: saturate(1.4) blur(14px);
   -webkit-backdrop-filter: saturate(1.4) blur(14px);
   border-bottom: 1px solid var(--line);
@@ -187,7 +190,7 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width:
   display: inline-flex;
   padding: 3px;
   border-radius: 999px;
-  background: var(--paper-deep);
+  background: var(--sky-deep);
   border: 1px solid var(--line);
 }
 
@@ -220,7 +223,7 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width:
   font-size: 1.25rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-  color: var(--asphalt-2);
+  color: var(--ocean-deep);
 }
 .kpi__label { font-size: .72rem; color: var(--ink-faint); }
 .kpi--alert .kpi__n { color: var(--alert); }
@@ -241,7 +244,7 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width:
   cursor: pointer;
   transition: border-color .18s ease, color .18s ease;
 }
-.printbtn:hover { border-color: var(--asphalt-2); color: var(--ink); }
+.printbtn:hover { border-color: var(--ocean-deep); color: var(--ink); }
 .printbtn svg { width: 17px; height: 17px; }
 
 .legend {
@@ -298,8 +301,8 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width:
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-sm);
-  background: var(--asphalt);
-  color: var(--paper);
+  background: var(--ocean-fill);
+  color: #ffffff;
   font-family: var(--font-display);
   font-weight: 900;
   font-size: 1.05rem;
@@ -359,7 +362,7 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width:
   inset: 0 auto 0 0;
   height: 100%;
   border-radius: 3px;
-  background: var(--asphalt-2);
+  background: var(--ocean-deep);
   transition: width .3s ease;
 }
 .vcard[data-status="wait"] .road__fill { background: var(--wait-vivid); opacity: .55; }
@@ -377,8 +380,8 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width:
   justify-content: center;
   border-radius: 50%;
   background: var(--surface);
-  border: 2px solid var(--asphalt-2);
-  color: var(--asphalt-2);
+  border: 2px solid var(--ocean-deep);
+  color: var(--ocean-deep);
   transform: translate(-50%, -50%);
   box-shadow: 0 2px 6px rgba(0, 0, 0, .18);
   transition: left .3s ease;
@@ -412,10 +415,10 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width:
   height: 9px;
   border-radius: 50%;
   background: var(--surface);
-  border: 2px solid var(--asphalt-2);
+  border: 2px solid var(--ocean-deep);
 }
 .stop:first-child .stop__dot, .stop:last-child .stop__dot {
-  width: 11px; height: 11px; background: var(--asphalt);
+  width: 11px; height: 11px; background: var(--ocean);
 }
 
 .stop__label {
