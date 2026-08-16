@@ -65,6 +65,14 @@ function colorForStaff(staff) {
   return staff?.color || AVATAR_COLORS[0];
 }
 
+function hexToRgba(hex, alpha) {
+  const h = (hex || "").replace("#", "");
+  const full = h.length === 3 ? h.split("").map((c) => c + c).join("") : h;
+  const n = parseInt(full, 16);
+  if (Number.isNaN(n)) return `rgba(13, 148, 136, ${alpha})`;
+  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
+}
+
 const ME_KEY = "staffTodo:me";
 let authedEmail = null; // 共有モードでログイン中のメールアドレス（職員との紐付けに使う）
 const LARGE_TEXT_KEY = "staffTodo:largeText";
@@ -212,13 +220,17 @@ function dataUrlToBlob(dataUrl) {
   return new Blob([bytes], { type: mime });
 }
 
-function applyMvTransform() {
+// animated=true: 回転ボタン・ダブルタップ・指を離した後のスナップなど、単発の変化を
+// なめらかにアニメーションさせる。animated=false（既定）: 指でのドラッグ・ピンチ中は
+// アニメーションを付けず、指の動きにそのまま追従させる（もたつき防止）。
+function applyMvTransform(animated = false) {
+  mvImage.classList.toggle("mv-animated", animated);
   mvImage.style.transform = `translate(${mvState.tx}px, ${mvState.ty}px) rotate(${mvState.rotate}deg) scale(${mvState.scale})`;
 }
 
-function resetMvTransform() {
+function resetMvTransform(animated = false) {
   mvState = { scale: 1, tx: 0, ty: 0, rotate: 0 };
-  applyMvTransform();
+  applyMvTransform(animated);
 }
 
 // 画像・PDFはこのビューアで表示する。それ以外の形式は、ブラウザに表示を任せて
@@ -261,7 +273,7 @@ mvCloseBtn.addEventListener("click", closeMediaViewer);
 mediaViewer.addEventListener("click", (e) => { if (e.target === mediaViewer) closeMediaViewer(); });
 mvRotateBtn.addEventListener("click", () => {
   mvState.rotate = (mvState.rotate + 90) % 360;
-  applyMvTransform();
+  applyMvTransform(true);
 });
 
 // ピンチズーム・パン・ダブルタップ（画像のみ）
@@ -283,8 +295,8 @@ mvStage.addEventListener("touchstart", (e) => {
   } else if (e.touches.length === 1) {
     const now = Date.now();
     if (now - mvLastTapTime < 300) {
-      if (mvState.scale > 1) resetMvTransform();
-      else { mvState.scale = 2.5; applyMvTransform(); }
+      if (mvState.scale > 1) resetMvTransform(true);
+      else { mvState.scale = 2.5; applyMvTransform(true); }
       mvLastTapTime = 0;
       mvPanStart = null;
       return;
@@ -311,14 +323,14 @@ mvStage.addEventListener("touchend", (e) => {
   if (e.touches.length === 0) {
     mvPinchStartDist = 0;
     mvPanStart = null;
-    if (mvState.scale <= 1) { mvState.scale = 1; mvState.tx = 0; mvState.ty = 0; applyMvTransform(); }
+    if (mvState.scale <= 1) { mvState.scale = 1; mvState.tx = 0; mvState.ty = 0; applyMvTransform(true); }
   }
 });
 
 // デスクトップ用: ダブルクリックでズームのオン/オフ
 mvImage.addEventListener("dblclick", () => {
-  if (mvState.scale > 1) resetMvTransform();
-  else { mvState.scale = 2.5; applyMvTransform(); }
+  if (mvState.scale > 1) resetMvTransform(true);
+  else { mvState.scale = 2.5; applyMvTransform(true); }
 });
 
 sheetForm.addEventListener("submit", async (e) => {
@@ -476,13 +488,15 @@ function renderTodoList() {
     }
     const assignees = todoAssigneeIds(t).map((id) => staffById(id)).filter(Boolean);
     const isMine = !!state.meId && todoAssigneeIds(t).includes(state.meId);
+    const mineColor = isMine ? colorForStaff(meStaff()) : null;
+    const mineStyle = isMine ? ` style="background:${hexToRgba(mineColor, 0.16)}; border-left-color:${mineColor};"` : "";
     const badges = [];
     if (t.sourceRoutineTaskId) badges.push(`<span class="badge badge--purple">定型タスクから自動追加</span>`);
     if (t.dueDate) badges.push(`<span class="badge ${!t.done && t.dueDate < todayKey() ? "badge--danger" : t.dueDate === todayKey() ? "badge--warning" : ""}">${escapeHtml(dueLabel(t.dueDate))}</span>`);
     if (t.priority === "high") badges.push(`<span class="badge badge--danger">重要</span>`);
     assignees.forEach((a) => badges.push(`<span class="badge">${escapeHtml(a.name)}</span>`));
     parts.push(`
-      <div class="card ${isMine ? "card--mine" : ""}" data-id="${t.id}">
+      <div class="card ${isMine ? "card--mine" : ""}" data-id="${t.id}"${mineStyle}>
         <button type="button" class="check ${t.done ? "is-done" : ""}" data-action="toggle" aria-label="完了にする">
           <svg viewBox="0 0 24 24"><path d="M5 12l4 4 10-10"/></svg>
         </button>
@@ -945,6 +959,8 @@ function renderRoutineList() {
     }
     const periodHtml = task.periodStartDay && task.periodEndDay
       ? `<span class="badge badge--info">${task.periodStartDay}日〜${task.periodEndDay}日</span>` : "";
+    const assigneeHtml = (task.assigneeIds || []).map((id) => staffById(id)).filter(Boolean)
+      .map((a) => `<span class="badge">${escapeHtml(a.name)}</span>`).join("");
     return `
       <div class="card" data-id="${task.id}">
         <button type="button" class="check ${done ? "is-done" : ""}" data-action="toggle" aria-label="実施済みにする">
@@ -953,7 +969,7 @@ function renderRoutineList() {
         <div class="card__body" data-action="edit">
           <div class="card__title ${done ? "is-done" : ""}">${newTagHtml(isNewItem(task, seenAt))}${escapeHtml(task.title)}</div>
           ${task.memo ? `<div class="card__memo">${escapeHtml(task.memo)}</div>` : ""}
-          <div class="card__meta">${periodHtml}${statusHtml}</div>
+          <div class="card__meta">${periodHtml}${statusHtml}${assigneeHtml}</div>
         </div>
       </div>`;
   }).join("");
@@ -995,6 +1011,7 @@ function routineHasPeriod(category) {
 
 function openRoutineTaskSheet(cat, existing) {
   const category = existing?.category || cat;
+  const selectedAssigneeIds = new Set(existing?.assigneeIds || []);
   const html = `
     <div class="field">
       <label for="r-title">タスク名</label>
@@ -1006,6 +1023,14 @@ function openRoutineTaskSheet(cat, existing) {
       <div class="pill-group" id="r-category-group">
         ${Object.entries(ROUTINE_LABELS).map(([k, label]) => `<button type="button" class="pill-option ${category === k ? "is-active" : ""}" data-value="${k}">${label}</button>`).join("")}
       </div>
+    </div>
+    <div class="field">
+      <label>対象職員（任意・複数選択可）</label>
+      ${state.groups.length ? `
+      <div class="chip-group" id="r-assigneeGroupChips">
+        ${state.groups.map((g) => `<button type="button" class="chip chip--group" data-group-id="${g.id}">${escapeHtml(g.name)}</button>`).join("")}
+      </div>` : ""}
+      <div class="chip-group" id="r-assigneeGroup">${assigneeChipsHtml([...selectedAssigneeIds])}</div>
     </div>
     <div class="field" id="r-period-field" ${routineHasPeriod(category) ? "" : "hidden"}>
       <label>期間（任意・毎月の日付）</label>
@@ -1037,6 +1062,7 @@ function openRoutineTaskSheet(cat, existing) {
         memo: data.memo?.trim() || "",
         periodStartDay: startDay && endDay ? Math.min(startDay, endDay) : startDay,
         periodEndDay: startDay && endDay ? Math.max(startDay, endDay) : endDay,
+        assigneeIds: [...selectedAssigneeIds],
       };
       if (!payload.title) return;
       if (existing) await routineTaskStore.update(existing.id, payload);
@@ -1056,6 +1082,35 @@ function openRoutineTaskSheet(cat, existing) {
       document.getElementById("r-period-field").hidden = !routineHasPeriod(btn.dataset.value);
     });
   });
+  const groupMembers = (groupId) => state.staff.filter((s) => s.groupId === groupId).map((s) => s.id);
+  function syncRoutineAssigneeChipsUI() {
+    sheetForm.querySelectorAll("#r-assigneeGroup .chip").forEach((btn) => {
+      btn.classList.toggle("is-active", selectedAssigneeIds.has(btn.dataset.id));
+    });
+    sheetForm.querySelectorAll("#r-assigneeGroupChips .chip--group").forEach((btn) => {
+      const members = groupMembers(btn.dataset.groupId);
+      const allSelected = members.length > 0 && members.every((id) => selectedAssigneeIds.has(id));
+      btn.classList.toggle("is-active", allSelected);
+    });
+  }
+  sheetForm.querySelector("#r-assigneeGroup")?.querySelectorAll(".chip").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const id = btn.dataset.id;
+      if (selectedAssigneeIds.has(id)) selectedAssigneeIds.delete(id);
+      else selectedAssigneeIds.add(id);
+      syncRoutineAssigneeChipsUI();
+    });
+  });
+  sheetForm.querySelector("#r-assigneeGroupChips")?.querySelectorAll(".chip--group").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const members = groupMembers(btn.dataset.groupId);
+      const allSelected = members.length > 0 && members.every((id) => selectedAssigneeIds.has(id));
+      if (allSelected) members.forEach((id) => selectedAssigneeIds.delete(id));
+      else members.forEach((id) => selectedAssigneeIds.add(id));
+      syncRoutineAssigneeChipsUI();
+    });
+  });
+  syncRoutineAssigneeChipsUI();
 }
 
 // ================================================================
@@ -1845,7 +1900,7 @@ function syncRoutineTodos() {
       todoStore.add({
         title: task.title,
         memo: task.memo || "",
-        assigneeIds: [],
+        assigneeIds: task.assigneeIds || [],
         dueDate: `${monthKey}-${pad2(dueDay)}`,
         priority: "normal",
         done: false,
