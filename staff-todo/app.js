@@ -962,6 +962,22 @@ function routineLogFor(taskId, cat) {
   return state.routineLogs.find((l) => l.id === id) || null;
 }
 
+// タブのアイコンに、今対応が必要な（＝期間内でまだ未実施の）定型タスクの件数を表示する。
+// 月初・月末のタスクは、その期間の日付になっているものだけを数える。
+function updateRoutineTabBadge() {
+  const badge = document.getElementById("routineTabBadge");
+  const day = new Date().getDate();
+  const count = state.routineTasks.filter((task) => {
+    if (task.category === "monthStart" || task.category === "monthEnd") {
+      if (!task.periodStartDay || !task.periodEndDay) return false;
+      if (day < task.periodStartDay || day > task.periodEndDay) return false;
+    }
+    return !routineLogFor(task.id, task.category)?.done;
+  }).length;
+  badge.hidden = count === 0;
+  badge.textContent = count > 99 ? "99+" : String(count);
+}
+
 function renderRoutineList() {
   document.getElementById("routinePeriodNote").textContent = ROUTINE_NOTES[state.routineCat];
   const tasks = state.routineTasks.filter((t) => t.category === state.routineCat)
@@ -1973,10 +1989,12 @@ async function main() {
     state.routineTasks = list;
     if (state.screen === "routine") renderRoutineList();
     syncRoutineTodos();
+    updateRoutineTabBadge();
   });
   routineLogStore.subscribe((list) => {
     state.routineLogs = list;
     if (state.screen === "routine") renderRoutineList();
+    updateRoutineTabBadge();
   });
   groupStore.subscribe((list) => {
     state.groups = list;

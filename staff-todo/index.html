@@ -227,7 +227,10 @@
     <span>カレンダー</span>
   </button>
   <button class="tab" type="button" data-screen="routine">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6h14M5 12h14M5 18h9"/><circle cx="19" cy="18" r="2"/></svg>
+    <span class="tab__icon-wrap">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6h14M5 12h14M5 18h9"/><circle cx="19" cy="18" r="2"/></svg>
+      <span class="tab-badge" id="routineTabBadge" hidden>0</span>
+    </span>
     <span>定型タスク</span>
   </button>
   <button class="tab" type="button" data-screen="photos">
