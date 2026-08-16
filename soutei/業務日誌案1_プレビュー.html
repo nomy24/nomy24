@@ -26,7 +26,10 @@
     --rule: #4A5765; --rule-2: #7C8794; --rule-3: #253039;
     /* 字も刷ると薄く見えたので、全体に濃く取ってある */
     --ink: #0B1219; --ink-2: #303B46; --ink-3: #5B646E;
-    --gothic: "Hiragino Kaku Gothic ProN", "Yu Gothic", "YuGothic", "Noto Sans JP", "Meiryo", system-ui, sans-serif;
+    /* 案C BIZ UDPゴシック。帳票のために作られたUD書体で、Windows 10（1809）以降に標準。
+       入っていない端末のために、ヒラギノ→游ゴシック→メイリオの順で控えを置く */
+    --gothic: "BIZ UDPGothic", "BIZ UDPゴシック", "Hiragino Sans",
+              "Hiragino Kaku Gothic ProN", "Yu Gothic", "YuGothic", "Meiryo", sans-serif;
   }
 
   html, body { margin: 0; padding: 0; background: #E7E9E4; }
@@ -107,7 +110,7 @@
         font-variant-numeric: tabular-nums; }
   .nm { font-size: 10.4pt; font-weight: 700; letter-spacing: .01em; gap: 1.2mm; }
   /* 振替の札は字数があるので、その行だけ名前を少し落とす */
-  .nm.is-furi { font-size: 9.8pt; }
+  .nm.is-furi { font-size: 9.4pt; }
   .sl { justify-content: center !important; color: #46505B; font-size: 7.5pt; }
   .bi { justify-content: center !important; padding: 0 .6mm; }
 
@@ -143,7 +146,7 @@
   .bp-b { color: #12547F; border-color: #12547F; }
   .bp-s { color: #A81124; border-color: #A81124; background: #FBE9E7; }
   /* 「右シャント実測」のような長いものは字を落として桝に収める */
-  .bp.is-long { font-size: 6.1pt; padding: 0 .8mm; letter-spacing: -.005em; }
+  .bp.is-long { font-size: 5.7pt; padding: 0 .7mm; letter-spacing: -.005em; }
   /* 左右の指定があるときは、その一字を白抜きにする。腕を間違えないように */
   .bp .lr { display: inline-block; background: #1C2228; color: #fff; border-radius: 1.4mm;
             padding: 0 .8mm; margin: 0 .5mm 0 -.5mm; font-size: 6pt; }
@@ -156,7 +159,7 @@
         padding: 0 1.2mm; border-radius: 2.4mm; color: #fff; white-space: nowrap; }
   .st-off { background: var(--warn); }
   .st-sh  { background: var(--shin); }
-  .st-fu  { background: var(--furi); font-size: 5.9pt; padding: 0 1mm; }
+  .st-fu  { background: var(--furi); font-size: 5.6pt; padding: 0 .9mm; }
 
   /* ── 記名欄 ───────────────────────────────── */
   /* 書き込む欄なので、行の高さも字も日誌の桝より大きく取る。
@@ -184,8 +187,9 @@
 
 <div class="hint">
   <b>業務日誌 案1のプレビューです。</b>アプリの印刷レイアウトにはまだ入れていません。<br>
-  今回の直し：<b>「午前」「午後」を右へ寄せました</b>。左端からの空きと、
-  「利用者数」までの空きが、どちらも5.86mmでそろっています。<br>
+  今回の直し：<b>書体を「BIZ UDPゴシック」にしました</b>（書体くらべの案C）。
+  Windows 10（1809）以降に標準で入っている、帳票のためのUD書体です。
+  入っていない端末では、ヒラギノ→游ゴシック→メイリオの順で代わりの書体が出ます。<br>
   <b>書き込むところは今までどおり下線のまま</b>で、枠では囲んでいません。<br>
   見出し（左に日付・中央にタイトル・右に事業所名）、勤務者欄、最終確認の枠の位置、
   状態の桝がないこと、脈・体温13.25mm、桝33、血圧①②の2回ぶん、

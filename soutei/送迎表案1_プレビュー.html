@@ -33,7 +33,10 @@
     --ink:     #16202A;
     --ink-2:   #4A5765;
     --ink-3:   #8A96A3;
-    --gothic: "Hiragino Kaku Gothic ProN", "Yu Gothic", "YuGothic", "Noto Sans JP", "Meiryo", system-ui, sans-serif;
+    /* 案C BIZ UDPゴシック。帳票のために作られたUD書体で、Windows 10（1809）以降に標準。
+       入っていない端末のために、ヒラギノ→游ゴシック→メイリオの順で控えを置く */
+    --gothic: "BIZ UDPGothic", "BIZ UDPゴシック", "Hiragino Sans",
+              "Hiragino Kaku Gothic ProN", "Yu Gothic", "YuGothic", "Meiryo", sans-serif;
   }
 
   html, body { margin: 0; padding: 0; background: #E7E9E4; }

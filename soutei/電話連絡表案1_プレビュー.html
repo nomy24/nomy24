@@ -22,7 +22,10 @@
     --rule: #8A96A3; --rule-2: #C4CAD1;
     /* 字も刷ると薄く見えたので、全体に濃く取ってある */
     --ink: #0B1219; --ink-2: #303B46; --ink-3: #5B646E;
-    --gothic: "Hiragino Kaku Gothic ProN", "Yu Gothic", "YuGothic", "Noto Sans JP", "Meiryo", system-ui, sans-serif;
+    /* 案C BIZ UDPゴシック。帳票のために作られたUD書体で、Windows 10（1809）以降に標準。
+       入っていない端末のために、ヒラギノ→游ゴシック→メイリオの順で控えを置く */
+    --gothic: "BIZ UDPGothic", "BIZ UDPゴシック", "Hiragino Sans",
+              "Hiragino Kaku Gothic ProN", "Yu Gothic", "YuGothic", "Meiryo", sans-serif;
   }
 
   html, body { margin: 0; padding: 0; background: #E7E9E4; }
@@ -119,6 +122,7 @@
   <b>済／不在のチェック枠</b>を人ごとに置いています。リフト車の担当だけ、
   運転手が決まっていないときの見え方（下線だけ）を残しました。<br>
   下の担当表は、いまの紙と同じ <b>AM／PM</b> の表記のままにしてあります。<br>
+  書体は<b>BIZ UDPゴシック</b>（書体くらべの案C）にそろえました。<br>
   <span class="k">Ctrl</span>／<span class="k">⌘</span> ＋ <span class="k">P</span> →
   送信先「PDFに保存」で、A4縦1枚として刷れます。
 </div>
