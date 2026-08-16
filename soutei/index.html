@@ -3371,6 +3371,15 @@
   }
 
   /* 曜日のタブは、その曜日の色で示す */
+  /* どの版のファイルを開いているかの目印。古い控えと見分けるためだけのもの */
+  .fd-ver {
+    margin-left: auto;
+    font-size: 11px;
+    letter-spacing: .04em;
+    color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+  }
+
   .plan-tab[data-day]:hover {
     background: color-mix(in srgb, var(--day-soft) 60%, transparent);
   }
@@ -4396,7 +4405,9 @@
   </details>
 
   <details class="fold" id="fold-legend">
-    <summary><span class="fd-title">この画面の使い方</span><span class="fd-note">記号の意味と操作のまとめ</span></summary>
+    <summary><span class="fd-title">この画面の使い方</span><span class="fd-note">記号の意味と操作のまとめ</span>
+      <!-- 古い控えを開いていないか、ここで見分けられるようにしておく -->
+      <span class="fd-ver">版 2026-08-16</span></summary>
     <div class="fold-body">
   <div class="legend">
     <span class="item"><span class="swatch s-wc" data-icon="wc"></span>車椅子（リフト・スロープ使用）</span>
@@ -8893,7 +8904,9 @@
   /* 番号 / 氏名（状態の札はここに入る）/ 運動 / 血圧①② / 脈 / 体温 / SPO2 / 備考。
      状態の桝をやめたぶんを脈・体温・氏名・備考に配り、血圧は2回ぶんに割る */
   const NISSHI_COLS = "5.2mm minmax(0, 1fr) 8.5mm 17mm 17mm 13.25mm 13.25mm 10.5mm 19.5mm";
-  const KENON_COLS = "3.1fr 15.1fr 59.4fr";
+  /* 検温の面は体温を書くだけなので、氏名の桝を大きく取る。
+     「大野 スミ 17日分振替」のように札が付いても切れない広さにする */
+  const KENON_COLS = "5.2mm minmax(0, 1fr) 58mm";
 
   /* 送迎表と同じ午前＝藍・午後＝臙脂で通す */
   const NISSHI_PARTS = [
