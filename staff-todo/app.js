@@ -496,7 +496,9 @@ document.querySelectorAll("[data-todo-filter]").forEach((btn) => {
   btn.addEventListener("click", () => switchTodoFilter(btn.dataset.todoFilter));
 });
 
-setupSwipeNav(document.getElementById("todoList"), () => state.todoFilter, TODO_FILTER_ORDER, (cat) => {
+// タスクが1件もないとき#todoListの高さが0になり、指の位置は隣の空表示メッセージの
+// 上になってしまうため、スワイプの検知範囲は画面全体（section）にしておく。
+setupSwipeNav(document.getElementById("screen-todo"), () => state.todoFilter, TODO_FILTER_ORDER, (cat) => {
   if (!document.getElementById("todoFilters").hidden) switchTodoFilter(cat);
 });
 
@@ -1042,7 +1044,9 @@ document.querySelectorAll("[data-routine-cat]").forEach((btn) => {
   btn.addEventListener("click", () => switchRoutineCat(btn.dataset.routineCat));
 });
 
-setupSwipeNav(document.getElementById("routineList"), () => state.routineCat, ROUTINE_CAT_ORDER, switchRoutineCat);
+// タスクが1件もないと#routineListの高さが0になり、指の位置は隣の空表示メッセージの
+// 上になってしまうため、スワイプの検知範囲は画面全体（section）にしておく。
+setupSwipeNav(document.getElementById("screen-routine"), () => state.routineCat, ROUTINE_CAT_ORDER, switchRoutineCat);
 
 function periodKeyFor(cat) {
   if (cat === "daily") return todayKey();
