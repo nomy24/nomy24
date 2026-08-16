@@ -208,14 +208,14 @@
   .fnote b { color: #0B1219; }
 
   /* ── 字くらべ ─────────────────────────────── */
-  .cmp { max-width: 1120px; margin: 0 auto 22px; background: #fff;
+  .cmp { max-width: 1400px; margin: 0 auto 22px; background: #fff;
          border: 1px solid #C4CAD1; border-radius: 8px; overflow: hidden; }
   .cmp h3 { margin: 0; padding: 10px 16px; font-size: 13.5px; letter-spacing: .04em;
             background: #F4F7FB; border-bottom: 1px solid #C4CAD1; color: #1B3557; }
-  .cmprow { display: grid; grid-template-columns: 132px repeat(5, 1fr);
+  .cmprow { display: grid; grid-template-columns: 116px repeat(7, 1fr);
             border-bottom: 1px solid #E3E7EC; }
   .cmprow:last-child { border-bottom: 0; }
-  .cmprow > div { padding: 8px 10px; border-right: 1px solid #E3E7EC; min-width: 0;
+  .cmprow > div { padding: 8px 8px; border-right: 1px solid #E3E7EC; min-width: 0;
                   overflow-wrap: anywhere; }
   .cmprow > div:last-child { border-right: 0; }
   .cmprow.head { background: #FAFBFC; font-size: 11.5px; font-weight: 700; color: #303B46; }
@@ -239,7 +239,7 @@
   紙の中身・桝の大きさ・色はどの案も同じで、<b>書体だけ</b>が違います。<br>
   書体は<b>そのパソコンに入っているものしか出せません</b>。ボタンに
   <b>✓</b>が付いていればそのパソコンで見えている書体、<b>－</b>なら入っていないので
-  別の書体で代わりに出ています。職員それぞれのパソコンで開いて見くらべてください。<br>
+  別の書体で代わりに出ています。<b>刷るパソコンで開いて</b>見くらべてください。<br>
   気に入った案を選んだ状態で <span class="k">Ctrl</span>／<span class="k">⌘</span> ＋
   <span class="k">P</span> を押すと、その書体のままA4横1枚で刷れます（この案内とボタンは紙に出ません）。
 </div>
@@ -247,22 +247,23 @@
 <div class="fontbar">
   <h2>書体をえらぶ</h2>
   <div class="fbtns" id="fbtns"></div>
-  <ul class="flist"><li><b>案A　角ゴシック</b>　いまの書体。どのパソコンにも入っていて、線が細めですっきり見える</li><li><b>案B　メイリオ</b>　線が太めで画数の多い字がつぶれにくい。少し離れても読みやすい</li><li><b>案C　UDゴシック</b>　見間違いを減らす目的で作られた書体。数字と仮名が見分けやすい</li><li><b>案D　UDデジタル教科書体</b>　手書きに近い形。「シ」と「ツ」、「ソ」と「ン」を取り違えにくい</li><li><b>案E　明朝</b>　書類らしい落ち着いた見た目。小さい字は細くなるので刷り上がりに注意</li></ul>
+  <ul class="flist"><li><b>案A　游ゴシック</b>　いまの書体。Windows標準。線が細めですっきり見えるが、小さい字はやや薄い</li><li><b>案B　メイリオ</b>　線が太めでふところが広い。少し離れても読める。画数の多い字がつぶれにくい</li><li><b>案C　BIZ UDPゴシック</b>　帳票・書類のために作られたUD書体。この用途に一番向く。Windows 10（1809）以降に標準</li><li><b>案D　BIZ UDゴシック（等幅）</b>　Cと同じ形で、字の幅がすべて同じ。数字や桝の中がきれいにそろう</li><li><b>案E　UD デジタル教科書体 NP-R</b>　手書きに近い形。「シ」と「ツ」、「ソ」と「ン」を取り違えにくい。Windows 10（1703）以降に標準</li><li><b>案F　游明朝</b>　書類らしい落ち着いた見た目。ただし小さい字は細くなるので、刷り上がりを見てから決める</li><li><b>案G　BIZ UDP明朝</b>　明朝だが線が太めで、刷っても細りにくい。Windows 10（1809）以降に標準</li></ul>
   <p class="fnote">
-    <b>WindowsのパソコンならB・C・D</b>（メイリオ／BIZ UDゴシック／UDデジタル教科書体）が、
-    <b>MacならA・B・E</b>（ヒラギノ角ゴ／ヒラギノ丸ゴ／ヒラギノ明朝）が入っていることが多いです。
-    入っていない書体を選ぶと、代わりの書体で出ます。
+    どれも <b>Windows（10／11 日本語版）に標準で入っている書体</b>です。
+    C・D・G は Windows 10 の 1809 以降、E は 1703 以降に入りました。
+    古い端末で「－」が出たら、その端末では代わりの書体で刷られます。
+    <b>MS Pゴシック・MS P明朝は画面用の設計</b>なので、刷りものには入れていません。
   </p>
 </div>
 
 <div class="cmp" id="cmp">
   <h3>字くらべ（刷ったときと同じ大きさです）</h3>
-  <div class="cmprow head"><div class="lbl"></div><div class="hA">案 A</div><div class="hB">案 B</div><div class="hC">案 C</div><div class="hD">案 D</div><div class="hE">案 E</div></div>
-  <div class="cmprow"><div class="lbl">氏名（10.4pt）</div><div class="nm cA">上田 ノブ　山田 トシ子　東 ミサヲ</div><div class="nm cB">上田 ノブ　山田 トシ子　東 ミサヲ</div><div class="nm cC">上田 ノブ　山田 トシ子　東 ミサヲ</div><div class="nm cD">上田 ノブ　山田 トシ子　東 ミサヲ</div><div class="nm cE">上田 ノブ　山田 トシ子　東 ミサヲ</div></div>
-  <div class="cmprow"><div class="lbl">備考の札（6.1pt）</div><div class="sm cA">上腕計　実測　右シャント実測　左上腕計</div><div class="sm cB">上腕計　実測　右シャント実測　左上腕計</div><div class="sm cC">上腕計　実測　右シャント実測　左上腕計</div><div class="sm cD">上腕計　実測　右シャント実測　左上腕計</div><div class="sm cE">上腕計　実測　右シャント実測　左上腕計</div></div>
-  <div class="cmprow"><div class="lbl">見出し（7.8pt）</div><div class="hd cA">氏名　運動　血圧　脈　体温　SPO2　備考</div><div class="hd cB">氏名　運動　血圧　脈　体温　SPO2　備考</div><div class="hd cC">氏名　運動　血圧　脈　体温　SPO2　備考</div><div class="hd cD">氏名　運動　血圧　脈　体温　SPO2　備考</div><div class="hd cE">氏名　運動　血圧　脈　体温　SPO2　備考</div></div>
-  <div class="cmprow"><div class="lbl">数字（10.4pt）</div><div class="nm cA">128 / 76　36.8　98　令和8年7月22日</div><div class="nm cB">128 / 76　36.8　98　令和8年7月22日</div><div class="nm cC">128 / 76　36.8　98　令和8年7月22日</div><div class="nm cD">128 / 76　36.8　98　令和8年7月22日</div><div class="nm cE">128 / 76　36.8　98　令和8年7月22日</div></div>
-  <div class="cmprow"><div class="lbl">紛らわしい字</div><div class="nm cA">シ ツ　ソ ン　ク タ　口 ロ　力 カ　0 O　1 l</div><div class="nm cB">シ ツ　ソ ン　ク タ　口 ロ　力 カ　0 O　1 l</div><div class="nm cC">シ ツ　ソ ン　ク タ　口 ロ　力 カ　0 O　1 l</div><div class="nm cD">シ ツ　ソ ン　ク タ　口 ロ　力 カ　0 O　1 l</div><div class="nm cE">シ ツ　ソ ン　ク タ　口 ロ　力 カ　0 O　1 l</div></div>
+  <div class="cmprow head"><div class="lbl"></div><div class="hA">案 A</div><div class="hB">案 B</div><div class="hC">案 C</div><div class="hD">案 D</div><div class="hE">案 E</div><div class="hF">案 F</div><div class="hG">案 G</div></div>
+  <div class="cmprow"><div class="lbl">氏名（10.4pt）</div><div class="nm cA">上田 ノブ　山田 トシ子　東 ミサヲ</div><div class="nm cB">上田 ノブ　山田 トシ子　東 ミサヲ</div><div class="nm cC">上田 ノブ　山田 トシ子　東 ミサヲ</div><div class="nm cD">上田 ノブ　山田 トシ子　東 ミサヲ</div><div class="nm cE">上田 ノブ　山田 トシ子　東 ミサヲ</div><div class="nm cF">上田 ノブ　山田 トシ子　東 ミサヲ</div><div class="nm cG">上田 ノブ　山田 トシ子　東 ミサヲ</div></div>
+  <div class="cmprow"><div class="lbl">備考の札（6.1pt）</div><div class="sm cA">上腕計　実測　右シャント実測　左上腕計</div><div class="sm cB">上腕計　実測　右シャント実測　左上腕計</div><div class="sm cC">上腕計　実測　右シャント実測　左上腕計</div><div class="sm cD">上腕計　実測　右シャント実測　左上腕計</div><div class="sm cE">上腕計　実測　右シャント実測　左上腕計</div><div class="sm cF">上腕計　実測　右シャント実測　左上腕計</div><div class="sm cG">上腕計　実測　右シャント実測　左上腕計</div></div>
+  <div class="cmprow"><div class="lbl">見出し（7.8pt）</div><div class="hd cA">氏名　運動　血圧　脈　体温　SPO2　備考</div><div class="hd cB">氏名　運動　血圧　脈　体温　SPO2　備考</div><div class="hd cC">氏名　運動　血圧　脈　体温　SPO2　備考</div><div class="hd cD">氏名　運動　血圧　脈　体温　SPO2　備考</div><div class="hd cE">氏名　運動　血圧　脈　体温　SPO2　備考</div><div class="hd cF">氏名　運動　血圧　脈　体温　SPO2　備考</div><div class="hd cG">氏名　運動　血圧　脈　体温　SPO2　備考</div></div>
+  <div class="cmprow"><div class="lbl">数字（10.4pt）</div><div class="nm cA">128 / 76　36.8　98　令和8年7月22日</div><div class="nm cB">128 / 76　36.8　98　令和8年7月22日</div><div class="nm cC">128 / 76　36.8　98　令和8年7月22日</div><div class="nm cD">128 / 76　36.8　98　令和8年7月22日</div><div class="nm cE">128 / 76　36.8　98　令和8年7月22日</div><div class="nm cF">128 / 76　36.8　98　令和8年7月22日</div><div class="nm cG">128 / 76　36.8　98　令和8年7月22日</div></div>
+  <div class="cmprow"><div class="lbl">紛らわしい字</div><div class="nm cA">シ ツ　ソ ン　ク タ　口 ロ　力 カ　0 O　1 l</div><div class="nm cB">シ ツ　ソ ン　ク タ　口 ロ　力 カ　0 O　1 l</div><div class="nm cC">シ ツ　ソ ン　ク タ　口 ロ　力 カ　0 O　1 l</div><div class="nm cD">シ ツ　ソ ン　ク タ　口 ロ　力 カ　0 O　1 l</div><div class="nm cE">シ ツ　ソ ン　ク タ　口 ロ　力 カ　0 O　1 l</div><div class="nm cF">シ ツ　ソ ン　ク タ　口 ロ　力 カ　0 O　1 l</div><div class="nm cG">シ ツ　ソ ン　ク タ　口 ロ　力 カ　0 O　1 l</div></div>
 </div>
 
 <div class="paper">
@@ -374,7 +375,7 @@
 
 <script>
 (function () {
-  var FONTS = [{"no": "A", "name": "角ゴシック", "stack": "\"Hiragino Kaku Gothic ProN\",\"Yu Gothic\",\"YuGothic\",\"Noto Sans JP\",\"Meiryo\",sans-serif", "probe": ["Hiragino Kaku Gothic ProN", "Yu Gothic", "Noto Sans JP"]}, {"no": "B", "name": "メイリオ", "stack": "\"Meiryo\",\"Hiragino Kaku Gothic ProN\",\"Noto Sans JP\",sans-serif", "probe": ["Meiryo"]}, {"no": "C", "name": "UDゴシック", "stack": "\"BIZ UDPGothic\",\"BIZ UDGothic\",\"Hiragino Sans\",\"Noto Sans JP\",sans-serif", "probe": ["BIZ UDPGothic", "BIZ UDGothic"]}, {"no": "D", "name": "UDデジタル教科書体", "stack": "\"UD Digi Kyokasho NP-R\",\"UDデジタル教科書体 NP-R\",\"UD Digi Kyokasho N-R\",\"Hiragino Maru Gothic ProN\",\"Noto Sans JP\",sans-serif", "probe": ["UD Digi Kyokasho NP-R", "UDデジタル教科書体 NP-R", "Hiragino Maru Gothic ProN"]}, {"no": "E", "name": "明朝", "stack": "\"Yu Mincho\",\"YuMincho\",\"Hiragino Mincho ProN\",\"MS PMincho\",\"Noto Serif JP\",serif", "probe": ["Yu Mincho", "Hiragino Mincho ProN", "MS PMincho"]}];
+  var FONTS = [{"no": "A", "name": "游ゴシック", "stack": "\"Yu Gothic\",\"YuGothic\",\"游ゴシック\",\"Hiragino Kaku Gothic ProN\",sans-serif", "probe": ["Yu Gothic", "YuGothic", "游ゴシック"]}, {"no": "B", "name": "メイリオ", "stack": "\"Meiryo\",\"メイリオ\",\"Hiragino Kaku Gothic ProN\",sans-serif", "probe": ["Meiryo", "メイリオ"]}, {"no": "C", "name": "BIZ UDPゴシック", "stack": "\"BIZ UDPGothic\",\"BIZ UDPゴシック\",\"Hiragino Sans\",sans-serif", "probe": ["BIZ UDPGothic", "BIZ UDPゴシック"]}, {"no": "D", "name": "BIZ UDゴシック（等幅）", "stack": "\"BIZ UDGothic\",\"BIZ UDゴシック\",\"Hiragino Sans\",sans-serif", "probe": ["BIZ UDGothic", "BIZ UDゴシック"]}, {"no": "E", "name": "UD デジタル教科書体 NP-R", "stack": "\"UD Digi Kyokasho NP-R\",\"UDデジタル教科書体 NP-R\",\"UD Digi Kyokasho N-R\",\"Hiragino Maru Gothic ProN\",sans-serif", "probe": ["UD Digi Kyokasho NP-R", "UDデジタル教科書体 NP-R", "UD Digi Kyokasho N-R"]}, {"no": "F", "name": "游明朝", "stack": "\"Yu Mincho\",\"YuMincho\",\"游明朝\",\"Hiragino Mincho ProN\",serif", "probe": ["Yu Mincho", "YuMincho", "游明朝"]}, {"no": "G", "name": "BIZ UDP明朝", "stack": "\"BIZ UDPMincho\",\"BIZ UDP明朝\",\"Hiragino Mincho ProN\",serif", "probe": ["BIZ UDPMincho", "BIZ UDP明朝"]}];
 
   /* パソコンにその書体が入っているかを、字の幅で調べる。
      ものさし用の書体（monospace）と幅が変わっていれば入っている */
