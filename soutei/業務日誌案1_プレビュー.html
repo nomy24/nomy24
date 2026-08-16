@@ -162,7 +162,8 @@
   .fr { display: flex; align-items: baseline; gap: 1.8mm; padding: .8mm 0; padding-right: 21.5mm; }
   .fr b { color: var(--ink); font-size: 8.2pt; }
   .ln { flex: 1; border-bottom: 1pt solid var(--rule); height: 4mm; }
-  .fin { position: absolute; right: 2.4mm; top: 1.6mm; width: 18.5mm; text-align: center;
+  /* 上に寄っていたので、記名欄の高さの真ん中に来るまで下げる */
+  .fin { position: absolute; right: 2.4mm; top: 3.4mm; width: 18.5mm; text-align: center;
          border: 1pt solid var(--rule); border-radius: 1.4mm; overflow: hidden; }
   .fin b { display: block; font-size: 7.2pt; padding: .4mm 0; background: #F1F4F7; color: var(--ink);
            border-bottom: 1pt solid var(--rule); font-weight: 700; }
