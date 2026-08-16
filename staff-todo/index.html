@@ -259,6 +259,24 @@
   <form id="sheetForm" class="sheet__form"></form>
 </div>
 
+<div class="media-viewer" id="mediaViewer" hidden>
+  <div class="media-viewer__bar">
+    <button type="button" class="media-viewer__btn" id="mvRotateBtn" aria-label="回転する">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5V2L7 6l5 4V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7Z"/></svg>
+    </button>
+    <a class="media-viewer__btn" id="mvDownloadBtn" aria-label="ダウンロード" download>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 19h14"/></svg>
+    </a>
+    <button type="button" class="media-viewer__btn media-viewer__btn--close" id="mvCloseBtn" aria-label="閉じる">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+  </div>
+  <div class="media-viewer__stage" id="mvStage">
+    <img id="mvImage" alt="" hidden>
+    <iframe id="mvFrame" title="プレビュー" hidden></iframe>
+  </div>
+</div>
+
 <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 
 <script type="module" src="app.js"></script>

@@ -172,8 +172,6 @@ function openSheet(title, bodyHtml, { onSubmit, onDelete, submitLabel = "保存"
     sheetBackdrop.classList.add("is-open");
     sheetEl.classList.add("is-open");
   });
-  const firstField = sheetForm.querySelector("input, select, textarea");
-  if (firstField) setTimeout(() => firstField.focus({ preventScroll: true }), 260);
 }
 
 function closeSheet() {
@@ -189,6 +187,139 @@ function closeSheet() {
 document.getElementById("sheetClose").addEventListener("click", closeSheet);
 sheetBackdrop.addEventListener("click", closeSheet);
 document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !sheetEl.hidden) closeSheet(); });
+
+// ================================================================
+// 写真・PDFのプレビュー表示（拡大・回転・PDF埋め込み表示）
+// ================================================================
+
+const mediaViewer = document.getElementById("mediaViewer");
+const mvStage = document.getElementById("mvStage");
+const mvImage = document.getElementById("mvImage");
+const mvFrame = document.getElementById("mvFrame");
+const mvRotateBtn = document.getElementById("mvRotateBtn");
+const mvDownloadBtn = document.getElementById("mvDownloadBtn");
+const mvCloseBtn = document.getElementById("mvCloseBtn");
+
+let mvState = { scale: 1, tx: 0, ty: 0, rotate: 0 };
+let mvObjectUrl = null; // PDFのiframe表示に使うblob URL（閉じるときに解放する）
+
+function dataUrlToBlob(dataUrl) {
+  const [header, base64] = dataUrl.split(",");
+  const mime = header.match(/data:([^;]+)/)?.[1] || "application/octet-stream";
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return new Blob([bytes], { type: mime });
+}
+
+function applyMvTransform() {
+  mvImage.style.transform = `translate(${mvState.tx}px, ${mvState.ty}px) rotate(${mvState.rotate}deg) scale(${mvState.scale})`;
+}
+
+function resetMvTransform() {
+  mvState = { scale: 1, tx: 0, ty: 0, rotate: 0 };
+  applyMvTransform();
+}
+
+// 画像・PDFはこのビューアで表示する。それ以外の形式は、ブラウザに表示を任せて
+// 新しいタブで開く（ダウンロードは別のボタンで明示的に行う）。
+function openMediaViewer(item) {
+  const isImg = isImageAttachment(item);
+  const isPdf = !isImg && isPdfAttachment(item);
+  if (!isImg && !isPdf) {
+    window.open(item.dataUrl, "_blank", "noopener");
+    return;
+  }
+  mvImage.hidden = !isImg;
+  mvFrame.hidden = isImg;
+  mvRotateBtn.hidden = !isImg;
+  if (isImg) {
+    resetMvTransform();
+    mvImage.src = item.dataUrl;
+  } else {
+    if (mvObjectUrl) URL.revokeObjectURL(mvObjectUrl);
+    mvObjectUrl = URL.createObjectURL(dataUrlToBlob(item.dataUrl));
+    mvFrame.src = mvObjectUrl;
+  }
+  mvDownloadBtn.href = item.dataUrl;
+  mvDownloadBtn.download = item.fileName || (isImg ? "photo.jpg" : "file");
+  mediaViewer.hidden = false;
+  requestAnimationFrame(() => mediaViewer.classList.add("is-open"));
+}
+
+function closeMediaViewer() {
+  mediaViewer.classList.remove("is-open");
+  setTimeout(() => {
+    mediaViewer.hidden = true;
+    mvImage.src = "";
+    mvFrame.src = "";
+    if (mvObjectUrl) { URL.revokeObjectURL(mvObjectUrl); mvObjectUrl = null; }
+  }, 200);
+}
+
+mvCloseBtn.addEventListener("click", closeMediaViewer);
+mediaViewer.addEventListener("click", (e) => { if (e.target === mediaViewer) closeMediaViewer(); });
+mvRotateBtn.addEventListener("click", () => {
+  mvState.rotate = (mvState.rotate + 90) % 360;
+  applyMvTransform();
+});
+
+// ピンチズーム・パン・ダブルタップ（画像のみ）
+let mvPinchStartDist = 0;
+let mvPinchStartScale = 1;
+let mvPanStart = null;
+let mvLastTapTime = 0;
+
+function touchDist(t1, t2) {
+  return Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+}
+
+mvStage.addEventListener("touchstart", (e) => {
+  if (mvImage.hidden) return;
+  if (e.touches.length === 2) {
+    mvPinchStartDist = touchDist(e.touches[0], e.touches[1]);
+    mvPinchStartScale = mvState.scale;
+    mvPanStart = null;
+  } else if (e.touches.length === 1) {
+    const now = Date.now();
+    if (now - mvLastTapTime < 300) {
+      if (mvState.scale > 1) resetMvTransform();
+      else { mvState.scale = 2.5; applyMvTransform(); }
+      mvLastTapTime = 0;
+      mvPanStart = null;
+      return;
+    }
+    mvLastTapTime = now;
+    mvPanStart = { x: e.touches[0].clientX, y: e.touches[0].clientY, tx: mvState.tx, ty: mvState.ty };
+  }
+}, { passive: true });
+
+mvStage.addEventListener("touchmove", (e) => {
+  if (mvImage.hidden) return;
+  if (e.touches.length === 2 && mvPinchStartDist) {
+    const dist = touchDist(e.touches[0], e.touches[1]);
+    mvState.scale = Math.min(4, Math.max(1, mvPinchStartScale * (dist / mvPinchStartDist)));
+    applyMvTransform();
+  } else if (e.touches.length === 1 && mvPanStart && mvState.scale > 1) {
+    mvState.tx = mvPanStart.tx + (e.touches[0].clientX - mvPanStart.x);
+    mvState.ty = mvPanStart.ty + (e.touches[0].clientY - mvPanStart.y);
+    applyMvTransform();
+  }
+}, { passive: true });
+
+mvStage.addEventListener("touchend", (e) => {
+  if (e.touches.length === 0) {
+    mvPinchStartDist = 0;
+    mvPanStart = null;
+    if (mvState.scale <= 1) { mvState.scale = 1; mvState.tx = 0; mvState.ty = 0; applyMvTransform(); }
+  }
+});
+
+// デスクトップ用: ダブルクリックでズームのオン/オフ
+mvImage.addEventListener("dblclick", () => {
+  if (mvState.scale > 1) resetMvTransform();
+  else { mvState.scale = 2.5; applyMvTransform(); }
+});
 
 sheetForm.addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -344,13 +475,14 @@ function renderTodoList() {
       }
     }
     const assignees = todoAssigneeIds(t).map((id) => staffById(id)).filter(Boolean);
+    const isMine = !!state.meId && todoAssigneeIds(t).includes(state.meId);
     const badges = [];
     if (t.sourceRoutineTaskId) badges.push(`<span class="badge badge--purple">定型タスクから自動追加</span>`);
     if (t.dueDate) badges.push(`<span class="badge ${!t.done && t.dueDate < todayKey() ? "badge--danger" : t.dueDate === todayKey() ? "badge--warning" : ""}">${escapeHtml(dueLabel(t.dueDate))}</span>`);
     if (t.priority === "high") badges.push(`<span class="badge badge--danger">重要</span>`);
     assignees.forEach((a) => badges.push(`<span class="badge">${escapeHtml(a.name)}</span>`));
     parts.push(`
-      <div class="card" data-id="${t.id}">
+      <div class="card ${isMine ? "card--mine" : ""}" data-id="${t.id}">
         <button type="button" class="check ${t.done ? "is-done" : ""}" data-action="toggle" aria-label="完了にする">
           <svg viewBox="0 0 24 24"><path d="M5 12l4 4 10-10"/></svg>
         </button>
@@ -1083,13 +1215,26 @@ function fileExtLabel(item) {
   return (item.fileType || "").split("/").pop()?.slice(0, 4).toUpperCase() || "FILE";
 }
 
+function isPdfAttachment(item) {
+  return item.fileType === "application/pdf" || /\.pdf$/i.test(item.fileName || "");
+}
+
 function openAttachmentSheet(item) {
   if (!item) return;
   const d = new Date(item.createdAt || 0);
   const label = `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日 ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
   const meta = `${escapeHtml(label)}${item.createdBy ? ` ・ ${escapeHtml(item.createdBy)}` : ""}`;
-  const previewHtml = isImageAttachment(item)
-    ? `<img class="photo-sheet__img" src="${item.dataUrl}" alt="">`
+  const isImg = isImageAttachment(item);
+  const downloadName = escapeHtml(item.fileName || (isImg ? "photo.jpg" : "file"));
+  const previewHtml = isImg
+    ? `
+      <button type="button" class="photo-sheet__img-btn" id="attOpenBtn" aria-label="拡大表示">
+        <img class="photo-sheet__img" src="${item.dataUrl}" alt="">
+      </button>
+      <div class="sheet-btn-row">
+        <a class="ghost-btn" id="attDownloadBtn" href="${item.dataUrl}" download="${downloadName}">ダウンロード</a>
+      </div>
+    `
     : `
       <div class="file-preview">
         <div class="file-icon file-icon--lg">${escapeHtml(fileExtLabel(item))}</div>
@@ -1098,7 +1243,10 @@ function openAttachmentSheet(item) {
           <div class="card__meta">${item.sizeBytes ? `<span class="badge">${formatBytes(item.sizeBytes)}</span>` : ""}</div>
         </div>
       </div>
-      <a class="ghost-btn" href="${item.dataUrl}" download="${escapeHtml(item.fileName || "file")}" target="_blank" rel="noopener">開く・ダウンロード</a>
+      <div class="sheet-btn-row">
+        <button type="button" class="ghost-btn" id="attOpenBtn">${isPdfAttachment(item) ? "プレビュー表示" : "開く"}</button>
+        <a class="ghost-btn" id="attDownloadBtn" href="${item.dataUrl}" download="${downloadName}">ダウンロード</a>
+      </div>
     `;
   const html = `
     ${previewHtml}
@@ -1108,13 +1256,14 @@ function openAttachmentSheet(item) {
       <textarea id="p-memo" name="memo" maxlength="300" placeholder="気づいたことなど">${escapeHtml(item.memo || "")}</textarea>
     </div>
   `;
-  openSheet(isImageAttachment(item) ? "写真" : "ファイル", html, {
+  openSheet(isImg ? "写真" : "ファイル", html, {
     onSubmit: async (data) => {
       await photoStore.update(item.id, { memo: data.memo?.trim() || "" });
       toast("保存しました");
     },
     onDelete: async () => { await photoStore.remove(item.id); toast("削除しました"); },
   });
+  sheetForm.querySelector("#attOpenBtn")?.addEventListener("click", () => openMediaViewer(item));
 }
 
 // ================================================================
