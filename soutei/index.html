@@ -55,12 +55,12 @@
      data-day を付けた要素とその中身に、この3色が伝わる。
      敷き色は字が読めるところまで薄く、罫と札は刷って分かるところまで濃く取る */
   :root { --day-on: #fff; }   /* 曜日色のベタ塗りに載せる字の色 */
-  [data-day="月"] { --day-soft: #FBE4E4; --day-line: #B34747; --day-ink: #8E2F2F; }
-  [data-day="火"] { --day-soft: #E4F1DF; --day-line: #4C7A3E; --day-ink: #2F5626; }
-  [data-day="水"] { --day-soft: #DEE9F6; --day-line: #2F5E9E; --day-ink: #1B3E70; }
-  [data-day="木"] { --day-soft: #FBF1D3; --day-line: #A88214; --day-ink: #6E5405; }
-  [data-day="金"] { --day-soft: #ECEEF0; --day-line: #6E7780; --day-ink: #3C444C; }
-  [data-day="土"] { --day-soft: #FBE3EE; --day-line: #B04A80; --day-ink: #832E5A; }
+  [data-day="月"] { --day-soft: #FBE4E4; --day-pale: #FDF3F3; --day-line: #B34747; --day-ink: #8E2F2F; }
+  [data-day="火"] { --day-soft: #E4F1DF; --day-pale: #F4F9F2; --day-line: #4C7A3E; --day-ink: #2F5626; }
+  [data-day="水"] { --day-soft: #DEE9F6; --day-pale: #F1F6FC; --day-line: #2F5E9E; --day-ink: #1B3E70; }
+  [data-day="木"] { --day-soft: #FBF1D3; --day-pale: #FDF9EC; --day-line: #A88214; --day-ink: #6E5405; }
+  [data-day="金"] { --day-soft: #ECEEF0; --day-pale: #F7F8F9; --day-line: #6E7780; --day-ink: #3C444C; }
+  [data-day="土"] { --day-soft: #FBE3EE; --day-pale: #FDF2F7; --day-line: #B04A80; --day-ink: #832E5A; }
 
   @media (prefers-color-scheme: dark) {
     :root {
@@ -2588,8 +2588,6 @@
   }
 
   .ns-row.head > * { justify-content: center; height: 100%; }
-  /* 氏名だけは左に寄せる。桝の中身と頭をそろえる */
-  .ns-row.head > *:nth-child(2) { justify-content: flex-start; }
 
   /* 血圧は「血圧」を上に、①②を下に置いた2段見出し。
      ①②の桝は2つあるので、見出しの桝は2つ分にまたがらせる */
@@ -2777,7 +2775,7 @@
     gap: 2.6mm;
     padding: 0 .6mm 1.8mm;
     margin-bottom: 2.4mm;
-    border-bottom: 1.6pt solid #63263A;
+    border-bottom: 1.6pt solid var(--day-line, #63263A);
   }
 
   .tel-top > * { white-space: nowrap; }
@@ -2787,7 +2785,7 @@
     font-size: 12.5pt;
     font-weight: 700;
     letter-spacing: .06em;
-    color: #63263A;
+    color: var(--day-ink, #63263A);
   }
 
   .tel-date { font-size: 8.6pt; font-weight: 700; color: #0B1219; }
@@ -2797,8 +2795,8 @@
   .tel-num {
     font-size: 8.2pt;
     font-weight: 700;
-    color: #63263A;
-    background: #FBF2F5;
+    color: var(--day-ink, #63263A);
+    background: var(--day-pale, #FBF2F5);
     border-radius: 1mm;
     padding: 0 1.4mm;
   }
@@ -2823,7 +2821,7 @@
     /* 列の数はその日の人数に合わせて組み立て側で入れ替える */
     grid-template-columns: 30mm repeat(6, minmax(0, 1fr));
     grid-template-rows: 1.2fr 1.2fr 1fr;
-    border: 1.2pt solid #7A5464;
+    border: 1.2pt solid var(--day-line, #7A5464);
     border-radius: 1.4mm;
     overflow: hidden;
   }
@@ -2837,9 +2835,9 @@
     justify-content: center;
     gap: 1.2mm;
     padding: 0 1.5mm;
-    background: #EFDCE2;
-    color: #63263A;
-    border-right: .8pt solid #7A5464;
+    background: var(--day-soft, #EFDCE2);
+    color: var(--day-ink, #63263A);
+    border-right: .8pt solid var(--day-line, #7A5464);
   }
 
   /* 上が号車、下がその日の担当（運転手）。決まっていない車は下線だけ出す */
@@ -2852,21 +2850,21 @@
     width: 7mm;
     height: 3mm;
     margin-right: .8mm;
-    border-bottom: 1.1pt solid #7A5464;
+    border-bottom: 1.1pt solid var(--day-line, #7A5464);
   }
 
   .tel-driver {
     font-size: 11pt;
     font-weight: 700;
     letter-spacing: .02em;
-    color: #63263A;
+    color: var(--day-ink, #63263A);
     white-space: nowrap;
   }
 
   .tel-driver.is-blank {
     min-width: 20mm;
     height: 3.4mm;
-    border-bottom: 1.1pt solid #7A5464;
+    border-bottom: 1.1pt solid var(--day-line, #7A5464);
   }
 
   .tel-duty-lbl { font-size: 9pt; font-weight: 700; letter-spacing: .06em; }
@@ -2884,7 +2882,7 @@
     justify-content: center;
     min-width: 0;
     padding: 0 1mm;
-    border-right: .8pt solid #7A5464;
+    border-right: .8pt solid var(--day-line, #7A5464);
     overflow: hidden;
     white-space: nowrap;
   }
@@ -2892,16 +2890,17 @@
   /* いちばん右の列は、外枠と重なるので縦罫を落とす */
   .tel-car > *:nth-last-child(-n+3) { border-right: 0; }
 
-  .tel-who { grid-row: 1; border-bottom: .6pt dotted #7A5464; }
+  .tel-who { grid-row: 1; border-bottom: .6pt dotted var(--day-line, #7A5464); }
   .tel-when { grid-row: 2; font-size: 13pt; font-weight: 700;
-              border-bottom: .6pt dotted #7A5464; font-variant-numeric: tabular-nums; }
+              border-bottom: .6pt dotted var(--day-line, #7A5464);
+              font-variant-numeric: tabular-nums; }
 
   /* 3段目は今までどおりの備考欄。かけた印もここに手で書き入れる */
   .tel-memo {
     grid-row: 3;
-    background: #FBF2F5;
+    background: var(--day-pale, #FBF2F5);
     font-size: 7.6pt;
-    color: #63263A;
+    color: var(--day-ink, #63263A);
   }
 
   .tel-person { font-size: 12pt; font-weight: 700; letter-spacing: .02em; }
@@ -4015,12 +4014,12 @@
 
     /* 曜日の色は紙の上のもの。画面が暗い面でも、刷るときは紙用に取り直す */
     :root { --day-on: #fff; }
-    [data-day="月"] { --day-soft: #FBE4E4; --day-line: #B34747; --day-ink: #8E2F2F; }
-    [data-day="火"] { --day-soft: #E4F1DF; --day-line: #4C7A3E; --day-ink: #2F5626; }
-    [data-day="水"] { --day-soft: #DEE9F6; --day-line: #2F5E9E; --day-ink: #1B3E70; }
-    [data-day="木"] { --day-soft: #FBF1D3; --day-line: #A88214; --day-ink: #6E5405; }
-    [data-day="金"] { --day-soft: #ECEEF0; --day-line: #6E7780; --day-ink: #3C444C; }
-    [data-day="土"] { --day-soft: #FBE3EE; --day-line: #B04A80; --day-ink: #832E5A; }
+    [data-day="月"] { --day-soft: #FBE4E4; --day-pale: #FDF3F3; --day-line: #B34747; --day-ink: #8E2F2F; }
+    [data-day="火"] { --day-soft: #E4F1DF; --day-pale: #F4F9F2; --day-line: #4C7A3E; --day-ink: #2F5626; }
+    [data-day="水"] { --day-soft: #DEE9F6; --day-pale: #F1F6FC; --day-line: #2F5E9E; --day-ink: #1B3E70; }
+    [data-day="木"] { --day-soft: #FBF1D3; --day-pale: #FDF9EC; --day-line: #A88214; --day-ink: #6E5405; }
+    [data-day="金"] { --day-soft: #ECEEF0; --day-pale: #F7F8F9; --day-line: #6E7780; --day-ink: #3C444C; }
+    [data-day="土"] { --day-soft: #FBE3EE; --day-pale: #FDF2F7; --day-line: #B04A80; --day-ink: #832E5A; }
 
     /* 下地の色を落とさずに刷る。カードの色分けはここが要 */
     *, *::before, *::after {
@@ -4470,7 +4469,7 @@
   <details class="fold" id="fold-legend">
     <summary><span class="fd-title">この画面の使い方</span><span class="fd-note">記号の意味と操作のまとめ</span>
       <!-- 古い控えを開いていないか、ここで見分けられるようにしておく -->
-      <span class="fd-ver">版 2026-08-16b</span></summary>
+      <span class="fd-ver">版 2026-08-16c</span></summary>
     <div class="fold-body">
   <div class="legend">
     <span class="item"><span class="swatch s-wc" data-icon="wc"></span>車椅子（リフト・スロープ使用）</span>
@@ -8967,9 +8966,10 @@
   /* 番号 / 氏名（状態の札はここに入る）/ 運動 / 血圧①② / 脈 / 体温 / SPO2 / 備考。
      状態の桝をやめたぶんを脈・体温・氏名・備考に配り、血圧は2回ぶんに割る */
   const NISSHI_COLS = "5.2mm minmax(0, 1fr) 8.5mm 17mm 17mm 13.25mm 13.25mm 10.5mm 19.5mm";
-  /* 検温の面は体温を書くだけなので、氏名の桝を大きく取る。
-     「大野 スミ 17日分振替」のように札が付いても切れない広さにする */
-  const KENON_COLS = "5.2mm minmax(0, 1fr) 58mm";
+  /* 検温の面は体温を書くだけ。氏名の桝は「○○日分振替」の札が
+     ちょうど収まる幅（いちばん長い組み合わせで実測37.3mm）に取り、
+     残りをぜんぶ検温に回す。縦の罫はその境目に来る */
+  const KENON_COLS = "5.2mm 39mm minmax(0, 1fr)";
 
   /* 送迎表と同じ午前＝藍・午後＝臙脂で通す */
   const NISSHI_PARTS = [
@@ -9388,6 +9388,9 @@
   function telPapers() {
     const root = el("div", "tel-doc");
     const sheet = el("div", "tel");
+    /* 担当表と同じ曜日の色で紙全体を通す */
+    const day = weekdayOf(currentDate);
+    if (day) sheet.dataset.day = day;
 
     const list = el("div", "tel-list");
     const cars = telCars();
@@ -9416,8 +9419,6 @@
       list.append(telBlock({ car: "", driver: "", leftover: true, riders: left.slice(i, i + cols) }, cols));
     }
 
-    /* 当日その場で足せるよう、空の枠をひとつ残す（様式にならう） */
-    list.append(telBlock({ car: "", driver: "", riders: [] }, cols));
     sheet.append(list);
 
     sheet.append(telRoles());
