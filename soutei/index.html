@@ -2419,9 +2419,8 @@
     grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     align-items: baseline;
     gap: 4mm;
-    padding: 0 1mm 1.2mm;
-    margin-bottom: 1.6mm;
-    border-bottom: 1.4pt solid #000;
+    padding: 0 1.2mm 1.8mm;
+    margin-bottom: 0;
   }
 
   .ns-mid { display: flex; align-items: baseline; gap: 3mm; justify-content: center; }
@@ -2451,36 +2450,34 @@
     min-height: 0;
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 3mm;
   }
 
+  /* 午前・午後はそれぞれ角の丸い箱。あいだは余白で切る */
   .ns-col {
     min-width: 0;
     display: flex;
     flex-direction: column;
+    border: 1.2pt solid #253039;
+    border-radius: 2mm;
+    overflow: hidden;
   }
-
-  .ns-col:first-child { padding-right: 3.4mm; }
-
-  /* 様式では午前と午後のあいだが二重線。同じ切れ目を紙面にも置く */
-  .ns-col + .ns-col { padding-left: 3.4mm; border-left: 2.6pt double #000; }
 
   .ns-cap {
     flex: 0 0 auto;
     margin: 0;
     display: flex;
     align-items: baseline;
-    gap: 4mm;
-    padding: 1mm 2mm;
-    border: 1pt solid #000;
-    border-bottom: 0;
+    gap: 0;
+    padding: 1.2mm 2.4mm;
+    border-bottom: 1.2pt solid #253039;
     background: var(--ns-band);
   }
 
   .ns-cap b {
-    font-family: var(--mincho);
-    font-size: 12.5pt;
-    font-weight: 600;
-    letter-spacing: .18em;
+    font-size: 12pt;
+    font-weight: 700;
+    letter-spacing: .2em;
     color: var(--ns-ink);
   }
 
@@ -2500,7 +2497,7 @@
     padding: 0 1px;
     text-align: center;
     color: var(--ns-ink);
-    border-bottom: .8pt solid var(--ns-ink);
+    border-bottom: 1.2pt solid #4A5765;
     font-variant-numeric: tabular-nums;
   }
 
@@ -2509,7 +2506,6 @@
     min-height: 0;
     display: flex;
     flex-direction: column;
-    border: 1pt solid #000;
   }
 
   .ns-row {
@@ -2517,7 +2513,7 @@
     min-height: 0;
     display: grid;
     grid-template-columns: var(--ns-cols);
-    border-bottom: .5pt solid #8B9199;
+    border-bottom: .7pt solid #7C8794;
   }
 
   .ns-row > * {
@@ -2528,7 +2524,7 @@
        行送りを字の高さちょうどに寝かせて、上下に逃げを作る */
     line-height: 1;
     padding: 0 1.1mm;
-    border-right: .5pt solid #8B9199;
+    border-right: .7pt solid #7C8794;
     overflow: hidden;
   }
 
@@ -2561,60 +2557,83 @@
     -webkit-print-color-adjust: exact;
   }
 
+  .ns-row.is-away { background: #F8E9E7; }
   .ns-row.is-away > .ns-strike { opacity: 1; }
 
   /* 検温の面は欄が3つ。No. から来所前検温まで通す */
   .ns-temp .ns-row > .ns-strike { grid-column: 1 / 4; }
 
   /* 空いている桝は薄く塗る。書く場所と書かない場所が一目で分かる */
-  .ns-row.is-empty {
-    background: color-mix(in srgb, var(--ns-band) 30%, #fff);
-  }
+  .ns-row.is-empty { background: var(--ns-empty); }
 
   /* 5行ごとに濃い罫。ここで目を止めて、横にすべらないようにする */
-  .ns-row.mark5 { border-bottom: 1.1pt solid #1B2630; }
+  .ns-row.mark5 { border-bottom-color: #1B2630; border-bottom-width: 1.3pt; }
 
   /* 振替の方。人数に数えないので番号を振らず、通常利用の方のすぐ下に続ける */
-  .ns-row.is-furi { background: #E9F1DE; }
+  .ns-row.is-furi { background: #EDF3E3; }
   .ns-row.is-furi .nsn { color: #2F4E11; }
   .ns-row.is-furi + .ns-row:not(.is-furi) { border-top: 0; }
-  .ns-row:not(.is-furi) + .ns-row.is-furi { border-top: 1.1pt solid #3C5C15; }
+  .ns-row:not(.is-furi) + .ns-row.is-furi { border-top: 1.1pt solid #4C7A1E; }
 
   .ns-row.head {
     flex: 0 0 auto;
-    padding: 0.5mm 0;
-    background: var(--ns-tint);
-    border-bottom: 1pt solid #000;
+    height: 7.6mm;
+    padding: 0;
+    background: var(--ns-pale);
+    border-bottom: 1.4pt solid #253039;
     font-size: var(--ns-head-size, 8pt);
     font-weight: 700;
-    letter-spacing: .06em;
+    letter-spacing: .03em;
     color: var(--ns-ink);
   }
 
-  .ns-row.head > * { justify-content: center; }
+  .ns-row.head > * { justify-content: center; height: 100%; }
+  /* 氏名だけは左に寄せる。桝の中身と頭をそろえる */
+  .ns-row.head > *:nth-child(2) { justify-content: flex-start; }
+
+  /* 血圧は「血圧」を上に、①②を下に置いた2段見出し。
+     ①②の桝は2つあるので、見出しの桝は2つ分にまたがらせる */
+  .ns-row.head > *:nth-child(4) { grid-column: 4 / 6; }
+  .ns-row.head > *:nth-child(5) { grid-column: 6; }
+  .ns-row.head > *:nth-child(6) { grid-column: 7; }
+  .ns-row.head > *:nth-child(7) { grid-column: 8; }
+  .ns-row.head > *:nth-child(8) { grid-column: 9; }
+
+  .ns-bph { flex-direction: column; padding: 0; align-items: stretch; }
+  .ns-bph b { display: flex; align-items: center; justify-content: center;
+              width: 100%; height: 50%; font-weight: 700; }
+  .ns-bph u { display: flex; width: 100%; height: 50%; text-decoration: none;
+              border-top: .7pt solid #7C8794; }
+  .ns-bph s { flex: 1; display: flex; align-items: center; justify-content: center;
+              text-decoration: none; font-size: calc(var(--ns-head-size, 8pt) * 0.95);
+              border-right: .7pt solid #7C8794; }
+  .ns-bph s:last-child { border-right: 0; }
 
   /* 要介護と介護予防の切れ目 */
   .ns-row.band {
     flex: 0 0 auto;
+    height: 5.2mm;
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 0.6mm 0;
-    background: var(--ns-tint);
-    border-top: 1pt solid #000;
-    border-bottom: 1pt solid #000;
-    font-size: 8.5pt;
+    padding: 0;
+    background: var(--ns-band);
+    border-top: 1.4pt solid #253039;
+    border-bottom: 1.4pt solid #253039;
+    font-size: 8.6pt;
     font-weight: 700;
-    letter-spacing: .32em;
+    letter-spacing: .5em;
+    text-indent: .5em;
     color: var(--ns-ink);
   }
 
   .ns-no {
-    justify-content: center;
-    font-size: var(--ns-note-size, 7.5pt);
-    color: #3C434A;
+    justify-content: flex-end;
+    font-size: calc(var(--ns-note-size, 7.5pt) * 1.09);
+    color: #0B1219;
     font-variant-numeric: tabular-nums;
   }
+  .ns-row.is-away .ns-no { color: #C4172A; }
 
   .ns-name { gap: 1.2mm; white-space: nowrap; }
   .nsn { font-size: var(--ns-name-size, 9.5pt); font-weight: 700; letter-spacing: .01em; }
@@ -2677,10 +2696,8 @@
 
   .ns-sign {
     flex: 0 0 auto;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 22mm;
-    border: 1pt solid #000;
-    border-top: 0;
+    position: relative;
+    border-top: 1.4pt solid #253039;
   }
 
   /* 書き込む欄なので、日誌の桝より行も字も大きく取る */
@@ -2688,40 +2705,51 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
-    gap: 1.6mm;
-    padding: 1.6mm 2.4mm;
-    font-size: 8.8pt;
+    padding: 1.4mm 2.4mm 1.2mm;
+    font-size: 7.8pt;
+    color: #0B1219;
     letter-spacing: .04em;
   }
 
-  .ns-staff > span { display: flex; align-items: baseline; gap: 1.5mm; white-space: nowrap; }
+  /* 最終確認の枠を右に浮かせるので、行はその手前で折り返す */
+  .ns-staff > span { display: flex; align-items: baseline; gap: 1.8mm;
+                     padding: .8mm 0; padding-right: 21.5mm; white-space: nowrap; }
+  .ns-staff .lead { font-size: 8.2pt; }
   .ns-staff > span > span:not(.ns-blank) { flex: 0 0 auto; }
   .ns-staff .lead { font-weight: 700; }
 
   .ns-blank {
     flex: 1 1 auto;
     min-width: 8mm;
-    border-bottom: .8pt solid #4A5765;
+    border-bottom: 1pt solid #4A5765;
     align-self: flex-end;
-    height: 4.4mm;
+    height: 4mm;
   }
 
+  /* 記名欄の高さの真ん中あたりに来るよう、上から少し下げて置く */
   .ns-final {
-    display: flex;
-    flex-direction: column;
-    border-left: 1pt solid #000;
+    position: absolute;
+    right: 2.4mm;
+    top: 3.4mm;
+    width: 18.5mm;
+    text-align: center;
+    border: 1pt solid #4A5765;
+    border-radius: 1.4mm;
+    overflow: hidden;
   }
 
   .ns-final .lbl {
-    padding: 0.9mm 0;
-    text-align: center;
-    font-size: 8.4pt;
-    letter-spacing: .08em;
-    background: var(--ns-tint);
-    border-bottom: .5pt solid #8B9199;
+    display: block;
+    padding: .4mm 0;
+    font-size: 7.2pt;
+    font-weight: 700;
+    letter-spacing: .04em;
+    color: #0B1219;
+    background: #F1F4F7;
+    border-bottom: 1pt solid #4A5765;
   }
 
-  .ns-final .box { flex: 1 1 auto; }
+  .ns-final .box { display: block; height: 10.5mm; }
 
   /* 検温の面は氏名のとなりが一枠。書き込む幅を広く取る */
   .ns-temp .ns-row > .ns-temp-cell { justify-content: flex-start; }
@@ -2746,43 +2774,58 @@
     flex: 0 0 auto;
     display: flex;
     align-items: baseline;
-    gap: 4mm;
-    padding: 0 0 1.2mm;
+    gap: 2.6mm;
+    padding: 0 .6mm 1.8mm;
     margin-bottom: 2.4mm;
-    border-bottom: 1.4pt solid #000;
+    border-bottom: 1.6pt solid #63263A;
   }
+
+  .tel-top > * { white-space: nowrap; }
 
   .tel-top h1 {
     margin: 0;
-    font-family: var(--mincho);
-    font-size: 15pt;
-    font-weight: 600;
-    letter-spacing: .14em;
+    font-size: 12.5pt;
+    font-weight: 700;
+    letter-spacing: .06em;
     color: #63263A;
   }
 
-  .tel-date { font-size: 10.5pt; letter-spacing: .08em; }
-  .tel-office { margin-left: auto; font-size: 9pt; color: #2B3138; }
+  .tel-date { font-size: 8.6pt; font-weight: 700; color: #0B1219; }
+  /* 見出しの右寄せは、あいだに伸びる桝を挟んで押し出す */
+  .tel-sp { flex: 1 1 auto; }
+  /* その日の人数と台数。かける前にざっと数が合うか見られるようにする */
+  .tel-num {
+    font-size: 8.2pt;
+    font-weight: 700;
+    color: #63263A;
+    background: #FBF2F5;
+    border-radius: 1mm;
+    padding: 0 1.4mm;
+  }
+  .tel-office { font-size: 8pt; font-weight: 700; color: #0B1219; }
 
   .tel-list {
     flex: 1 1 auto;
     min-height: 0;
     display: flex;
     flex-direction: column;
-    gap: 2.6mm;
+    gap: 1.6mm;
+    justify-content: space-between;
   }
 
   /* 1台ぶん。左に担当（運転手）、右に 氏名／お迎え時刻／覚え書き の3段 */
   .tel-car {
     flex: 1 1 0;
-    min-height: 0;
-    /* 台数が少ない日に1台が間延びしないよう、伸びるほうだけ止める */
+    /* 台数が少ない日は間延びせず、多い日はつぶれないよう上下の幅を決めておく */
+    min-height: 18mm;
     max-height: 33mm;
     display: grid;
     /* 列の数はその日の人数に合わせて組み立て側で入れ替える */
     grid-template-columns: 30mm repeat(6, minmax(0, 1fr));
-    grid-template-rows: 1.15fr 1.15fr 1fr;
-    border: 1.1pt solid #63263A;
+    grid-template-rows: 1.2fr 1.2fr 1fr;
+    border: 1.2pt solid #7A5464;
+    border-radius: 1.4mm;
+    overflow: hidden;
   }
 
   .tel-tag {
@@ -2792,35 +2835,45 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 0.6mm;
+    gap: 1.2mm;
     padding: 0 1.5mm;
     background: #EFDCE2;
-    border-right: 1.1pt solid #63263A;
+    color: #63263A;
+    border-right: .8pt solid #7A5464;
   }
 
-  .tel-duty-lbl {
-    font-size: 8pt;
-    letter-spacing: .16em;
-    color: #63263A;
+  /* 上が号車、下がその日の担当（運転手）。決まっていない車は下線だけ出す */
+  .tel-carname { font-size: 9pt; font-weight: 700; letter-spacing: .06em; }
+
+  /* 号車を書き入れていない車は、番号のところを下線にしておく */
+  .tel-carname.is-blank::before {
+    content: "";
+    display: inline-block;
+    width: 7mm;
+    height: 3mm;
+    margin-right: .8mm;
+    border-bottom: 1.1pt solid #7A5464;
   }
 
   .tel-driver {
-    font-family: var(--mincho);
-    font-size: 12.5pt;
-    font-weight: 600;
-    letter-spacing: .04em;
-    color: #000;
+    font-size: 11pt;
+    font-weight: 700;
+    letter-spacing: .02em;
+    color: #63263A;
     white-space: nowrap;
-    min-height: 1.2em;
   }
 
-  .tel-carname { font-size: 8pt; letter-spacing: .06em; color: #63263A; }
+  .tel-driver.is-blank {
+    min-width: 20mm;
+    height: 3.4mm;
+    border-bottom: 1.1pt solid #7A5464;
+  }
+
+  .tel-duty-lbl { font-size: 9pt; font-weight: 700; letter-spacing: .06em; }
 
   /* 車が決まっていない方の枠。担当の枠と取り違えないよう朱に振る */
   .tel-car.is-left { border-color: #96200F; }
-  .tel-car.is-left .tel-tag { background: #F3DAD3; border-right-color: #96200F; }
-  .tel-car.is-left .tel-duty-lbl { color: #96200F; font-size: 9.5pt; font-weight: 700; }
-  .tel-car.is-left .tel-carname { color: #96200F; }
+  .tel-car.is-left .tel-tag { background: #F3DAD3; color: #96200F; border-right-color: #96200F; }
 
   .tel-who,
   .tel-when,
@@ -2831,24 +2884,28 @@
     justify-content: center;
     min-width: 0;
     padding: 0 1mm;
-    border-right: .5pt solid #8B9199;
+    border-right: .8pt solid #7A5464;
     overflow: hidden;
+    white-space: nowrap;
   }
 
-  .tel-who { grid-row: 1; border-bottom: .5pt dotted #C8CDD2; }
-  .tel-when { grid-row: 2; font-size: 12pt; font-variant-numeric: tabular-nums; }
+  /* いちばん右の列は、外枠と重なるので縦罫を落とす */
+  .tel-car > *:nth-last-child(-n+3) { border-right: 0; }
 
-  /* 3段目は「TELなし」などの覚え書き。空でも枠は残して手で書き足せるようにする */
+  .tel-who { grid-row: 1; border-bottom: .6pt dotted #7A5464; }
+  .tel-when { grid-row: 2; font-size: 13pt; font-weight: 700;
+              border-bottom: .6pt dotted #7A5464; font-variant-numeric: tabular-nums; }
+
+  /* 3段目は今までどおりの備考欄。かけた印もここに手で書き入れる */
   .tel-memo {
     grid-row: 3;
-    border-top: .5pt solid #C8CDD2;
-    background: #FBF7F8;
-    font-size: 8.5pt;
-    color: #2B3138;
+    background: #FBF2F5;
+    font-size: 7.6pt;
+    color: #63263A;
   }
 
-  .tel-person { font-size: 11pt; letter-spacing: .02em; white-space: nowrap; }
-  .tel-sama { font-size: 8.5pt; margin-left: 1.5mm; }
+  .tel-person { font-size: 12pt; font-weight: 700; letter-spacing: .02em; }
+  .tel-sama { font-size: 7pt; font-weight: 400; margin-left: 1mm; }
 
   /* 列が少ない日は1人ぶんの桝が広くなるので、そのぶん字も大きく取る。
      多い日はいまの紙と同じ大きさまで落として、6名でも収まるようにする */
@@ -2856,16 +2913,22 @@
   .tel-car[data-cols="3"] .tel-person { font-size: 13pt; }
   .tel-car[data-cols="2"] .tel-when,
   .tel-car[data-cols="3"] .tel-when { font-size: 14pt; }
-  .tel-car[data-cols="4"] .tel-person { font-size: 12pt; }
-  .tel-car[data-cols="4"] .tel-when { font-size: 13pt; }
-  .tel-car[data-cols="5"] .tel-person { font-size: 11.5pt; }
-  .tel-car[data-cols="5"] .tel-when { font-size: 12.5pt; }
+  .tel-car[data-cols="5"] .tel-person { font-size: 11pt; }
+  .tel-car[data-cols="5"] .tel-when { font-size: 12pt; }
+  .tel-car[data-cols="6"] .tel-person { font-size: 10pt; }
+  .tel-car[data-cols="6"] .tel-when { font-size: 11pt; }
+  .tel-car[data-cols="5"] .tel-memo,
+  .tel-car[data-cols="6"] .tel-memo { font-size: 7pt; }
 
   /* 送迎表・業務日誌と同じく、振替と新規・増回は氏名の色で見分ける */
   .tel-who.st-furikae .tel-person, .tel-who.st-furikae .tel-sama { color: #3C5C15; font-weight: 700; }
   .tel-who.st-shinki .tel-person, .tel-who.st-shinki .tel-sama { color: #8E480C; font-weight: 700; }
 
   /* 欠席の方も電話するので載せる。氏名を赤線で消し、時刻の桝に理由を出す */
+  .tel-who.is-away,
+  .tel-when.is-away,
+  .tel-memo.is-away { background: #F8E9E7; }
+
   .tel-who.is-away .tel-person,
   .tel-who.is-away .tel-sama { color: #C4172A; }
 
@@ -4407,7 +4470,7 @@
   <details class="fold" id="fold-legend">
     <summary><span class="fd-title">この画面の使い方</span><span class="fd-note">記号の意味と操作のまとめ</span>
       <!-- 古い控えを開いていないか、ここで見分けられるようにしておく -->
-      <span class="fd-ver">版 2026-08-16</span></summary>
+      <span class="fd-ver">版 2026-08-16b</span></summary>
     <div class="fold-body">
   <div class="legend">
     <span class="item"><span class="swatch s-wc" data-icon="wc"></span>車椅子（リフト・スロープ使用）</span>
@@ -8910,8 +8973,10 @@
 
   /* 送迎表と同じ午前＝藍・午後＝臙脂で通す */
   const NISSHI_PARTS = [
-    { part: "am", label: "午前", ink: "#1B3557", band: "#DEE7F1", tint: "#EFF3F9" },
-    { part: "pm", label: "午後", ink: "#63263A", band: "#EFDCE2", tint: "#F8EEF1" }
+    { part: "am", label: "午前", ink: "#1B3557", band: "#DEE7F1",
+      tint: "#EFF3F9", pale: "#F4F7FB", empty: "#F3F6F8" },
+    { part: "pm", label: "午後", ink: "#63263A", band: "#EFDCE2",
+      tint: "#F8EEF1", pale: "#FCF6F8", empty: "#F9F5F6" }
   ];
 
   /* 日誌は要介護と介護予防の2段。介護度が未設定の方は要介護の段に置く
@@ -9079,6 +9144,8 @@
     col.style.setProperty("--ns-ink", def.ink);
     col.style.setProperty("--ns-band", def.band);
     col.style.setProperty("--ns-tint", def.tint);
+    col.style.setProperty("--ns-pale", def.pale);
+    col.style.setProperty("--ns-empty", def.empty);
     col.style.setProperty("--ns-cols", kind === "temp" ? KENON_COLS : NISSHI_COLS);
     col.style.setProperty("--ns-name-size", scale.name);
     col.style.setProperty("--ns-head-size", scale.head);
@@ -9098,8 +9165,20 @@
     const head = el("div", "ns-row head");
     const heads = kind === "temp"
       ? ["", "氏名", "来所前　検温"]
-      : ["", "氏名", "運動", "血圧①", "血圧②", "脈", "体温", "SPO2", "備考"];
-    heads.forEach((h) => head.append(nisshiCell(null, h)));
+      : ["", "氏名", "運動", "血圧", "脈", "体温", "SPO2", "備考"];
+    heads.forEach((h) => {
+      /* 血圧は上に「血圧」、下に①②を並べた2段の見出しにする */
+      if (kind !== "temp" && h === "血圧") {
+        const cell = nisshiCell("ns-bph", "");
+        cell.append(el("b", null, "血圧"));
+        const sub = el("u");
+        sub.append(el("s", null, "①"), el("s", null, "②"));
+        cell.append(sub);
+        head.append(cell);
+        return;
+      }
+      head.append(nisshiCell(null, h));
+    });
     grid.append(head);
 
     const top = nisshiBlock(kind, def.part, care, careFuri, layout.care, 0);
@@ -9187,7 +9266,11 @@
     const section = document.getElementById("leg-pm-pick");
     if (!section) return [];
     return [...section.querySelectorAll(".car")].map((car) => {
+      /* 号車枠のある車は記入した番号、名前のある車はその名前を見出しにする */
       const nameEl = car.querySelector(".car-name");
+      const noBox = car.querySelector(".no-box");
+      const label = nameEl ? nameEl.textContent
+        : (noBox && noBox.textContent.trim() ? noBox.textContent.trim() + "号車" : "");
       const driver = car.querySelector(".driver-select");
 
       const riders = rowsOf(car).map((stop) => {
@@ -9205,11 +9288,7 @@
         };
       }).filter(Boolean);
 
-      return {
-        car: nameEl ? nameEl.textContent : "",
-        driver: driver ? driver.value : "",
-        riders: riders
-      };
+      return { car: label, driver: driver ? driver.value : "", riders: riders };
     }).filter((c) => c.riders.length > 0);
   }
 
@@ -9244,11 +9323,15 @@
     const tag = el("div", "tel-tag");
     if (car.leftover) {
       tag.append(el("span", "tel-duty-lbl", "未割当"));
-      tag.append(el("span", "tel-carname", "担当未定"));
+      tag.append(el("span", "tel-driver", "担当未定"));
     } else {
-      tag.append(el("span", "tel-duty-lbl", "担当"));
-      tag.append(el("span", "tel-driver", car.driver || ""));
-      if (car.car) tag.append(el("span", "tel-carname", car.car));
+      tag.append(car.car
+        ? el("span", "tel-carname", car.car)
+        : el("span", "tel-carname is-blank", "号車"));
+      /* 担当が決まっていない車は、名前のかわりに書き込む下線を出す */
+      tag.append(car.driver
+        ? el("span", "tel-driver", car.driver)
+        : el("span", "tel-driver is-blank", ""));
     }
     box.append(tag);
 
@@ -9267,7 +9350,7 @@
       box.append(when);
 
       /* 連絡のときの覚え書き。空でも枠は出して、その場で書き足せるようにする */
-      const memo = el("div", "tel-memo");
+      const memo = el("div", "tel-memo" + (r && r.away ? " is-away" : ""));
       memo.style.gridColumn = String(i + 2);
       if (r && r.memo) memo.textContent = r.memo;
       box.append(memo);
@@ -9306,15 +9389,22 @@
     const root = el("div", "tel-doc");
     const sheet = el("div", "tel");
 
-    const top = el("div", "tel-top");
-    top.append(el("h1", null, "午後お迎え　電話連絡表"));
-    top.append(el("span", "tel-date", titleDate(currentDate)));
-    top.append(el("span", "tel-office", OFFICE.name || ""));
-    sheet.append(top);
-
     const list = el("div", "tel-list");
     const cars = telCars();
     const left = telLeftover();
+
+    /* かける前にざっと数が合うか見られるよう、人数と台数を見出しに出す */
+    const all = cars.reduce((n, c) => n.concat(c.riders), []).concat(left);
+    const away = all.filter((r) => r.away).length;
+
+    const top = el("div", "tel-top");
+    top.append(el("h1", null, "午後お迎え　電話連絡表"));
+    top.append(el("span", "tel-date", titleDate(currentDate)));
+    top.append(el("span", "tel-sp", ""));
+    top.append(el("span", "tel-num",
+      all.length + "名" + (away ? "（欠席" + away + "）" : "") + "・" + cars.length + "台"));
+    top.append(el("span", "tel-office", OFFICE.name || ""));
+    sheet.append(top);
     /* 列の数は、車と未割当をあわせて、いちばん人数の多いまとまりに合わせる */
     const cols = telCols(cars.concat([{ riders: left }]));
 
