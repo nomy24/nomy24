@@ -16,7 +16,8 @@
   * { box-sizing: border-box; }
 
   :root {
-    --enji: #63263A; --enji-soft: #EFDCE2; --enji-line: #A98795; --enji-pale: #FBF2F5;
+    /* 刷ったとき薄く見えたので、罫はどれも濃いめに取ってある */
+    --enji: #63263A; --enji-soft: #EFDCE2; --enji-line: #7A5464; --enji-pale: #FBF2F5;
     --warn: #C4172A; --warn-soft: #F8E9E7;
     --rule: #8A96A3; --rule-2: #C4CAD1;
     --ink: #16202A; --ink-2: #4A5765; --ink-3: #8A96A3;
@@ -49,16 +50,16 @@
   .body { flex: 1; display: flex; flex-direction: column; gap: 1.8mm; min-height: 0;
           justify-content: space-between; }
 
-  .g { border: .9pt solid var(--enji-line); border-radius: 1.8mm; overflow: hidden;
+  .g { border: 1.2pt solid var(--enji-line); border-radius: 1.8mm; overflow: hidden;
        display: flex; flex-direction: column; flex: none; break-inside: avoid; }
 
   .gh { flex: none; display: flex; align-items: baseline; gap: 2.4mm;
         background: var(--enji-soft); color: var(--enji);
-        padding: .8mm 2.4mm; border-bottom: .9pt solid var(--enji-line); }
+        padding: .8mm 2.4mm; border-bottom: 1.1pt solid var(--enji-line); }
   .gh b { font-size: 8.4pt; font-weight: 700; letter-spacing: .06em; }
   /* 担当（運転手）の名前を刷る。下の担当表を見に行かなくてよくなる */
   .gh .drv { font-size: 10.5pt; font-weight: 700; letter-spacing: .06em; }
-  .gh .drv.blank { min-width: 26mm; height: 3.4mm; border-bottom: .9pt solid var(--enji-line); }
+  .gh .drv.blank { min-width: 26mm; height: 3.4mm; border-bottom: 1.1pt solid var(--enji-line); }
   .gh .sp { flex: 1; }
   .gh .n { font-size: 7.6pt; }
 
@@ -66,7 +67,7 @@
   /* どの組でも1行の高さをそろえる。1名の運転手だけ間延びしないように */
   .p { flex: none; height: 11.6mm; display: grid;
        grid-template-columns: 46mm 17mm 1fr 20mm; align-items: center; gap: 2.4mm;
-       padding: 0 2.4mm; border-bottom: .5pt solid #DCC9D0; }
+       padding: 0 2.4mm; border-bottom: .8pt solid #A8848F; }
   .p:last-child { border-bottom: 0; }
   .p > i { font-style: normal; }
 
@@ -74,27 +75,27 @@
   .nm small { font-size: 7pt; font-weight: 400; color: var(--ink-2); margin-left: 1mm; }
   .t { font-size: 12pt; font-weight: 700; text-align: center; font-variant-numeric: tabular-nums; }
   .t.off { font-size: 10pt; color: var(--warn); }
-  .memo { position: relative; border-bottom: .8pt solid var(--enji-line); height: 4.6mm; }
+  .memo { position: relative; border-bottom: 1.1pt solid var(--enji-line); height: 4.6mm; }
   .memo-tag { position: absolute; left: 0; bottom: .6mm; font-size: 7pt; font-style: normal;
               color: var(--enji); background: var(--enji-pale); border-radius: 1mm; padding: 0 1.2mm; }
 
   /* かけた印。電話中に鉛筆で押さえられるよう、人ごとに枠を置く */
   .ck { display: flex; gap: 1.4mm; justify-content: flex-end; }
   .ck b { display: flex; align-items: center; justify-content: center;
-          width: 8.6mm; height: 5mm; border: .8pt solid var(--enji-line); border-radius: 1mm;
-          font-size: 6.6pt; font-weight: 700; color: #8A6473; white-space: nowrap; }
+          width: 8.6mm; height: 5mm; border: 1pt solid var(--enji-line); border-radius: 1mm;
+          font-size: 6.6pt; font-weight: 700; color: #63263A; white-space: nowrap; }
 
   .p.off { background: var(--warn-soft); }
   .p.off .nm { color: var(--warn); text-decoration: line-through; }
-  .p.off .ck b { color: #C7A9B2; border-style: dashed; }
+  .p.off .ck b { color: #A8848F; border-style: dashed; }
 
   /* ── 担当表 ───────────────────────────────── */
   .roles { flex: none; margin-top: 2.4mm; padding-top: 2.4mm; border-top: 1.2pt solid var(--enji); }
   .rc { font-size: 10.5pt; font-weight: 700; letter-spacing: .18em; color: var(--enji); margin-bottom: 1.4mm; }
-  .rt { border: .9pt solid var(--enji-line); border-radius: 1.6mm; overflow: hidden; }
-  .rr { display: grid; grid-template-columns: 16mm repeat(5, 1fr); border-bottom: .7pt solid var(--enji-line); }
+  .rt { border: 1.2pt solid var(--enji-line); border-radius: 1.6mm; overflow: hidden; }
+  .rr { display: grid; grid-template-columns: 16mm repeat(5, 1fr); border-bottom: .9pt solid var(--enji-line); }
   .rr:last-child { border-bottom: 0; }
-  .rr > i { font-style: normal; border-right: .7pt solid var(--enji-line);
+  .rr > i { font-style: normal; border-right: .9pt solid var(--enji-line);
             display: flex; align-items: center; justify-content: center; height: 8mm; }
   .rr > i:last-child { border-right: 0; }
   .rr.rh { background: var(--enji-soft); color: var(--enji); }

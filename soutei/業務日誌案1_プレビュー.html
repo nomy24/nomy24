@@ -9,7 +9,7 @@
      業務日誌 案1「罫で読ませる」
      並びはいまの様式のまま。5行ごとの濃い罫、空行の薄い塗り、
      血圧の測り方と状態の札を足したもの。
-     血圧は3回ぶんの桝に分け、振替の方は人数に数えず
+     血圧は2回ぶんの桝に分け、振替の方は人数に数えず
      通常利用の方のすぐ下に続けて置く。
      Ctrl/⌘ + P →「PDFに保存」でそのまま刷れます。
      ══════════════════════════════════════════════ */
@@ -22,7 +22,8 @@
     --enji: #63263A; --enji-soft: #EFDCE2; --enji-pale: #FCF6F8;
     --warn: #C4172A; --warn-soft: #F8E9E7;
     --shin: #B4610E; --furi: #4C7A1E; --furi-soft: #EDF3E3;
-    --rule: #8A96A3; --rule-2: #C4CAD1; --rule-3: #6B7480;
+    /* 刷ったとき薄く見えたので、罫はどれも濃いめに取ってある */
+    --rule: #4A5765; --rule-2: #7C8794; --rule-3: #253039;
     --ink: #16202A; --ink-2: #4A5765; --ink-3: #8A96A3;
     --gothic: "Hiragino Kaku Gothic ProN", "Yu Gothic", "YuGothic", "Noto Sans JP", "Meiryo", system-ui, sans-serif;
   }
@@ -51,14 +52,14 @@
   /* ── 午前・午後を左右に置く ───────────────── */
   .sheet { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 3mm; min-height: 0; }
   .col { display: flex; flex-direction: column; min-height: 0;
-         border: .9pt solid var(--rule); border-radius: 2mm; overflow: hidden; }
+         border: 1.2pt solid var(--rule-3); border-radius: 2mm; overflow: hidden; }
 
   .band { display: flex; align-items: baseline; gap: 3mm; padding: 1.2mm 2.4mm;
-          border-bottom: .9pt solid var(--rule); }
+          border-bottom: 1.2pt solid var(--rule-3); }
   .band b { font-size: 12pt; font-weight: 700; letter-spacing: .2em; }
   .band .sp { flex: 1; }
   .band .cnt { font-size: 7.2pt; color: var(--ink-2); letter-spacing: .02em; }
-  .band .cnt i { display: inline-block; min-width: 8mm; border-bottom: .8pt solid var(--rule);
+  .band .cnt i { display: inline-block; min-width: 8mm; border-bottom: 1pt solid var(--rule);
                  margin: 0 .4mm; font-style: normal; }
 
   .col.am .band { background: var(--ai-soft); color: var(--ai); }
@@ -67,28 +68,28 @@
   /* ── 桝 ───────────────────────────────────── */
   .grid { flex: 1; display: flex; flex-direction: column; min-height: 0; }
   .r { display: grid; align-items: center; flex: 1 1 0; min-height: 0;
-       border-bottom: .5pt solid var(--rule-2); position: relative; }
+       border-bottom: .7pt solid var(--rule-2); position: relative; }
   .r > i { font-style: normal; padding: 0 1.1mm; overflow: hidden; white-space: nowrap;
-           border-right: .5pt solid var(--rule-2); height: 100%;
+           border-right: .7pt solid var(--rule-2); height: 100%;
            display: flex; align-items: center; }
   .r > i:last-child { border-right: 0; }
 
   /* 5行ごとに濃い罫。ここで目を止めて、横にすべらないようにする */
-  .r.mark5 { border-bottom-color: #5B646E; border-bottom-width: 1.1pt; }
+  .r.mark5 { border-bottom-color: #1B2630; border-bottom-width: 1.3pt; }
 
   /* 見出しは血圧だけ2段。上に「血圧」、下に①②③ */
   .r.th { flex: none; height: 7mm; font-size: 7.2pt; font-weight: 700; letter-spacing: .03em;
-          border-bottom: 1pt solid var(--rule-3); align-items: stretch; }
+          border-bottom: 1.4pt solid var(--rule-3); align-items: stretch; }
   .r.th > i { justify-content: center; align-items: center; }
   .r.th > i.nm { justify-content: flex-start; }
   .r.th > i.bph { flex-direction: column; padding: 0; }
   .bph b { display: flex; align-items: center; justify-content: center;
            width: 100%; height: 50%; font-weight: 700; }
   .bph u { display: flex; width: 100%; height: 50%; text-decoration: none;
-           border-top: .5pt solid var(--rule-2); }
+           border-top: .7pt solid var(--rule-2); }
   .bph s { flex: 1; display: flex; align-items: center; justify-content: center;
            text-decoration: none; font-size: 6.8pt;
-           border-right: .5pt solid var(--rule-2); }
+           border-right: .7pt solid var(--rule-2); }
   .bph s:last-child { border-right: 0; }
   .col.am .r.th { background: var(--ai-pale); color: var(--ai); }
   .col.pm .r.th { background: var(--enji-pale); color: var(--enji); }
@@ -96,7 +97,7 @@
   .no { justify-content: flex-end !important; font-size: 7pt; color: var(--ink-2);
         font-variant-numeric: tabular-nums; }
   .nm { font-size: 9.4pt; font-weight: 700; letter-spacing: .01em; }
-  .sl { justify-content: center !important; color: var(--ink-3); font-size: 7pt; }
+  .sl { justify-content: center !important; color: #6B7480; font-size: 7pt; }
   .bi, .si { justify-content: center !important; }
 
   /* 空いている桝は薄く塗る。書く場所と書かない場所が一目で分かる */
@@ -120,7 +121,7 @@
 
   .subband { flex: none; height: 4.6mm; display: flex; align-items: center; justify-content: center;
              font-size: 8pt; font-weight: 700; letter-spacing: .5em; text-indent: .5em;
-             border-top: 1pt solid var(--rule-3); border-bottom: 1pt solid var(--rule-3); }
+             border-top: 1.4pt solid var(--rule-3); border-bottom: 1.4pt solid var(--rule-3); }
   .col.am .subband { background: var(--ai-soft); color: var(--ai); }
   .col.pm .subband { background: var(--enji-soft); color: var(--enji); }
 
@@ -144,15 +145,15 @@
   .st-fu  { background: var(--furi); font-size: 6pt; padding: 0 1mm; }
 
   /* ── 記名欄 ───────────────────────────────── */
-  .foot { flex: none; border-top: 1pt solid var(--rule-3); padding: 1.2mm 2.4mm 1mm;
+  .foot { flex: none; border-top: 1.4pt solid var(--rule-3); padding: 1.2mm 2.4mm 1mm;
           position: relative; font-size: 7.2pt; color: var(--ink-2); }
   .fr { display: flex; align-items: baseline; gap: 1.6mm; padding: .5mm 0; padding-right: 20mm; }
   .fr b { color: var(--ink); font-size: 7.6pt; }
-  .ln { flex: 1; border-bottom: .8pt solid var(--rule); height: 3mm; }
+  .ln { flex: 1; border-bottom: 1pt solid var(--rule); height: 3mm; }
   .fin { position: absolute; right: 2.4mm; top: 1.4mm; width: 17mm; text-align: center;
-         border: .8pt solid var(--rule); border-radius: 1.4mm; overflow: hidden; }
+         border: 1pt solid var(--rule); border-radius: 1.4mm; overflow: hidden; }
   .fin b { display: block; font-size: 6.8pt; padding: .3mm 0; background: #F1F4F7; color: var(--ink-2);
-           border-bottom: .8pt solid var(--rule); font-weight: 700; }
+           border-bottom: 1pt solid var(--rule); font-weight: 700; }
   .fin i { display: block; height: 8mm; }
 
   @media print {
@@ -166,10 +167,10 @@
 
 <div class="hint">
   <b>業務日誌 案1のプレビューです。</b>アプリの印刷レイアウトにはまだ入れていません。<br>
-  今回の直し：<b>血圧を①②③の3回ぶんに分けました</b>。
+  今回の直し：<b>血圧を①②の2回ぶん</b>にしました（1桝17mm。もとの血圧欄18mmとほぼ同じ広さです）。
+  あわせて<b>罫の色を全体に濃くしました</b>。刷ったとき薄く見えたためです。<br>
   <b>振替の方は通常利用の方のすぐ下に続けて置き</b>（森田 光子さん・渡部 秀夫さん・高橋 キヨさん・
-  米倉 ツネさん・星野 幸子さん）、<b>「○日分振替」は状態の桝に入れました</b>。<br>
-  血圧を3つに割ったぶん、氏名・運動・脈・体温・SPO2・備考の幅を少しずつ詰めています。<br>
+  米倉 ツネさん・星野 幸子さん）、<b>「○日分振替」は状態の桝に入れています</b>。<br>
   <span class="k">Ctrl</span>／<span class="k">⌘</span> ＋ <span class="k">P</span> →
   送信先「PDFに保存」で、A4横1枚として刷れます。
 </div>
@@ -186,49 +187,49 @@
           <span class="cnt">利用者数：<i></i>名（要介護者<i></i>名　要支援者<i></i>名）</span>
         </div>
         <div class="grid">
-          <div class="r th" style="grid-template-columns:5.2mm 1fr 8.5mm 37.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i></i><i class="nm">氏名</i><i>運動</i><i class="bph"><b>血圧</b><u><s>①</s><s>②</s><s>③</s></u></i><i>脈</i><i>体温</i><i>SPO2</i><i>備考</i><i>状態</i></div>
-          <div class="r" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no">1</i><i class="nm">上田 ノブ</i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"></i><i class="si"></i></div>
-          <div class="r" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no">2</i><i class="nm">大野 スミ</i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"><span class="bp bp-b">実測</span></i><i class="si"></i></div>
-          <div class="r off" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no">3</i><i class="nm">小島 チヨ</i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"><span class="bp bp-s is-long">右シャント実測</span></i><i class="si"><span class="st st-off">体調</span></i></div>
-          <div class="r" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no">4</i><i class="nm">白石 ミツ</i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"><span class="bp bp-b">実測</span></i><i class="si"></i></div>
-          <div class="r mark5" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no">5</i><i class="nm">菅原 テル</i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"><span class="bp bp-a"><b class="lr">左</b>上腕計</span></i><i class="si"></i></div>
-          <div class="r off" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no">6</i><i class="nm">田中 ハル</i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"><span class="bp bp-a">上腕計</span></i><i class="si"><span class="st st-off">SS</span></i></div>
-          <div class="r" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no">7</i><i class="nm">内藤 ハナ</i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"></i><i class="si"></i></div>
-          <div class="r" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no">8</i><i class="nm">野口 定雄</i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"><span class="bp bp-a"><b class="lr">右</b>上腕計</span></i><i class="si"></i></div>
-          <div class="r" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no">9</i><i class="nm">宮本 サダ</i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"><span class="bp bp-a">上腕計</span></i><i class="si"><span class="st st-sh">増回</span></i></div>
-          <div class="r mark5" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no">10</i><i class="nm">村上 三郎</i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"><span class="bp bp-s is-long">右シャント実測</span></i><i class="si"></i></div>
-          <div class="r furi ftop" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i class="nm">森田 光子</i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"><span class="bp bp-a">上腕計</span></i><i class="si"><span class="st st-fu">17日分振替</span></i></div>
-          <div class="r furi" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i class="nm">渡部 秀夫</i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"></i><i class="si"><span class="st st-fu">20日分振替</span></i></div>
-          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
-          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
-          <div class="r empty mark5" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
-          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
-          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
-          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
-          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
-          <div class="r empty mark5" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
-          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
-          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
-          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
-          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
-          <div class="r empty mark5" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
-          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
-          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
-          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="r th" style="grid-template-columns:5.2mm 1fr 8.5mm 34mm 9mm 9mm 10.5mm 18mm 15.5mm"><i></i><i class="nm">氏名</i><i>運動</i><i class="bph"><b>血圧</b><u><s>①</s><s>②</s></u></i><i>脈</i><i>体温</i><i>SPO2</i><i>備考</i><i>状態</i></div>
+          <div class="r" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no">1</i><i class="nm">上田 ノブ</i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"></i><i class="si"></i></div>
+          <div class="r" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no">2</i><i class="nm">大野 スミ</i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"><span class="bp bp-b">実測</span></i><i class="si"></i></div>
+          <div class="r off" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no">3</i><i class="nm">小島 チヨ</i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"><span class="bp bp-s is-long">右シャント実測</span></i><i class="si"><span class="st st-off">体調</span></i></div>
+          <div class="r" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no">4</i><i class="nm">白石 ミツ</i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"><span class="bp bp-b">実測</span></i><i class="si"></i></div>
+          <div class="r mark5" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no">5</i><i class="nm">菅原 テル</i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"><span class="bp bp-a"><b class="lr">左</b>上腕計</span></i><i class="si"></i></div>
+          <div class="r off" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no">6</i><i class="nm">田中 ハル</i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"><span class="bp bp-a">上腕計</span></i><i class="si"><span class="st st-off">SS</span></i></div>
+          <div class="r" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no">7</i><i class="nm">内藤 ハナ</i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"></i><i class="si"></i></div>
+          <div class="r" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no">8</i><i class="nm">野口 定雄</i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"><span class="bp bp-a"><b class="lr">右</b>上腕計</span></i><i class="si"></i></div>
+          <div class="r" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no">9</i><i class="nm">宮本 サダ</i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"><span class="bp bp-a">上腕計</span></i><i class="si"><span class="st st-sh">増回</span></i></div>
+          <div class="r mark5" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no">10</i><i class="nm">村上 三郎</i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"><span class="bp bp-s is-long">右シャント実測</span></i><i class="si"></i></div>
+          <div class="r furi ftop" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i class="nm">森田 光子</i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"><span class="bp bp-a">上腕計</span></i><i class="si"><span class="st st-fu">17日分振替</span></i></div>
+          <div class="r furi" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i class="nm">渡部 秀夫</i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"></i><i class="si"><span class="st st-fu">20日分振替</span></i></div>
+          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="r empty mark5" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="r empty mark5" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="r empty mark5" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
           <div class="subband">介 護 予 防</div>
-          <div class="r" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no">11</i><i class="nm">石田 正治</i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"><span class="bp bp-a">上腕計</span></i><i class="si"></i></div>
-          <div class="r" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no">12</i><i class="nm">河合 秀子</i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"><span class="bp bp-a"><b class="lr">右</b>上腕計</span></i><i class="si"></i></div>
-          <div class="r" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no">13</i><i class="nm">谷口 良一</i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"><span class="bp bp-s">左シャント</span></i><i class="si"></i></div>
-          <div class="r" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no">14</i><i class="nm">山田 トシ子</i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"><span class="bp bp-s">左シャント</span></i><i class="si"></i></div>
-          <div class="r furi ftop" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i class="nm">高橋 キヨ</i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"><span class="bp bp-a">上腕計</span></i><i class="si"><span class="st st-fu">20日分振替</span></i></div>
-          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
-          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
-          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
-          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
-          <div class="r empty mark5" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
-          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
-          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
-          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="r" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no">11</i><i class="nm">石田 正治</i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"><span class="bp bp-a">上腕計</span></i><i class="si"></i></div>
+          <div class="r" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no">12</i><i class="nm">河合 秀子</i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"><span class="bp bp-a"><b class="lr">右</b>上腕計</span></i><i class="si"></i></div>
+          <div class="r" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no">13</i><i class="nm">谷口 良一</i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"><span class="bp bp-s">左シャント</span></i><i class="si"></i></div>
+          <div class="r" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no">14</i><i class="nm">山田 トシ子</i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"><span class="bp bp-s">左シャント</span></i><i class="si"></i></div>
+          <div class="r furi ftop" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i class="nm">高橋 キヨ</i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"><span class="bp bp-a">上腕計</span></i><i class="si"><span class="st st-fu">20日分振替</span></i></div>
+          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="r empty mark5" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
         </div>
         <div class="foot">
           <div class="fr"><b>勤務者</b><span>生活相談員：</span><i class="ln"></i><span>看護師：</span><i class="ln"></i></div>
@@ -242,49 +243,49 @@
           <span class="cnt">利用者数：<i></i>名（要介護者<i></i>名　要支援者<i></i>名）</span>
         </div>
         <div class="grid">
-          <div class="r th" style="grid-template-columns:5.2mm 1fr 8.5mm 37.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i></i><i class="nm">氏名</i><i>運動</i><i class="bph"><b>血圧</b><u><s>①</s><s>②</s><s>③</s></u></i><i>脈</i><i>体温</i><i>SPO2</i><i>備考</i><i>状態</i></div>
-          <div class="r" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no">1</i><i class="nm">秋山 三男</i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"></i><i class="si"></i></div>
-          <div class="r" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no">2</i><i class="nm">東 ミサヲ</i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"><span class="bp bp-a">上腕計</span></i><i class="si"></i></div>
-          <div class="r" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no">3</i><i class="nm">佐野 ハツ</i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"><span class="bp bp-a"><b class="lr">右</b>上腕計</span></i><i class="si"></i></div>
-          <div class="r off" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no">4</i><i class="nm">沢田 正義</i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"><span class="bp bp-a">上腕計</span></i><i class="si"><span class="st st-off">入院</span></i></div>
-          <div class="r mark5" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no">5</i><i class="nm">柴田 ハツヱ</i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"><span class="bp bp-b">実測</span></i><i class="si"></i></div>
-          <div class="r" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no">6</i><i class="nm">島田 文夫</i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"></i><i class="si"></i></div>
-          <div class="r" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no">7</i><i class="nm">竹内 サト</i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"><span class="bp bp-s is-long">右シャント実測</span></i><i class="si"></i></div>
-          <div class="r" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no">8</i><i class="nm">早川 春夫</i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"><span class="bp bp-b">実測</span></i><i class="si"></i></div>
-          <div class="r" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no">9</i><i class="nm">前田 豊</i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"><span class="bp bp-a"><b class="lr">左</b>上腕計</span></i><i class="si"></i></div>
-          <div class="r mark5" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no">10</i><i class="nm">増田 伸一</i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"><span class="bp bp-b">実測</span></i><i class="si"></i></div>
-          <div class="r furi ftop" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i class="nm">米倉 ツネ</i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"><span class="bp bp-a">上腕計</span></i><i class="si"><span class="st st-fu">14日分振替</span></i></div>
-          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
-          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
-          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
-          <div class="r empty mark5" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
-          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
-          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
-          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
-          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
-          <div class="r empty mark5" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
-          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
-          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
-          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
-          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
-          <div class="r empty mark5" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
-          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
-          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
-          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="r th" style="grid-template-columns:5.2mm 1fr 8.5mm 34mm 9mm 9mm 10.5mm 18mm 15.5mm"><i></i><i class="nm">氏名</i><i>運動</i><i class="bph"><b>血圧</b><u><s>①</s><s>②</s></u></i><i>脈</i><i>体温</i><i>SPO2</i><i>備考</i><i>状態</i></div>
+          <div class="r" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no">1</i><i class="nm">秋山 三男</i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"></i><i class="si"></i></div>
+          <div class="r" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no">2</i><i class="nm">東 ミサヲ</i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"><span class="bp bp-a">上腕計</span></i><i class="si"></i></div>
+          <div class="r" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no">3</i><i class="nm">佐野 ハツ</i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"><span class="bp bp-a"><b class="lr">右</b>上腕計</span></i><i class="si"></i></div>
+          <div class="r off" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no">4</i><i class="nm">沢田 正義</i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"><span class="bp bp-a">上腕計</span></i><i class="si"><span class="st st-off">入院</span></i></div>
+          <div class="r mark5" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no">5</i><i class="nm">柴田 ハツヱ</i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"><span class="bp bp-b">実測</span></i><i class="si"></i></div>
+          <div class="r" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no">6</i><i class="nm">島田 文夫</i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"></i><i class="si"></i></div>
+          <div class="r" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no">7</i><i class="nm">竹内 サト</i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"><span class="bp bp-s is-long">右シャント実測</span></i><i class="si"></i></div>
+          <div class="r" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no">8</i><i class="nm">早川 春夫</i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"><span class="bp bp-b">実測</span></i><i class="si"></i></div>
+          <div class="r" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no">9</i><i class="nm">前田 豊</i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"><span class="bp bp-a"><b class="lr">左</b>上腕計</span></i><i class="si"></i></div>
+          <div class="r mark5" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no">10</i><i class="nm">増田 伸一</i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"><span class="bp bp-b">実測</span></i><i class="si"></i></div>
+          <div class="r furi ftop" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i class="nm">米倉 ツネ</i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"><span class="bp bp-a">上腕計</span></i><i class="si"><span class="st st-fu">14日分振替</span></i></div>
+          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="r empty mark5" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="r empty mark5" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="r empty mark5" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
           <div class="subband">介 護 予 防</div>
-          <div class="r" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no">11</i><i class="nm">岡部 ウメ</i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"><span class="bp bp-s">左シャント</span></i><i class="si"></i></div>
-          <div class="r" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no">12</i><i class="nm">富田 サキ</i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"><span class="bp bp-a">上腕計</span></i><i class="si"></i></div>
-          <div class="r furi ftop" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i class="nm">星野 幸子</i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"><span class="bp bp-a">上腕計</span></i><i class="si"><span class="st st-fu">21日分振替</span></i></div>
-          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
-          <div class="r empty mark5" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
-          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
-          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
-          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
-          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
-          <div class="r empty mark5" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
-          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
-          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
-          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 12.5mm 12.5mm 12.5mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="r" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no">11</i><i class="nm">岡部 ウメ</i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"><span class="bp bp-s">左シャント</span></i><i class="si"></i></div>
+          <div class="r" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no">12</i><i class="nm">富田 サキ</i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"><span class="bp bp-a">上腕計</span></i><i class="si"></i></div>
+          <div class="r furi ftop" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i class="nm">星野 幸子</i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i class="bi"><span class="bp bp-a">上腕計</span></i><i class="si"><span class="st st-fu">21日分振替</span></i></div>
+          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="r empty mark5" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="r empty mark5" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="r empty" style="grid-template-columns:5.2mm 1fr 8.5mm 17mm 17mm 9mm 9mm 10.5mm 18mm 15.5mm"><i class="no"></i><i></i><i></i><i class="sl">／</i><i class="sl">／</i><i></i><i></i><i></i><i></i><i></i></div>
         </div>
         <div class="foot">
           <div class="fr"><b>勤務者</b><span>生活相談員：</span><i class="ln"></i><span>看護師：</span><i class="ln"></i></div>
