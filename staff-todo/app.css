@@ -452,7 +452,17 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
   cursor: pointer; font-size: 14px; font-weight: 600; min-height: 44px;
 }
 .staff-chip.is-active { border-color: var(--color-primary); background: var(--cat-daily-bg); }
+.staff-chip--readonly { cursor: default; }
 .staff-chip__dot { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+.staff-chip__you {
+  font-size: 11px; font-weight: 700; color: #fff; background: var(--color-primary);
+  border-radius: var(--radius-pill); padding: 2px 8px;
+}
+.staff-chip__unlinked {
+  font-size: 11px; font-weight: 700; color: var(--color-danger, #dc2626); background: var(--color-danger-bg, #fee2e2);
+  border-radius: var(--radius-pill); padding: 2px 8px;
+}
+.note--warn { color: var(--color-danger, #dc2626); }
 .staff-chip__edit {
   width: 40px; height: 40px; border-radius: 50%; border: none; background: var(--color-surface-muted);
   color: var(--color-text-muted); display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;

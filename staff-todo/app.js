@@ -66,6 +66,7 @@ function colorForStaff(staff) {
 }
 
 const ME_KEY = "staffTodo:me";
+let authedEmail = null; // 共有モードでログイン中のメールアドレス（職員との紐付けに使う）
 const LARGE_TEXT_KEY = "staffTodo:largeText";
 const HIDE_HEADER_KEY = "staffTodo:hideHeader";
 const GROUPS_SEEDED_KEY = "staffTodo:groupsSeeded";
@@ -83,7 +84,8 @@ const state = {
   groups: [],
   photos: [],
   phoneMemos: [],
-  meId: localStorage.getItem(ME_KEY) || null,
+  // 共有モードでは、ログイン中のメールアドレスから自動的に決まる（端末側で自由に選べない）
+  meId: firebaseConfigured ? null : (localStorage.getItem(ME_KEY) || null),
   screen: "todo",
   todoFilter: "open",
   todoSearch: "",
@@ -96,6 +98,16 @@ const state = {
 
 function meStaff() { return state.staff.find((s) => s.id === state.meId) || null; }
 function staffById(id) { return state.staff.find((s) => s.id === id) || null; }
+
+// 共有モード用：ログイン中のメールアドレスに一致する職員をstate.meIdに反映する。
+// 一致する職員がいない（まだ紐付けていない）場合はnullのまま。
+function syncMeFromAuth() {
+  if (!firebaseConfigured) return;
+  const staff = authedEmail
+    ? state.staff.find((s) => (s.email || "").toLowerCase() === authedEmail.toLowerCase())
+    : null;
+  state.meId = staff ? staff.id : null;
+}
 function groupById(id) { return state.groups.find((g) => g.id === id) || null; }
 
 // ---------------- トースト ----------------
@@ -1243,7 +1255,9 @@ function renderYouBadge() {
   } else {
     initial.textContent = "?";
     badge.style.background = "";
-    badge.title = "設定画面で名前を選んでください";
+    badge.title = firebaseConfigured
+      ? "このアカウントはまだ職員に紐付けられていません。設定画面を確認してください。"
+      : "設定画面で名前を選んでください";
   }
 }
 
@@ -1253,25 +1267,42 @@ function renderStaffPicker() {
     el.innerHTML = `<p class="note">まだ職員が登録されていません。「職員を追加する」から登録してください。</p>`;
     return;
   }
-  el.innerHTML = state.staff.map((s) => `
+
+  const warnHtml = (firebaseConfigured && !state.meId)
+    ? `<p class="note note--warn">このアカウント${authedEmail ? `（${escapeHtml(authedEmail)}）` : ""}はまだ職員に紐付けられていません。下の職員の鉛筆マークから、ログイン用メールアドレス欄にこのアドレスを入力してください。</p>`
+    : "";
+
+  const rowsHtml = state.staff.map((s) => `
     <div class="staff-row">
+      ${firebaseConfigured ? `
+      <div class="staff-chip staff-chip--readonly ${s.id === state.meId ? "is-active" : ""}">
+        <span class="staff-chip__dot" style="background:${s.color || AVATAR_COLORS[0]}">${escapeHtml(s.name.slice(0, 1))}</span>
+        ${escapeHtml(s.name)}
+        ${s.id === state.meId ? `<span class="staff-chip__you">あなた</span>` : ""}
+        ${!s.email ? `<span class="staff-chip__unlinked">未リンク</span>` : ""}
+      </div>` : `
       <button type="button" class="staff-chip ${s.id === state.meId ? "is-active" : ""}" data-id="${s.id}">
         <span class="staff-chip__dot" style="background:${s.color || AVATAR_COLORS[0]}">${escapeHtml(s.name.slice(0, 1))}</span>
         ${escapeHtml(s.name)}
-      </button>
+      </button>`}
       <button type="button" class="staff-chip__edit" data-edit-id="${s.id}" aria-label="${escapeHtml(s.name)}を編集する">
         <svg viewBox="0 0 24 24"><path d="M4 20h4l10.5-10.5a2 2 0 0 0 0-2.8l-1.2-1.2a2 2 0 0 0-2.8 0L4 16v4Z"/></svg>
       </button>
     </div>`).join("");
-  el.querySelectorAll(".staff-chip").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      state.meId = btn.dataset.id;
-      localStorage.setItem(ME_KEY, state.meId);
-      renderStaffPicker();
-      renderYouBadge();
-      toast(`${meStaff().name}として利用します`);
+
+  el.innerHTML = warnHtml + rowsHtml;
+
+  if (!firebaseConfigured) {
+    el.querySelectorAll(".staff-chip").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        state.meId = btn.dataset.id;
+        localStorage.setItem(ME_KEY, state.meId);
+        renderStaffPicker();
+        renderYouBadge();
+        toast(`${meStaff().name}として利用します`);
+      });
     });
-  });
+  }
   el.querySelectorAll("[data-edit-id]").forEach((btn) => {
     btn.addEventListener("click", () => {
       openStaffSheet(state.staff.find((s) => s.id === btn.dataset.editId));
@@ -1289,6 +1320,12 @@ function openStaffSheet(existing) {
       <label for="s-name">名前</label>
       <input id="s-name" name="name" type="text" required maxlength="20" value="${escapeHtml(existing?.name || "")}" placeholder="例：山田">
     </div>
+    ${firebaseConfigured ? `
+    <div class="field">
+      <label for="s-email">ログイン用メールアドレス（任意）</label>
+      <input id="s-email" name="email" type="email" maxlength="100" value="${escapeHtml(existing?.email || "")}" placeholder="例：asuka_yamada@example.com">
+      <p class="field__hint">Firebaseで発行したこの職員のログイン用アカウントと同じメールアドレスを入力すると、その職員がログインしたときに自動的に「あなた」として認識されます。</p>
+    </div>` : ""}
     <div class="field">
       <label>色</label>
       <input type="hidden" name="color" value="${color}">
@@ -1309,16 +1346,17 @@ function openStaffSheet(existing) {
     onSubmit: async (data) => {
       const payload = { name: data.name.trim(), color: data.color, groupId: data.groupId || null };
       if (!payload.name) return;
+      if (firebaseConfigured) payload.email = (data.email || "").trim().toLowerCase() || null;
       if (existing) await staffStore.update(existing.id, payload);
       else {
         const id = await staffStore.add({ ...payload, order: Date.now() });
-        if (!state.meId) { state.meId = id; localStorage.setItem(ME_KEY, id); }
+        if (!firebaseConfigured && !state.meId) { state.meId = id; localStorage.setItem(ME_KEY, id); }
       }
       toast(existing ? "保存しました" : "職員を追加しました");
     },
     onDelete: existing ? async () => {
       await staffStore.remove(existing.id);
-      if (state.meId === existing.id) { state.meId = null; localStorage.removeItem(ME_KEY); }
+      if (!firebaseConfigured && state.meId === existing.id) { state.meId = null; localStorage.removeItem(ME_KEY); }
       toast("削除しました");
     } : null,
   });
@@ -1572,13 +1610,24 @@ document.getElementById("lockNowBtn").textContent = firebaseConfigured ? "ログ
 document.getElementById("lockNowDesc").textContent = firebaseConfigured
   ? "ログアウトすると、次にアプリを開いたときにメールアドレスとパスワードの入力が必要になります。"
   : "共有の合言葉でこの端末をロックし直せます。次にアプリを開いたときに合言葉の入力が必要になります。";
+document.getElementById("staffPickerDesc").textContent = firebaseConfigured
+  ? "ログインしているアカウントに応じて自動的に決まります。他の職員の名前に変更することはできません。"
+  : "選んだ名前で「担当」や「実施者」が記録されます。";
 
 showLockUi();
 
 if (firebaseConfigured) {
   onAuthChange((user) => {
-    if (user) unlockApp();
-    else lockAppUi();
+    if (user) {
+      authedEmail = user.email || null;
+      syncMeFromAuth();
+      renderYouBadge();
+      unlockApp();
+    } else {
+      authedEmail = null;
+      state.meId = null;
+      lockAppUi();
+    }
   });
 } else {
   // お試しモード: configStore(ローカル保存)から合言葉の有無を確認する
@@ -1667,6 +1716,7 @@ async function main() {
 
   staffStore.subscribe((list) => {
     state.staff = list;
+    if (firebaseConfigured) syncMeFromAuth();
     renderYouBadge();
     if (state.screen === "settings") { renderStaffPicker(); renderGroupPicker(); }
     if (state.screen === "todo") renderTodoList();
