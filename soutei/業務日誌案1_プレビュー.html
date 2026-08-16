@@ -63,9 +63,11 @@
           border-bottom: 1.2pt solid var(--rule-3); }
   .band b { font-size: 12pt; font-weight: 700; letter-spacing: .2em; }
   .band .sp { flex: 1; }
-  .band .cnt { font-size: 7.2pt; color: var(--ink-2); letter-spacing: .02em; }
-  .band .cnt i { display: inline-block; min-width: 8mm; border-bottom: 1pt solid var(--rule);
-                 margin: 0 .4mm; font-style: normal; }
+  /* 利用者数はその日いちばんに目がいく数字なので大きく取る。
+     書き込むところは今までどおり下線のまま（枠では囲まない） */
+  .band .cnt { font-size: 10.2pt; font-weight: 700; color: var(--ink); letter-spacing: .02em; }
+  .band .cnt i { display: inline-block; min-width: 12.5mm; border-bottom: 1.2pt solid var(--rule);
+                 margin: 0 .6mm; font-style: normal; }
 
   .col.am .band { background: var(--ai-soft); color: var(--ai); }
   .col.pm .band { background: var(--enji-soft); color: var(--enji); }
@@ -180,14 +182,12 @@
 
 <div class="hint">
   <b>業務日誌 案1のプレビューです。</b>アプリの印刷レイアウトにはまだ入れていません。<br>
-  今回の直し：<b>見出しを、左に日付・中央にタイトル・右に事業所名</b>に組み直しました。
-  日付と事業所名は 10pt／9.5pt → <b>どちらも12pt・太字・黒</b>にしています。<br>
-  <b>下の勤務者欄は、もとの大きさと前回のちょうど中間</b>にしました。
-  記名1行 5.11mm → 6.71mm（前回は8.40mm）、字 7.2pt → 7.8pt、
-  下線 3mm → 4mm、最終確認の枠 17×8mm → 18.5×10.5mm です。<br>
-  そのぶん日誌の桝は 1行 4.21mm（前回の広い勤務者欄では4.04mm、
-  勤務者欄がもとの大きさなら4.35mm）になっています。<br>
-  状態の桝がないこと、脈・体温が13.25mm、桝が33、血圧が①②の2回ぶんは、前回のままです。<br>
+  今回の直し：<b>午前・午後の帯にある「利用者数」を大きくしました</b>。
+  7.2pt → 10.2pt・太字・黒、書き込む下線も 8mm → 12.5mm、線を 1pt → 1.2pt にしています。
+  <b>書き込むところは今までどおり下線のまま</b>で、枠では囲んでいません。<br>
+  見出し（左に日付・中央にタイトル・右に事業所名）、勤務者欄、最終確認の枠の位置、
+  状態の桝がないこと、脈・体温13.25mm、桝33、血圧①②の2回ぶん、
+  日誌の桝1行4.21mm は、前回のままです。<br>
   <span class="k">Ctrl</span>／<span class="k">⌘</span> ＋ <span class="k">P</span> →
   送信先「PDFに保存」で、A4横1枚として刷れます。
 </div>
