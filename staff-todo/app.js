@@ -1846,6 +1846,7 @@ const lockError = document.getElementById("lockError");
 
 let appPasscode; // お試しモードのみで使用。undefined = 確認中, null = 未設定(初回), string = 設定済み
 let appStarted = false;
+let authChecked = false; // 共有モードのみで使用。ログイン済みかどうかの確認が終わるまでtrueにならない
 
 function startApp() {
   if (appStarted) return;
@@ -1867,6 +1868,16 @@ function lockAppUi() {
 function showLockUi() {
   lockError.hidden = true;
   if (firebaseConfigured) {
+    if (!authChecked) {
+      // ログイン済みかどうかの確認が終わるまでは、フォームを出さず「確認中…」だけ見せる。
+      // こうしないと、既にログイン済みの人でもページ再読み込みのたびに一瞬ログイン画面が見えてしまう。
+      lockNote.textContent = "確認中…";
+      lockEmailInput.hidden = true;
+      lockPasscodeInput.hidden = true;
+      lockPasscodeConfirm.hidden = true;
+      lockSubmitBtn.hidden = true;
+      return;
+    }
     lockNote.textContent = "職員用のメールアドレスとパスワードでログインしてください。";
     lockEmailInput.hidden = false;
     lockPasscodeInput.hidden = false;
@@ -1974,6 +1985,7 @@ showLockUi();
 
 if (firebaseConfigured) {
   onAuthChange((user) => {
+    authChecked = true;
     if (user) {
       authedEmail = user.email || null;
       syncMeFromAuth();
@@ -1983,6 +1995,7 @@ if (firebaseConfigured) {
       authedEmail = null;
       state.meId = null;
       lockAppUi();
+      showLockUi();
     }
   });
 } else {
