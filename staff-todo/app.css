@@ -171,6 +171,9 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 
 /* ---------------- Layout ---------------- */
 .screens { max-width: 640px; margin: 0 auto; padding: 16px; }
+/* 一覧が空のときでもフリック操作を受け付ける範囲を画面いっぱいに広げるため、
+   中身が少なくても最低限このくらいの高さは確保する。 */
+.screen { min-height: calc(100vh - var(--header-h) - var(--tabbar-h) - 32px); }
 .screen[hidden] { display: none; }
 .pagehead { margin-bottom: 14px; }
 .pagehead__title { font-size: 22px; }

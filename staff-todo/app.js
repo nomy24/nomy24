@@ -1476,13 +1476,29 @@ function updateMemoTabBadge() {
   badge.textContent = count > 99 ? "99+" : String(count);
 }
 
+const MEMO_FILTER_ORDER = ["all", "未対応", "対応中", "完了"];
+let memoFilterAnimating = false;
+
+function switchMemoFilter(newFilter) {
+  if (!MEMO_FILTER_ORDER.includes(newFilter) || newFilter === state.memoFilter || memoFilterAnimating) return;
+  const oldIndex = MEMO_FILTER_ORDER.indexOf(state.memoFilter);
+  const newIndex = MEMO_FILTER_ORDER.indexOf(newFilter);
+  const delta = newIndex > oldIndex ? 1 : -1;
+  memoFilterAnimating = true;
+  slideSwapContent(document.getElementById("memoList"), delta, () => {
+    state.memoFilter = newFilter;
+    document.querySelectorAll("[data-memo-filter]").forEach((b) => b.classList.toggle("is-active", b.dataset.memoFilter === newFilter));
+    renderMemoList();
+  }, () => { memoFilterAnimating = false; });
+}
+
 document.getElementById("memoFilters").addEventListener("click", (e) => {
   const btn = e.target.closest("[data-memo-filter]");
   if (!btn) return;
-  state.memoFilter = btn.dataset.memoFilter;
-  document.querySelectorAll("[data-memo-filter]").forEach((b) => b.classList.toggle("is-active", b === btn));
-  renderMemoList();
+  switchMemoFilter(btn.dataset.memoFilter);
 });
+
+setupSwipeNav(document.getElementById("screen-phoneMemo"), () => state.memoFilter, MEMO_FILTER_ORDER, switchMemoFilter);
 
 const memoSearchInput = document.getElementById("memoSearchInput");
 memoSearchInput.addEventListener("input", () => {
