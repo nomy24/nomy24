@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>電話連絡表　デザイン案</title>
+<style>
+  /* ══════════════════════════════════════════════
+     電話連絡表　デザイン案
+     A4縦1枚の紙を、並べ方だけ差し替えて見くらべる。
+     上のボタンで切り替え、選んだものだけが刷れる。
+     ══════════════════════════════════════════════ */
+
+  @page { size: A4 portrait; margin: 6mm; }
+  * { box-sizing: border-box; }
+
+  :root {
+    --enji: #63263A; --enji-soft: #EFDCE2; --enji-line: #7A5464; --enji-pale: #FBF2F5;
+    --warn: #C4172A; --warn-soft: #F8E9E7;
+    --ink: #0B1219; --ink-2: #303B46; --ink-3: #5B646E;
+    --rule: #4A5765; --rule-2: #7C8794;
+    /* 案C BIZ UDPゴシック。Windows 10（1809）以降に標準のUD書体 */
+    --gothic: "BIZ UDPGothic", "BIZ UDPゴシック", "Hiragino Sans",
+              "Hiragino Kaku Gothic ProN", "Yu Gothic", "YuGothic", "Meiryo", sans-serif;
+  }
+
+  html, body { margin: 0; padding: 0; background: #E7E9E4; }
+  body { font-family: var(--gothic); color: var(--ink); line-height: 1.3;
+         -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+  /* ── 画面だけの案内と切り替え。紙には出ない ───── */
+  .hint { max-width: 900px; margin: 22px auto 14px; padding: 14px 18px; background: #fff;
+          border-left: 3px solid var(--enji); font-size: 13.5px; line-height: 1.8; color: var(--ink-2); }
+  .hint b { color: var(--ink); }
+  .hint .k { background: #EEF1EC; border: 1px solid #C4CAD1; border-radius: 4px;
+             padding: 1px 6px; font-size: 12.5px; }
+
+  .bar { position: sticky; top: 0; z-index: 20; background: #fff;
+         border-bottom: 1px solid #C4CAD1; padding: 12px 18px; margin-bottom: 18px;
+         box-shadow: 0 2px 10px rgba(20,34,36,.08); }
+  .bar h2 { margin: 0 0 9px; font-size: 14px; letter-spacing: .04em; color: var(--ink); }
+  .btns { display: flex; flex-wrap: wrap; gap: 8px; }
+  .btn { display: flex; flex-direction: column; gap: 2px; align-items: flex-start;
+         border: 1.5px solid #C4CAD1; border-radius: 8px; background: #fff;
+         padding: 8px 12px; cursor: pointer; text-align: left; min-width: 168px;
+         font-family: inherit; color: var(--ink); line-height: 1.4; }
+  .btn:hover { border-color: var(--enji-line); background: var(--enji-pale); }
+  .btn[aria-pressed="true"] { border-color: var(--enji); background: var(--enji-soft); }
+  .btn .no { font-size: 11px; color: var(--ink-2); letter-spacing: .08em; }
+  .btn .nm2 { font-size: 14.5px; font-weight: 700; }
+  .btn .tag { font-size: 10.5px; color: var(--enji); }
+  .desc { margin: 10px 0 0; font-size: 12.5px; color: var(--ink-2); line-height: 1.8; }
+  .desc b { color: var(--ink); }
+
+  /* ── 紙 ───────────────────────────────────── */
+  .paper { width: 198mm; height: 285mm; margin: 0 auto 22px; background: #fff;
+           box-shadow: 0 8px 26px rgba(20,34,36,.18); display: flex; flex-direction: column;
+           padding: 3mm 4mm 4mm; overflow: hidden; }
+  .paper[hidden] { display: none; }
+
+  .cap { display: flex; align-items: baseline; gap: 4mm; padding: 0 .6mm 1.8mm;
+         border-bottom: 1.6pt solid var(--enji); margin-bottom: 2.4mm; flex: none; }
+  .cap b { font-size: 14.5pt; font-weight: 700; letter-spacing: .12em; color: var(--enji); }
+  .cap .date { font-size: 9.5pt; color: var(--ink); font-weight: 700; }
+  .cap .sp { flex: 1; }
+  .cap .off { font-size: 9pt; color: var(--ink); font-weight: 700; }
+
+  /* ── 担当表（どの案にも付ける） ─────────────── */
+  .roles { flex: none; margin-top: 2.4mm; padding-top: 2.4mm; border-top: 1.2pt solid var(--enji); }
+  .rc { font-size: 10.5pt; font-weight: 700; letter-spacing: .18em; color: var(--enji); margin-bottom: 1.4mm; }
+  .rt { border: 1.2pt solid var(--enji-line); border-radius: 1.6mm; overflow: hidden; }
+  .rr { display: grid; grid-template-columns: 16mm repeat(5, 1fr);
+        border-bottom: .9pt solid var(--enji-line); }
+  .rr:last-child { border-bottom: 0; }
+  .rr > i { font-style: normal; border-right: .9pt solid var(--enji-line);
+            display: flex; align-items: center; justify-content: center; height: 7.5mm; }
+  .rr > i:last-child { border-right: 0; }
+  .rr.rh { background: var(--enji-soft); color: var(--enji); }
+  .rr.rh > i { height: 5.4mm; font-size: 8pt; font-weight: 700; }
+  .ap { background: var(--enji-pale); color: var(--enji); font-size: 8.4pt; font-weight: 700; }
+
+  /* ══════ 現行（いまの紙） ══════ */
+  .obody { flex: 1; display: flex; flex-direction: column; gap: 1.4mm; min-height: 0; }
+  .og { flex: 1 1 0; min-height: 0; display: grid; grid-template-columns: 26mm repeat(6, 1fr);
+        border: 1.1pt solid var(--enji-line); }
+  .og > * { border-right: .8pt solid var(--enji-line); min-width: 0; overflow: hidden; }
+  .og > *:last-child { border-right: 0; }
+  .oh { background: var(--enji-soft); display: flex; flex-direction: column;
+        align-items: center; justify-content: center; gap: 1mm; color: var(--enji); }
+  .oh b { font-size: 7.6pt; font-weight: 700; letter-spacing: .1em; }
+  .oh .car { font-size: 7.6pt; }
+  .c { display: flex; flex-direction: column; }
+  .c > i { font-style: normal; display: flex; align-items: center; justify-content: center;
+           border-bottom: .6pt dotted var(--enji-line); }
+  .c .n { flex: 1.1; font-size: 9.4pt; font-weight: 700; white-space: nowrap; }
+  .c .n small { font-size: 6.4pt; font-weight: 400; margin-left: .8mm; }
+  .c .t { flex: 1.1; font-size: 10.4pt; font-weight: 700; }
+  .c .m { flex: .9; font-size: 7pt; color: var(--ink-2); background: var(--enji-pale);
+          border-bottom: 0; }
+  .c.off { background: var(--warn-soft); }
+  .c.off .n, .c.off .t { color: var(--warn); text-decoration: line-through; }
+
+  /* ══════ 案1 人数ぶんだけ、1人1行 ══════ */
+  .body1 { flex: 1; display: flex; flex-direction: column; gap: 1.8mm; min-height: 0;
+           justify-content: space-between; }
+  .g { border: 1.2pt solid var(--enji-line); border-radius: 1.8mm; overflow: hidden;
+       display: flex; flex-direction: column; flex: none; }
+  .gh { flex: none; display: flex; align-items: baseline; gap: 2.4mm;
+        background: var(--enji-soft); color: var(--enji);
+        padding: .8mm 2.4mm; border-bottom: 1.1pt solid var(--enji-line); }
+  .gh b { font-size: 8.4pt; font-weight: 700; }
+  .gh .drv { font-size: 10.5pt; font-weight: 700; }
+  .gh .drv.blank { min-width: 26mm; height: 3.4mm; border-bottom: 1.1pt solid var(--enji-line); }
+  .gh .sp { flex: 1; }
+  .gh .n { font-size: 7.6pt; }
+  .p { flex: none; height: 10.4mm; display: grid;
+       grid-template-columns: 46mm 17mm 1fr 20mm; align-items: center; gap: 2.4mm;
+       padding: 0 2.4mm; border-bottom: .8pt solid #A8848F; }
+  .p:last-child { border-bottom: 0; }
+  .p > i { font-style: normal; }
+  .nm { font-size: 11.5pt; font-weight: 700; white-space: nowrap; }
+  .nm small { font-size: 7pt; font-weight: 400; color: var(--ink-2); margin-left: 1mm; }
+  .t { font-size: 12pt; font-weight: 700; text-align: center; }
+  .t.off { font-size: 10pt; color: var(--warn); }
+  .memo { position: relative; border-bottom: 1.1pt solid var(--enji-line); height: 4.6mm; }
+  .memo-tag { position: absolute; left: 0; bottom: .6mm; font-size: 7pt; font-style: normal;
+              color: var(--enji); background: var(--enji-pale); border-radius: 1mm; padding: 0 1.2mm; }
+  .ck { display: flex; gap: 1.4mm; justify-content: flex-end; }
+  .ck b { display: flex; align-items: center; justify-content: center;
+          width: 8.6mm; height: 5mm; border: 1pt solid var(--enji-line); border-radius: 1mm;
+          font-size: 6.6pt; font-weight: 700; color: var(--enji); }
+  .p.off { background: var(--warn-soft); }
+  .p.off .nm { color: var(--warn); text-decoration: line-through; }
+  .p.off .ck b { color: #A8848F; border-style: dashed; }
+
+  /* ══════ 案2 時刻順に1本 ══════ */
+  .t2 { flex: 1; display: flex; flex-direction: column; min-height: 0;
+        border: 1.2pt solid var(--enji-line); border-radius: 1.6mm; overflow: hidden; }
+  .t2r { flex: 1 1 0; min-height: 0; display: grid;
+         grid-template-columns: 20mm 1fr 42mm 1fr 12mm; align-items: center;
+         border-bottom: .8pt solid #A8848F; }
+  .t2r:last-child { border-bottom: 0; }
+  .t2r > i { font-style: normal; padding: 0 2mm; height: 100%;
+             display: flex; align-items: center; overflow: hidden; white-space: nowrap;
+             border-right: .8pt solid #C7ADB6; }
+  .t2r > i:last-child { border-right: 0; }
+  .t2r.t2h { flex: none; height: 6.4mm; background: var(--enji-soft); color: var(--enji);
+             font-size: 8pt; font-weight: 700; border-bottom: 1.2pt solid var(--enji-line); }
+  .t2r.t2h > i { justify-content: center; }
+  .tt { font-size: 12.5pt; font-weight: 700; justify-content: center !important;
+        background: var(--enji-pale); color: var(--enji); }
+  /* 時刻が前の行と同じところは、桝を続きに見せる */
+  .t2r.same .tt { background: #fff; }
+  .nn { font-size: 12pt; font-weight: 700; }
+  .nn small { font-size: 7pt; font-weight: 400; color: var(--ink-2); margin-left: 1mm; }
+  .cc { font-size: 9pt; }
+  .cc small { font-size: 9pt; font-weight: 700; }
+  .mm { font-size: 8.4pt; color: var(--enji); }
+  .kk { background: #FAFBFC; }
+  .t2r.off { background: var(--warn-soft); }
+  .t2r.off .nn { color: var(--warn); text-decoration: line-through; }
+  .t2r.off .tt { color: var(--warn); font-size: 10pt; background: #fff; }
+
+  /* ══════ 案3 いまの形のまま、詰める ══════ */
+  .obody3 { flex: 1; display: flex; flex-direction: column; gap: 1.6mm; min-height: 0; }
+  .og3 { flex: 1 1 0; min-height: 0; display: grid;
+         border: 1.2pt solid var(--enji-line); border-radius: 1.4mm; overflow: hidden; }
+  .og3 > * { border-right: .8pt solid var(--enji-line); min-width: 0; overflow: hidden; }
+  .og3 > *:last-child { border-right: 0; }
+  .oh3 { background: var(--enji-soft); display: flex; flex-direction: column;
+         align-items: center; justify-content: center; gap: 1.2mm; color: var(--enji); }
+  .oh3 b { font-size: 9pt; font-weight: 700; letter-spacing: .06em; }
+  .oh3 .dv { font-size: 11pt; font-weight: 700; }
+  .oh3 .dv.blank { min-width: 20mm; height: 3.4mm; border-bottom: 1.1pt solid var(--enji-line); }
+  .c3 { display: flex; flex-direction: column; }
+  .c3 > i { font-style: normal; display: flex; align-items: center; justify-content: center;
+            border-bottom: .6pt dotted var(--enji-line); }
+  .c3 .n { flex: 1.2; font-size: 12pt; font-weight: 700; white-space: nowrap; }
+  .c3 .n small { font-size: 7pt; font-weight: 400; margin-left: 1mm; }
+  .c3 .t { flex: 1.2; font-size: 13pt; font-weight: 700; }
+  .c3 .m { flex: 1; font-size: 7.6pt; color: var(--enji); background: var(--enji-pale);
+           border-bottom: 0; gap: 2mm; }
+  .ck3 { display: inline-flex; align-items: center; justify-content: center;
+         width: 8mm; height: 4.6mm; border: 1pt solid var(--enji-line); border-radius: 1mm;
+         font-size: 6.6pt; font-weight: 700; background: #fff; }
+  .c3.off { background: var(--warn-soft); }
+  .c3.off .n, .c3.off .t { color: var(--warn); text-decoration: line-through; }
+
+  /* ══════ 案4 2つ折りの手持ち ══════ */
+  .f4 { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+  .f4cap { flex: none; display: flex; align-items: baseline; gap: 4mm;
+           padding: 0 .6mm 1.8mm; border-bottom: 1.6pt solid var(--enji); margin-bottom: 2.4mm; }
+  .f4cap b { font-size: 13pt; font-weight: 700; color: var(--enji); letter-spacing: .1em; }
+  .f4cap span { font-size: 8.6pt; font-weight: 700; }
+  .f4cap .sp { flex: 1; }
+  .f4body { flex: 1; display: grid; grid-template-columns: 1fr 0 1fr; min-height: 0; }
+  /* 折り目。ここで half に折ると片手で持てる大きさになる */
+  .f4fold { border-left: .8pt dashed var(--enji-line); }
+  .f4col { display: flex; flex-direction: column; min-height: 0; padding: 0 3mm; }
+  .f4p { flex: 1 1 0; min-height: 0; display: grid;
+         grid-template-columns: 7mm 1fr 20mm 9mm; align-items: center; gap: 1.6mm;
+         border-bottom: 1pt solid #A8848F; }
+  .f4p:last-child { border-bottom: 0; }
+  .f4p > i, .f4p .fmid > i { font-style: normal; }
+  .fno { font-size: 8.4pt; color: var(--ink-2); text-align: right; }
+  .fmid { min-width: 0; overflow: hidden; }
+  .fnm { display: block; font-size: 14pt; font-weight: 700; white-space: nowrap; }
+  .fnm small { font-size: 8pt; font-weight: 400; color: var(--ink-2); margin-left: 1mm; }
+  .fsub { display: block; font-size: 7.6pt; color: var(--enji); white-space: nowrap; }
+  .ft { font-size: 14pt; font-weight: 700; text-align: center; }
+  .ft.off { font-size: 11pt; color: var(--warn); }
+  .fck { border: 1.1pt solid var(--enji-line); border-radius: 1.2mm; height: 7mm; }
+  .f4p.off .fnm { color: var(--warn); text-decoration: line-through; }
+  .f4p.off .fck { border-style: dashed; }
+
+  /* ══════ 案5 一覧表 ══════ */
+  .t5 { flex: 1; display: flex; flex-direction: column; min-height: 0;
+        border: 1.2pt solid var(--enji-line); border-radius: 1.6mm; overflow: hidden; }
+  .t5r { flex: 1 1 0; min-height: 0; display: grid;
+         grid-template-columns: 9mm 18.5mm 26mm 1fr 18mm 1fr 11mm 11mm;
+         align-items: center; border-bottom: .8pt solid #C7ADB6; }
+  .t5r:last-child { border-bottom: 0; }
+  .t5r > i { font-style: normal; padding: 0 1.6mm; height: 100%;
+             display: flex; align-items: center; overflow: hidden; white-space: nowrap;
+             border-right: .8pt solid #C7ADB6; }
+  .t5r > i:last-child { border-right: 0; }
+  .t5r > i.c { justify-content: center; }
+  .t5r.t5h { flex: none; height: 6.4mm; background: var(--enji-soft); color: var(--enji);
+             font-size: 8pt; font-weight: 700; border-bottom: 1.2pt solid var(--enji-line); }
+  .t5r.t5h > i { justify-content: center; }
+  .t5 .nn { font-size: 11.5pt; font-weight: 700; }
+  .t5 .tt { font-size: 11.5pt; font-weight: 700; justify-content: center !important;
+            background: #fff; color: var(--ink); }
+  .t5 .mm { font-size: 8.4pt; color: var(--enji); }
+  .t5r.off { background: var(--warn-soft); }
+  .t5r.off .nn, .t5r.off .tt { color: var(--warn); text-decoration: line-through; }
+
+  @media print {
+    html, body { background: #fff; }
+    .hint, .bar { display: none !important; }
+    .paper { box-shadow: none; margin: 0; width: 198mm; height: 285mm; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hint">
+  <b>電話連絡表のデザイン案です。</b>上のボタンで、下の紙が切り替わります。
+  中身（令和8年7月22日 水曜日 午後お迎え・14名）はどの案も同じで、<b>並べ方だけ</b>が違います。<br>
+  <b>案0がいまの紙</b>です。見くらべの基準にしてください。<br>
+  気に入った案を選んだ状態で <span class="k">Ctrl</span>／<span class="k">⌘</span> ＋
+  <span class="k">P</span> を押すと、その案だけがA4縦1枚で刷れます（この案内とボタンは紙に出ません）。<br>
+  書体はどれも <b>BIZ UDPゴシック</b> にそろえてあります。
+</div>
+
+<div class="bar">
+  <h2>並べ方をえらぶ</h2>
+  <div class="btns"><button type="button" class="btn" aria-pressed="true"><span class="no">案 0</span><span class="nm2">いまの紙</span><span class="tag">見くらべの基準</span></button><button type="button" class="btn" aria-pressed="false"><span class="no">案 1</span><span class="nm2">人数ぶんだけ、1人1行</span><span class="tag">1人ぶんが一直線に並ぶ</span></button><button type="button" class="btn" aria-pressed="false"><span class="no">案 2</span><span class="nm2">時刻順に1本</span><span class="tag">かける順そのものになる</span></button><button type="button" class="btn" aria-pressed="false"><span class="no">案 3</span><span class="nm2">いまの形のまま、詰める</span><span class="tag">いまの紙にいちばん近い</span></button><button type="button" class="btn" aria-pressed="false"><span class="no">案 4</span><span class="nm2">2つ折りの手持ち</span><span class="tag">歩きながら使える</span></button><button type="button" class="btn" aria-pressed="false"><span class="no">案 5</span><span class="nm2">一覧表</span><span class="tag">名簿として見やすい</span></button></div>
+  <ul class="desc" style="padding-left:18px"><li><b>案0　いまの紙</b>　現行のレイアウト。1組6列を必ず出し、氏名・時刻・メモを縦3段に置く</li><li><b>案1　人数ぶんだけ、1人1行</b>　空の列を出さず、1人を横1行に。担当名を刷り、済／不在の枠を人ごとに置く</li><li><b>案2　時刻順に1本</b>　号車をまたいで、お迎えの時刻順に上から1本に並べる</li><li><b>案3　いまの形のまま、詰める</b>　縦3段の形は変えず、列をその日の人数ぶん（今日は3列）まで詰める</li><li><b>案4　2つ折りの手持ち</b>　紙を左右2つ折りにして、片手で持てる大きさに。字を大きく取る</li><li><b>案5　一覧表</b>　号車・担当・氏名・時刻・メモ・済を、1行1名の表にする</li></ul>
+</div>
+
+<div class="paper d0"><div class="cap"><b>午後お迎え　電話連絡表</b><span class="date">令和8年7月22日（水曜日）</span><span class="sp"></span><span class="off">通所介護事業所　デイサービス　あさひ</span></div><div class="obody"><div class="og"><div class="oh"><b>担当</b><span class="car"></span></div><div class="c"><i class="n">佐野 ハツ<small>様</small></i><i class="t">12:45</i><i class="m">携帯へ</i></div><div class="c"><i class="n">早川 春夫<small>様</small></i><i class="t">12:55</i><i class="m"></i></div><div class="c"><i class="n"></i><i class="t"></i><i class="m"></i></div><div class="c"><i class="n"></i><i class="t"></i><i class="m"></i></div><div class="c"><i class="n"></i><i class="t"></i><i class="m"></i></div><div class="c"><i class="n"></i><i class="t"></i><i class="m"></i></div></div><div class="og"><div class="oh"><b>担当</b><span class="car"></span></div><div class="c"><i class="n">秋山 三男<small>様</small></i><i class="t">12:55</i><i class="m">TELなし</i></div><div class="c"><i class="n"></i><i class="t"></i><i class="m"></i></div><div class="c"><i class="n"></i><i class="t"></i><i class="m"></i></div><div class="c"><i class="n"></i><i class="t"></i><i class="m"></i></div><div class="c"><i class="n"></i><i class="t"></i><i class="m"></i></div><div class="c"><i class="n"></i><i class="t"></i><i class="m"></i></div></div><div class="og"><div class="oh"><b>担当</b><span class="car"></span></div><div class="c"><i class="n">富田 サキ<small>様</small></i><i class="t">12:50</i><i class="m"></i></div><div class="c off"><i class="n">沢田 正義<small>様</small></i><i class="t">入院</i><i class="m"></i></div><div class="c"><i class="n"></i><i class="t"></i><i class="m"></i></div><div class="c"><i class="n"></i><i class="t"></i><i class="m"></i></div><div class="c"><i class="n"></i><i class="t"></i><i class="m"></i></div><div class="c"><i class="n"></i><i class="t"></i><i class="m"></i></div></div><div class="og"><div class="oh"><b>担当</b><span class="car"></span></div><div class="c"><i class="n">星野 幸子<small>様</small></i><i class="t">12:55</i><i class="m">TELなし</i></div><div class="c"><i class="n"></i><i class="t"></i><i class="m"></i></div><div class="c"><i class="n"></i><i class="t"></i><i class="m"></i></div><div class="c"><i class="n"></i><i class="t"></i><i class="m"></i></div><div class="c"><i class="n"></i><i class="t"></i><i class="m"></i></div><div class="c"><i class="n"></i><i class="t"></i><i class="m"></i></div></div><div class="og"><div class="oh"><b>担当</b><span class="car"></span></div><div class="c"><i class="n">島田 文夫<small>様</small></i><i class="t">12:30</i><i class="m"></i></div><div class="c"><i class="n">岡部 ウメ<small>様</small></i><i class="t">12:35</i><i class="m"></i></div><div class="c"><i class="n">柴田 ハツヱ<small>様</small></i><i class="t">12:50</i><i class="m"></i></div><div class="c"><i class="n"></i><i class="t"></i><i class="m"></i></div><div class="c"><i class="n"></i><i class="t"></i><i class="m"></i></div><div class="c"><i class="n"></i><i class="t"></i><i class="m"></i></div></div><div class="og"><div class="oh"><b>担当</b><span class="car"></span></div><div class="c"><i class="n">前田 豊<small>様</small></i><i class="t">13:00</i><i class="m"></i></div><div class="c"><i class="n"></i><i class="t"></i><i class="m"></i></div><div class="c"><i class="n"></i><i class="t"></i><i class="m"></i></div><div class="c"><i class="n"></i><i class="t"></i><i class="m"></i></div><div class="c"><i class="n"></i><i class="t"></i><i class="m"></i></div><div class="c"><i class="n"></i><i class="t"></i><i class="m"></i></div></div><div class="og"><div class="oh"><b>担当</b><span class="car">ノア</span></div><div class="c"><i class="n">竹内 サト<small>様</small></i><i class="t">12:30</i><i class="m"></i></div><div class="c"><i class="n">米倉 ツネ<small>様</small></i><i class="t">12:45</i><i class="m"></i></div><div class="c"><i class="n"></i><i class="t"></i><i class="m"></i></div><div class="c"><i class="n"></i><i class="t"></i><i class="m"></i></div><div class="c"><i class="n"></i><i class="t"></i><i class="m"></i></div><div class="c"><i class="n"></i><i class="t"></i><i class="m"></i></div></div><div class="og"><div class="oh"><b>担当</b><span class="car">リフト車</span></div><div class="c"><i class="n">増田 伸一<small>様</small></i><i class="t">12:40</i><i class="m"></i></div><div class="c"><i class="n">東 ミサヲ<small>様</small></i><i class="t">12:50</i><i class="m">ご家族へ</i></div><div class="c"><i class="n"></i><i class="t"></i><i class="m"></i></div><div class="c"><i class="n"></i><i class="t"></i><i class="m"></i></div><div class="c"><i class="n"></i><i class="t"></i><i class="m"></i></div><div class="c"><i class="n"></i><i class="t"></i><i class="m"></i></div></div><div class="og"><div class="oh"><b>担当</b><span class="car"></span></div><div class="c"><i class="n"></i><i class="t"></i><i class="m"></i></div><div class="c"><i class="n"></i><i class="t"></i><i class="m"></i></div><div class="c"><i class="n"></i><i class="t"></i><i class="m"></i></div><div class="c"><i class="n"></i><i class="t"></i><i class="m"></i></div><div class="c"><i class="n"></i><i class="t"></i><i class="m"></i></div><div class="c"><i class="n"></i><i class="t"></i><i class="m"></i></div></div></div><div class="roles"><div class="rc">担当表　【水】</div><div class="rt"><div class="rr rh"><i></i><i>リーダー</i><i>サブ</i><i>平行棒</i><i>歩行</i><i>コーヒー</i></div><div class="rr"><i class="ap">AM</i><i></i><i></i><i></i><i></i><i></i></div><div class="rr"><i class="ap">PM</i><i></i><i></i><i></i><i></i><i></i></div></div></div></div>
+<div class="paper d1" hidden><div class="cap"><b>午後お迎え　電話連絡表</b><span class="date">令和8年7月22日（水曜日）</span><span class="sp"></span><span class="off">通所介護事業所　デイサービス　あさひ</span></div><div class="body1"><div class="g"><div class="gh"><b>1号車</b><span class="drv">佐藤 健一</span><span class="sp"></span><span class="n">2名</span></div><div class="p"><i class="nm">佐野 ハツ<small>様</small></i><i class="t">12:45</i><i class="memo"><em class="memo-tag">携帯へ</em></i><i class="ck"><b>済</b><b>不在</b></i></div><div class="p"><i class="nm">早川 春夫<small>様</small></i><i class="t">12:55</i><i class="memo"></i><i class="ck"><b>済</b><b>不在</b></i></div></div><div class="g"><div class="gh"><b>2号車</b><span class="drv">佐々木 実</span><span class="sp"></span><span class="n">1名</span></div><div class="p"><i class="nm">秋山 三男<small>様</small></i><i class="t">12:55</i><i class="memo"><em class="memo-tag">TELなし</em></i><i class="ck"><b>済</b><b>不在</b></i></div></div><div class="g"><div class="gh"><b>3号車</b><span class="drv">山口 直樹</span><span class="sp"></span><span class="n">2名（欠席1）</span></div><div class="p"><i class="nm">富田 サキ<small>様</small></i><i class="t">12:50</i><i class="memo"></i><i class="ck"><b>済</b><b>不在</b></i></div><div class="p off"><i class="nm">沢田 正義<small>様</small></i><i class="t off">入院</i><i class="memo"></i><i class="ck"><b>—</b><b>—</b></i></div></div><div class="g"><div class="gh"><b>4号車</b><span class="drv">中村 洋子</span><span class="sp"></span><span class="n">1名</span></div><div class="p"><i class="nm">星野 幸子<small>様</small></i><i class="t">12:55</i><i class="memo"><em class="memo-tag">TELなし</em></i><i class="ck"><b>済</b><b>不在</b></i></div></div><div class="g"><div class="gh"><b>5号車</b><span class="drv">井上 隆</span><span class="sp"></span><span class="n">3名</span></div><div class="p"><i class="nm">島田 文夫<small>様</small></i><i class="t">12:30</i><i class="memo"></i><i class="ck"><b>済</b><b>不在</b></i></div><div class="p"><i class="nm">岡部 ウメ<small>様</small></i><i class="t">12:35</i><i class="memo"></i><i class="ck"><b>済</b><b>不在</b></i></div><div class="p"><i class="nm">柴田 ハツヱ<small>様</small></i><i class="t">12:50</i><i class="memo"></i><i class="ck"><b>済</b><b>不在</b></i></div></div><div class="g"><div class="gh"><b>6号車</b><span class="drv">渡辺 千鶴</span><span class="sp"></span><span class="n">1名</span></div><div class="p"><i class="nm">前田 豊<small>様</small></i><i class="t">13:00</i><i class="memo"></i><i class="ck"><b>済</b><b>不在</b></i></div></div><div class="g"><div class="gh"><b>ノア</b><span class="drv">岡田 誠</span><span class="sp"></span><span class="n">2名</span></div><div class="p"><i class="nm">竹内 サト<small>様</small></i><i class="t">12:30</i><i class="memo"></i><i class="ck"><b>済</b><b>不在</b></i></div><div class="p"><i class="nm">米倉 ツネ<small>様</small></i><i class="t">12:45</i><i class="memo"></i><i class="ck"><b>済</b><b>不在</b></i></div></div><div class="g"><div class="gh"><b>リフト車</b><span class="drv blank"></span><span class="sp"></span><span class="n">2名</span></div><div class="p"><i class="nm">増田 伸一<small>様</small></i><i class="t">12:40</i><i class="memo"></i><i class="ck"><b>済</b><b>不在</b></i></div><div class="p"><i class="nm">東 ミサヲ<small>様</small></i><i class="t">12:50</i><i class="memo"><em class="memo-tag">ご家族へ</em></i><i class="ck"><b>済</b><b>不在</b></i></div></div></div><div class="roles"><div class="rc">担当表　【水】</div><div class="rt"><div class="rr rh"><i></i><i>リーダー</i><i>サブ</i><i>平行棒</i><i>歩行</i><i>コーヒー</i></div><div class="rr"><i class="ap">AM</i><i></i><i></i><i></i><i></i><i></i></div><div class="rr"><i class="ap">PM</i><i></i><i></i><i></i><i></i><i></i></div></div></div></div>
+<div class="paper d2" hidden><div class="cap"><b>午後お迎え　電話連絡表</b><span class="date">令和8年7月22日（水曜日）</span><span class="sp"></span><span class="off">通所介護事業所　デイサービス　あさひ</span></div><div class="t2"><div class="t2r t2h"><i>時刻</i><i>氏名</i><i>号車・担当</i><i>メモ</i><i>済</i></div><div class="t2r"><i class="tt">12:30</i><i class="nn">島田 文夫<small>様</small></i><i class="cc">5号車<small>　井上 隆</small></i><i class="mm"></i><i class="kk"></i></div><div class="t2r same"><i class="tt"></i><i class="nn">竹内 サト<small>様</small></i><i class="cc">ノア<small>　岡田 誠</small></i><i class="mm"></i><i class="kk"></i></div><div class="t2r"><i class="tt">12:35</i><i class="nn">岡部 ウメ<small>様</small></i><i class="cc">5号車<small>　井上 隆</small></i><i class="mm"></i><i class="kk"></i></div><div class="t2r"><i class="tt">12:40</i><i class="nn">増田 伸一<small>様</small></i><i class="cc">リフト車<small>　＿＿＿</small></i><i class="mm"></i><i class="kk"></i></div><div class="t2r"><i class="tt">12:45</i><i class="nn">佐野 ハツ<small>様</small></i><i class="cc">1号車<small>　佐藤 健一</small></i><i class="mm">携帯へ</i><i class="kk"></i></div><div class="t2r same"><i class="tt"></i><i class="nn">米倉 ツネ<small>様</small></i><i class="cc">ノア<small>　岡田 誠</small></i><i class="mm"></i><i class="kk"></i></div><div class="t2r"><i class="tt">12:50</i><i class="nn">富田 サキ<small>様</small></i><i class="cc">3号車<small>　山口 直樹</small></i><i class="mm"></i><i class="kk"></i></div><div class="t2r same"><i class="tt"></i><i class="nn">柴田 ハツヱ<small>様</small></i><i class="cc">5号車<small>　井上 隆</small></i><i class="mm"></i><i class="kk"></i></div><div class="t2r same"><i class="tt"></i><i class="nn">東 ミサヲ<small>様</small></i><i class="cc">リフト車<small>　＿＿＿</small></i><i class="mm">ご家族へ</i><i class="kk"></i></div><div class="t2r"><i class="tt">12:55</i><i class="nn">早川 春夫<small>様</small></i><i class="cc">1号車<small>　佐藤 健一</small></i><i class="mm"></i><i class="kk"></i></div><div class="t2r same"><i class="tt"></i><i class="nn">秋山 三男<small>様</small></i><i class="cc">2号車<small>　佐々木 実</small></i><i class="mm">TELなし</i><i class="kk"></i></div><div class="t2r same"><i class="tt"></i><i class="nn">星野 幸子<small>様</small></i><i class="cc">4号車<small>　中村 洋子</small></i><i class="mm">TELなし</i><i class="kk"></i></div><div class="t2r"><i class="tt">13:00</i><i class="nn">前田 豊<small>様</small></i><i class="cc">6号車<small>　渡辺 千鶴</small></i><i class="mm"></i><i class="kk"></i></div><div class="t2r off"><i class="tt">入院</i><i class="nn">沢田 正義<small>様</small></i><i class="cc">3号車<small>　山口 直樹</small></i><i class="mm"></i><i class="kk"></i></div></div><div class="roles"><div class="rc">担当表　【水】</div><div class="rt"><div class="rr rh"><i></i><i>リーダー</i><i>サブ</i><i>平行棒</i><i>歩行</i><i>コーヒー</i></div><div class="rr"><i class="ap">AM</i><i></i><i></i><i></i><i></i><i></i></div><div class="rr"><i class="ap">PM</i><i></i><i></i><i></i><i></i><i></i></div></div></div></div>
+<div class="paper d3" hidden><div class="cap"><b>午後お迎え　電話連絡表</b><span class="date">令和8年7月22日（水曜日）</span><span class="sp"></span><span class="off">通所介護事業所　デイサービス　あさひ</span></div><div class="obody3"><div class="og3" style="grid-template-columns:30mm repeat(3,1fr)"><div class="oh3"><b>1号車</b><span class="dv">佐藤 健一</span></div><div class="c3"><i class="n">佐野 ハツ<small>様</small></i><i class="t">12:45</i><i class="m">携帯へ<b class="ck3">済</b></i></div><div class="c3"><i class="n">早川 春夫<small>様</small></i><i class="t">12:55</i><i class="m"><b class="ck3">済</b></i></div><div class="c3"><i class="n"></i><i class="t"></i><i class="m"></i></div></div><div class="og3" style="grid-template-columns:30mm repeat(3,1fr)"><div class="oh3"><b>2号車</b><span class="dv">佐々木 実</span></div><div class="c3"><i class="n">秋山 三男<small>様</small></i><i class="t">12:55</i><i class="m">TELなし<b class="ck3">済</b></i></div><div class="c3"><i class="n"></i><i class="t"></i><i class="m"></i></div><div class="c3"><i class="n"></i><i class="t"></i><i class="m"></i></div></div><div class="og3" style="grid-template-columns:30mm repeat(3,1fr)"><div class="oh3"><b>3号車</b><span class="dv">山口 直樹</span></div><div class="c3"><i class="n">富田 サキ<small>様</small></i><i class="t">12:50</i><i class="m"><b class="ck3">済</b></i></div><div class="c3 off"><i class="n">沢田 正義<small>様</small></i><i class="t">入院</i><i class="m"><b class="ck3">済</b></i></div><div class="c3"><i class="n"></i><i class="t"></i><i class="m"></i></div></div><div class="og3" style="grid-template-columns:30mm repeat(3,1fr)"><div class="oh3"><b>4号車</b><span class="dv">中村 洋子</span></div><div class="c3"><i class="n">星野 幸子<small>様</small></i><i class="t">12:55</i><i class="m">TELなし<b class="ck3">済</b></i></div><div class="c3"><i class="n"></i><i class="t"></i><i class="m"></i></div><div class="c3"><i class="n"></i><i class="t"></i><i class="m"></i></div></div><div class="og3" style="grid-template-columns:30mm repeat(3,1fr)"><div class="oh3"><b>5号車</b><span class="dv">井上 隆</span></div><div class="c3"><i class="n">島田 文夫<small>様</small></i><i class="t">12:30</i><i class="m"><b class="ck3">済</b></i></div><div class="c3"><i class="n">岡部 ウメ<small>様</small></i><i class="t">12:35</i><i class="m"><b class="ck3">済</b></i></div><div class="c3"><i class="n">柴田 ハツヱ<small>様</small></i><i class="t">12:50</i><i class="m"><b class="ck3">済</b></i></div></div><div class="og3" style="grid-template-columns:30mm repeat(3,1fr)"><div class="oh3"><b>6号車</b><span class="dv">渡辺 千鶴</span></div><div class="c3"><i class="n">前田 豊<small>様</small></i><i class="t">13:00</i><i class="m"><b class="ck3">済</b></i></div><div class="c3"><i class="n"></i><i class="t"></i><i class="m"></i></div><div class="c3"><i class="n"></i><i class="t"></i><i class="m"></i></div></div><div class="og3" style="grid-template-columns:30mm repeat(3,1fr)"><div class="oh3"><b>ノア</b><span class="dv">岡田 誠</span></div><div class="c3"><i class="n">竹内 サト<small>様</small></i><i class="t">12:30</i><i class="m"><b class="ck3">済</b></i></div><div class="c3"><i class="n">米倉 ツネ<small>様</small></i><i class="t">12:45</i><i class="m"><b class="ck3">済</b></i></div><div class="c3"><i class="n"></i><i class="t"></i><i class="m"></i></div></div><div class="og3" style="grid-template-columns:30mm repeat(3,1fr)"><div class="oh3"><b>リフト車</b><span class="dv blank"></span></div><div class="c3"><i class="n">増田 伸一<small>様</small></i><i class="t">12:40</i><i class="m"><b class="ck3">済</b></i></div><div class="c3"><i class="n">東 ミサヲ<small>様</small></i><i class="t">12:50</i><i class="m">ご家族へ<b class="ck3">済</b></i></div><div class="c3"><i class="n"></i><i class="t"></i><i class="m"></i></div></div></div><div class="roles"><div class="rc">担当表　【水】</div><div class="rt"><div class="rr rh"><i></i><i>リーダー</i><i>サブ</i><i>平行棒</i><i>歩行</i><i>コーヒー</i></div><div class="rr"><i class="ap">AM</i><i></i><i></i><i></i><i></i><i></i></div><div class="rr"><i class="ap">PM</i><i></i><i></i><i></i><i></i><i></i></div></div></div></div>
+<div class="paper d4" hidden><div class="f4"><div class="f4cap"><b>午後お迎え　電話連絡表</b><span>令和8年7月22日（水曜日）</span><span class="sp"></span><span>通所介護事業所　デイサービス　あさひ</span></div><div class="f4body"><div class="f4col"><div class="f4p"><i class="fno">1</i><div class="fmid"><i class="fnm">島田 文夫<small>様</small></i><i class="fsub">5号車　井上 隆</i></div><i class="ft">12:30</i><i class="fck"></i></div><div class="f4p"><i class="fno">2</i><div class="fmid"><i class="fnm">竹内 サト<small>様</small></i><i class="fsub">ノア　岡田 誠</i></div><i class="ft">12:30</i><i class="fck"></i></div><div class="f4p"><i class="fno">3</i><div class="fmid"><i class="fnm">岡部 ウメ<small>様</small></i><i class="fsub">5号車　井上 隆</i></div><i class="ft">12:35</i><i class="fck"></i></div><div class="f4p"><i class="fno">4</i><div class="fmid"><i class="fnm">増田 伸一<small>様</small></i><i class="fsub">リフト車</i></div><i class="ft">12:40</i><i class="fck"></i></div><div class="f4p"><i class="fno">5</i><div class="fmid"><i class="fnm">佐野 ハツ<small>様</small></i><i class="fsub">1号車　佐藤 健一　／　携帯へ</i></div><i class="ft">12:45</i><i class="fck"></i></div><div class="f4p"><i class="fno">6</i><div class="fmid"><i class="fnm">米倉 ツネ<small>様</small></i><i class="fsub">ノア　岡田 誠</i></div><i class="ft">12:45</i><i class="fck"></i></div><div class="f4p"><i class="fno">7</i><div class="fmid"><i class="fnm">富田 サキ<small>様</small></i><i class="fsub">3号車　山口 直樹</i></div><i class="ft">12:50</i><i class="fck"></i></div></div><div class="f4fold"></div><div class="f4col"><div class="f4p"><i class="fno">8</i><div class="fmid"><i class="fnm">柴田 ハツヱ<small>様</small></i><i class="fsub">5号車　井上 隆</i></div><i class="ft">12:50</i><i class="fck"></i></div><div class="f4p"><i class="fno">9</i><div class="fmid"><i class="fnm">東 ミサヲ<small>様</small></i><i class="fsub">リフト車　／　ご家族へ</i></div><i class="ft">12:50</i><i class="fck"></i></div><div class="f4p"><i class="fno">10</i><div class="fmid"><i class="fnm">早川 春夫<small>様</small></i><i class="fsub">1号車　佐藤 健一</i></div><i class="ft">12:55</i><i class="fck"></i></div><div class="f4p"><i class="fno">11</i><div class="fmid"><i class="fnm">秋山 三男<small>様</small></i><i class="fsub">2号車　佐々木 実　／　TELなし</i></div><i class="ft">12:55</i><i class="fck"></i></div><div class="f4p"><i class="fno">12</i><div class="fmid"><i class="fnm">星野 幸子<small>様</small></i><i class="fsub">4号車　中村 洋子　／　TELなし</i></div><i class="ft">12:55</i><i class="fck"></i></div><div class="f4p"><i class="fno">13</i><div class="fmid"><i class="fnm">前田 豊<small>様</small></i><i class="fsub">6号車　渡辺 千鶴</i></div><i class="ft">13:00</i><i class="fck"></i></div><div class="f4p off"><i class="fno">14</i><div class="fmid"><i class="fnm">沢田 正義<small>様</small></i><i class="fsub">3号車　山口 直樹</i></div><i class="ft off">入院</i><i class="fck"></i></div></div></div></div></div>
+<div class="paper d5" hidden><div class="cap"><b>午後お迎え　電話連絡表</b><span class="date">令和8年7月22日（水曜日）</span><span class="sp"></span><span class="off">通所介護事業所　デイサービス　あさひ</span></div><div class="t5"><div class="t5r t5h"><i>№</i><i>号車</i><i>担当</i><i>氏名</i><i>時刻</i><i>メモ</i><i>済</i><i>不在</i></div><div class="t5r"><i class="c">1</i><i class="c">5号車</i><i>井上 隆</i><i class="nn">島田 文夫</i><i class="tt">12:30</i><i class="mm"></i><i class="c"></i><i class="c"></i></div><div class="t5r"><i class="c">2</i><i class="c">ノア</i><i>岡田 誠</i><i class="nn">竹内 サト</i><i class="tt">12:30</i><i class="mm"></i><i class="c"></i><i class="c"></i></div><div class="t5r"><i class="c">3</i><i class="c">5号車</i><i>井上 隆</i><i class="nn">岡部 ウメ</i><i class="tt">12:35</i><i class="mm"></i><i class="c"></i><i class="c"></i></div><div class="t5r"><i class="c">4</i><i class="c">リフト車</i><i></i><i class="nn">増田 伸一</i><i class="tt">12:40</i><i class="mm"></i><i class="c"></i><i class="c"></i></div><div class="t5r"><i class="c">5</i><i class="c">1号車</i><i>佐藤 健一</i><i class="nn">佐野 ハツ</i><i class="tt">12:45</i><i class="mm">携帯へ</i><i class="c"></i><i class="c"></i></div><div class="t5r"><i class="c">6</i><i class="c">ノア</i><i>岡田 誠</i><i class="nn">米倉 ツネ</i><i class="tt">12:45</i><i class="mm"></i><i class="c"></i><i class="c"></i></div><div class="t5r"><i class="c">7</i><i class="c">3号車</i><i>山口 直樹</i><i class="nn">富田 サキ</i><i class="tt">12:50</i><i class="mm"></i><i class="c"></i><i class="c"></i></div><div class="t5r"><i class="c">8</i><i class="c">5号車</i><i>井上 隆</i><i class="nn">柴田 ハツヱ</i><i class="tt">12:50</i><i class="mm"></i><i class="c"></i><i class="c"></i></div><div class="t5r"><i class="c">9</i><i class="c">リフト車</i><i></i><i class="nn">東 ミサヲ</i><i class="tt">12:50</i><i class="mm">ご家族へ</i><i class="c"></i><i class="c"></i></div><div class="t5r"><i class="c">10</i><i class="c">1号車</i><i>佐藤 健一</i><i class="nn">早川 春夫</i><i class="tt">12:55</i><i class="mm"></i><i class="c"></i><i class="c"></i></div><div class="t5r"><i class="c">11</i><i class="c">2号車</i><i>佐々木 実</i><i class="nn">秋山 三男</i><i class="tt">12:55</i><i class="mm">TELなし</i><i class="c"></i><i class="c"></i></div><div class="t5r"><i class="c">12</i><i class="c">4号車</i><i>中村 洋子</i><i class="nn">星野 幸子</i><i class="tt">12:55</i><i class="mm">TELなし</i><i class="c"></i><i class="c"></i></div><div class="t5r"><i class="c">13</i><i class="c">6号車</i><i>渡辺 千鶴</i><i class="nn">前田 豊</i><i class="tt">13:00</i><i class="mm"></i><i class="c"></i><i class="c"></i></div><div class="t5r off"><i class="c">14</i><i class="c">3号車</i><i>山口 直樹</i><i class="nn">沢田 正義</i><i class="tt">入院</i><i class="mm"></i><i class="c"></i><i class="c"></i></div></div><div class="roles"><div class="rc">担当表　【水】</div><div class="rt"><div class="rr rh"><i></i><i>リーダー</i><i>サブ</i><i>平行棒</i><i>歩行</i><i>コーヒー</i></div><div class="rr"><i class="ap">AM</i><i></i><i></i><i></i><i></i><i></i></div><div class="rr"><i class="ap">PM</i><i></i><i></i><i></i><i></i><i></i></div></div></div></div>
+
+<script>
+(function () {
+  var btns = [].slice.call(document.querySelectorAll(".btn"));
+  var papers = [].slice.call(document.querySelectorAll(".paper"));
+  function show(i) {
+    papers.forEach(function (p, k) { p.hidden = k !== i; });
+    btns.forEach(function (b, k) { b.setAttribute("aria-pressed", String(k === i)); });
+  }
+  btns.forEach(function (b, i) { b.addEventListener("click", function () { show(i); }); });
+  show(0);
+})();
+</script>
+
+</body>
+</html>
