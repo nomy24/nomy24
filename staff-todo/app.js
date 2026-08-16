@@ -118,6 +118,29 @@ function syncMeFromAuth() {
 }
 function groupById(id) { return state.groups.find((g) => g.id === id) || null; }
 
+// ---------------- 職員削除の権限（共有モードのみ） ----------------
+// ログイン用メールアドレスが紐付いている職員は、本人か管理者しか削除できない
+// （なりすまし等で他人のアカウントを勝手に消せてしまわないようにするため）。
+// 未リンクの職員（お試し登録段階）は今まで通り誰でも削除できる。
+function hasAnyAdmin() {
+  return state.staff.some((s) => s.isAdmin);
+}
+function canDeleteStaff(target) {
+  if (!firebaseConfigured) return true;
+  if (!target?.email) return true;
+  const me = meStaff();
+  return !!me && (me.id === target.id || !!me.isAdmin);
+}
+// 管理者チェックボックスを操作してよいか。既に管理者ならOK。
+// まだ誰も管理者になっていない場合は、初回セットアップとして自分自身にだけ付けられる。
+function canManageAdminFlag(target) {
+  if (!firebaseConfigured || !target) return false;
+  const me = meStaff();
+  if (!me) return false;
+  if (me.isAdmin) return true;
+  return !hasAnyAdmin() && target.id === me.id;
+}
+
 // ---------------- トースト ----------------
 
 let toastTimer = null;
@@ -1519,6 +1542,8 @@ document.getElementById("addStaffBtn").addEventListener("click", () => openStaff
 function openStaffSheet(existing) {
   const color = existing?.color || AVATAR_COLORS[state.staff.length % AVATAR_COLORS.length];
   const groupId = existing?.groupId || "";
+  const showAdminField = existing && canManageAdminFlag(existing);
+  const deletable = !existing || canDeleteStaff(existing);
   const html = `
     <div class="field">
       <label for="s-name">名前</label>
@@ -1545,12 +1570,22 @@ function openStaffSheet(existing) {
         ${state.groups.map((g) => `<button type="button" class="pill-option ${g.id === groupId ? "is-active" : ""}" data-value="${g.id}">${escapeHtml(g.name)}</button>`).join("")}
       </div>
     </div>
+    ${showAdminField ? `
+    <div class="field">
+      <label class="row" style="padding:0;">
+        <span class="row__label">管理者にする</span>
+        <input type="checkbox" class="switch" name="isAdmin" ${existing?.isAdmin ? "checked" : ""}>
+      </label>
+      <p class="field__hint">管理者は、ログイン済みの職員を本人以外でも削除できます。</p>
+    </div>` : ""}
+    ${existing && existing.email && !deletable ? `<p class="note note--warn">この職員はログイン済みのため、本人か管理者のみ削除できます。</p>` : ""}
   `;
   openSheet(existing ? "職員を編集" : "職員を追加", html, {
     onSubmit: async (data) => {
       const payload = { name: data.name.trim(), color: data.color, groupId: data.groupId || null };
       if (!payload.name) return;
       if (firebaseConfigured) payload.email = (data.email || "").trim().toLowerCase() || null;
+      if (showAdminField) payload.isAdmin = data.isAdmin === "on";
       if (existing) await staffStore.update(existing.id, payload);
       else {
         const id = await staffStore.add({ ...payload, order: Date.now() });
@@ -1558,7 +1593,7 @@ function openStaffSheet(existing) {
       }
       toast(existing ? "保存しました" : "職員を追加しました");
     },
-    onDelete: existing ? async () => {
+    onDelete: (existing && deletable) ? async () => {
       await staffStore.remove(existing.id);
       if (!firebaseConfigured && state.meId === existing.id) { state.meId = null; localStorage.removeItem(ME_KEY); }
       toast("削除しました");
