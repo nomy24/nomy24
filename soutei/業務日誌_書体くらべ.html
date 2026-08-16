@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>業務日誌 案1（罫で読ませる）</title>
+<title>業務日誌　書体くらべ</title>
 <style>
   /* ══════════════════════════════════════════════
      業務日誌 案1「罫で読ませる」
@@ -178,20 +178,91 @@
     .hint { display: none; }
     .paper { box-shadow: none; margin: 0; width: 285mm; height: 198mm; }
   }
+
+  /* ── 書体くらべの操作まわり。紙には出ない ───── */
+  .fontbar {
+    position: sticky; top: 0; z-index: 20;
+    background: #fff; border-bottom: 1px solid #C4CAD1;
+    padding: 12px 18px; margin-bottom: 18px;
+    box-shadow: 0 2px 10px rgba(20,34,36,.08);
+  }
+  .fontbar h2 { margin: 0 0 9px; font-size: 14px; letter-spacing: .04em; color: #0B1219; }
+  .fbtns { display: flex; flex-wrap: wrap; gap: 8px; }
+  .fbtn {
+    display: flex; flex-direction: column; gap: 2px; align-items: flex-start;
+    border: 1.5px solid #C4CAD1; border-radius: 8px; background: #fff;
+    padding: 8px 12px; cursor: pointer; text-align: left; min-width: 150px;
+    font-family: inherit; color: #0B1219; line-height: 1.4;
+  }
+  .fbtn:hover { border-color: #7C8794; background: #F4F7FB; }
+  .fbtn[aria-pressed="true"] { border-color: #1B3557; background: #DEE7F1; }
+  .fbtn .no { font-size: 11px; color: #4A5765; letter-spacing: .08em; }
+  .fbtn .nm2 { font-size: 15px; font-weight: 700; }
+  .fbtn .av { font-size: 10.5px; }
+  .fbtn .av.ok { color: #2F6B1E; }
+  .fbtn .av.ng { color: #A8511A; }
+  .flist { margin: 10px 0 0; padding: 0 0 0 18px; font-size: 12.5px;
+           color: #303B46; line-height: 1.9; }
+  .flist b { color: #0B1219; }
+  .fnote { margin: 8px 0 0; font-size: 12px; color: #4A5765; line-height: 1.7; }
+  .fnote b { color: #0B1219; }
+
+  /* ── 字くらべ ─────────────────────────────── */
+  .cmp { max-width: 1120px; margin: 0 auto 22px; background: #fff;
+         border: 1px solid #C4CAD1; border-radius: 8px; overflow: hidden; }
+  .cmp h3 { margin: 0; padding: 10px 16px; font-size: 13.5px; letter-spacing: .04em;
+            background: #F4F7FB; border-bottom: 1px solid #C4CAD1; color: #1B3557; }
+  .cmprow { display: grid; grid-template-columns: 132px repeat(5, 1fr);
+            border-bottom: 1px solid #E3E7EC; }
+  .cmprow:last-child { border-bottom: 0; }
+  .cmprow > div { padding: 8px 10px; border-right: 1px solid #E3E7EC; min-width: 0;
+                  overflow-wrap: anywhere; }
+  .cmprow > div:last-child { border-right: 0; }
+  .cmprow.head { background: #FAFBFC; font-size: 11.5px; font-weight: 700; color: #303B46; }
+  .cmprow .lbl { font-size: 11px; color: #4A5765; background: #FAFBFC; font-weight: 700; }
+  .cmprow .nm { font-size: 10.4pt; font-weight: 700; }
+  .cmprow .sm { font-size: 6.1pt; font-weight: 700; }
+  .cmprow .hd { font-size: 7.8pt; font-weight: 700; }
+
+  .paper { font-family: var(--sheet-font, var(--gothic)) !important; }
+
+  @media print {
+    .fontbar, .cmp { display: none !important; }
+  }
+
 </style>
 </head>
 <body>
 
 <div class="hint">
-  <b>業務日誌 案1のプレビューです。</b>アプリの印刷レイアウトにはまだ入れていません。<br>
-  今回の直し：<b>「午前」「午後」を右へ寄せました</b>。左端からの空きと、
-  「利用者数」までの空きが、どちらも5.86mmでそろっています。<br>
-  <b>書き込むところは今までどおり下線のまま</b>で、枠では囲んでいません。<br>
-  見出し（左に日付・中央にタイトル・右に事業所名）、勤務者欄、最終確認の枠の位置、
-  状態の桝がないこと、脈・体温13.25mm、桝33、血圧①②の2回ぶん、
-  日誌の桝1行4.21mm は、前回のままです。<br>
-  <span class="k">Ctrl</span>／<span class="k">⌘</span> ＋ <span class="k">P</span> →
-  送信先「PDFに保存」で、A4横1枚として刷れます。
+  <b>業務日誌の書体くらべです。</b>上のボタンを押すと、下の紙がその書体に変わります。
+  紙の中身・桝の大きさ・色はどの案も同じで、<b>書体だけ</b>が違います。<br>
+  書体は<b>そのパソコンに入っているものしか出せません</b>。ボタンに
+  <b>✓</b>が付いていればそのパソコンで見えている書体、<b>－</b>なら入っていないので
+  別の書体で代わりに出ています。職員それぞれのパソコンで開いて見くらべてください。<br>
+  気に入った案を選んだ状態で <span class="k">Ctrl</span>／<span class="k">⌘</span> ＋
+  <span class="k">P</span> を押すと、その書体のままA4横1枚で刷れます（この案内とボタンは紙に出ません）。
+</div>
+
+<div class="fontbar">
+  <h2>書体をえらぶ</h2>
+  <div class="fbtns" id="fbtns"></div>
+  <ul class="flist"><li><b>案A　角ゴシック</b>　いまの書体。どのパソコンにも入っていて、線が細めですっきり見える</li><li><b>案B　メイリオ</b>　線が太めで画数の多い字がつぶれにくい。少し離れても読みやすい</li><li><b>案C　UDゴシック</b>　見間違いを減らす目的で作られた書体。数字と仮名が見分けやすい</li><li><b>案D　UDデジタル教科書体</b>　手書きに近い形。「シ」と「ツ」、「ソ」と「ン」を取り違えにくい</li><li><b>案E　明朝</b>　書類らしい落ち着いた見た目。小さい字は細くなるので刷り上がりに注意</li></ul>
+  <p class="fnote">
+    <b>WindowsのパソコンならB・C・D</b>（メイリオ／BIZ UDゴシック／UDデジタル教科書体）が、
+    <b>MacならA・B・E</b>（ヒラギノ角ゴ／ヒラギノ丸ゴ／ヒラギノ明朝）が入っていることが多いです。
+    入っていない書体を選ぶと、代わりの書体で出ます。
+  </p>
+</div>
+
+<div class="cmp" id="cmp">
+  <h3>字くらべ（刷ったときと同じ大きさです）</h3>
+  <div class="cmprow head"><div class="lbl"></div><div class="hA">案 A</div><div class="hB">案 B</div><div class="hC">案 C</div><div class="hD">案 D</div><div class="hE">案 E</div></div>
+  <div class="cmprow"><div class="lbl">氏名（10.4pt）</div><div class="nm cA">上田 ノブ　山田 トシ子　東 ミサヲ</div><div class="nm cB">上田 ノブ　山田 トシ子　東 ミサヲ</div><div class="nm cC">上田 ノブ　山田 トシ子　東 ミサヲ</div><div class="nm cD">上田 ノブ　山田 トシ子　東 ミサヲ</div><div class="nm cE">上田 ノブ　山田 トシ子　東 ミサヲ</div></div>
+  <div class="cmprow"><div class="lbl">備考の札（6.1pt）</div><div class="sm cA">上腕計　実測　右シャント実測　左上腕計</div><div class="sm cB">上腕計　実測　右シャント実測　左上腕計</div><div class="sm cC">上腕計　実測　右シャント実測　左上腕計</div><div class="sm cD">上腕計　実測　右シャント実測　左上腕計</div><div class="sm cE">上腕計　実測　右シャント実測　左上腕計</div></div>
+  <div class="cmprow"><div class="lbl">見出し（7.8pt）</div><div class="hd cA">氏名　運動　血圧　脈　体温　SPO2　備考</div><div class="hd cB">氏名　運動　血圧　脈　体温　SPO2　備考</div><div class="hd cC">氏名　運動　血圧　脈　体温　SPO2　備考</div><div class="hd cD">氏名　運動　血圧　脈　体温　SPO2　備考</div><div class="hd cE">氏名　運動　血圧　脈　体温　SPO2　備考</div></div>
+  <div class="cmprow"><div class="lbl">数字（10.4pt）</div><div class="nm cA">128 / 76　36.8　98　令和8年7月22日</div><div class="nm cB">128 / 76　36.8　98　令和8年7月22日</div><div class="nm cC">128 / 76　36.8　98　令和8年7月22日</div><div class="nm cD">128 / 76　36.8　98　令和8年7月22日</div><div class="nm cE">128 / 76　36.8　98　令和8年7月22日</div></div>
+  <div class="cmprow"><div class="lbl">紛らわしい字</div><div class="nm cA">シ ツ　ソ ン　ク タ　口 ロ　力 カ　0 O　1 l</div><div class="nm cB">シ ツ　ソ ン　ク タ　口 ロ　力 カ　0 O　1 l</div><div class="nm cC">シ ツ　ソ ン　ク タ　口 ロ　力 カ　0 O　1 l</div><div class="nm cD">シ ツ　ソ ン　ク タ　口 ロ　力 カ　0 O　1 l</div><div class="nm cE">シ ツ　ソ ン　ク タ　口 ロ　力 カ　0 O　1 l</div></div>
 </div>
 
 <div class="paper">
@@ -299,6 +370,68 @@
       </div>
   </div>
 </div>
+
+
+<script>
+(function () {
+  var FONTS = [{"no": "A", "name": "角ゴシック", "stack": "\"Hiragino Kaku Gothic ProN\",\"Yu Gothic\",\"YuGothic\",\"Noto Sans JP\",\"Meiryo\",sans-serif", "probe": ["Hiragino Kaku Gothic ProN", "Yu Gothic", "Noto Sans JP"]}, {"no": "B", "name": "メイリオ", "stack": "\"Meiryo\",\"Hiragino Kaku Gothic ProN\",\"Noto Sans JP\",sans-serif", "probe": ["Meiryo"]}, {"no": "C", "name": "UDゴシック", "stack": "\"BIZ UDPGothic\",\"BIZ UDGothic\",\"Hiragino Sans\",\"Noto Sans JP\",sans-serif", "probe": ["BIZ UDPGothic", "BIZ UDGothic"]}, {"no": "D", "name": "UDデジタル教科書体", "stack": "\"UD Digi Kyokasho NP-R\",\"UDデジタル教科書体 NP-R\",\"UD Digi Kyokasho N-R\",\"Hiragino Maru Gothic ProN\",\"Noto Sans JP\",sans-serif", "probe": ["UD Digi Kyokasho NP-R", "UDデジタル教科書体 NP-R", "Hiragino Maru Gothic ProN"]}, {"no": "E", "name": "明朝", "stack": "\"Yu Mincho\",\"YuMincho\",\"Hiragino Mincho ProN\",\"MS PMincho\",\"Noto Serif JP\",serif", "probe": ["Yu Mincho", "Hiragino Mincho ProN", "MS PMincho"]}];
+
+  /* パソコンにその書体が入っているかを、字の幅で調べる。
+     ものさし用の書体（monospace）と幅が変わっていれば入っている */
+  var cv = document.createElement("canvas").getContext("2d");
+  var probe = "あア亜1Wシツソン";
+  function has(name) {
+    var base = ["monospace", "sans-serif", "serif"];
+    for (var i = 0; i < base.length; i++) {
+      cv.font = '40px ' + base[i];
+      var w0 = cv.measureText(probe).width;
+      cv.font = '40px "' + name + '", ' + base[i];
+      if (Math.abs(cv.measureText(probe).width - w0) > 0.5) return true;
+    }
+    return false;
+  }
+
+  var bar = document.getElementById("fbtns");
+  var cmp = document.getElementById("cmp");
+
+  FONTS.forEach(function (f, i) {
+    /* 並びのうち、実際にこのパソコンに入っているものを探す */
+    var found = null;
+    for (var k = 0; k < f.probe.length; k++) {
+      if (has(f.probe[k])) { found = f.probe[k]; break; }
+    }
+
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "fbtn";
+    b.setAttribute("aria-pressed", String(i === 0));
+    b.innerHTML =
+      '<span class="no">案 ' + f.no + '</span>' +
+      '<span class="nm2"></span>' +
+      '<span class="av ' + (found ? "ok" : "ng") + '"></span>';
+    var nm2 = b.querySelector(".nm2");
+    nm2.textContent = f.name;
+    nm2.style.fontFamily = f.stack;
+    b.querySelector(".av").textContent =
+      found ? "✓ " + found : "－ このパソコンには入っていません";
+    b.addEventListener("click", function () {
+      document.documentElement.style.setProperty("--sheet-font", f.stack);
+      [].forEach.call(bar.children, function (o) { o.setAttribute("aria-pressed", "false"); });
+      b.setAttribute("aria-pressed", "true");
+    });
+    bar.appendChild(b);
+
+    /* 字くらべの列にも同じ書体を当てる */
+    [].forEach.call(cmp.querySelectorAll(".c" + f.no), function (o) {
+      o.style.fontFamily = f.stack;
+    });
+    var h = cmp.querySelector(".h" + f.no);
+    if (h) h.textContent = "案 " + f.no + "　" + f.name + (found ? "" : "（入っていません）");
+  });
+
+  document.documentElement.style.setProperty("--sheet-font", FONTS[0].stack);
+})();
+</script>
 
 </body>
 </html>
