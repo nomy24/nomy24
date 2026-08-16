@@ -16,6 +16,61 @@ function prefersReducedMotion() {
 }
 
 const CHECK_ANIM_MS = 620;
+const TAB_SLIDE_MS = 170;
+
+// タブ切り替え（フリック／タップ）を左右へのスライドで見せる共通処理。
+// container: 中身を作り直す一覧要素（同じ要素を使い回す）
+// delta: 1=次のタブへ（左へ抜けて右から入る）, -1=前のタブへ（右へ抜けて左から入る）
+// applyChange: 状態を更新して一覧を再描画する関数
+// onDone: アニメーション完了後に呼ばれる（多重実行防止のロック解除などに使う）
+function slideSwapContent(container, delta, applyChange, onDone) {
+  if (prefersReducedMotion()) {
+    applyChange();
+    if (onDone) onDone();
+    return;
+  }
+  container.classList.add(delta > 0 ? "is-sliding-out-left" : "is-sliding-out-right");
+  setTimeout(() => {
+    applyChange();
+    container.classList.remove("is-sliding-out-left", "is-sliding-out-right");
+    container.classList.add(delta > 0 ? "is-sliding-in-from-right" : "is-sliding-in-from-left");
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        container.classList.remove("is-sliding-in-from-right", "is-sliding-in-from-left");
+        if (onDone) onDone();
+      });
+    });
+  }, TAB_SLIDE_MS);
+}
+
+// スワイプ（左右フリック）で前後のタブに切り替えられるようにする共通処理。
+// order配列内でのcurrentの位置を基準に、フリック方向に応じたタブへ切り替える。
+function setupSwipeNav(el, getCurrent, order, onSwitch) {
+  let touchStartX = null;
+  let touchStartY = null;
+  let touchHandled = false;
+  el.addEventListener("touchstart", (e) => {
+    if (e.touches.length !== 1) return;
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+    touchHandled = false;
+  }, { passive: true });
+  el.addEventListener("touchmove", (e) => {
+    if (touchStartX === null || touchHandled) return;
+    const dx = e.touches[0].clientX - touchStartX;
+    const dy = e.touches[0].clientY - touchStartY;
+    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
+      touchHandled = true;
+      const idx = order.indexOf(getCurrent());
+      const nextIdx = idx + (dx < 0 ? 1 : -1);
+      if (nextIdx >= 0 && nextIdx < order.length) onSwitch(order[nextIdx]);
+    }
+  }, { passive: true });
+  el.addEventListener("touchend", () => {
+    touchStartX = null;
+    touchStartY = null;
+  });
+}
 const SPARK_COLORS = ["var(--color-primary)", "var(--color-accent)", "var(--color-warning)"];
 
 function spawnSparkles(btn) {
@@ -421,12 +476,28 @@ document.getElementById("fab").addEventListener("click", () => {
 // Todo
 // ================================================================
 
-document.querySelectorAll("[data-todo-filter]").forEach((btn) => {
-  btn.addEventListener("click", () => {
-    state.todoFilter = btn.dataset.todoFilter;
-    document.querySelectorAll("[data-todo-filter]").forEach((b) => b.classList.toggle("is-active", b === btn));
+const TODO_FILTER_ORDER = ["open", "today", "mine", "all"];
+let todoFilterAnimating = false;
+
+function switchTodoFilter(newFilter) {
+  if (!TODO_FILTER_ORDER.includes(newFilter) || newFilter === state.todoFilter || todoFilterAnimating) return;
+  const oldIndex = TODO_FILTER_ORDER.indexOf(state.todoFilter);
+  const newIndex = TODO_FILTER_ORDER.indexOf(newFilter);
+  const delta = newIndex > oldIndex ? 1 : -1;
+  todoFilterAnimating = true;
+  slideSwapContent(document.getElementById("todoList"), delta, () => {
+    state.todoFilter = newFilter;
+    document.querySelectorAll("[data-todo-filter]").forEach((b) => b.classList.toggle("is-active", b.dataset.todoFilter === newFilter));
     renderTodoList();
-  });
+  }, () => { todoFilterAnimating = false; });
+}
+
+document.querySelectorAll("[data-todo-filter]").forEach((btn) => {
+  btn.addEventListener("click", () => switchTodoFilter(btn.dataset.todoFilter));
+});
+
+setupSwipeNav(document.getElementById("todoList"), () => state.todoFilter, TODO_FILTER_ORDER, (cat) => {
+  if (!document.getElementById("todoFilters").hidden) switchTodoFilter(cat);
 });
 
 function dueLabel(dueDate) {
@@ -476,6 +547,14 @@ function filteredTodos() {
     return (a.createdAt || 0) - (b.createdAt || 0);
   });
   return list;
+}
+
+// タブのアイコンに、未完了のTodo件数を数字で重ねて表示する。
+function updateTodoTabBadge() {
+  const badge = document.getElementById("todoTabBadge");
+  const count = state.todos.filter((t) => !t.done).length;
+  badge.hidden = count === 0;
+  badge.textContent = count > 99 ? "99+" : String(count);
 }
 
 function renderTodoList() {
@@ -939,17 +1018,31 @@ const ROUTINE_NOTES = {
   adhoc: "必要なときに行うタスクです。実施したらチェックし、次に必要になったら外してください。",
 };
 
-document.querySelectorAll("[data-routine-cat]").forEach((btn) => {
-  btn.addEventListener("click", () => {
-    state.routineCat = btn.dataset.routineCat;
+const ROUTINE_CAT_ORDER = ["daily", "monthStart", "monthEnd", "adhoc"];
+let routineCatAnimating = false;
+
+function switchRoutineCat(newCat) {
+  if (!ROUTINE_CAT_ORDER.includes(newCat) || newCat === state.routineCat || routineCatAnimating) return;
+  const oldIndex = ROUTINE_CAT_ORDER.indexOf(state.routineCat);
+  const newIndex = ROUTINE_CAT_ORDER.indexOf(newCat);
+  const delta = newIndex > oldIndex ? 1 : -1;
+  routineCatAnimating = true;
+  slideSwapContent(document.getElementById("routineList"), delta, () => {
+    state.routineCat = newCat;
     document.querySelectorAll("[data-routine-cat]").forEach((b) => {
-      const active = b === btn;
+      const active = b.dataset.routineCat === newCat;
       b.classList.toggle("is-active", active);
       b.setAttribute("aria-selected", String(active));
     });
     renderRoutineList();
-  });
+  }, () => { routineCatAnimating = false; });
+}
+
+document.querySelectorAll("[data-routine-cat]").forEach((btn) => {
+  btn.addEventListener("click", () => switchRoutineCat(btn.dataset.routineCat));
 });
+
+setupSwipeNav(document.getElementById("routineList"), () => state.routineCat, ROUTINE_CAT_ORDER, switchRoutineCat);
 
 function periodKeyFor(cat) {
   if (cat === "daily") return todayKey();
@@ -1984,6 +2077,7 @@ async function main() {
     state.todos = list;
     if (state.screen === "todo") renderTodoList();
     syncRoutineTodos();
+    updateTodoTabBadge();
   });
   eventStore.subscribe((list) => {
     state.events = list;

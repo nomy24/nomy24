@@ -403,8 +403,15 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .cal-grid.is-sliding-in-from-right { transition: none; transform: translateX(22px); opacity: 0; }
 .cal-grid.is-sliding-in-from-left { transition: none; transform: translateX(-22px); opacity: 0; }
 
+/* Todo・定型タスクのタブ切り替え（フリック／タップ）用の汎用スライドアニメーション */
+.swipe-panel { transition: transform 170ms ease, opacity 170ms ease; }
+.swipe-panel.is-sliding-out-left { transform: translateX(-22px); opacity: 0; }
+.swipe-panel.is-sliding-out-right { transform: translateX(22px); opacity: 0; }
+.swipe-panel.is-sliding-in-from-right { transition: none; transform: translateX(22px); opacity: 0; }
+.swipe-panel.is-sliding-in-from-left { transition: none; transform: translateX(-22px); opacity: 0; }
+
 @media (prefers-reduced-motion: reduce) {
-  .cal-grid { transition: none; }
+  .cal-grid, .swipe-panel { transition: none; }
 }
 .cal-day {
   position: relative; aspect-ratio: 1; border-radius: var(--radius-sm); border: none;

@@ -73,7 +73,7 @@
       <button class="chip" type="button" data-todo-filter="all">すべて</button>
     </div>
 
-    <div id="todoList" class="list"></div>
+    <div id="todoList" class="list swipe-panel"></div>
     <p class="empty" id="todoEmpty" hidden>Todoはまだありません。右下の＋から追加できます。</p>
   </section>
 
@@ -118,7 +118,7 @@
       <button class="segmented__btn" type="button" role="tab" data-routine-cat="adhoc" aria-selected="false">随時<span class="segmented__count" id="routineCatCount-adhoc" hidden>0</span></button>
     </div>
 
-    <div id="routineList" class="list"></div>
+    <div id="routineList" class="list swipe-panel"></div>
     <p class="empty" id="routineEmpty" hidden>このカテゴリのタスクはまだありません。右下の＋から追加できます。</p>
   </section>
 
@@ -219,7 +219,10 @@
 
 <nav class="tabbar" aria-label="画面の切り替え">
   <button class="tab is-active" type="button" data-screen="todo" aria-current="page">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l4 4 10-10"/></svg>
+    <span class="tab__icon-wrap">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l4 4 10-10"/></svg>
+      <span class="tab-badge" id="todoTabBadge" hidden>0</span>
+    </span>
     <span>Todo</span>
   </button>
   <button class="tab" type="button" data-screen="calendar">
