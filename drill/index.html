@@ -1,0 +1,1289 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>実装力カルテ</title>
+<meta name="description" content="nomy24 のコード 6,269 行から測った 8 軸の現在地と、LV4 まで上げるための 8 本のドリル。">
+<meta name="theme-color" content="#EDF1EF" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#111716" media="(prefers-color-scheme: dark)">
+<style>
+  /* ============ トークン ============ */
+  :root {
+    /* 方眼紙（うすい緑みのグレー）を地に、松葉色の階調で習熟度を表す */
+    --ground:      #EDF1EF;
+    --surface:     #FBFCFB;
+    --surface-sunk:#E4EAE7;
+    --rule:        #C9D5D1;
+    --rule-soft:   #DCE5E2;
+    --grid:        #D6E0DC;
+
+    --ink:         #16211F;
+    --ink-2:       #455753;
+    --ink-3:       #798A86;
+
+    /* 習熟度ランプ（単一色相・淡→濃）。空マスの溝より必ず濃くする */
+    --cell-track: #EDF2F0;
+    --lv1: #BFD6D0;
+    --lv2: #92BDB3;
+    --lv3: #5C9A8E;
+    --lv4: #2C786B;
+    --lv5: #0A5247;
+
+    --pine:   #0B5F55;
+    --amber:  #A8541B;   /* 次の一手のみに使う唯一のアクセント */
+    --amber-soft: #F2E3D3;
+    --rust:   #9E3B2E;   /* 状態「要強化」。ラベルと必ず併記 */
+
+    --shadow: 0 1px 2px rgba(22,33,31,.05), 0 8px 24px -16px rgba(22,33,31,.22);
+
+    --font-display: "Hiragino Mincho ProN", "HiraMinProN-W3", "Yu Mincho", YuMincho, "Noto Serif JP", "Songti SC", serif;
+    --font-body: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic", YuGothic, "Noto Sans JP", system-ui, -apple-system, sans-serif;
+    --font-data: ui-monospace, SFMono-Regular, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+
+    --step-0: .75rem;
+    --step-1: .8125rem;
+    --step-2: .9375rem;
+    --step-3: 1.0625rem;
+    --step-4: 1.375rem;
+    --step-5: 1.875rem;
+    --step-6: 2.625rem;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:      #111716;
+      --surface:     #1A2220;
+      --surface-sunk:#0C1211;
+      --rule:        #2E3B38;
+      --rule-soft:   #232E2C;
+      --grid:        #202B28;
+
+      --ink:         #E7EEEB;
+      --ink-2:       #A5B4B0;
+      --ink-3:       #73847F;
+
+      --cell-track: #16211F;
+      --lv1: #2E4340;
+      --lv2: #42625A;
+      --lv3: #5A9084;
+      --lv4: #82B8AB;
+      --lv5: #B0DACD;
+
+      --pine:   #7DB3A6;
+      --amber:  #E2A05B;
+      --amber-soft: #33261A;
+      --rust:   #DD8272;
+
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 28px -18px rgba(0,0,0,.8);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground:      #111716;
+    --surface:     #1A2220;
+    --surface-sunk:#0C1211;
+    --rule:        #2E3B38;
+    --rule-soft:   #232E2C;
+    --grid:        #202B28;
+
+    --ink:         #E7EEEB;
+    --ink-2:       #A5B4B0;
+    --ink-3:       #73847F;
+
+    --cell-track: #16211F;
+    --lv1: #2E4340;
+    --lv2: #42625A;
+    --lv3: #5A9084;
+    --lv4: #82B8AB;
+    --lv5: #B0DACD;
+
+    --pine:   #7DB3A6;
+    --amber:  #E2A05B;
+    --amber-soft: #33261A;
+    --rust:   #DD8272;
+
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 28px -18px rgba(0,0,0,.8);
+  }
+
+  /* ============ 地 ============ */
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background-color: var(--ground);
+    /* 方眼紙：8px の細目に 40px の太目を重ねる */
+    background-image:
+      repeating-linear-gradient(to right, var(--grid) 0 1px, transparent 1px 40px),
+      repeating-linear-gradient(to bottom, var(--grid) 0 1px, transparent 1px 40px),
+      repeating-linear-gradient(to right, var(--rule-soft) 0 1px, transparent 1px 8px),
+      repeating-linear-gradient(to bottom, var(--rule-soft) 0 1px, transparent 1px 8px);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: var(--step-2);
+    line-height: 1.75;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  .sheet {
+    max-width: 62rem;
+    margin: 0 auto;
+    padding: clamp(1.25rem, 4vw, 3.5rem) clamp(1rem, 4vw, 2.5rem) 5rem;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(2rem, 5vw, 3.5rem);
+  }
+
+  ::selection { background: var(--lv2); color: var(--ink); }
+
+  :is(a, button, summary, input):focus-visible {
+    outline: 2px solid var(--amber);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  /* ============ 見出し ============ */
+  .eyebrow {
+    font-family: var(--font-data);
+    font-size: var(--step-0);
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin: 0;
+  }
+
+  h1 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: var(--step-6);
+    line-height: 1.15;
+    letter-spacing: .04em;
+    margin: .25rem 0 0;
+    text-wrap: balance;
+  }
+
+  .section-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: .25rem .875rem;
+    padding-bottom: .625rem;
+    border-bottom: 1px solid var(--rule);
+    margin-bottom: 1.5rem;
+  }
+  .section-head__no {
+    font-family: var(--font-data);
+    font-size: var(--step-0);
+    color: var(--ink-3);
+    letter-spacing: .1em;
+    flex: none;
+  }
+  .section-head__title {
+    font-family: var(--font-display);
+    font-size: var(--step-4);
+    font-weight: 600;
+    letter-spacing: .06em;
+    margin: 0;
+  }
+  .section-head__note {
+    font-size: var(--step-0);
+    color: var(--ink-3);
+    margin: 0 0 0 auto;
+    text-align: right;
+    line-height: 1.5;
+  }
+  /* 狭い画面では見出しと補足が横で押し合うので、補足を下の行へ落とす */
+  @media (max-width: 34rem) {
+    .section-head__note {
+      flex-basis: 100%;
+      margin-left: 0;
+      text-align: left;
+      padding-left: 4.25rem;
+    }
+    .section-head__note br { display: none; }
+  }
+
+  /* ============ 表紙 ============ */
+  .masthead__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .375rem 1.5rem;
+    margin: 1.25rem 0 0;
+    padding-top: 1rem;
+    border-top: 1px solid var(--rule);
+    font-family: var(--font-data);
+    font-size: var(--step-0);
+    color: var(--ink-2);
+    font-variant-numeric: tabular-nums;
+  }
+  .masthead__meta dt { color: var(--ink-3); display: inline; }
+  .masthead__meta dd { display: inline; margin: 0 0 0 .5rem; }
+  .masthead__meta > div { white-space: nowrap; }
+
+  /* ============ 現在地 ============ */
+  .verdict {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+    gap: clamp(1.25rem, 3vw, 2.25rem);
+    align-items: start;
+  }
+  @media (max-width: 46rem) { .verdict { grid-template-columns: 1fr; } }
+
+  .score {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    box-shadow: var(--shadow);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .score__figure {
+    display: flex;
+    align-items: baseline;
+    gap: .375rem;
+    font-family: var(--font-data);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+  .score__now { font-size: var(--step-6); font-weight: 600; color: var(--ink); letter-spacing: -.02em; }
+  .score__of  { font-size: var(--step-3); color: var(--ink-3); }
+  .score__delta {
+    margin-left: auto;
+    font-size: var(--step-1);
+    color: var(--amber);
+    background: var(--amber-soft);
+    padding: .1875rem .5rem;
+    align-self: center;
+  }
+  .score__rank {
+    font-family: var(--font-display);
+    font-size: var(--step-3);
+    font-weight: 600;
+    letter-spacing: .04em;
+    margin: 0;
+    padding-top: .875rem;
+    border-top: 1px solid var(--rule-soft);
+  }
+  .score__diagnosis { margin: 0; font-size: var(--step-1); color: var(--ink-2); }
+  .score__bar {
+    height: 6px;
+    background: var(--surface-sunk);
+    position: relative;
+    overflow: hidden;
+  }
+  .score__bar i {
+    position: absolute; inset: 0 auto 0 0;
+    background: var(--lv4);
+    border-radius: 0 3px 3px 0;
+    transition: width .45s cubic-bezier(.4,0,.2,1);
+  }
+  .score__bar b {
+    position: absolute; top: -3px; bottom: -3px;
+    width: 2px;
+    background: var(--amber);
+  }
+
+  .radar {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    box-shadow: var(--shadow);
+    padding: 1rem 1rem .75rem;
+    position: relative;
+  }
+  .radar svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .radar__legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .25rem 1.25rem;
+    padding-top: .625rem;
+    margin-top: .25rem;
+    border-top: 1px solid var(--rule-soft);
+    font-family: var(--font-data);
+    font-size: var(--step-0);
+    color: var(--ink-2);
+  }
+  .radar__legend span { display: inline-flex; align-items: center; gap: .4375rem; }
+  .radar__key { width: 16px; height: 8px; flex: none; }
+  .radar__key--now { background: var(--lv4); }
+  .radar__key--goal { border: 2px dashed var(--ink-3); height: 0; }
+
+  .tip {
+    position: absolute;
+    pointer-events: none;
+    background: var(--ink);
+    color: var(--ground);
+    font-family: var(--font-data);
+    font-size: var(--step-0);
+    line-height: 1.5;
+    padding: .375rem .5rem;
+    white-space: nowrap;
+    opacity: 0;
+    transform: translate(-50%, -130%);
+    transition: opacity .12s;
+    z-index: 5;
+    font-variant-numeric: tabular-nums;
+  }
+  .tip[data-show="1"] { opacity: 1; }
+
+  /* ============ 八軸 ============ */
+  .axes { display: flex; flex-direction: column; gap: 1px; background: var(--rule-soft); border: 1px solid var(--rule); box-shadow: var(--shadow); }
+  .axis {
+    background: var(--surface);
+    padding: .875rem 1.125rem;
+    display: grid;
+    grid-template-columns: 4.25rem minmax(7rem, 1fr) auto auto;
+    grid-template-areas: "code name gauge state" ".  note note note";
+    align-items: center;
+    gap: .25rem .875rem;
+  }
+  @media (max-width: 46rem) {
+    .axis {
+      grid-template-columns: 4.25rem 1fr auto;
+      grid-template-areas: "code name state" "gauge gauge gauge" "note note note";
+      gap: .4375rem .75rem;
+    }
+  }
+  .axis__code { grid-area: code; font-family: var(--font-data); font-size: var(--step-0); color: var(--ink-3); letter-spacing: .06em; }
+  .axis__name { grid-area: name; font-size: var(--step-2); font-weight: 500; }
+  .axis__gauge { grid-area: gauge; display: flex; align-items: center; gap: .625rem; }
+  /* 状態チップは文字数が違う（達成／要強化／あと一歩）。幅を固定しないと
+     ゲージ列が行ごとにずれて、目盛りとして読めなくなる。 */
+  .axis__state { grid-area: state; justify-self: end; min-width: 4.75rem; text-align: right; }
+  .axis__note { grid-area: note; font-size: var(--step-0); color: var(--ink-3); margin: 0; line-height: 1.6; }
+
+  /* 目盛りゲージ：5マス＝LV1〜5。淡→濃で習熟度を表す */
+  .cells { display: flex; gap: 2px; }
+  .cells i {
+    --w: 0%;
+    width: 26px; height: 14px;
+    background: var(--cell-track);
+    box-shadow: inset 0 0 0 1px var(--rule-soft);
+    position: relative;
+    overflow: hidden;
+  }
+  .cells i::after {
+    content: ""; position: absolute;
+    top: 0; bottom: 0; left: 0; right: calc(100% - var(--w));
+    background: var(--fill, var(--lv3));
+    transition: right .4s cubic-bezier(.4,0,.2,1);
+  }
+  .cells i[data-target="1"] { box-shadow: inset 0 0 0 1px var(--amber); }
+  @media (max-width: 30rem) { .cells i { width: 100%; } .cells { flex: 1; } }
+
+  .lv {
+    font-family: var(--font-data);
+    font-size: var(--step-1);
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-2);
+    white-space: nowrap;
+    min-width: 5.5rem;
+  }
+  .lv b { color: var(--ink); font-weight: 600; }
+  .lv span { color: var(--ink-3); }
+
+  .chip {
+    font-family: var(--font-data);
+    font-size: var(--step-0);
+    letter-spacing: .04em;
+    padding: .0625rem .4375rem;
+    border: 1px solid currentColor;
+    white-space: nowrap;
+  }
+  .chip--weak   { color: var(--rust); }
+  .chip--growing{ color: var(--amber); }
+  .chip--strong { color: var(--pine); }
+  .chip--done   { color: var(--pine); }
+
+  /* ============ 次の一手 ============ */
+  .next {
+    border: 2px solid var(--amber);
+    background: var(--surface);
+    box-shadow: var(--shadow);
+    padding: 1.25rem 1.375rem;
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+  }
+  .next__label {
+    font-family: var(--font-data);
+    font-size: var(--step-0);
+    letter-spacing: .16em;
+    color: var(--amber);
+    margin: 0;
+  }
+  .next__body {
+    font-family: var(--font-display);
+    font-size: var(--step-4);
+    font-weight: 600;
+    line-height: 1.5;
+    letter-spacing: .02em;
+    margin: 0;
+    text-wrap: balance;
+  }
+  .next__from { font-family: var(--font-data); font-size: var(--step-0); color: var(--ink-3); margin: 0; }
+  .next--clear { border-color: var(--pine); }
+  .next--clear .next__label { color: var(--pine); }
+
+  /* ============ ドリル ============ */
+  .drills { display: flex; flex-direction: column; gap: .875rem; }
+
+  .drill {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    box-shadow: var(--shadow);
+  }
+  .drill[data-state="done"] { border-color: var(--lv3); }
+  .drill[data-state="active"] { border-left: 3px solid var(--amber); }
+
+  .drill > summary {
+    cursor: pointer;
+    list-style: none;
+    padding: 1rem 1.125rem;
+    display: grid;
+    grid-template-columns: 2.5rem minmax(0,1fr) auto;
+    grid-template-areas: "no title meter" "no sub meter";
+    align-items: center;
+    gap: 0 .875rem;
+  }
+  .drill > summary::-webkit-details-marker { display: none; }
+  .drill > summary:hover { background: color-mix(in srgb, var(--surface-sunk) 45%, var(--surface)); }
+
+  .drill__no {
+    grid-area: no;
+    font-family: var(--font-data);
+    font-size: var(--step-3);
+    color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -.02em;
+  }
+  .drill[data-state="done"] .drill__no { color: var(--lv4); }
+  .drill[data-state="active"] .drill__no { color: var(--amber); }
+
+  .drill__title {
+    grid-area: title;
+    font-family: var(--font-display);
+    font-size: var(--step-3);
+    font-weight: 600;
+    letter-spacing: .03em;
+  }
+  .drill__sub { grid-area: sub; font-family: var(--font-data); font-size: var(--step-0); color: var(--ink-3); }
+  .drill__meter { grid-area: meter; display: flex; align-items: center; gap: .75rem; }
+  .drill__count { font-family: var(--font-data); font-size: var(--step-1); font-variant-numeric: tabular-nums; color: var(--ink-2); }
+  .drill__ring { width: 22px; height: 22px; flex: none; transform: rotate(-90deg); }
+  .drill__ring circle { fill: none; stroke-width: 3; }
+  .drill__ring .t { stroke: var(--surface-sunk); }
+  .drill__ring .v { stroke: var(--lv4); stroke-linecap: round; transition: stroke-dashoffset .4s cubic-bezier(.4,0,.2,1); }
+
+  .drill__body {
+    padding: 0 1.125rem 1.25rem;
+    border-top: 1px solid var(--rule-soft);
+    margin: 0 1.125rem;
+    padding-left: 0; padding-right: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.125rem;
+  }
+  .drill__why { margin: 1rem 0 0; font-size: var(--step-1); color: var(--ink-2); }
+  .drill__why code, .step code, .done code, .keep li code {
+    font-family: var(--font-data);
+    font-size: .9em;
+    background: var(--surface-sunk);
+    padding: .0625rem .3125rem;
+    word-break: break-word;
+  }
+
+  .sublabel {
+    font-family: var(--font-data);
+    font-size: var(--step-0);
+    letter-spacing: .12em;
+    color: var(--ink-3);
+    margin: 0 0 .5rem;
+  }
+
+  .steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1px; background: var(--rule-soft); }
+  .step { background: var(--surface); }
+  .step label {
+    display: grid;
+    grid-template-columns: auto 1.5rem minmax(0,1fr);
+    gap: .75rem;
+    align-items: start;
+    padding: .625rem .75rem;
+    cursor: pointer;
+    font-size: var(--step-1);
+    line-height: 1.7;
+  }
+  .step label:hover { background: color-mix(in srgb, var(--surface-sunk) 45%, var(--surface)); }
+  .step input { margin: .375rem 0 0; width: 1rem; height: 1rem; accent-color: var(--lv5); flex: none; }
+  .step__no { font-family: var(--font-data); font-size: var(--step-0); color: var(--ink-3); padding-top: .1875rem; font-variant-numeric: tabular-nums; }
+  .step input:checked ~ .step__text { color: var(--ink-3); text-decoration: line-through; text-decoration-thickness: 1px; }
+  .step input:checked ~ .step__no { color: var(--lv4); }
+
+  .done {
+    background: var(--surface-sunk);
+    padding: .75rem .875rem;
+    font-size: var(--step-1);
+    display: grid;
+    grid-template-columns: auto minmax(0,1fr);
+    gap: .75rem;
+    align-items: baseline;
+  }
+  .done__mark { font-family: var(--font-data); font-size: var(--step-0); letter-spacing: .1em; color: var(--ink-3); white-space: nowrap; }
+
+  .gains { display: flex; flex-wrap: wrap; gap: .375rem; align-items: center; }
+  .gain {
+    font-family: var(--font-data);
+    font-size: var(--step-0);
+    padding: .0625rem .4375rem;
+    background: var(--surface-sunk);
+    color: var(--ink-2);
+    font-variant-numeric: tabular-nums;
+  }
+  .gain b { color: var(--lv5); }
+  :root[data-theme="dark"] .gain b { color: var(--lv5); }
+
+  /* ============ 維持 ============ */
+  .keep { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: .875rem; }
+  .keep > li {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-top: 3px solid var(--lv3);
+    box-shadow: var(--shadow);
+    padding: 1rem 1.125rem;
+    list-style: none;
+  }
+  .keep h3 { font-family: var(--font-display); font-size: var(--step-3); font-weight: 600; margin: 0 0 .375rem; letter-spacing: .03em; }
+  .keep p { margin: 0; font-size: var(--step-1); color: var(--ink-2); }
+  .keep__code { font-family: var(--font-data); font-size: var(--step-0); color: var(--ink-3); letter-spacing: .06em; }
+
+  /* ============ 脚 ============ */
+  .colophon {
+    border-top: 1px solid var(--rule);
+    padding-top: 1.25rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+    justify-content: space-between;
+    font-family: var(--font-data);
+    font-size: var(--step-0);
+    color: var(--ink-3);
+    line-height: 1.6;
+  }
+  .colophon p { margin: 0; max-width: 42ch; }
+  .reset {
+    font-family: var(--font-data);
+    font-size: var(--step-0);
+    letter-spacing: .06em;
+    background: none;
+    border: 1px solid var(--rule);
+    color: var(--ink-2);
+    padding: .375rem .75rem;
+    cursor: pointer;
+  }
+  .reset:hover { border-color: var(--rust); color: var(--rust); }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition-duration: 0s !important; animation: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="sheet">
+
+  <header class="masthead">
+    <p class="eyebrow">Web 開発ドリル / 測定と処方</p>
+    <h1>実装力カルテ</h1>
+    <dl class="masthead__meta">
+      <div><dt>測定対象</dt><dd>nomy24/nomy24</dd></div>
+      <div><dt>計測範囲</dt><dd>6,269 行</dd></div>
+      <div><dt>作品</dt><dd>PWA 2 本 + 収集バッチ</dd></div>
+      <div><dt>基準</dt><dd>LV1 見習い → LV5 指導者</dd></div>
+    </dl>
+  </header>
+
+  <!-- 01 現在地 -->
+  <section>
+    <div class="section-head">
+      <span class="section-head__no">01</span>
+      <h2 class="section-head__title">現在地</h2>
+      <p class="section-head__note">書いたコードから測った実測値<br>チェックを入れると即座に動く</p>
+    </div>
+
+    <div class="verdict">
+      <div class="score">
+        <div class="score__figure">
+          <span class="score__now" id="scoreNow">20.0</span>
+          <span class="score__of">/ 40</span>
+          <span class="score__delta" id="scoreDelta">目標まで +12.0</span>
+        </div>
+        <div class="score__bar"><i id="scoreFill"></i><b id="scoreGoal"></b></div>
+        <p class="score__rank" id="scoreRank">Lv.2.5 ── 独力で出荷できる</p>
+        <p class="score__diagnosis" id="scoreDiag">
+          作るところまでは一人で完走できている。弱いのは「壊れたことに気づく仕組み」で、
+          6,269 行に対してテストが 0 件、リンタも型検査もない。
+          設計の勘は良い（<code>store.js</code> の抽象化は職業レベル）のに、
+          その勘を <code>app.js</code> 2,154 行には適用できていない。
+        </p>
+      </div>
+
+      <figure class="radar" id="radarBox" style="margin:0">
+        <svg id="radar" viewBox="0 0 440 400" role="img" aria-labelledby="radarTitle">
+          <title id="radarTitle">八軸の現在値と目標値。数値は下の一覧と同じ。</title>
+        </svg>
+        <div class="radar__legend">
+          <span><i class="radar__key radar__key--now"></i>現在（実測 + ドリル進捗）</span>
+          <span><i class="radar__key radar__key--goal"></i>目標 LV4（チーム開発相当）</span>
+        </div>
+        <div class="tip" id="tip"></div>
+      </figure>
+    </div>
+  </section>
+
+  <!-- 02 八軸 -->
+  <section>
+    <div class="section-head">
+      <span class="section-head__no">02</span>
+      <h2 class="section-head__title">八軸のパラメーター</h2>
+      <p class="section-head__note">枠つきのマスが目標 LV<br>根拠はすべて実コード由来</p>
+    </div>
+    <div class="axes" id="axes"></div>
+  </section>
+
+  <!-- 03 次の一手 -->
+  <section>
+    <div class="section-head">
+      <span class="section-head__no">03</span>
+      <h2 class="section-head__title">次の一手</h2>
+      <p class="section-head__note">迷ったらここだけ見る</p>
+    </div>
+    <div class="next" id="next"></div>
+  </section>
+
+  <!-- 04 ドリル -->
+  <section>
+    <div class="section-head">
+      <span class="section-head__no">04</span>
+      <h2 class="section-head__title">ドリル</h2>
+      <p class="section-head__note">依存関係の順に並べてある<br>上から順にやるのが最短</p>
+    </div>
+    <div class="drills" id="drills"></div>
+  </section>
+
+  <!-- 05 維持 -->
+  <section>
+    <div class="section-head">
+      <span class="section-head__no">05</span>
+      <h2 class="section-head__title">すでに強い軸</h2>
+      <p class="section-head__note">ドリルを組んでいない<br>= 下げないことが課題</p>
+    </div>
+    <ul class="keep" id="keep"></ul>
+  </section>
+
+  <footer class="colophon">
+    <p>
+      現在値は <code>staff-todo/</code>・<code>sagamihara-minami/</code>・<code>scripts/</code> の実装を読んで付けた。
+      チェック状態はこの端末のブラウザにだけ保存される。
+    </p>
+    <button class="reset" id="reset" type="button">進捗をリセット</button>
+  </footer>
+
+</div>
+
+<script>
+(() => {
+  "use strict";
+
+  const STORE_KEY = "nomy24-drill:v1";
+
+  /* ================= 測定結果 ================= */
+
+  const AXES = [
+    { code: "A-01", name: "HTML・アクセシビリティ", base: 3, target: 4,
+      note: "skip-link、lang=\"ja\"、配色別 theme-color まで入っている。シートを開いた時のフォーカス移動と Tab の閉じ込めがない。" },
+    { code: "A-02", name: "CSS・レイアウト", base: 4, target: 4,
+      note: "手書き 1,633 行。カスタムプロパティ、ダークモード、safe-area、prefers-reduced-motion を使い分けている。" },
+    { code: "A-03", name: "JavaScript・DOM", base: 4, target: 4,
+      note: "ES モジュール、async/await、タッチジェスチャを自作。requestAnimationFrame の二段待ちまで理解して書いている。" },
+    { code: "A-04", name: "設計・アーキテクチャ", base: 2, target: 4,
+      note: "store.js のバックエンド抽象化は職業レベル。一方 app.js は 2,154 行・88 関数の一枚岩で、状態は可変オブジェクト 1 個。" },
+    { code: "A-05", name: "テスト・品質保証", base: 1, target: 4,
+      note: "6,269 行に対してテスト 0 件。リンタ・整形ツールもなし。壊れたことに気づく手段が目視だけ。" },
+    { code: "A-06", name: "データ・セキュリティ", base: 2, target: 4,
+      note: "Firestore の購読と認証は動いている。ただし firestore.rules がリポジトリにない。権限判定がクライアント側だけ。" },
+    { code: "A-07", name: "開発環境・ツール", base: 1, target: 4,
+      note: "package.json なし。ビルド・型・整形なしで素の ES モジュールを直配信。GitHub Actions は収集バッチ 1 本のみ。" },
+    { code: "A-08", name: "パフォーマンス・PWA", base: 3, target: 4,
+      note: "Service Worker のキャッシュ戦略、オフライン対応、画像圧縮まで実装済み。ただし状態が変わるたび innerHTML で全再描画。" },
+  ];
+
+  const RANKS = [
+    { min: 0,  label: "Lv.1 ── 写経の段階" },
+    { min: 13, label: "Lv.2 ── 独力で出荷できる" },
+    { min: 20, label: "Lv.2.5 ── 独力で出荷できる／壊れても気づけない" },
+    { min: 24, label: "Lv.3 ── 実務相当（一人で回せる）" },
+    { min: 29, label: "Lv.3.5 ── 実務相当（他人が触れる）" },
+    { min: 32, label: "Lv.4 ── チーム開発相当" },
+    { min: 37, label: "Lv.5 ── 指導者" },
+  ];
+
+  const DIAG = [
+    { min: 0,  html: "作るところまでは一人で完走できている。弱いのは「壊れたことに気づく仕組み」で、6,269 行に対してテストが 0 件、リンタも型検査もない。設計の勘は良い（<code>store.js</code> の抽象化は職業レベル）のに、その勘を <code>app.js</code> 2,154 行には適用できていない。" },
+    { min: 24, html: "土台が入り、壊れたら気づけるようになった。ここから効くのは設計の分解。<code>app.js</code> を割って状態の流れを一方向にすると、機能を足すのが怖くなくなる。" },
+    { min: 29, html: "他人がリポジトリを clone して開発を続けられる状態に近い。残っているのは仕上げ（差分描画、フォーカス管理、型）。ここまで来たら実務で通用する。" },
+    { min: 32, html: "全軸 LV4。テスト・型・ルール・CI が揃い、設計が説明できる。この状態で作った 2 本の PWA はそのまま職務経歴として出せる。" },
+  ];
+
+  /* ================= ドリル ================= */
+
+  const DRILLS = [
+    {
+      id: "D1",
+      title: "土台を用意する",
+      sub: "npm / ESLint / Prettier / CI",
+      days: "目安 2 日",
+      gains: { "A-07": 2 },
+      why: "いま <code>package.json</code> がないので、何も自動で確かめられない。この 1 本を通すだけで以降の全ドリルが「コマンド 1 発で確認できる」形になる。最初にやる理由はそれだけ。",
+      steps: [
+        "リポジトリ直下で <code>npm init -y</code>。できた <code>package.json</code> に <code>\"type\": \"module\"</code> を足す（<code>scripts/*.mjs</code> と揃える）。",
+        "<code>npm i -D eslint @eslint/js prettier</code>。<code>eslint.config.js</code> を作り、対象を <code>staff-todo/</code>・<code>sagamihara-minami/</code>・<code>scripts/</code> に、環境を browser + node に設定する。",
+        "<code>.claude/</code> と <code>data/news.json</code> は <code>ignores</code> に入れる。他人のスキル定義と生成物を直す必要はない。",
+        "<code>\"lint\": \"eslint .\"</code> と <code>\"fmt\": \"prettier -w .\"</code> を scripts に追加し、<code>npm run lint</code> を実行する。",
+        "出た警告を全部潰す。<code>no-unused-vars</code> と <code>no-undef</code> が必ず出る。消していい変数か、消すと壊れるかを 1 件ずつ判断する。",
+        "<code>.github/workflows/ci.yml</code> を追加して、push ごとに <code>npm run lint</code> を走らせる。",
+      ],
+      done: "GitHub の Actions タブで CI が緑になり、手元で <code>npm run lint</code> が警告 0 件で終わる。",
+    },
+    {
+      id: "D2",
+      title: "最初のテストを書く",
+      sub: "Vitest / 純粋関数の切り出し",
+      days: "目安 3 日",
+      gains: { "A-05": 2 },
+      why: "本当の目的はテストではなく<strong>テストしやすい形に直すこと</strong>。<code>app.js</code> の中の計算だけの関数を外に出すと、それ自体が設計の改善になる。テストは「出せたことの証明」として付いてくる。",
+      steps: [
+        "<code>npm i -D vitest</code>、<code>\"test\": \"vitest run\"</code> を追加する。",
+        "<code>app.js</code> から DOM を触らない関数を探す。<code>pad2</code>・<code>toDateKey</code>・<code>hexToRgba</code>・<code>formatBytes</code>・<code>escapeHtml</code> が該当する。",
+        "それらを <code>staff-todo/lib/format.js</code> に移して <code>export</code> し、<code>app.js</code> は <code>import</code> に置き換える。ブラウザで動作確認する。",
+        "<code>staff-todo/lib/format.test.js</code> を書く。1 関数につき<strong>正常系 1 件・異常系 1 件</strong>を必ず作る（<code>hexToRgba(\"\")</code>、<code>hexToRgba(\"#abc\")</code>、<code>formatBytes(0)</code>、<code>escapeHtml(null)</code>）。",
+        "<code>scripts/lib/classify.mjs</code> にもテストを書く。実際の見出し文字列を入れて分類結果を確かめる。ここは仕様が曖昧な部分なので、テストが仕様書になる。",
+        "CI に <code>npm test</code> を追加する。",
+      ],
+      done: "テストが 20 件以上緑になり、CI でテストが走る。<code>app.js</code> が 100 行以上短くなっている。",
+    },
+    {
+      id: "D3",
+      title: "サーバー側で権限を守る",
+      sub: "Firestore セキュリティルール / エミュレータ",
+      days: "目安 3 日",
+      gains: { "A-06": 2, "A-05": 1 },
+      why: "これは学習ではなく<strong>いま動いているアプリの穴</strong>。「本人か管理者のみ削除できる」判定が <code>app.js</code> の中にしかないので、DevTools のコンソールから Firestore を直接叩けば誰でも他人の職員データを消せる。介護施設で使うアプリなので、ここは先に閉じる。",
+      steps: [
+        "実際に確かめる。ログイン後のコンソールから他人の職員 doc を <code>deleteDoc</code> してみて、通ってしまうことを自分の目で見る（自分のテスト環境で）。",
+        "<code>firestore.rules</code> をリポジトリに追加する。まず全 collection を <code>allow read, write: if false</code> で閉じ、そこから必要な穴だけ開ける。",
+        "<code>staff</code> の <code>delete</code> は「<code>request.auth.token.email</code> が対象 doc の email と一致」または「管理者フラグを持つ」場合だけ許す。<code>app.js</code> の既存判定と同じ条件をルール側に書き写す。",
+        "<code>npm i -D @firebase/rules-unit-testing firebase-tools</code>。エミュレータでルールのテストを書く。",
+        "テストは 3 件書く：本人の削除は <code>assertSucceeds</code>、他人になりすました削除は <code>assertFails</code>、未ログインの読み取りは <code>assertFails</code>。",
+        "<code>firebase deploy --only firestore:rules</code> で本番に反映し、手順 1 をもう一度試して弾かれることを確認する。",
+      ],
+      done: "「他人の職員を削除」がエミュレータテストで deny され、本番でも同じ操作が拒否される。<code>firestore.rules</code> がリポジトリに入っている。",
+    },
+    {
+      id: "D4",
+      title: "一枚岩を割る",
+      sub: "app.js 2,154 行の分解",
+      days: "目安 4 日",
+      gains: { "A-04": 1 },
+      why: "<code>store.js</code> では「同じ API で local と Firestore を切り替える」という良い分け方ができている。同じ手つきを UI 側にも入れる。1 ファイルが 2,000 行を超えると、直す前に読む時間のほうが長くなる。",
+      steps: [
+        "88 個の関数を責務で 4 つに分類して紙に書く：描画する／状態を変える／書式を整える／入力を受ける。<code>grep -n \"^function\\|^async function\" staff-todo/app.js</code> の出力を使う。",
+        "依存が少ない順に切り出す。<code>lib/format.js</code>（D2 で完了）→ <code>lib/dom.js</code>（<code>$</code>、<code>slideSwapContent</code>、<code>setupSwipeNav</code>、<code>animateCheck</code>）。",
+        "画面ごとに分ける：<code>views/todo.js</code>、<code>views/calendar.js</code>、<code>views/routine.js</code>、<code>views/memo.js</code>、<code>views/photo.js</code>、<code>views/settings.js</code>。",
+        "<strong>1 ファイル 300 行を上限</strong>にする。超えたら分ける。切り出しごとに commit して、その都度ブラウザで全画面を触る。",
+        "残った <code>app.js</code> は「起動して各 view を繋ぐだけ」にする。",
+      ],
+      done: "<code>app.js</code> が 300 行以下になり、<code>wc -l staff-todo/**/*.js</code> のどのファイルも 300 行以下。全画面が今までどおり動く。",
+    },
+    {
+      id: "D5",
+      title: "状態の流れを一方向にする",
+      sub: "ミニストア / 描画の一本化",
+      days: "目安 4 日",
+      gains: { "A-04": 1 },
+      why: "いまは <code>state.todoFilter = x</code> と書いた後に <code>renderTodoList()</code> を手で呼ぶ形。呼び忘れると画面とデータがズレる。この種のバグは再現しにくく原因も分かりにくい。仕組みで防ぐ。",
+      steps: [
+        "先に問題を書き出す。<code>grep -n \"render[A-Z][a-zA-Z]*()\" staff-todo/</code> で、描画関数を手で呼んでいる箇所を全部数える。この数がバグの入り口の数。",
+        "<code>lib/store.js</code> に <code>createStore(initial)</code> を書く。公開するのは <code>getState</code>・<code>dispatch</code>・<code>subscribe</code> の 3 つだけ。<strong>50 行以内</strong>で書けるはず。",
+        "状態の更新を関数にまとめる（<code>reducer(state, action)</code>）。新しいオブジェクトを返し、元の state は書き換えない。",
+        "描画を <code>render()</code> 1 本にまとめ、<code>store.subscribe(render)</code> で購読する。",
+        "<code>state.x = ...</code> を全部 <code>dispatch</code> 経由に置き換える。手順 1 で数えた直接呼び出しを 0 にする。",
+        "<code>createStore</code> と <code>reducer</code> にテストを書く。DOM がないので素直にテストできる。ここで D2 の投資が返ってくる。",
+      ],
+      done: "描画関数の直接呼び出しが 0 件。state の書き換えが store の中だけで起きている。reducer のテストが緑。",
+    },
+    {
+      id: "D6",
+      title: "全再描画をやめる",
+      sub: "差分更新 / 計測して証明する",
+      days: "目安 3 日",
+      gains: { "A-08": 1 },
+      why: "いま 1 件チェックを付けるたびに一覧の HTML を作り直している。件数が増えると目に見えて重くなる。ここでの本題は差分更新の実装より<strong>「速くなったと数字で言えること」</strong>。感覚で最適化する癖を先に捨てる。",
+      steps: [
+        "先に測る。テストデータで Todo を 100 件入れ、DevTools の Performance で「1 件完了」を記録し、Scripting 時間をメモする。この数字が基準。",
+        "<code>innerHTML</code> の全置換をやめる。各カードに <code>data-id</code> を付け、差分は<strong>追加・削除・更新の 3 操作</strong>だけにする。",
+        "更新はカードを作り直さず、変わった要素のテキストと class だけを書き換える。",
+        "同じ手順でもう一度測る。before / after を <code>staff-todo/README.md</code> に残す。",
+        "<code>escapeHtml</code> の呼び出し箇所を確認する。<code>textContent</code> に変えられたところは、エスケープ自体が要らなくなる。",
+      ],
+      done: "100 件で 1 件更新した時の Scripting 時間が半分以下。before / after の数字が README に書いてある。",
+    },
+    {
+      id: "D7",
+      title: "キーボードだけで完走させる",
+      sub: "フォーカス管理 / aria-live",
+      days: "目安 2 日",
+      gains: { "A-01": 1 },
+      why: "skip-link と <code>prefers-reduced-motion</code> を自分で入れている時点で意識はある。足りないのはモーダル（シート）のフォーカス管理で、開いても Tab が背後の画面に抜けてしまう。介護施設のように様々な人が触るアプリなら、ここは機能要件。",
+      steps: [
+        "シートを開いた時、最初の入力欄にフォーカスを移す。閉じた時は<strong>開いたボタンにフォーカスを戻す</strong>（戻し忘れが一番多い抜け）。",
+        "シート内で Tab を閉じ込める（focus trap）。<code>Esc</code> で閉じられるようにする。",
+        "件数バッジと保存完了を <code>aria-live=\"polite\"</code> の領域で知らせる。いまは画面が黙って変わっている。",
+        "アイコンだけのボタンに <code>aria-label</code> を付ける。<code>grep -n \"<button\" staff-todo/index.html</code> で全部確認する。",
+        "<strong>マウスを使わずに</strong>「Todo を追加 → 完了 → 削除」を通す。詰まった場所が全部バグ。",
+        "Lighthouse の Accessibility を測って記録する。",
+      ],
+      done: "マウスに触らず Todo の追加〜完了〜削除が完走でき、Lighthouse の Accessibility が 95 以上。",
+    },
+    {
+      id: "D8",
+      title: "型で守る",
+      sub: "TypeScript / JSDoc / checkJs",
+      days: "目安 5 日",
+      gains: { "A-07": 1 },
+      why: "<code>.ts</code> に書き換える必要はない。<code>checkJs</code> を使えば、いまの <code>.js</code> のまま JSDoc で型が付く。ビルドを増やさず「データの形」を 1 箇所に決められるので、この構成には一番よく合う。",
+      steps: [
+        "<code>npm i -D typescript</code>。<code>tsconfig.json</code> に <code>allowJs: true</code>、<code>checkJs: true</code>、<code>noEmit: true</code>、<code>strict: false</code> を書く（<strong>最初は strict を切る</strong>。全部赤くなると続かない）。",
+        "<code>staff-todo/types.js</code> に <code>@typedef</code> でデータの形を定義する。<code>Staff</code>・<code>Todo</code>・<code>RoutineTask</code>・<code>PhoneMemo</code>・<code>Attachment</code>。実際に Firestore へ入っているフィールドを <code>store.js</code> の呼び出し元から拾う。",
+        "<code>// @ts-check</code> を<strong>1 ファイルずつ</strong>付けて赤を消す。<code>lib/</code> → <code>store.js</code> → <code>views/</code> の順。",
+        "<code>\"typecheck\": \"tsc --noEmit\"</code> を CI に追加する。",
+        "全ファイルが通ったら <code>strict: true</code> に上げる。ここで <code>null</code> の扱い漏れが大量に出る。それが今まで見えていなかったバグ。",
+      ],
+      done: "<code>npm run typecheck</code> がエラー 0 件で、<code>strict: true</code> でも通る。データの形が <code>types.js</code> 1 箇所に定義されている。",
+    },
+  ];
+
+  const KEEP = [
+    { code: "A-02", name: "CSS・レイアウト",
+      text: "1,633 行を素の CSS で書き切っている。カスタムプロパティでの配色管理、配色別 <code>theme-color</code>、<code>safe-area</code>、<code>prefers-reduced-motion</code> の使い分けはフレームワーク任せでは身に付かない部分。<strong>Tailwind に移したくなっても急がないこと</strong>。この手書きの感覚が今の一番の資産。" },
+    { code: "A-03", name: "JavaScript・DOM",
+      text: "タッチのフリック判定を自分で書き、<code>requestAnimationFrame</code> を二段重ねて再描画のタイミングを合わせている。ライブラリの下で何が起きているかを知っている状態。<strong>React を触るのはドリル 8 本が終わってから</strong>。土台がある上で使うのと、逃げ場として使うのは別物。" },
+  ];
+
+  /* ================= 状態 ================= */
+
+  const axisByCode = new Map(AXES.map((a) => [a.code, a]));
+  let checked = load();
+
+  function load() {
+    try {
+      const raw = localStorage.getItem(STORE_KEY);
+      const parsed = raw ? JSON.parse(raw) : null;
+      return new Set(Array.isArray(parsed?.checked) ? parsed.checked : []);
+    } catch {
+      return new Set();
+    }
+  }
+
+  function save() {
+    try {
+      localStorage.setItem(STORE_KEY, JSON.stringify({ checked: [...checked] }));
+    } catch { /* プライベートモード等では保存できない。動作は続ける */ }
+  }
+
+  const stepKey = (drillId, i) => `${drillId}-${i}`;
+
+  function drillProgress(drill) {
+    let n = 0;
+    for (let i = 0; i < drill.steps.length; i += 1) if (checked.has(stepKey(drill.id, i))) n += 1;
+    return { done: n, total: drill.steps.length, ratio: n / drill.steps.length };
+  }
+
+  /** 実測値 + ドリル進捗ぶん（手順の達成率に比例して上がる） */
+  function levels() {
+    const out = new Map(AXES.map((a) => [a.code, a.base]));
+    for (const drill of DRILLS) {
+      const { ratio } = drillProgress(drill);
+      for (const [code, gain] of Object.entries(drill.gains)) {
+        out.set(code, Math.min(5, out.get(code) + gain * ratio));
+      }
+    }
+    return out;
+  }
+
+  /** 手順の順番どおりに見て、最初の未チェックを返す */
+  function nextStep() {
+    for (const drill of DRILLS) {
+      for (let i = 0; i < drill.steps.length; i += 1) {
+        if (!checked.has(stepKey(drill.id, i))) return { drill, index: i };
+      }
+    }
+    return null;
+  }
+
+  const TOTAL_GOAL = AXES.reduce((s, a) => s + a.target, 0);
+  const TOTAL_MAX = AXES.length * 5;
+
+  /* ================= 描画 ================= */
+
+  const el = (id) => document.getElementById(id);
+
+  /* --- レーダー（八角形） --- */
+  const NS = "http://www.w3.org/2000/svg";
+  const CX = 220, CY = 200, R = 118, LABEL_R = 146;
+
+  function svg(tag, attrs) {
+    const node = document.createElementNS(NS, tag);
+    for (const [k, v] of Object.entries(attrs)) node.setAttribute(k, String(v));
+    return node;
+  }
+
+  function vertex(i, level) {
+    const angle = (-90 + i * (360 / AXES.length)) * (Math.PI / 180);
+    const r = (level / 5) * R;
+    return [CX + Math.cos(angle) * r, CY + Math.sin(angle) * r];
+  }
+
+  function polygonPoints(values) {
+    return values.map((v, i) => vertex(i, v).join(",")).join(" ");
+  }
+
+  function buildRadar() {
+    const root = el("radar");
+    const title = root.querySelector("title");
+    root.replaceChildren(title);
+
+    // 目盛り（LV1〜5 の八角形）— 控えめに
+    for (let lv = 1; lv <= 5; lv += 1) {
+      root.appendChild(svg("polygon", {
+        points: polygonPoints(AXES.map(() => lv)),
+        fill: "none",
+        stroke: "var(--rule-soft)",
+        "stroke-width": lv === 5 ? 1.5 : 1,
+      }));
+    }
+    // 軸線
+    AXES.forEach((_, i) => {
+      const [x, y] = vertex(i, 5);
+      root.appendChild(svg("line", { x1: CX, y1: CY, x2: x, y2: y, stroke: "var(--rule-soft)", "stroke-width": 1 }));
+    });
+
+    // 目標（破線の輪郭・塗りなし）— 形でも現在と区別できるようにする
+    root.appendChild(svg("polygon", {
+      id: "radarGoal",
+      points: polygonPoints(AXES.map((a) => a.target)),
+      fill: "none",
+      stroke: "var(--ink-3)",
+      "stroke-width": 2,
+      "stroke-dasharray": "5 4",
+    }));
+
+    // 現在（塗り + 実線）
+    root.appendChild(svg("polygon", {
+      id: "radarNowFill",
+      points: "",
+      fill: "var(--lv3)",
+      "fill-opacity": ".26",
+      stroke: "var(--lv4)",
+      "stroke-width": 2,
+      "stroke-linejoin": "round",
+    }));
+
+    // 軸ラベル（コード。名称は下の一覧が持つ）
+    AXES.forEach((a, i) => {
+      const angle = (-90 + i * (360 / AXES.length)) * (Math.PI / 180);
+      const x = CX + Math.cos(angle) * LABEL_R;
+      const y = CY + Math.sin(angle) * LABEL_R;
+      const cos = Math.cos(angle);
+      const t = svg("text", {
+        x, y,
+        "text-anchor": Math.abs(cos) < 0.2 ? "middle" : cos > 0 ? "start" : "end",
+        "dominant-baseline": "middle",
+        fill: "var(--ink-3)",
+        "font-family": "var(--font-data)",
+        "font-size": "11",
+        "letter-spacing": ".06em",
+      });
+      t.textContent = a.code;
+      root.appendChild(t);
+    });
+
+    // 頂点マーカー（ホバーで数値）
+    AXES.forEach((a, i) => {
+      const hit = svg("circle", { r: 14, fill: "transparent", "data-hit": i, style: "cursor:default" });
+      const dot = svg("circle", { r: 4.5, fill: "var(--lv5)", stroke: "var(--surface)", "stroke-width": 2, "data-dot": i });
+      root.appendChild(dot);
+      root.appendChild(hit);
+    });
+
+    const tip = el("tip");
+    const box = el("radarBox");
+    root.addEventListener("pointerover", (e) => {
+      const i = e.target?.dataset?.hit;
+      if (i === undefined) return;
+      const a = AXES[Number(i)];
+      const lv = levels().get(a.code);
+      tip.innerHTML = `${a.code} ${a.name}<br>現在 LV ${lv.toFixed(1)} ／ 目標 LV ${a.target}`;
+      const [vx, vy] = vertex(Number(i), lv);
+      const rect = root.getBoundingClientRect();
+      const boxRect = box.getBoundingClientRect();
+      tip.style.left = `${rect.left - boxRect.left + (vx / 440) * rect.width}px`;
+      tip.style.top = `${rect.top - boxRect.top + (vy / 400) * rect.height}px`;
+      tip.dataset.show = "1";
+    });
+    root.addEventListener("pointerout", (e) => {
+      if (e.target?.dataset?.hit !== undefined) tip.dataset.show = "0";
+    });
+  }
+
+  function paintRadar(lv) {
+    const values = AXES.map((a) => lv.get(a.code));
+    el("radar").querySelector("#radarNowFill").setAttribute("points", polygonPoints(values));
+    values.forEach((v, i) => {
+      const [x, y] = vertex(i, v);
+      const dot = el("radar").querySelector(`[data-dot="${i}"]`);
+      const hit = el("radar").querySelector(`[data-hit="${i}"]`);
+      dot.setAttribute("cx", x); dot.setAttribute("cy", y);
+      hit.setAttribute("cx", x); hit.setAttribute("cy", y);
+    });
+  }
+
+  /* --- 八軸ゲージ --- */
+  const RAMP = ["var(--lv1)", "var(--lv2)", "var(--lv3)", "var(--lv4)", "var(--lv5)"];
+
+  function stateChip(value, axis) {
+    if (value >= axis.target) return { cls: "chip--done", text: "達成" };
+    if (axis.base >= 4) return { cls: "chip--strong", text: "強み" };
+    if (value > axis.base) return { cls: "chip--growing", text: "伸ばし中" };
+    if (axis.base <= 2) return { cls: "chip--weak", text: "要強化" };
+    return { cls: "chip--growing", text: "あと一歩" };
+  }
+
+  function buildAxes() {
+    const host = el("axes");
+    host.replaceChildren();
+    for (const a of AXES) {
+      const row = document.createElement("div");
+      row.className = "axis";
+      row.dataset.code = a.code;
+
+      const cells = Array.from({ length: 5 }, (_, i) =>
+        `<i data-cell="${i}" data-target="${i + 1 === a.target ? 1 : 0}" style="--fill:${RAMP[i]}"></i>`
+      ).join("");
+
+      row.innerHTML = `
+        <span class="axis__code">${a.code}</span>
+        <span class="axis__name">${a.name}</span>
+        <span class="axis__gauge">
+          <span class="cells">${cells}</span>
+          <span class="lv"><b data-lv>—</b> <span>/ LV${a.target}</span></span>
+        </span>
+        <span class="axis__state"><span class="chip" data-chip>—</span></span>
+        <p class="axis__note">${a.note}</p>`;
+      host.appendChild(row);
+    }
+  }
+
+  function paintAxes(lv) {
+    for (const a of AXES) {
+      const row = el("axes").querySelector(`[data-code="${a.code}"]`);
+      const value = lv.get(a.code);
+      row.querySelectorAll("[data-cell]").forEach((cell, i) => {
+        const fill = Math.max(0, Math.min(1, value - i));
+        cell.style.setProperty("--w", `${(fill * 100).toFixed(1)}%`);
+      });
+      row.querySelector("[data-lv]").textContent = `LV ${value.toFixed(1)}`;
+      const chip = stateChip(value, a);
+      const chipEl = row.querySelector("[data-chip]");
+      chipEl.className = `chip ${chip.cls}`;
+      chipEl.textContent = chip.text;
+    }
+  }
+
+  /* --- 総合 --- */
+  function paintScore(lv) {
+    const total = AXES.reduce((s, a) => s + lv.get(a.code), 0);
+    el("scoreNow").textContent = total.toFixed(1);
+
+    const remain = TOTAL_GOAL - total;
+    el("scoreDelta").textContent = remain > 0.05 ? `目標まで +${remain.toFixed(1)}` : "目標に到達";
+
+    el("scoreFill").style.width = `${(total / TOTAL_MAX) * 100}%`;
+    el("scoreGoal").style.left = `${(TOTAL_GOAL / TOTAL_MAX) * 100}%`;
+
+    let rank = RANKS[0].label;
+    for (const r of RANKS) if (total >= r.min) rank = r.label;
+    el("scoreRank").textContent = rank;
+
+    let diag = DIAG[0].html;
+    for (const d of DIAG) if (total >= d.min) diag = d.html;
+    el("scoreDiag").innerHTML = diag;
+  }
+
+  /* --- 次の一手 --- */
+  function paintNext() {
+    const host = el("next");
+    const next = nextStep();
+    if (!next) {
+      host.className = "next next--clear";
+      host.innerHTML = `
+        <p class="next__label">全ドリル完了</p>
+        <p class="next__body">八軸すべて LV4。次は自分でカルテを引き直すこと。</p>
+        <p class="next__from">測り直す観点：他人が clone して 30 分で開発を始められるか／障害の原因をログから 10 分で特定できるか</p>`;
+      return;
+    }
+    const { drill, index } = next;
+    const plain = drill.steps[index].replace(/<[^>]+>/g, "");
+    host.className = "next";
+    host.innerHTML = `
+      <p class="next__label">NEXT</p>
+      <p class="next__body">${drill.steps[index]}</p>
+      <p class="next__from">ドリル ${drill.id.slice(1)}「${drill.title}」 手順 ${index + 1} / ${drill.steps.length}　—　${drill.days}</p>`;
+    host.setAttribute("aria-label", `次の一手：${plain}`);
+  }
+
+  /* --- ドリル --- */
+  const RING_C = 2 * Math.PI * 9;
+
+  function buildDrills() {
+    const host = el("drills");
+    host.replaceChildren();
+
+    DRILLS.forEach((drill, di) => {
+      const d = document.createElement("details");
+      d.className = "drill";
+      d.dataset.id = drill.id;
+
+      const gains = Object.entries(drill.gains)
+        .map(([code, g]) => `<span class="gain">${code} ${axisByCode.get(code).name} <b>+${g}</b></span>`)
+        .join("");
+
+      const steps = drill.steps.map((text, i) => `
+        <li class="step">
+          <label>
+            <input type="checkbox" data-drill="${drill.id}" data-index="${i}">
+            <span class="step__no">${String(i + 1).padStart(2, "0")}</span>
+            <span class="step__text">${text}</span>
+          </label>
+        </li>`).join("");
+
+      d.innerHTML = `
+        <summary>
+          <span class="drill__no">${String(di + 1).padStart(2, "0")}</span>
+          <span class="drill__title">${drill.title}</span>
+          <span class="drill__sub">${drill.sub}　/　${drill.days}</span>
+          <span class="drill__meter">
+            <span class="drill__count" data-count>0/${drill.steps.length}</span>
+            <svg class="drill__ring" viewBox="0 0 22 22" aria-hidden="true">
+              <circle class="t" cx="11" cy="11" r="9"></circle>
+              <circle class="v" cx="11" cy="11" r="9"
+                stroke-dasharray="${RING_C.toFixed(2)}"
+                stroke-dashoffset="${RING_C.toFixed(2)}" data-ring></circle>
+            </svg>
+          </span>
+        </summary>
+        <div class="drill__body">
+          <p class="drill__why">${drill.why}</p>
+          <div>
+            <p class="sublabel">手順</p>
+            <ol class="steps">${steps}</ol>
+          </div>
+          <div class="done">
+            <span class="done__mark">完了条件</span>
+            <span>${drill.done}</span>
+          </div>
+          <div>
+            <p class="sublabel">上がる軸</p>
+            <div class="gains">${gains}</div>
+          </div>
+        </div>`;
+      host.appendChild(d);
+    });
+
+    host.addEventListener("change", (e) => {
+      const input = e.target;
+      if (!(input instanceof HTMLInputElement) || input.type !== "checkbox") return;
+      const key = stepKey(input.dataset.drill, Number(input.dataset.index));
+      if (input.checked) checked.add(key); else checked.delete(key);
+      save();
+      render();
+    });
+  }
+
+  function paintDrills() {
+    for (const drill of DRILLS) {
+      const d = el("drills").querySelector(`[data-id="${drill.id}"]`);
+      const { done, total, ratio } = drillProgress(drill);
+
+      d.querySelectorAll("input[type=checkbox]").forEach((input) => {
+        input.checked = checked.has(stepKey(drill.id, Number(input.dataset.index)));
+      });
+
+      d.querySelector("[data-count]").textContent = `${done}/${total}`;
+      d.querySelector("[data-ring]").setAttribute("stroke-dashoffset", (RING_C * (1 - ratio)).toFixed(2));
+      d.dataset.state = ratio === 1 ? "done" : ratio > 0 ? "active" : "todo";
+    }
+
+    // 未着手の先頭ドリルは「次にやるもの」として active 扱いにする
+    const next = nextStep();
+    if (next) {
+      const d = el("drills").querySelector(`[data-id="${next.drill.id}"]`);
+      if (d.dataset.state === "todo") d.dataset.state = "active";
+    }
+  }
+
+  /* --- 維持 --- */
+  function buildKeep() {
+    el("keep").innerHTML = KEEP.map((k) => `
+      <li>
+        <span class="keep__code">${k.code}　LV4 実測</span>
+        <h3>${k.name}</h3>
+        <p>${k.text}</p>
+      </li>`).join("");
+  }
+
+  /* ================= 起動 ================= */
+
+  function render() {
+    const lv = levels();
+    paintScore(lv);
+    paintRadar(lv);
+    paintAxes(lv);
+    paintNext();
+    paintDrills();
+  }
+
+  buildRadar();
+  buildAxes();
+  buildDrills();
+  buildKeep();
+
+  // 最初に開くドリルは、次の一手が入っているもの
+  const first = nextStep();
+  if (first) {
+    const d = el("drills").querySelector(`[data-id="${first.drill.id}"]`);
+    if (d) d.open = true;
+  }
+
+  el("reset").addEventListener("click", () => {
+    if (!confirm("チェックした手順をすべて消して、実測値の状態に戻します。よろしいですか？")) return;
+    checked = new Set();
+    save();
+    render();
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
