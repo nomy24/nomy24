@@ -3066,6 +3066,18 @@
   .pm-actions { display: flex; gap: calc(var(--step) * 2); }
   .pm-actions .btn { font-size: 13px; padding: 8px 16px; }
 
+  /* 認定の有効期間。開始と終了を上下に重ねて、桝の幅を取らないようにする */
+  .cert-cell { display: flex; align-items: center; gap: 2px; min-width: 0; }
+  .cert-cell input { min-width: 0; font-size: 11px; padding: 3px 2px;
+                     text-align: center; letter-spacing: -.2px;
+                     font-variant-numeric: tabular-nums; }
+  .cert-cell .cert-to { flex: 0 0 auto; font-style: normal; color: var(--ink-3, #5B646E); }
+  /* 期限が切れている・近い方は色で知らせる */
+  .cert-cell.is-soon input:last-child { background: #FBF1D3; }
+  .cert-cell.is-over input:last-child { background: #F8E9E7; color: #9C1414; font-weight: 600; }
+
+  .kin-who { font-weight: 600; white-space: nowrap; }
+
   .pm-tabs {
     display: flex;
     gap: 2px;
@@ -4595,6 +4607,7 @@
 
   <nav class="pm-tabs" role="tablist">
     <button type="button" role="tab" id="pmtab-users" aria-selected="true">利用者</button>
+    <button type="button" role="tab" id="pmtab-kin" aria-selected="false">緊急連絡先</button>
     <button type="button" role="tab" id="pmtab-drivers" aria-selected="false">運転手</button>
     <button type="button" role="tab" id="pmtab-dispatch" aria-selected="false">配車</button>
     <button type="button" role="tab" id="pmtab-office" aria-selected="false">事業所</button>
@@ -4619,15 +4632,17 @@
         <table>
           <thead>
             <tr>
-              <th style="width:12%">氏名</th>
-              <th style="width:11%">ふりがな</th>
-              <th style="width:19%">住所（市区町村以下）</th>
-              <th style="width:9%">介護度</th>
-              <th style="width:9%">血圧<span class="th-note">日誌の備考欄</span></th>
-              <th style="width:10%">電話<span class="th-note">連絡表の覚え書き</span></th>
-              <th style="width:7%">記号</th>
-              <th style="width:13%">利用曜日</th>
-              <th style="width:10%"></th>
+              <th style="width:9%">氏名</th>
+              <th style="width:8%">ふりがな</th>
+              <th style="width:12%">住所（市区町村以下）</th>
+              <th style="width:8%">介護度</th>
+              <th style="width:15%">認定有効期間<span class="th-note">介護度の確認用</span></th>
+              <th style="width:8%">血圧<span class="th-note">日誌の備考欄</span></th>
+              <th style="width:9%">電話番号<span class="th-note">電話帳に出る</span></th>
+              <th style="width:9%">連絡メモ<span class="th-note">連絡表の3段目</span></th>
+              <th style="width:5%">記号</th>
+              <th style="width:11%">利用曜日</th>
+              <th style="width:5%"></th>
             </tr>
           </thead>
           <tbody id="user-rows"></tbody>
@@ -4651,6 +4666,36 @@
       </div>
       <p class="pm-note">終了にした方は、送迎表の利用者プルダウン・既定の割り当て・未割当から外れます。
         すでに表に入っている過去の日付では、そのまま残ります。</p>
+    </section>
+
+    <section class="pm-pane" id="pm-kin" hidden>
+      <h3>緊急連絡先<span class="h3-note">ご本人につながらないときにかける先。電話帳に出ます</span></h3>
+      <div class="pm-filter">
+        <label class="pf-find">
+          <span class="pf-label">さがす</span>
+          <input type="search" id="kin-find" placeholder="氏名・ふりがな" autocomplete="off">
+        </label>
+        <span class="pf-hit" id="kin-hit"></span>
+      </div>
+      <div class="pm-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:13%">利用者</th>
+              <th style="width:13%">ご本人の電話</th>
+              <th style="width:13%">連絡メモ</th>
+              <th style="width:8%">続柄</th>
+              <th style="width:15%">連絡先の氏名</th>
+              <th style="width:14%">ふりがな</th>
+              <th style="width:12%">電話1</th>
+              <th style="width:12%">電話2</th>
+            </tr>
+          </thead>
+          <tbody id="kin-rows"></tbody>
+        </table>
+      </div>
+      <p class="pm-note">利用中の方だけを出します。ご本人の電話と連絡メモは「利用者」の表と同じ中身で、
+        どちらから直しても構いません。</p>
     </section>
 
     <section class="pm-pane" id="pm-drivers" hidden>
@@ -5241,7 +5286,36 @@
   let OFFICE = Object.assign({}, DEFAULT_OFFICE, STORE.getJSON("office") || {});
 
   /* ── マスタ（保存されていればそちらを使う） ── */
-  let USERS = STORE.getJSON("users") || DEFAULT_USERS.map((u) => ({ ...u, tags: [...u.tags] }));
+  /* 電話まわりの持ちもの。
+     tel＝電話番号そのもの、note＝「TELなし」などかけるときの留意事項。
+     cert＝介護認定の有効期間（介護度のとなりに出す）。
+     kin＝緊急連絡先（続柄・氏名・ふりがな・電話2つ）。電話帳で使う */
+  const emptyCert = () => ({ from: "", to: "" });
+  const emptyKin = () => ({ rel: "", name: "", kana: "", tel1: "", tel2: "" });
+
+  /* 電話番号らしいか。数字が5つ以上並んでいれば番号とみなす */
+  const looksTel = (v) => (String(v || "").replace(/[^0-9]/g, "").length >= 5);
+
+  function normUser(u) {
+    const out = Object.assign({}, u);
+    out.tags = [...(u.tags || [])];
+    out.cert = Object.assign(emptyCert(), u.cert || {});
+    out.kin = Object.assign(emptyKin(), u.kin || {});
+    /* 以前は電話の欄に「TELなし」などの覚え書きを入れていた。
+       番号でないものは覚え書きのほうへ移す */
+    if (u.note == null && !looksTel(u.tel)) {
+      out.note = String(u.tel || "");
+      out.tel = "";
+    } else {
+      out.note = String(u.note || "");
+      out.tel = String(u.tel || "");
+    }
+    return out;
+  }
+
+  const normUsers = (list) => (list || []).map(normUser);
+
+  let USERS = normUsers(STORE.getJSON("users") || DEFAULT_USERS);
   let DRIVERS = normDrivers(STORE.getJSON("drivers")) || DEFAULT_DRIVERS.map((d) => ({ name: d.name, days: { ...d.days } }));
   let DISPATCH = normDispatch(STORE.getJSON("dispatch"));
   let ROLES = normRoles(STORE.getJSON("roles"));
@@ -5481,6 +5555,13 @@
 
   const isoToday = () => {
     const d = new Date();
+    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  };
+
+  /* きょうから何日か先の日付。認定の期限が近いかを見るのに使う */
+  const isoPlusDays = (n) => {
+    const d = new Date();
+    d.setDate(d.getDate() + n);
     return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
   };
 
@@ -7511,13 +7592,15 @@
         });
         const care = formRow(body, "介護度", careSelect(""));
         const bp = formRow(body, "血圧", bpSelect(""), "業務日誌の備考欄に出ます。シャントの方は赤字になります。");
-        const tel = Object.assign(document.createElement("input"), { type: "text", placeholder: "TELなし など" });
-        tel.setAttribute("list", "tel-notes");
-        formRow(body, "電話", tel, "午後お迎えの電話連絡表に出ます。空欄でも構いません。");
+        const tel = Object.assign(document.createElement("input"), { type: "tel", placeholder: "046-000-0000" });
+        const note = Object.assign(document.createElement("input"), { type: "text", placeholder: "TELなし など" });
+        note.setAttribute("list", "tel-notes");
+        formRow(body, "電話番号", tel, "電話帳に出ます。空欄でも構いません。");
+        formRow(body, "連絡メモ", note, "「TELなし」など。午後お迎えの電話連絡表に出ます。");
         formRow(body, "記号", tagPicker(draft.tags), "車椅子・荷物・玄関先まで");
         formRow(body, "利用曜日", dayPicker(draft.days), "押すたびに 空 → AM → PM と変わります");
         body.dataset.ready = "1";
-        draft.el = { name, kana, addr, care, bp, tel };
+        draft.el = { name, kana, addr, care, bp, tel, note };
       },
       submit() {
         const name = draft.el.name.value.trim();
@@ -7532,6 +7615,9 @@
           care: draft.el.care.value,
           bp: draft.el.bp.value,
           tel: draft.el.tel.value.trim(),
+          note: draft.el.note.value.trim(),
+          cert: emptyCert(),
+          kin: emptyKin(),
           tags: [...draft.tags],
           days: { ...draft.days },
           end: null
@@ -7679,8 +7765,20 @@
       "住所つづき": ["住所2", "住所3", "建物", "建物名", "方書", "アパート名"],
       "介護度": ["介護度", "要介護度", "要介護状態区分", "要介護状態区分等",
         "介護保険要介護状態区分等", "認定区分"],
+      "認定開始": ["認定開始", "認定有効期間開始", "介護保険認定有効期間開始",
+        "有効期間開始", "認定期間開始", "認定年月日"],
+      "認定終了": ["認定終了", "認定有効期間終了", "介護保険認定有効期間終了",
+        "有効期間終了", "認定期間終了"],
       "血圧": ["血圧", "血圧測定", "血圧の測り方"],
-      "電話": ["電話", "電話番号", "tel", "連絡先", "自宅電話"],
+      "電話": ["電話番号", "電話", "tel", "自宅電話", "連絡先"],
+      "連絡メモ": ["連絡メモ", "備考", "メモ", "特記事項", "注意事項", "電話備考"],
+      "続柄": ["続柄", "関係者続柄", "関係"],
+      "緊急連絡先氏名": ["緊急連絡先氏名", "関係者氏名", "緊急連絡先", "家族氏名"],
+      "緊急連絡先ふりがな": ["緊急連絡先ふりがな", "関係者フリガナ", "関係者かな",
+        "緊急連絡先カナ", "緊急連絡先フリガナ"],
+      "緊急連絡先電話1": ["緊急連絡先電話1", "関係者電話番号1", "関係者電話番号",
+        "緊急連絡先電話", "緊急連絡先電話番号1"],
+      "緊急連絡先電話2": ["緊急連絡先電話2", "関係者電話番号2", "緊急連絡先電話番号2"],
       "記号": ["記号", "印", "タグ", "特記"],
       "終了日": ["終了日", "利用終了日", "終了年月日"],
       "終了理由": ["終了理由", "利用終了理由"],
@@ -7776,15 +7874,24 @@
   const CSV_TABLES = {
     users: {
       name: "利用者",
-      head: ["氏名", "ふりがな", "郵便番号", "住所", "介護度", "血圧", "電話", "記号",
-        "月", "火", "水", "木", "金", "土", "終了日", "終了理由", "id"],
+      head: ["氏名", "ふりがな", "郵便番号", "住所", "介護度", "認定開始", "認定終了",
+        "血圧", "電話番号", "連絡メモ", "記号",
+        "月", "火", "水", "木", "金", "土",
+        "続柄", "緊急連絡先氏名", "緊急連絡先ふりがな", "緊急連絡先電話1", "緊急連絡先電話2",
+        "終了日", "終了理由", "id"],
       rows() {
-        return draftUsers.map((u) => [
-          u.name, u.kana, "", u.addr, u.care || "", u.bp || "", u.tel || "",
-          (u.tags || []).join("/"),
-          ...WEEKDAYS.map((w) => u.days[w] || ""),
-          u.end ? u.end.d : "", u.end ? (u.end.r || "") : "", u.id
-        ]);
+        return draftUsers.map((u) => {
+          const c = u.cert || {};
+          const k = u.kin || {};
+          return [
+            u.name, u.kana, "", u.addr, u.care || "", c.from || "", c.to || "",
+            u.bp || "", u.tel || "", u.note || "",
+            (u.tags || []).join("/"),
+            ...WEEKDAYS.map((w) => u.days[w] || ""),
+            k.rel || "", k.name || "", k.kana || "", k.tel1 || "", k.tel2 || "",
+            u.end ? u.end.d : "", u.end ? (u.end.r || "") : "", u.id
+          ];
+        });
       },
       take(rows) {
         const pick = csvPicker(rows[0], CSV_ALIAS.users);
@@ -7825,6 +7932,15 @@
             care: CARE_LEVELS.includes(care) ? care : "",
             bp: get("血圧"),
             tel: get("電話"),
+            note: get("連絡メモ"),
+            cert: { from: csvDate(get("認定開始")), to: csvDate(get("認定終了")) },
+            kin: {
+              rel: get("続柄"),
+              name: get("緊急連絡先氏名"),
+              kana: kanaToHira(get("緊急連絡先ふりがな")),
+              tel1: get("緊急連絡先電話1"),
+              tel2: get("緊急連絡先電話2")
+            },
             tags: get("記号").split(/[\/／、,・\s]+/)
               .map((t) => TAG_WORDS[t] || t)
               .filter((t) => TAGS.some((x) => x.key === t)),
@@ -7959,18 +8075,54 @@
 
     cell(careSelect(u.care)).addEventListener("change", function () { draftUsers[i].care = this.value; });
 
+    /* 認定の有効期間。介護度がいつまで有効かを、その場で見比べられるように置く。
+       日付の桝は横に広いので、62行の表では字の欄にしてある。
+       和暦（R08.01.01）で打っても西暦に直す */
+    const certWrap = el("span", "cert-cell");
+    ["from", "to"].forEach((k, n) => {
+      if (n) certWrap.append(el("i", "cert-to", "〜"));
+      const d = document.createElement("input");
+      d.type = "text";
+      d.inputMode = "numeric";
+      d.value = (draftUsers[i].cert && draftUsers[i].cert[k]) || "";
+      d.placeholder = k === "from" ? "開始" : "終了";
+      d.title = (k === "from" ? "認定の開始日" : "認定の終了日") + "（R08.04.01 のように和暦でも打てます）";
+      d.addEventListener("change", () => {
+        const v = csvDate(d.value) || (d.value.trim() ? d.value.trim() : "");
+        d.value = v;
+        draftUsers[i].cert = Object.assign(emptyCert(), draftUsers[i].cert, { [k]: v });
+        markCert();
+      });
+      certWrap.append(d);
+    });
+    /* 期限が切れている・近い方は色で知らせる */
+    const markCert = () => {
+      const to = (draftUsers[i].cert && draftUsers[i].cert.to) || "";
+      certWrap.classList.toggle("is-over", !!to && to < isoToday());
+      certWrap.classList.toggle("is-soon", !!to && to >= isoToday() && to <= isoPlusDays(60));
+    };
+    markCert();
+    cell(certWrap);
+
     cell(bpSelect(u.bp)).addEventListener("change", function () {
       draftUsers[i].bp = this.value;
       this.classList.toggle("is-shunt", isShunt(this.value));
     });
 
     const telI = document.createElement("input");
-    telI.type = "text";
+    telI.type = "tel";
     telI.value = u.tel || "";
-    telI.placeholder = "TELなし など";
-    telI.setAttribute("list", "tel-notes");
+    telI.placeholder = "046-000-0000";
     telI.addEventListener("input", () => { draftUsers[i].tel = telI.value; });
     cell(telI);
+
+    const noteI = document.createElement("input");
+    noteI.type = "text";
+    noteI.value = u.note || "";
+    noteI.placeholder = "TELなし など";
+    noteI.setAttribute("list", "tel-notes");
+    noteI.addEventListener("input", () => { draftUsers[i].note = noteI.value; });
+    cell(noteI);
 
     const tagWrap = el("span", "tag-cell");
     TAGS.forEach((t) => {
@@ -8105,7 +8257,7 @@
     if (filtered && shown === 0) {
       const tr = document.createElement("tr");
       const td = document.createElement("td");
-      td.colSpan = 9;
+      td.colSpan = 11;
       td.className = "pm-none";
       td.textContent = "あてはまる方はいません。";
       tr.append(td);
@@ -8114,6 +8266,8 @@
 
     document.getElementById("active-count").textContent = active + "名";
     document.getElementById("ended-count").textContent = ended + "名";
+
+    drawKinTable();
 
     const db = document.getElementById("driver-rows");
     db.innerHTML = "";
@@ -8382,7 +8536,10 @@
     draftUsers = USERS
       .map((u) => ({
         id: u.id, name: u.name, kana: u.kana, town: u.town, addr: u.addr,
-        care: u.care || "", bp: u.bp || "", tel: u.tel || "",
+        care: u.care || "", bp: u.bp || "",
+        tel: u.tel || "", note: u.note || "",
+        cert: Object.assign(emptyCert(), u.cert || {}),
+        kin: Object.assign(emptyKin(), u.kin || {}),
         tags: [...u.tags], days: { ...u.days },
         end: u.end ? { d: u.end.d, r: u.end.r || "" } : null
       }))
@@ -8451,9 +8608,9 @@
   });
 
   /* マスタ編集ページの中のタブ */
-  ["users", "drivers", "dispatch", "office", "io"].forEach((key) => {
+  ["users", "kin", "drivers", "dispatch", "office", "io"].forEach((key) => {
     document.getElementById("pmtab-" + key).addEventListener("click", () => {
-      ["users", "drivers", "dispatch", "office", "io"].forEach((k) => {
+      ["users", "kin", "drivers", "dispatch", "office", "io"].forEach((k) => {
         const on = k === key;
         document.getElementById("pmtab-" + k).setAttribute("aria-selected", String(on));
         document.getElementById("pm-" + k).hidden = !on;
@@ -8462,6 +8619,80 @@
   });
 
   document.getElementById("add-user").addEventListener("click", openAddDialog);
+
+  /* 緊急連絡先の表。利用中の方だけを出す。
+     ご本人の電話と連絡メモは「利用者」の表と同じ中身を、こちらからも直せるようにする */
+  let kinFind = "";
+
+  function drawKinTable() {
+    const tb = document.getElementById("kin-rows");
+    if (!tb) return;
+    tb.innerHTML = "";
+
+    const needle = kinFind.trim();
+    const hit = (u) => {
+      if (!needle) return true;
+      const k = kanaToHira(csvNorm(needle));
+      return [u.name, u.kana, (u.kin || {}).name, (u.kin || {}).kana]
+        .some((v) => kanaToHira(csvNorm(v || "")).indexOf(k) >= 0);
+    };
+
+    let active = 0, shown = 0;
+    draftUsers.forEach((u, i) => {
+      if (u.end) return;
+      active++;
+      if (!hit(u)) return;
+      shown++;
+
+      const tr = document.createElement("tr");
+      const cell = (child) => { const td = document.createElement("td"); td.append(child); tr.append(td); };
+
+      cell(el("span", "kin-who", u.name));
+
+      /* 「利用者」の表と同じ中身をここでも直せるようにする */
+      const bound = (get, set, ph, type, list) => {
+        const inp = document.createElement("input");
+        inp.type = type || "text";
+        inp.value = get() || "";
+        inp.placeholder = ph || "";
+        if (list) inp.setAttribute("list", list);
+        inp.addEventListener("input", () => set(inp.value));
+        cell(inp);
+      };
+
+      bound(() => draftUsers[i].tel, (v) => { draftUsers[i].tel = v; }, "046-000-0000", "tel");
+      bound(() => draftUsers[i].note, (v) => { draftUsers[i].note = v; }, "TELなし など", "text", "tel-notes");
+
+      const kinSet = (k, v) => {
+        draftUsers[i].kin = Object.assign(emptyKin(), draftUsers[i].kin, { [k]: v });
+      };
+      bound(() => (u.kin || {}).rel, (v) => kinSet("rel", v), "長女 など");
+      bound(() => (u.kin || {}).name, (v) => kinSet("name", v), "山田 花子");
+      bound(() => (u.kin || {}).kana, (v) => kinSet("kana", v), "やまだ はなこ");
+      bound(() => (u.kin || {}).tel1, (v) => kinSet("tel1", v), "090-0000-0000", "tel");
+      bound(() => (u.kin || {}).tel2, (v) => kinSet("tel2", v), "", "tel");
+
+      tb.append(tr);
+    });
+
+    document.getElementById("kin-hit").textContent =
+      needle ? shown + " / " + active + "名" : active + "名";
+
+    if (needle && shown === 0) {
+      const tr = document.createElement("tr");
+      const td = document.createElement("td");
+      td.colSpan = 8;
+      td.className = "pm-none";
+      td.textContent = "あてはまる方はいません。";
+      tr.append(td);
+      tb.append(tr);
+    }
+  }
+
+  document.getElementById("kin-find").addEventListener("input", function () {
+    kinFind = this.value;
+    drawKinTable();
+  });
 
   /* ── 取り込み・保存のボタン ────────────── */
   function ioSay(text, warn) {
@@ -8604,15 +8835,22 @@
   document.getElementById("master-save").addEventListener("click", () => {
     USERS = draftUsers
       .filter((u) => u.name.trim() !== "")
-      .map((u) => ({ ...u, care: u.care || "", bp: u.bp || "", tel: (u.tel || "").trim(), tags: [...u.tags], days: normDays(u.days), end: u.end && u.end.d ? { d: u.end.d, r: u.end.r || "" } : null }))
+      .map((u) => Object.assign(normUser(u), {
+        care: u.care || "", bp: u.bp || "",
+        tel: (u.tel || "").trim(), note: (u.note || "").trim(),
+        days: normDays(u.days),
+        end: u.end && u.end.d ? { d: u.end.d, r: u.end.r || "" } : null
+      }))
       .sort(byKana);
     DRIVERS = draftDrivers.map((d) => ({ name: d.name.trim(), days: { ...d.days } })).filter((d) => d.name);
     DISPATCH = normDispatch(draftDispatch);
     OFFICE = Object.assign({}, DEFAULT_OFFICE, draftOffice);
     OFFICE.name = (OFFICE.name || "").trim() || DEFAULT_OFFICE.name;
     indexUsers();
-    STORE.setJSON("users", USERS.map(({ id, name, kana, town, addr, care, bp, tel, tags, days, end }) =>
-      ({ id, name, kana, town, addr, care: care || "", bp: bp || "", tel: tel || "", tags, days, end })));
+    STORE.setJSON("users", USERS.map(({ id, name, kana, town, addr, care, bp, tel, note,
+                                       cert, kin, tags, days, end }) =>
+      ({ id, name, kana, town, addr, care: care || "", bp: bp || "",
+         tel: tel || "", note: note || "", cert: cert, kin: kin, tags, days, end })));
     STORE.setJSON("drivers", DRIVERS);
     STORE.setJSON("dispatch", DISPATCH);
     STORE.setJSON("office", OFFICE);
@@ -9386,7 +9624,7 @@
           state: stop.dataset.state || "",
           away: stop.dataset.state === "absent",
           reason: (why && why.value) || "",
-          memo: u.tel || ""            /* 「TELなし」など、連絡のときの覚え書き */
+          memo: u.note || ""           /* 「TELなし」など、かけるときの留意事項 */
         };
       }).filter(Boolean);
 
@@ -9410,7 +9648,7 @@
           state: codeState(code),
           away: codeState(code) === "absent",
           reason: code,
-          memo: u.tel || ""
+          memo: u.note || ""
         };
       });
   }
@@ -10122,7 +10360,7 @@
     const u = STORE.getJSON("users");
     const d = STORE.getJSON("drivers");
     const p = STORE.getJSON("dispatch");
-    if (u) USERS = u.map((x) => ({ ...x, tags: [...(x.tags || [])] })).sort(byKana);
+    if (u) USERS = normUsers(u).sort(byKana);
     if (d) DRIVERS = normDrivers(d) || DRIVERS;
     if (p) DISPATCH = normDispatch(p);
     const o = STORE.getJSON("office");
