@@ -4476,7 +4476,7 @@
   <details class="fold" id="fold-legend">
     <summary><span class="fd-title">この画面の使い方</span><span class="fd-note">記号の意味と操作のまとめ</span>
       <!-- 古い控えを開いていないか、ここで見分けられるようにしておく -->
-      <span class="fd-ver">版 2026-08-16c</span></summary>
+      <span class="fd-ver">版 2026-08-17</span></summary>
     <div class="fold-body">
   <div class="legend">
     <span class="item"><span class="swatch s-wc" data-icon="wc"></span>車椅子（リフト・スロープ使用）</span>
@@ -7635,6 +7635,97 @@
     return rows.filter((r) => r.some((x) => String(x).trim() !== ""));
   }
 
+
+  /* ── 取り込みのならし ──────────────────────
+     介護ソフトから出した CSV は、見出しにも中身にも半角カナ・全角数字・
+     全角空白が混ざる。NFKC でそろえると、そのぶんがまとめて片づく。
+     （ﾔﾏﾀﾞ→ヤマダ、要介護２→要介護2、山田　太郎→山田 太郎） */
+  const csvNorm = (v) => String(v == null ? "" : v).normalize("NFKC").trim();
+
+  /* 並び順は五十音で取るので、ふりがなはひらがなにそろえる */
+  const kanaToHira = (s) =>
+    s.replace(/[\u30A1-\u30F6]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0x60));
+
+  /* 見出しを見くらべるための形。空白を落として小文字にそろえる */
+  const headKey = (s) => csvNorm(s).replace(/\s+/g, "").toLowerCase();
+
+  /* 住所の頭の都道府県は落とす。地図に渡すとき事業所の都道府県と重なるため */
+  const stripPref = (s) => s.replace(/^(北海道|東京都|大阪府|京都府|.{2,3}県)/, "");
+
+  /* 和暦も西暦に直す。日付の欄は YYYY-MM-DD で持つ決まりなので、
+     R08.01.01・令和8年1月1日・2026/1/1 のどれでも受ける */
+  const ERA = { R: 2018, 令和: 2018, H: 1988, 平成: 1988, S: 1925, 昭和: 1925 };
+  function csvDate(v) {
+    const t = csvNorm(v);
+    if (!t) return "";
+    const era = t.match(/^(令和|平成|昭和|R|H|S)\s*(\d{1,2})\D+(\d{1,2})\D+(\d{1,2})/);
+    if (era && ERA[era[1]] != null) {
+      const y = ERA[era[1]] + Number(era[2]);
+      return y + "-" + String(era[3]).padStart(2, "0") + "-" + String(era[4]).padStart(2, "0");
+    }
+    const ad = t.match(/^(\d{4})\D+(\d{1,2})\D+(\d{1,2})/);
+    if (ad) return ad[1] + "-" + String(ad[2]).padStart(2, "0") + "-" + String(ad[3]).padStart(2, "0");
+    return "";
+  }
+
+  /* 見出しの別名。左がこの表の欄、右がその欄として読む見出し。
+     介護ソフトの書き出しをそのまま入れられるように持っている */
+  const CSV_ALIAS = {
+    users: {
+      "氏名": ["氏名", "名前", "利用者氏名", "利用者名", "利用者"],
+      "ふりがな": ["ふりがな", "フリガナ", "かな", "カナ", "よみ", "読み", "氏名カナ", "利用者カナ"],
+      "郵便番号": ["郵便番号", "郵便", "〒", "ゆうびん"],
+      "住所": ["住所", "住所1", "現住所", "自宅住所"],
+      "住所つづき": ["住所2", "住所3", "建物", "建物名", "方書", "アパート名"],
+      "介護度": ["介護度", "要介護度", "要介護状態区分", "要介護状態区分等",
+        "介護保険要介護状態区分等", "認定区分"],
+      "血圧": ["血圧", "血圧測定", "血圧の測り方"],
+      "電話": ["電話", "電話番号", "tel", "連絡先", "自宅電話"],
+      "記号": ["記号", "印", "タグ", "特記"],
+      "終了日": ["終了日", "利用終了日", "終了年月日"],
+      "終了理由": ["終了理由", "利用終了理由"],
+      "id": ["id", "利用者コード", "利用者番号", "コード", "利用者id"]
+    },
+    drivers: { "氏名": ["氏名", "名前", "運転手", "職員名"] },
+    roles: {
+      "曜日": ["曜日", "曜"],
+      "役割": ["役割", "担当", "係"],
+      "午前": ["午前", "am"],
+      "午後": ["午後", "pm"]
+    }
+  };
+
+  /* 見出しの行から、欄ごとの取り出し口を作る。
+     知らない列は読まない。足りない列は空のまま返す */
+  function csvPicker(headRow, alias) {
+    const keys = headRow.map(headKey);
+    const at = {};
+    Object.keys(alias).forEach((field) => {
+      const names = alias[field].map(headKey);
+      at[field] = keys.findIndex((k) => names.indexOf(k) >= 0);
+    });
+    /* 曜日の列は表によらず同じ扱い */
+    WEEKDAYS.forEach((w) => { at[w] = keys.indexOf(headKey(w)); });
+    return (row, field) => {
+      const i = at[field];
+      return i == null || i < 0 ? "" : csvNorm(row[i]);
+    };
+  }
+
+  /* 利用曜日・出勤曜日。AM／PM のほか「午前」「午後」「終日」でも受ける */
+  function csvPart(v, allowAllDay) {
+    const t = csvNorm(v).replace(/\s+/g, "").toUpperCase();
+    if (!t) return "";
+    if (t === "AM" || t === "午前" || t === "朝") return "AM";
+    if (t === "PM" || t === "午後") return "PM";
+    if (allowAllDay && (t === "終日" || t === "全日" || t === "1日")) return "終日";
+    return "";
+  }
+
+  /* 記号は 車／補／玄 の3つ。言葉で書かれていても拾う */
+  const TAG_WORDS = { "車椅子": "車", "車イス": "車", "リフト": "車",
+                      "荷物": "補", "補助": "補", "玄関": "玄", "玄関先": "玄" };
+
   /* Excel が Shift_JIS で保存した CSV も読めるようにする。
      UTF-8 として読んで化けていたら、Shift_JIS で読み直す */
   function decodeText(buf) {
@@ -7696,20 +7787,22 @@
         ]);
       },
       take(rows) {
-        const head = rows[0].map((h) => String(h).trim());
-        const at = (n) => head.indexOf(n);
+        const pick = csvPicker(rows[0], CSV_ALIAS.users);
         const body = rows.slice(1);
         const byId = new Map(draftUsers.map((u, i) => [u.id, i]));
         const byName = new Map(draftUsers.map((u, i) => [u.name.trim() + "\u0000" + (u.kana || "").trim(), i]));
         let added = 0, changed = 0, skipped = 0;
 
         body.forEach((r) => {
-          const get = (n) => { const i = at(n); return i < 0 ? "" : String(r[i] == null ? "" : r[i]).trim(); };
+          const get = (n) => pick(r, n);
           const name = get("氏名");
           if (!name) { skipped++; return; }
 
+          /* 住所は2列に割れて届くことがある。介護ソフトが決まった字数で
+             切っているだけなので、あいだに何も入れずにつなぐ。
+             頭の都道府県は落とす（地図に渡すとき事業所のぶんと重なるため） */
+          let addr = stripPref(get("住所") + get("住所つづき"));
           /* 住所が空なら郵便番号から起こす */
-          let addr = get("住所");
           if (!addr) {
             const hit = zipLookup(get("郵便番号"));
             if (hit) addr = hit;
@@ -7717,20 +7810,24 @@
 
           const days = {};
           WEEKDAYS.forEach((w) => {
-            const v = get(w).toUpperCase().replace(/[^A-Z]/g, "");
-            if (v === "AM" || v === "PM") days[w] = v;
+            const v = csvPart(get(w), false);
+            if (v) days[w] = v;
           });
 
-          const endDay = get("終了日");
+          const endDay = csvDate(get("終了日"));
+          const care = get("介護度").replace(/\s+/g, "");
           const rec = {
             name: name,
-            kana: get("ふりがな"),
+            /* ふりがなはカタカナで届くことが多い。並び順に使うのでひらがなにそろえる */
+            kana: kanaToHira(get("ふりがな")),
             addr: addr,
             town: deriveTown(addr, ""),
-            care: CARE_LEVELS.includes(get("介護度")) ? get("介護度") : "",
+            care: CARE_LEVELS.includes(care) ? care : "",
             bp: get("血圧"),
             tel: get("電話"),
-            tags: get("記号").split(/[\/／、,・\s]+/).filter((t) => TAGS.some((x) => x.key === t)),
+            tags: get("記号").split(/[\/／、,・\s]+/)
+              .map((t) => TAG_WORDS[t] || t)
+              .filter((t) => TAGS.some((x) => x.key === t)),
             days: days,
             end: endDay ? { d: endDay, r: get("終了理由") } : null
           };
@@ -7759,17 +7856,16 @@
       head: ["氏名", "月", "火", "水", "木", "金", "土"],
       rows() { return draftDrivers.map((d) => [d.name, ...WEEKDAYS.map((w) => d.days[w] || "")]); },
       take(rows) {
-        const head = rows[0].map((h) => String(h).trim());
-        const at = (n) => head.indexOf(n);
+        const pick = csvPicker(rows[0], CSV_ALIAS.drivers);
         let added = 0, changed = 0, skipped = 0;
         rows.slice(1).forEach((r) => {
-          const get = (n) => { const i = at(n); return i < 0 ? "" : String(r[i] == null ? "" : r[i]).trim(); };
+          const get = (n) => pick(r, n);
           const name = get("氏名");
           if (!name) { skipped++; return; }
           const days = {};
           WEEKDAYS.forEach((w) => {
-            const v = get(w).toUpperCase().replace(/\s/g, "");
-            if (v === "AM" || v === "PM" || v === "終日") days[w] = v === "終日" ? "終日" : v;
+            const v = csvPart(get(w), true);
+            if (v) days[w] = v;
           });
           const i = draftDrivers.findIndex((d) => d.name.trim() === name);
           if (i >= 0) { draftDrivers[i].days = days; changed++; }
@@ -7788,12 +7884,11 @@
         return out;
       },
       take(rows) {
-        const head = rows[0].map((h) => String(h).trim());
-        const at = (n) => head.indexOf(n);
+        const pick = csvPicker(rows[0], CSV_ALIAS.roles);
         let changed = 0, skipped = 0;
         rows.slice(1).forEach((r) => {
-          const get = (n) => { const i = at(n); return i < 0 ? "" : String(r[i] == null ? "" : r[i]).trim(); };
-          const w = get("曜日").replace("曜日", "");
+          const get = (n) => pick(r, n);
+          const w = get("曜日").replace("曜日", "").replace("曜", "");
           const role = get("役割");
           if (WEEKDAYS.indexOf(w) < 0 || ROLE_NAMES.indexOf(role) < 0) { skipped++; return; }
           ROLES[w][role] = [get("午前"), get("午後")];
