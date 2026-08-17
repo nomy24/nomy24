@@ -1,0 +1,14 @@
+{
+  "name": "nomy24",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test:rules": "firebase emulators:exec --only firestore --project staff-todo-rules-test --config staff-todo/firebase.json \"vitest run staff-todo/tests/firestore-rules.test.js\""
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^3.0.4",
+    "firebase": "^10.13.0",
+    "firebase-tools": "^13.20.2",
+    "vitest": "^2.1.9"
+  }
+}

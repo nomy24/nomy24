@@ -1,0 +1,108 @@
+rules_version = '2';
+
+// 職員Todo の Firestore セキュリティルール。
+//
+// 前提：職員は全員 Firebase Authentication のメール／パスワードでログインする。
+// アカウントを持たない第三者は、ここより手前ですべて弾かれる。
+//
+// このルールが守っているのは「ログイン済みの職員どうし」の境界。
+// app.js の中だけで判定していた次の3つを、サーバー側でも成立させる。
+//
+//   1. 管理者フラグ（isAdmin）を自分で立てられないこと
+//   2. 他人のログイン用メールを書き換えて、その人になりすませないこと
+//   3. ログイン済みの職員を、本人以外が削除できないこと
+//
+// Todo・カレンダー・定型タスク・資料・電話メモは全員で共有して使うものなので、
+// ログイン済みなら誰でも読み書きしてよい（今までどおり）。
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- 共通ヘルパー ----------
+
+    // 職員としてログインしているか。匿名認証は明示的に弾く。
+    function signedIn() {
+      return request.auth != null
+        && request.auth.token.firebase.sign_in_provider != 'anonymous';
+    }
+
+    // ログイン中のメールアドレス（小文字）。app.js 側も小文字で比較している。
+    function myEmail() {
+      return request.auth.token.email is string
+        ? request.auth.token.email.lower()
+        : '';
+    }
+
+    // 職員ドキュメントのログイン用メール（小文字）。
+    // 未リンクの職員は email が未設定か null なので '' を返す。
+    function emailOf(data) {
+      return (data.keys().hasAll(['email']) && data.email is string)
+        ? data.email.lower()
+        : '';
+    }
+
+    // 管理者フラグ。未設定なら false 扱い。
+    function adminFlag(data) {
+      return data.keys().hasAll(['isAdmin']) && data.isAdmin == true;
+    }
+
+    // ---------- 共有して使う作業データ ----------
+    // 4人で同じものを見て編集する前提なので、ログイン済みなら全員が読み書きできる。
+
+    match /todos/{id}        { allow read, write: if signedIn(); }
+    match /events/{id}       { allow read, write: if signedIn(); }
+    match /routineTasks/{id} { allow read, write: if signedIn(); }
+    match /routineLogs/{id}  { allow read, write: if signedIn(); }
+    match /groups/{id}       { allow read, write: if signedIn(); }
+    match /photos/{id}       { allow read, write: if signedIn(); }
+    match /phoneMemos/{id}   { allow read, write: if signedIn(); }
+
+    // 合言葉などのアプリ設定。
+    // 起動時に全端末が読むので read は全員に許す。
+    // write も今までどおり全員に許しているが、ここを本人以外に触らせたくなくなったら
+    // `allow write: if false;` にしてコンソールからだけ変更する運用に切り替えられる。
+    match /appConfig/{id}    { allow read, write: if signedIn(); }
+
+    // ---------- 職員 ----------
+
+    match /staff/{id} {
+
+      allow read: if signedIn();
+
+      // 追加：管理者フラグを立てた状態では作れない。
+      // （初期セットアップで同僚を登録するので、他人のメールを入れた作成自体は許す）
+      allow create: if signedIn()
+        && !adminFlag(request.resource.data);
+
+      // 更新：
+      //   - isAdmin は変更できない。管理者の任命は Firebase コンソールでのみ行う。
+      //   - すでにログイン用メールが紐付いている職員の email は変更できない。
+      //     （他人の doc のメールを自分のものに書き換えて、その人になりすます経路を塞ぐ）
+      //   - 名前・色・職種グループ・並び順は、今までどおり誰でも直せる。
+      // （resource が null になる評価経路があるため、先に存在を確かめてから中身を見る。
+      //   && は短絡評価されるので、これでルールが例外を投げなくなる）
+      allow update: if signedIn()
+        && resource != null
+        && adminFlag(request.resource.data) == adminFlag(resource.data)
+        && (
+             emailOf(resource.data) == ''
+             || emailOf(request.resource.data) == emailOf(resource.data)
+           );
+
+      // 削除：ログイン用メールが紐付いている職員は本人だけが消せる。
+      // 未リンクの職員（お試し登録段階）は今までどおり誰でも消せる。
+      // 退職者の doc を管理者が消す場合は Firebase コンソールから行う。
+      allow delete: if signedIn()
+        && resource != null
+        && (
+             emailOf(resource.data) == ''
+             || emailOf(resource.data) == myEmail()
+           );
+    }
+
+    // 上のどれにも当てはまらないパスは拒否する。
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
