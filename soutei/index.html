@@ -4488,7 +4488,7 @@
   <details class="fold" id="fold-legend">
     <summary><span class="fd-title">この画面の使い方</span><span class="fd-note">記号の意味と操作のまとめ</span>
       <!-- 古い控えを開いていないか、ここで見分けられるようにしておく -->
-      <span class="fd-ver">版 2026-08-17</span></summary>
+      <span class="fd-ver">版 2026-08-17b</span></summary>
     <div class="fold-body">
   <div class="legend">
     <span class="item"><span class="swatch s-wc" data-icon="wc"></span>車椅子（リフト・スロープ使用）</span>
@@ -4742,6 +4742,26 @@
         </p>
         <div class="io-grid" id="io-tables"></div>
         <p class="io-note" id="io-result"></p>
+      </div>
+
+      <h3>PDF から利用曜日を読む<span class="h3-note">介護ソフトの「基本利用パターン一覧表」から</span></h3>
+      <div class="io-card">
+        <p class="io-lead">
+          介護ソフトは利用曜日を CSV に出せないことがあります。
+          <b>「基本利用ﾊﾟﾀｰﾝ 一覧表(通所)」を PDF で出して</b>そのまま入れると、
+          表の○が付いている曜日を読み取って、利用曜日に入れます。
+          <b>利用時間が午前なら AM、午後なら PM</b> として入ります。
+        </p>
+        <div class="io-row">
+          <span class="io-name">基本利用パターン</span>
+          <label class="btn io-pick">PDF を読む<input type="file" id="io-pdf" accept=".pdf,application/pdf" hidden></label>
+        </div>
+        <p class="io-note" id="io-pdf-result"></p>
+        <p class="io-warn">
+          読めるのは<b>文字を選んでコピーできる PDF</b> だけです。
+          紙をスキャンした PDF（画像）は読めません。
+          利用者は<b>利用者コード</b>で照らします（CSV の id と同じもの）。
+        </p>
       </div>
     </section>
 
@@ -7868,6 +7888,303 @@
     return d.getFullYear() + p2(d.getMonth() + 1) + p2(d.getDate());
   };
 
+
+  /* ── PDF から字と位置を読む ────────────────
+     介護ソフトは利用曜日を CSV に出せないことがあり、
+     「基本利用ﾊﾟﾀｰﾝ 一覧表(通所)」は PDF でしか出ない。
+     この表は○の付いている桝の位置が曜日を表すので、
+     字だけでなく「その字がどこにあるか」まで要る。
+     貼り付けでは位置が落ちてしまうため、PDF を直に読む。
+
+     外の部品は使わない。使うのはブラウザにもとからある
+     DecompressionStream（zip と同じ展開）と Uint8Array だけ。 */
+
+  const pdfLatin1 = (u8) => {
+    let out = "";
+    /* 一度に渡すと引数が多すぎて落ちるので、小分けにしてつなぐ */
+    for (let i = 0; i < u8.length; i += 8192) {
+      out += String.fromCharCode.apply(null, u8.subarray(i, i + 8192));
+    }
+    return out;
+  };
+
+  async function pdfInflate(u8) {
+    const tryOne = async (kind, src) => {
+      const rs = new Blob([src]).stream().pipeThrough(new DecompressionStream(kind));
+      const rd = rs.getReader();
+      const parts = [];
+      let n = 0;
+      for (;;) {
+        const r = await rd.read();
+        if (r.done) break;
+        parts.push(r.value); n += r.value.length;
+      }
+      const all = new Uint8Array(n);
+      let at = 0;
+      parts.forEach((c) => { all.set(c, at); at += c.length; });
+      return all;
+    };
+    /* DecompressionStream は後ろに1バイトでも余りがあると止まる。
+       /Length が当てにならない書き出しもあるので、末尾を少しずつ削って試す */
+    let last = null;
+    for (let cut = 0; cut <= 3 && cut < u8.length; cut++) {
+      const src = cut ? u8.subarray(0, u8.length - cut) : u8;
+      for (const kind of ["deflate", "deflate-raw"]) {
+        try { return await tryOne(kind, src); } catch (e) { last = e; }
+      }
+    }
+    throw last || new Error("展開できませんでした");
+  }
+
+  /* PDF の中身を、1字ずつ「文字・位置・送り幅」に開く */
+  async function pdfGlyphs(bytes) {
+    const raw = pdfLatin1(bytes);
+    if (raw.slice(0, 5) !== "%PDF-") throw new Error("PDF ではないようです");
+    if (/\/Encrypt\b/.test(raw)) throw new Error("鍵の掛かった PDF は読めません");
+
+    /* すべての「obj … endobj」を拾う */
+    const objs = [];
+    const re = /(\d+)\s+(\d+)\s+obj\b/g;
+    let m;
+    while ((m = re.exec(raw))) {
+      const start = m.index + m[0].length;
+      const end = raw.indexOf("endobj", start);
+      if (end > 0) objs.push({ head: raw.slice(start, end), start: start });
+    }
+
+    async function streamOf(o) {
+      const i = o.head.indexOf("stream");
+      if (i < 0) return null;
+      const dict = o.head.slice(0, i);
+      /* 字体そのものや画像は開いても意味がないので飛ばす */
+      if (/\/FontFile|\/Length1|\/Subtype\s*\/Image/.test(dict)) return null;
+      let a = o.start + i + 6;
+      if (raw[a] === "\r") a++;
+      if (raw[a] === "\n") a++;
+      let b = raw.indexOf("endstream", a);
+      if (b < 0) return null;
+      /* /Length があればその長さで切る。無ければ endstream の手前まで */
+      const lm = dict.match(/\/Length\s+(\d+)(?!\s+\d+\s+R)/);
+      if (lm && a + Number(lm[1]) <= b) b = a + Number(lm[1]);
+      const u8 = bytes.subarray(a, b);
+      if (u8.length > 8 * 1024 * 1024) return null;
+      if (!/\/FlateDecode/.test(dict)) return u8;
+      try { return await pdfInflate(u8); } catch (e) { return null; }
+    }
+
+    /* 字の番号 → 文字（ToUnicode）。字体ごとに持つが、
+       この手の帳票は字体が1つなので、まとめて1枚の表にする */
+    const toUni = new Map();
+    const width = new Map();
+    let dw = 1000;
+    const dwm = raw.match(/\/DW\s+(\d+)/);
+    if (dwm) dw = Number(dwm[1]);
+
+    /* 送り幅（/W）。[ 先頭 末尾 幅 … ] の形だけを読む */
+    objs.forEach((o) => {
+      const t = o.head.trim();
+      if (t[0] !== "[") return;
+      const body = t.replace(/^\[|\][\s\S]*$/g, "").trim();
+      if (!/^[\d\s.]+$/.test(body)) return;
+      const n = body.split(/\s+/).map(Number);
+      if (n.length < 3) return;
+      for (let i = 0; i + 2 < n.length; i += 3) {
+        for (let c = n[i]; c <= n[i + 1] && c - n[i] < 4096; c++) width.set(c, n[i + 2]);
+      }
+    });
+
+    let content = "";
+    for (const o of objs) {
+      const st = await streamOf(o);
+      if (!st) continue;
+      const t = pdfLatin1(st);
+      if (t.indexOf("beginbf") >= 0) {
+        const hx = (h) => {
+          let out = "";
+          for (let i = 0; i + 3 < h.length + 1; i += 4) out += String.fromCharCode(parseInt(h.substr(i, 4), 16));
+          return out;
+        };
+        let g, q, pp;
+        const rc = /beginbfchar([\s\S]*?)endbfchar/g;
+        while ((g = rc.exec(t))) {
+          pp = /<([0-9A-Fa-f]+)>\s*<([0-9A-Fa-f]+)>/g;
+          while ((q = pp.exec(g[1]))) toUni.set(parseInt(q[1], 16), hx(q[2]));
+        }
+        const rr = /beginbfrange([\s\S]*?)endbfrange/g;
+        while ((g = rr.exec(t))) {
+          pp = /<([0-9A-Fa-f]+)>\s*<([0-9A-Fa-f]+)>\s*<([0-9A-Fa-f]+)>/g;
+          while ((q = pp.exec(g[1]))) {
+            const a = parseInt(q[1], 16), b = parseInt(q[2], 16), c = parseInt(q[3], 16);
+            for (let i = a; i <= b && i - a < 65536; i++) toUni.set(i, String.fromCharCode(c + (i - a)));
+          }
+        }
+      }
+      if (/\bBT\b/.test(t) && /\bT[Jj]\b/.test(t)) content += t + "\n";
+    }
+    if (!content) throw new Error("字の入っていない PDF のようです（スキャンした画像かもしれません）");
+
+    /* 中身の流れをたどる。文字を置く演算子だけ見ればよい */
+    const out = [];
+    let tm = [1, 0, 0, 1, 0, 0], tlm = tm.slice(), fsz = 1, tc = 0, tw = 0, th = 1;
+    const mul = (a, b) => [
+      a[0] * b[0] + a[1] * b[2], a[0] * b[1] + a[1] * b[3],
+      a[2] * b[0] + a[3] * b[2], a[2] * b[1] + a[3] * b[3],
+      a[4] * b[0] + a[5] * b[2] + b[4], a[4] * b[1] + a[5] * b[3] + b[5]];
+
+    const stack = [];
+    let arr = null;
+    const tok = /<([0-9A-Fa-f\s]*)>|\(((?:\\.|[^)\\])*)\)|\[|\]|(-?[\d.]+)|(\/[^\s\/\[\]<>()]+)|([A-Za-z'"*]+)/g;
+    let t2;
+    while ((t2 = tok.exec(content))) {
+      if (t2[0] === "[") { arr = []; continue; }
+      if (t2[0] === "]") { stack.push(arr); arr = null; continue; }
+      if (t2[1] != null) { (arr || stack).push({ hex: t2[1] }); continue; }
+      if (t2[2] != null) { (arr || stack).push({ lit: t2[2] }); continue; }
+      if (t2[3] != null) { (arr || stack).push(Number(t2[3])); continue; }
+      if (t2[4] != null) { (arr || stack).push(t2[4]); continue; }
+      const op = t2[5];
+
+      const show = (list) => {
+        list.forEach((it) => {
+          /* 数は詰め幅。字と字のあいだを縮める（ここを見ないと桝がずれる） */
+          if (typeof it === "number") { tm = mul([1, 0, 0, 1, -it / 1000 * fsz * th, 0], tm); return; }
+          const codes = [];
+          if (it.hex != null) {
+            const h = it.hex.replace(/[^0-9A-Fa-f]/g, "");
+            for (let i = 0; i + 3 < h.length + 1; i += 4) codes.push(parseInt(h.substr(i, 4), 16));
+          } else {
+            for (let i = 0; i < it.lit.length; i++) codes.push(it.lit.charCodeAt(i));
+          }
+          codes.forEach((c) => {
+            const ch = toUni.has(c) ? toUni.get(c) : "";
+            const w = (width.has(c) ? width.get(c) : dw) / 1000 * fsz;
+            if (ch && ch.trim()) {
+              out.push({ x: tm[4], y: tm[5], size: fsz, adv: w, ch: ch });
+            }
+            tm = mul([1, 0, 0, 1, (w + tc + (ch === " " ? tw : 0)) * th, 0], tm);
+          });
+        });
+      };
+
+      if (op === "BT") { tm = [1, 0, 0, 1, 0, 0]; tlm = tm.slice(); }
+      else if (op === "Tf") { fsz = Number(stack[stack.length - 1]) || 1; }
+      else if (op === "Tc") { tc = Number(stack[stack.length - 1]) || 0; }
+      else if (op === "Tw") { tw = Number(stack[stack.length - 1]) || 0; }
+      else if (op === "Tz") { th = (Number(stack[stack.length - 1]) || 100) / 100; }
+      else if (op === "Tm") { tm = stack.slice(-6).map(Number); tlm = tm.slice(); }
+      else if (op === "Td" || op === "TD") {
+        tlm = mul([1, 0, 0, 1, Number(stack[stack.length - 2]), Number(stack[stack.length - 1])], tlm);
+        tm = tlm.slice();
+      }
+      else if (op === "T*") { tlm = mul([1, 0, 0, 1, 0, -fsz], tlm); tm = tlm.slice(); }
+      else if (op === "Tj" || op === "'" || op === '"') { show([stack[stack.length - 1]]); }
+      else if (op === "TJ") { show(stack[stack.length - 1] || []); }
+      stack.length = 0;
+    }
+    return out;
+  }
+
+  /* ── 「基本利用ﾊﾟﾀｰﾝ 一覧表(通所)」を読む ──────
+     ・曜日の見出し（日〜土）が横一列に並ぶ行を探して、桝の位置を決める
+     ・[利用者コード] のある行を1件ぶんの目印にする
+     ・同じ高さの○を、いちばん近い曜日に寄せる
+     ・利用時間の始まりが12時より前なら午前、あとなら午後 */
+  const PDF_DAYS = ["日", "月", "火", "水", "木", "金", "土"];
+
+  function pdfPattern(items) {
+    if (!items.length) return { error: "字が取り出せませんでした。" };
+
+    /* 曜日の見出しの行を探す */
+    const buckets = new Map();
+    items.forEach((it) => {
+      const k = Math.round(it.y / 2) * 2;
+      if (!buckets.has(k)) buckets.set(k, []);
+      buckets.get(k).push(it);
+    });
+    let head = null;
+    buckets.forEach((g) => {
+      const hit = {};
+      g.forEach((it) => { if (PDF_DAYS.indexOf(it.ch) >= 0 && hit[it.ch] == null) hit[it.ch] = it.x; });
+      if (Object.keys(hit).length >= 6 && (!head || Object.keys(hit).length > Object.keys(head).length)) head = hit;
+    });
+    if (!head) return { error: "曜日の見出し（日〜土）が見つかりませんでした。基本利用パターンの一覧表かご確認ください。" };
+
+    /* 高さで行にまとめ、行の中を左から並べてから、となり合う字をつなぐ。
+       先に行にまとめないと、離れた欄どうしが1つの塊になる */
+    const lines = [];
+    items.slice().sort((a, b) => b.y - a.y).forEach((it) => {
+      const last = lines[lines.length - 1];
+      if (last && Math.abs(last.y - it.y) <= 3) last.g.push(it);
+      else lines.push({ y: it.y, g: [it] });
+    });
+
+    const runs = [];
+    lines.forEach((ln) => {
+      ln.g.sort((a, b) => a.x - b.x).forEach((it) => {
+        const last = runs[runs.length - 1];
+        const gap = last ? it.x - last.end : 1e9;
+        if (last && last.line === ln && gap < it.size * 0.35 && gap > -it.size * 0.3) {
+          last.t += it.ch; last.end = it.x + it.adv;
+        } else runs.push({ line: ln, y: it.y, x: it.x, end: it.x + it.adv, t: it.ch, size: it.size });
+      });
+    });
+
+    const marks = items.filter((it) => it.ch === "○" || it.ch === "◯" || it.ch === "●" || it.ch === "◎");
+    const codes = runs.filter((r) => /^\[\d{4,}\]$/.test(r.t));
+    const times = runs.filter((r) => /^\d{1,2}:\d{2}\s*[～~〜-]\s*\d{1,2}:\d{2}$/.test(r.t));
+    if (!codes.length) return { error: "利用者コード（[0000000000] の形）が見つかりませんでした。" };
+
+    const pitch = Math.abs((head["土"] - head["日"]) / 6) || 18;
+    const nearestDay = (x) => {
+      let best = null, bd = 1e9;
+      PDF_DAYS.forEach((d) => {
+        if (head[d] == null) return;
+        const dist = Math.abs(head[d] - x);
+        if (dist < bd) { bd = dist; best = d; }
+      });
+      return bd <= pitch * 0.6 ? best : null;
+    };
+
+    const rows = codes.map((c) => {
+      const tm = times.find((t) => Math.abs(t.y - c.y) < 8);
+      const part = tm ? (Number(tm.t.slice(0, 2)) < 12 ? "AM" : "PM") : "";
+      /* 氏名はコードのすぐ上の行の左端。姓と名が別の塊で来るのでつなぐ */
+      const near = runs.filter((r) => r.y > c.y + 4 && r.y < c.y + 34 && r.x < c.x + 60)
+        .sort((a, b) => (a.y - b.y) || (a.x - b.x));
+      const top = near.length ? near[0].y : 0;
+      const name = near.filter((r) => Math.abs(r.y - top) < 2).map((r) => r.t).join(" ").trim();
+      const days = {};
+      marks.filter((mk) => Math.abs(mk.y - c.y) < 8).forEach((mk) => {
+        const d = nearestDay(mk.x);
+        /* 日曜は送迎表に無いので落とす */
+        if (d && d !== "日" && part) days[d] = part;
+      });
+      return { id: c.t.replace(/[\[\]]/g, ""), name: name, time: tm ? tm.t : "", part: part, days: days };
+    });
+    return { rows: rows };
+  }
+
+  /* 読み取った利用曜日を、いま編集中の名簿にあてる。
+     照らすのは利用者コード。合わなければ氏名（空白の違いは無視）で探す */
+  function takePatternRows(rows) {
+    const byId = new Map(draftUsers.map((u, i) => [String(u.id), i]));
+    const flat = (v) => csvNorm(v).replace(/\s+/g, "");
+    const byName = new Map(draftUsers.map((u, i) => [flat(u.name), i]));
+
+    let changed = 0, same = 0;
+    const missed = [];
+    rows.forEach((r) => {
+      let at = byId.has(r.id) ? byId.get(r.id) : -1;
+      if (at < 0 && r.name && byName.has(flat(r.name))) at = byName.get(flat(r.name));
+      if (at < 0) { missed.push(r.name || r.id); return; }
+      if (!Object.keys(r.days).length) { missed.push((r.name || r.id) + "（○なし）"); return; }
+      const before = JSON.stringify(draftUsers[at].days || {});
+      draftUsers[at].days = Object.assign({}, r.days);
+      if (JSON.stringify(draftUsers[at].days) === before) same++; else changed++;
+    });
+    return { changed: changed, same: same, missed: missed };
+  }
+
   /* ── 表ごとの CSV ────────────────────────
      並びは「人が Excel で見て分かる順」。いちばん右の id は
      取り込み直したときに同じ人だと分かるための印で、消してもよい。 */
@@ -8743,6 +9060,45 @@
 
     card.append(out, pick);
     document.getElementById("io-tables").append(card);
+  });
+
+  /* PDF から利用曜日を読む */
+  function pdfSay(text, warn) {
+    const box = document.getElementById("io-pdf-result");
+    box.textContent = text;
+    box.classList.toggle("is-warn", !!warn);
+  }
+
+  document.getElementById("io-pdf").addEventListener("change", function () {
+    const file = this.files && this.files[0];
+    if (!file) return;
+    const input = this;
+    pdfSay("読んでいます…");
+    const reader = new FileReader();
+    reader.onload = async () => {
+      try {
+        const items = await pdfGlyphs(new Uint8Array(reader.result));
+        const got = pdfPattern(items);
+        if (got.error) { pdfSay(got.error, true); input.value = ""; return; }
+        const r = takePatternRows(got.rows);
+        drawMasterTables();
+        pdfSay("PDF から " + got.rows.length + "件を読みました。"
+          + "利用曜日を入れた方 " + r.changed + "名"
+          + (r.same ? "／もとから同じだった方 " + r.same + "名" : "")
+          + (r.missed.length
+              ? "／名簿に見あたらなかった方 " + r.missed.length + "名（"
+                + r.missed.slice(0, 5).join("・") + (r.missed.length > 5 ? " ほか" : "") + "）"
+              : "")
+          + "。上の「保存して送迎表へ戻る」で確定します。",
+          r.missed.length > 0);
+      } catch (e) {
+        pdfSay("読めませんでした（" + (e && e.message) + "）。"
+          + "文字を選んでコピーできる PDF かご確認ください。", true);
+      }
+      input.value = "";
+    };
+    reader.onerror = () => { pdfSay("ファイルを開けませんでした。", true); input.value = ""; };
+    reader.readAsArrayBuffer(file);
   });
 
   document.getElementById("io-backup").addEventListener("click", () => {
