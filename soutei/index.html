@@ -3839,6 +3839,14 @@
   .modal .day-cell,
   .page-master .day-cell { display: flex; gap: 3px; }
 
+  /* マスタの記号は、利用曜日の札と同じ大きさに取る。
+     どちらも同じ列の並びなので、大きさが違うと目が落ち着かない */
+  .page-master .tag-cell .tag { width: 32px; height: 36px; border-radius: 5px; }
+  .page-master .tag-cell .tag svg { width: 19px; height: 19px; }
+
+  /* 終了・削除。横に並ばなければ段に折り返す */
+  .ops-cell { display: flex; flex-wrap: wrap; gap: 4px; }
+
   .modal .day,
   .page-master .day {
     width: 32px;
@@ -4541,7 +4549,7 @@
   <details class="fold" id="fold-legend">
     <summary><span class="fd-title">この画面の使い方</span><span class="fd-note">記号の意味と操作のまとめ</span>
       <!-- 古い控えを開いていないか、ここで見分けられるようにしておく -->
-      <span class="fd-ver">版 2026-08-18c</span></summary>
+      <span class="fd-ver">版 2026-08-18d</span></summary>
     <div class="fold-body">
   <div class="legend">
     <span class="item"><span class="swatch s-wc" data-icon="wc"></span>車椅子（リフト・スロープ使用）</span>
@@ -4693,9 +4701,9 @@
               <th style="width:7%">血圧<span class="th-note">日誌の備考欄</span></th>
               <th style="width:7%">電話番号<span class="th-note">電話帳に出る</span></th>
               <th style="width:7%">連絡メモ<span class="th-note">連絡表の3段目</span></th>
-              <th style="width:6%">記号</th>
+              <th style="width:7%">記号</th>
               <th style="width:14%">利用曜日</th>
-              <th style="width:8%"></th>
+              <th style="width:7%"></th>
             </tr>
           </thead>
           <tbody id="user-rows"></tbody>
@@ -8841,7 +8849,7 @@
     });
     cell(dayWrap);
 
-    const actions = el("span", "tag-cell");
+    const actions = el("span", "ops-cell");
     const endBtn = el("button", "btn end", "終了");
     endBtn.type = "button";
     endBtn.title = "利用終了にして、送迎表の候補から外す（記録は残る）";
@@ -8933,11 +8941,15 @@
   }
 
   /* 中身の行数に合わせて背を決める。短い住所は1行のまま */
+  /* 住所の背丈。ふだんは氏名・ふりがなの欄とそろえ、
+     入りきらない方だけ、その行の欄が伸びる */
+  const ADDR_MIN = 34;
+
   function fitAddr(el) {
     el.style.height = "auto";
     /* 枠の太さは中身の高さに入らないので、そのぶんを足す */
     const frame = el.offsetHeight - el.clientHeight;
-    el.style.height = Math.max(el.scrollHeight + frame, 20) + "px";
+    el.style.height = Math.max(el.scrollHeight + frame, ADDR_MIN) + "px";
   }
 
   function drawMasterTables() {

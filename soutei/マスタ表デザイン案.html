@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>マスタ表 デザイン案</title>
+<style>
+
+  :root {
+    --paper: #F5F6F2; --card: #FFFFFF; --sub: #ECEEE8;
+    --ink: #16202A; --ink-2: #4A5765; --ink-3: #8A96A3;
+    --rule: #D9DED6; --rule-2: #C3CABE;
+    --ai: #1B3557; --ai-soft: #E6F0FC; --warn: #9C2B2B; --warn-soft: #F6E7E5;
+    --accent: var(--ai); --accent-soft: var(--ai-soft);
+    --gothic: "BIZ UDPGothic", "Hiragino Sans", "Hiragino Kaku Gothic ProN",
+              "Yu Gothic", "YuGothic", "Meiryo", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--paper); }
+  body { font-family: var(--gothic); color: var(--ink); line-height: 1.5; }
+
+  .hint { max-width: 980px; margin: 22px auto 12px; padding: 14px 18px; background: #fff;
+          border-left: 3px solid var(--accent); font-size: 13.5px; line-height: 1.85; color: var(--ink-2); }
+  .hint b { color: var(--ink); }
+  .bar { position: sticky; top: 0; z-index: 30; background: #fff; border-bottom: 1px solid var(--rule);
+         padding: 12px 18px; margin-bottom: 18px; box-shadow: 0 2px 10px rgba(20,34,36,.08); }
+  .bar h2 { margin: 0 0 9px; font-size: 14px; }
+  .btns { display: flex; flex-wrap: wrap; gap: 8px; }
+  .pick { display: flex; flex-direction: column; gap: 2px; align-items: flex-start;
+          border: 1.5px solid var(--rule-2); border-radius: 10px; background: #fff; padding: 9px 14px;
+          cursor: pointer; text-align: left; min-width: 190px; font-family: inherit;
+          color: var(--ink); line-height: 1.45; }
+  .pick[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+  .pick .nm2 { font-size: 14.5px; font-weight: 700; }
+  .pick .sub2 { font-size: 11.5px; color: var(--ink-2); }
+
+  .sheet { margin: 0 auto 30px; padding: 0 18px 24px; max-width: 1900px; }
+  .sheet[hidden] { display: none; }
+  .sheet h3 { font-size: 15px; letter-spacing: .1em; color: var(--ink-2); margin: 0 0 10px; }
+
+  .tools { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+  .tools .sp { flex: 1; }
+  .find { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-2); }
+  .find input { width: 220px; }
+  .dayfilter { display: flex; gap: 4px; }
+  .dbtn { width: 34px; height: 34px; font-family: inherit; font-size: 14px; font-weight: 600;
+          cursor: pointer; }
+  .hit { font-size: 13px; color: var(--ink-2); }
+
+  .scroll { overflow-x: auto; }
+  table { width: 100%; min-width: 1760px; border-collapse: collapse; table-layout: fixed;
+          font-size: 15px; }
+  th { text-align: left; font-size: 12px; letter-spacing: .08em; font-weight: 600;
+       color: var(--ink-2); padding: 8px 8px 6px; }
+  td { padding: 6px 8px; vertical-align: top; }
+  th:nth-child(1), td:nth-child(1) { width: 8%; }
+  th:nth-child(2), td:nth-child(2) { width: 7%; }
+  th:nth-child(3), td:nth-child(3) { width: 15%; }
+  th:nth-child(4), td:nth-child(4) { width: 7%; }
+  th:nth-child(5), td:nth-child(5) { width: 14%; }
+  th:nth-child(6), td:nth-child(6) { width: 7%; }
+  th:nth-child(7), td:nth-child(7) { width: 7%; }
+  th:nth-child(8), td:nth-child(8) { width: 7%; }
+  th:nth-child(9), td:nth-child(9) { width: 7%; }
+  th:nth-child(10), td:nth-child(10) { width: 14%; }
+  th:nth-child(11), td:nth-child(11) { width: 7%; }
+
+  input, select, textarea { font: inherit; font-size: 15px; width: 100%; color: var(--ink);
+                            background: var(--card); }
+  textarea { resize: none; overflow: hidden; line-height: 1.45; height: 34px;
+             white-space: pre-wrap; overflow-wrap: anywhere; }
+  .cert { display: flex; align-items: center; gap: 2px; }
+  .cert input { font-size: 12.5px; text-align: center; }
+  .cert i { font-style: normal; color: var(--ink-3); }
+
+  .tag-cell, .day-cell { display: flex; gap: 3px; }
+  .tag, .day { width: 32px; height: 36px; font-family: inherit; cursor: pointer;
+               display: flex; flex-direction: column; align-items: center; justify-content: center;
+               line-height: 1; padding: 0; }
+  .day .d { font-size: 14px; font-weight: 600; }
+  .day .ap { font-size: 10px; font-weight: 700; min-height: 10px; }
+  .tag { font-size: 13px; font-weight: 700; }
+  .ops { display: flex; flex-wrap: wrap; gap: 4px; }
+  .btn { font: inherit; font-size: 13.5px; padding: 8px 14px; cursor: pointer; white-space: nowrap; }
+
+
+  /* 案A 端正：いまの形を整える。枠は残しつつ角と影で柔らかく */
+  .a input, .a select, .a textarea, .a .find input {
+    padding: 7px 9px; border: 1px solid var(--rule-2); border-radius: 8px;
+    transition: border-color .12s, box-shadow .12s; }
+  .a input:focus, .a select:focus, .a textarea:focus, .a .find input:focus {
+    outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .a input::placeholder, .a textarea::placeholder { color: var(--ink-3); }
+  .a thead th { border-bottom: 2px solid var(--rule-2); }
+  .a tbody tr:nth-child(even) { background: #FAFBF8; }
+  .a tbody tr:hover { background: var(--accent-soft); }
+  .a tbody td { border-bottom: 1px solid var(--rule); }
+  .a .btn, .a .dbtn { border: 1px solid var(--rule-2); border-radius: 8px; background: var(--card);
+                      color: var(--ink-2); transition: border-color .12s, color .12s, background-color .12s; }
+  .a .btn:hover, .a .dbtn:hover { border-color: var(--accent); color: var(--accent); }
+  .a .btn.primary { border-color: var(--accent); color: var(--accent); font-weight: 700; }
+  .a .btn.danger:hover { border-color: var(--warn); color: var(--warn); }
+  .a .tag, .a .day { border: 1px solid var(--rule-2); border-radius: 6px; background: transparent;
+                     color: var(--ink-3); }
+
+
+  /* 案B 下線：枠を消して下線だけ。紙の帳面に近い落ち着き */
+  .b input, .b select, .b textarea, .b .find input {
+    padding: 6px 2px; border: 0; border-bottom: 1.5px solid var(--rule-2); border-radius: 0;
+    background: transparent; transition: border-color .12s; }
+  .b input:focus, .b select:focus, .b textarea:focus, .b .find input:focus {
+    outline: none; border-bottom-color: var(--accent); border-bottom-width: 2px; }
+  .b input:hover, .b textarea:hover { border-bottom-color: var(--ink-3); }
+  .b thead th { border-bottom: 1.5px solid var(--ink-2); color: var(--ink); }
+  .b tbody td { border-bottom: 1px solid var(--rule); }
+  .b tbody tr:hover { background: #FAFBF8; }
+  .b .btn, .b .dbtn { border: 0; background: transparent; color: var(--ink-2);
+                      border-radius: 6px; padding: 8px 10px; }
+  .b .btn:hover, .b .dbtn:hover { background: var(--sub); color: var(--ink); }
+  .b .btn.primary { color: var(--accent); font-weight: 700; }
+  .b .btn.primary:hover { background: var(--accent-soft); }
+  .b .btn.danger:hover { background: var(--warn-soft); color: var(--warn); }
+  .b .tag, .b .day { border: 0; border-radius: 6px; background: var(--sub); color: var(--ink-3); }
+  .b .cert input { text-align: left; }
+
+
+  /* 案C 面：欄を薄く塗って、枠線をなくす。押せるところが面で分かる */
+  .c input, .c select, .c textarea, .c .find input {
+    padding: 8px 10px; border: 1px solid transparent; border-radius: 8px;
+    background: #EFF1EC; transition: background-color .12s, box-shadow .12s; }
+  .c input:hover, .c textarea:hover { background: #E7EAE3; }
+  .c input:focus, .c select:focus, .c textarea:focus, .c .find input:focus {
+    outline: none; background: var(--card); border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft); }
+  .c thead th { background: var(--sub); border-radius: 8px 8px 0 0; }
+  .c tbody tr:hover td { background: #FAFBF8; }
+  .c tbody td { border-bottom: 1px solid var(--rule); }
+  .c .btn { border: 0; border-radius: 8px; background: var(--sub); color: var(--ink-2); font-weight: 600; }
+  .c .btn:hover { background: #E2E6DC; color: var(--ink); }
+  .c .btn.primary { background: var(--accent); color: #fff; }
+  .c .btn.primary:hover { background: #24446E; }
+  .c .btn.danger { background: var(--warn-soft); color: var(--warn); }
+  .c .btn.danger:hover { background: var(--warn); color: #fff; }
+  .c .dbtn { border: 0; border-radius: 8px; background: var(--sub); color: var(--ink-2); }
+  .c .tag, .c .day { border: 0; border-radius: 7px; background: var(--sub); color: var(--ink-3); }
+
+
+  /* 案D 札：1人ぶんを1枚の札にして、欄をまとめる。指でも使いやすい */
+  .d-plan .scroll { overflow: visible; }
+  .d-plan table { min-width: 0; display: block; }
+  .d-plan thead { display: none; }
+  .d-plan tbody { display: flex; flex-direction: column; gap: 10px; }
+  .d-plan tr { display: grid; gap: 8px 12px; background: var(--card);
+               border: 1px solid var(--rule); border-radius: 12px; padding: 12px 14px;
+               box-shadow: 0 1px 2px rgba(20,34,36,.05);
+               grid-template-columns: 1.1fr 1fr 1.6fr 1fr 1.4fr; }
+  .d-plan tr:hover { border-color: var(--accent); box-shadow: 0 4px 14px rgba(20,34,36,.09); }
+  .d-plan td { display: block; padding: 0; width: auto !important; position: relative;
+               padding-top: 15px; }
+  .d-plan td::before { content: attr(data-l); position: absolute; top: 0; left: 2px;
+                       font-size: 10.5px; letter-spacing: .06em; color: var(--ink-3); }
+  .d-plan td:nth-child(9) { grid-column: 1 / 3; }
+  .d-plan td:nth-child(10) { grid-column: 3 / 5; }
+  .d-plan td:nth-child(11) { grid-column: 5; }
+  .d-plan input, .d-plan select, .d-plan textarea, .d-plan .find input {
+    padding: 8px 10px; border: 1px solid var(--rule-2); border-radius: 8px; }
+  .d-plan input:focus, .d-plan select:focus, .d-plan textarea:focus {
+    outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .d-plan .btn { border: 1px solid var(--rule-2); border-radius: 8px; background: var(--card);
+                 color: var(--ink-2); }
+  .d-plan .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .d-plan .btn.primary { border-color: var(--accent); background: var(--accent); color: #fff; }
+  .d-plan .btn.danger:hover { border-color: var(--warn); color: var(--warn); }
+  .d-plan .dbtn { border: 1px solid var(--rule-2); border-radius: 8px; background: var(--card); }
+  .d-plan .tag, .d-plan .day { border: 1px solid var(--rule-2); border-radius: 7px;
+                               background: transparent; color: var(--ink-3); }
+  .d-plan .ops { justify-content: flex-end; }
+
+  .day.on[data-d="月"] { background: #FBE4E4; border-color: #B34747; color: #8E2F2F; }
+  .day.on[data-d="火"] { background: #E4F1DF; border-color: #4C7A3E; color: #2F5626; }
+  .day.on[data-d="水"] { background: #DEE9F6; border-color: #2F5E9E; color: #1B3E70; }
+  .day.on[data-d="木"] { background: #FBF1D3; border-color: #A88214; color: #6E5405; }
+  .day.on[data-d="金"] { background: #ECEEF0; border-color: #6E7780; color: #3C444C; }
+  .day.on[data-d="土"] { background: #FBE3EE; border-color: #B04A80; color: #832E5A; }
+  .b .day.on[data-d="月"], .c .day.on[data-d="月"] { background: #FBE4E4; color: #8E2F2F; }
+  .b .day.on[data-d="火"], .c .day.on[data-d="火"] { background: #E4F1DF; color: #2F5626; }
+  .b .day.on[data-d="水"], .c .day.on[data-d="水"] { background: #DEE9F6; color: #1B3E70; }
+  .b .day.on[data-d="木"], .c .day.on[data-d="木"] { background: #FBF1D3; color: #6E5405; }
+  .b .day.on[data-d="金"], .c .day.on[data-d="金"] { background: #ECEEF0; color: #3C444C; }
+  .b .day.on[data-d="土"], .c .day.on[data-d="土"] { background: #FBE3EE; color: #832E5A; }
+  .tag.on[data-t="車"] { color: #B23A2C; border-color: #B23A2C; background: #B23A2C22; }
+  .tag.on[data-t="補"] { color: #1B87C9; border-color: #1B87C9; background: #1B87C922; }
+  .tag.on[data-t="玄"] { color: #3F6B4E; border-color: #3F6B4E; background: #3F6B4E22; }
+</style>
+</head>
+<body>
+<div class="hint">
+  <b>マスタ表のデザイン案</b>です。上のボタンで切り替えられます。<br>
+  中身は見本で、<b>欄をクリックすると触った感じ（焦点の出方）</b>も確かめられます。
+  ボタンはマウスを乗せると色が変わります。
+</div>
+<div class="bar">
+  <h2>案を切り替える</h2>
+  <div class="btns"><button class="pick" data-p="a" aria-pressed="true"><span class="nm2">案A　端正</span><span class="sub2">いまの形を整える。枠は残し、角と影で柔らかく</span></button><button class="pick" data-p="b" aria-pressed="false"><span class="nm2">案B　下線</span><span class="sub2">枠を消して下線だけ。帳面のような落ち着き</span></button><button class="pick" data-p="c" aria-pressed="false"><span class="nm2">案C　面</span><span class="sub2">欄を薄く塗る。押せるところが面で分かる</span></button><button class="pick" data-p="d-plan" aria-pressed="false"><span class="nm2">案D　札</span><span class="sub2">1人ぶんを1枚の札に。指でも使いやすい</span></button></div>
+</div>
+<section class="sheet a" data-plan="a" hidden><h3>案A　端正　<span style="font-weight:400">いまの形を整える。枠は残し、角と影で柔らかく</span></h3><div class="tools"><label class="find"><span>さがす</span><input placeholder="氏名・ふりがな・住所"></label><span class="dayfilter"><button class="dbtn" data-d="月" type="button">月</button><button class="dbtn" data-d="火" type="button">火</button><button class="dbtn" data-d="水" type="button">水</button><button class="dbtn" data-d="木" type="button">木</button><button class="dbtn" data-d="金" type="button">金</button><button class="dbtn" data-d="土" type="button">土</button></span><button class="btn" type="button">絞りを外す</button><span class="hit">62名</span><span class="sp"></span><button class="btn primary" type="button">＋ 利用者を追加</button></div><div class="scroll"><table><thead><tr><th>氏名</th><th>ふりがな</th><th>住所（市区町村以下）</th><th>介護度</th><th>認定有効期間</th><th>血圧</th><th>電話番号</th><th>連絡メモ</th><th>記号</th><th>利用曜日</th><th></th></tr></thead><tbody><tr><td><input value="青木 トメ"></td><td><input value="あおき とめ"></td><td><textarea rows="1">中央町2-5-8</textarea></td><td><select><option>事業対象者</option><option>要支援1</option><option>要支援2</option><option>要介護1</option><option>要介護2</option><option>要介護3</option><option selected>要介護4</option><option>要介護5</option></select></td><td><span class="cert"><input value="2026-04-01" placeholder="開始"><i>〜</i><input value="2029-03-31" placeholder="終了"></span></td><td><select><option>（なし）</option><option selected>上腕計</option><option>実測</option><option>左シャント</option><option>右シャント実測</option><option>左上腕計</option></select></td><td><input value="046-261-0011"></td><td><input value="" placeholder="TELなし など"></td><td><span class="tag-cell"><button class="tag" data-t="車" type="button">車</button><button class="tag on" data-t="補" type="button">荷</button><button class="tag" data-t="玄" type="button">玄</button></span></td><td><span class="day-cell"><button class="day" data-d="月" type="button"><span class="d">月</span><span class="ap"></span></button><button class="day on" data-d="火" type="button"><span class="d">火</span><span class="ap">PM</span></button><button class="day" data-d="水" type="button"><span class="d">水</span><span class="ap"></span></button><button class="day on" data-d="木" type="button"><span class="d">木</span><span class="ap">PM</span></button><button class="day on" data-d="金" type="button"><span class="d">金</span><span class="ap">PM</span></button><button class="day" data-d="土" type="button"><span class="d">土</span><span class="ap"></span></button></span></td><td><span class="ops"><button class="btn end" type="button">終了</button><button class="btn danger" type="button">削除</button></span></td></tr><tr><td><input value="秋山 三男"></td><td><input value="あきやま みつお"></td><td><textarea rows="1">若葉台5-2-6</textarea></td><td><select><option>事業対象者</option><option>要支援1</option><option>要支援2</option><option>要介護1</option><option>要介護2</option><option>要介護3</option><option>要介護4</option><option selected>要介護5</option></select></td><td><span class="cert"><input value="2024-04-01" placeholder="開始"><i>〜</i><input value="2026-03-31" placeholder="終了"></span></td><td><select><option selected>（なし）</option><option>上腕計</option><option>実測</option><option>左シャント</option><option>右シャント実測</option><option>左上腕計</option></select></td><td><input value="046-262-0011"></td><td><input value="TELなし" placeholder="TELなし など"></td><td><span class="tag-cell"><button class="tag" data-t="車" type="button">車</button><button class="tag" data-t="補" type="button">荷</button><button class="tag" data-t="玄" type="button">玄</button></span></td><td><span class="day-cell"><button class="day on" data-d="月" type="button"><span class="d">月</span><span class="ap">PM</span></button><button class="day" data-d="火" type="button"><span class="d">火</span><span class="ap"></span></button><button class="day on" data-d="水" type="button"><span class="d">水</span><span class="ap">PM</span></button><button class="day" data-d="木" type="button"><span class="d">木</span><span class="ap"></span></button><button class="day" data-d="金" type="button"><span class="d">金</span><span class="ap"></span></button><button class="day on" data-d="土" type="button"><span class="d">土</span><span class="ap">PM</span></button></span></td><td><span class="ops"><button class="btn end" type="button">終了</button><button class="btn danger" type="button">削除</button></span></td></tr><tr><td><input value="山田 太郎"></td><td><input value="やまだ たろう"></td><td><textarea rows="1">大和市下鶴間 2786-4 南林間パーク・ホームズ二番館612</textarea></td><td><select><option>事業対象者</option><option>要支援1</option><option>要支援2</option><option>要介護1</option><option selected>要介護2</option><option>要介護3</option><option>要介護4</option><option>要介護5</option></select></td><td><span class="cert"><input value="2026-01-01" placeholder="開始"><i>〜</i><input value="2029-12-31" placeholder="終了"></span></td><td><select><option>（なし）</option><option>上腕計</option><option selected>実測</option><option>左シャント</option><option>右シャント実測</option><option>左上腕計</option></select></td><td><input value="010-2345-6789"></td><td><input value="携帯へ" placeholder="TELなし など"></td><td><span class="tag-cell"><button class="tag on" data-t="車" type="button">車</button><button class="tag" data-t="補" type="button">荷</button><button class="tag on" data-t="玄" type="button">玄</button></span></td><td><span class="day-cell"><button class="day on" data-d="月" type="button"><span class="d">月</span><span class="ap">AM</span></button><button class="day" data-d="火" type="button"><span class="d">火</span><span class="ap"></span></button><button class="day on" data-d="水" type="button"><span class="d">水</span><span class="ap">AM</span></button><button class="day" data-d="木" type="button"><span class="d">木</span><span class="ap"></span></button><button class="day on" data-d="金" type="button"><span class="d">金</span><span class="ap">AM</span></button><button class="day" data-d="土" type="button"><span class="d">土</span><span class="ap"></span></button></span></td><td><span class="ops"><button class="btn end" type="button">終了</button><button class="btn danger" type="button">削除</button></span></td></tr><tr><td><input value="河合 秀子"></td><td><input value="かわい ひでこ"></td><td><textarea rows="1">曙1-7-5</textarea></td><td><select><option>事業対象者</option><option>要支援1</option><option selected>要支援2</option><option>要介護1</option><option>要介護2</option><option>要介護3</option><option>要介護4</option><option>要介護5</option></select></td><td><span class="cert"><input value="" placeholder="開始"><i>〜</i><input value="" placeholder="終了"></span></td><td><select><option>（なし）</option><option>上腕計</option><option>実測</option><option>左シャント</option><option selected>右シャント実測</option><option>左上腕計</option></select></td><td><input value="046-261-0154"></td><td><input value="ご家族へ" placeholder="TELなし など"></td><td><span class="tag-cell"><button class="tag" data-t="車" type="button">車</button><button class="tag" data-t="補" type="button">荷</button><button class="tag on" data-t="玄" type="button">玄</button></span></td><td><span class="day-cell"><button class="day on" data-d="月" type="button"><span class="d">月</span><span class="ap">AM</span></button><button class="day" data-d="火" type="button"><span class="d">火</span><span class="ap"></span></button><button class="day on" data-d="水" type="button"><span class="d">水</span><span class="ap">AM</span></button><button class="day" data-d="木" type="button"><span class="d">木</span><span class="ap"></span></button><button class="day on" data-d="金" type="button"><span class="d">金</span><span class="ap">AM</span></button><button class="day" data-d="土" type="button"><span class="d">土</span><span class="ap"></span></button></span></td><td><span class="ops"><button class="btn end" type="button">終了</button><button class="btn danger" type="button">削除</button></span></td></tr></tbody></table></div></section>
+<section class="sheet b" data-plan="b" hidden><h3>案B　下線　<span style="font-weight:400">枠を消して下線だけ。帳面のような落ち着き</span></h3><div class="tools"><label class="find"><span>さがす</span><input placeholder="氏名・ふりがな・住所"></label><span class="dayfilter"><button class="dbtn" data-d="月" type="button">月</button><button class="dbtn" data-d="火" type="button">火</button><button class="dbtn" data-d="水" type="button">水</button><button class="dbtn" data-d="木" type="button">木</button><button class="dbtn" data-d="金" type="button">金</button><button class="dbtn" data-d="土" type="button">土</button></span><button class="btn" type="button">絞りを外す</button><span class="hit">62名</span><span class="sp"></span><button class="btn primary" type="button">＋ 利用者を追加</button></div><div class="scroll"><table><thead><tr><th>氏名</th><th>ふりがな</th><th>住所（市区町村以下）</th><th>介護度</th><th>認定有効期間</th><th>血圧</th><th>電話番号</th><th>連絡メモ</th><th>記号</th><th>利用曜日</th><th></th></tr></thead><tbody><tr><td><input value="青木 トメ"></td><td><input value="あおき とめ"></td><td><textarea rows="1">中央町2-5-8</textarea></td><td><select><option>事業対象者</option><option>要支援1</option><option>要支援2</option><option>要介護1</option><option>要介護2</option><option>要介護3</option><option selected>要介護4</option><option>要介護5</option></select></td><td><span class="cert"><input value="2026-04-01" placeholder="開始"><i>〜</i><input value="2029-03-31" placeholder="終了"></span></td><td><select><option>（なし）</option><option selected>上腕計</option><option>実測</option><option>左シャント</option><option>右シャント実測</option><option>左上腕計</option></select></td><td><input value="046-261-0011"></td><td><input value="" placeholder="TELなし など"></td><td><span class="tag-cell"><button class="tag" data-t="車" type="button">車</button><button class="tag on" data-t="補" type="button">荷</button><button class="tag" data-t="玄" type="button">玄</button></span></td><td><span class="day-cell"><button class="day" data-d="月" type="button"><span class="d">月</span><span class="ap"></span></button><button class="day on" data-d="火" type="button"><span class="d">火</span><span class="ap">PM</span></button><button class="day" data-d="水" type="button"><span class="d">水</span><span class="ap"></span></button><button class="day on" data-d="木" type="button"><span class="d">木</span><span class="ap">PM</span></button><button class="day on" data-d="金" type="button"><span class="d">金</span><span class="ap">PM</span></button><button class="day" data-d="土" type="button"><span class="d">土</span><span class="ap"></span></button></span></td><td><span class="ops"><button class="btn end" type="button">終了</button><button class="btn danger" type="button">削除</button></span></td></tr><tr><td><input value="秋山 三男"></td><td><input value="あきやま みつお"></td><td><textarea rows="1">若葉台5-2-6</textarea></td><td><select><option>事業対象者</option><option>要支援1</option><option>要支援2</option><option>要介護1</option><option>要介護2</option><option>要介護3</option><option>要介護4</option><option selected>要介護5</option></select></td><td><span class="cert"><input value="2024-04-01" placeholder="開始"><i>〜</i><input value="2026-03-31" placeholder="終了"></span></td><td><select><option selected>（なし）</option><option>上腕計</option><option>実測</option><option>左シャント</option><option>右シャント実測</option><option>左上腕計</option></select></td><td><input value="046-262-0011"></td><td><input value="TELなし" placeholder="TELなし など"></td><td><span class="tag-cell"><button class="tag" data-t="車" type="button">車</button><button class="tag" data-t="補" type="button">荷</button><button class="tag" data-t="玄" type="button">玄</button></span></td><td><span class="day-cell"><button class="day on" data-d="月" type="button"><span class="d">月</span><span class="ap">PM</span></button><button class="day" data-d="火" type="button"><span class="d">火</span><span class="ap"></span></button><button class="day on" data-d="水" type="button"><span class="d">水</span><span class="ap">PM</span></button><button class="day" data-d="木" type="button"><span class="d">木</span><span class="ap"></span></button><button class="day" data-d="金" type="button"><span class="d">金</span><span class="ap"></span></button><button class="day on" data-d="土" type="button"><span class="d">土</span><span class="ap">PM</span></button></span></td><td><span class="ops"><button class="btn end" type="button">終了</button><button class="btn danger" type="button">削除</button></span></td></tr><tr><td><input value="山田 太郎"></td><td><input value="やまだ たろう"></td><td><textarea rows="1">大和市下鶴間 2786-4 南林間パーク・ホームズ二番館612</textarea></td><td><select><option>事業対象者</option><option>要支援1</option><option>要支援2</option><option>要介護1</option><option selected>要介護2</option><option>要介護3</option><option>要介護4</option><option>要介護5</option></select></td><td><span class="cert"><input value="2026-01-01" placeholder="開始"><i>〜</i><input value="2029-12-31" placeholder="終了"></span></td><td><select><option>（なし）</option><option>上腕計</option><option selected>実測</option><option>左シャント</option><option>右シャント実測</option><option>左上腕計</option></select></td><td><input value="010-2345-6789"></td><td><input value="携帯へ" placeholder="TELなし など"></td><td><span class="tag-cell"><button class="tag on" data-t="車" type="button">車</button><button class="tag" data-t="補" type="button">荷</button><button class="tag on" data-t="玄" type="button">玄</button></span></td><td><span class="day-cell"><button class="day on" data-d="月" type="button"><span class="d">月</span><span class="ap">AM</span></button><button class="day" data-d="火" type="button"><span class="d">火</span><span class="ap"></span></button><button class="day on" data-d="水" type="button"><span class="d">水</span><span class="ap">AM</span></button><button class="day" data-d="木" type="button"><span class="d">木</span><span class="ap"></span></button><button class="day on" data-d="金" type="button"><span class="d">金</span><span class="ap">AM</span></button><button class="day" data-d="土" type="button"><span class="d">土</span><span class="ap"></span></button></span></td><td><span class="ops"><button class="btn end" type="button">終了</button><button class="btn danger" type="button">削除</button></span></td></tr><tr><td><input value="河合 秀子"></td><td><input value="かわい ひでこ"></td><td><textarea rows="1">曙1-7-5</textarea></td><td><select><option>事業対象者</option><option>要支援1</option><option selected>要支援2</option><option>要介護1</option><option>要介護2</option><option>要介護3</option><option>要介護4</option><option>要介護5</option></select></td><td><span class="cert"><input value="" placeholder="開始"><i>〜</i><input value="" placeholder="終了"></span></td><td><select><option>（なし）</option><option>上腕計</option><option>実測</option><option>左シャント</option><option selected>右シャント実測</option><option>左上腕計</option></select></td><td><input value="046-261-0154"></td><td><input value="ご家族へ" placeholder="TELなし など"></td><td><span class="tag-cell"><button class="tag" data-t="車" type="button">車</button><button class="tag" data-t="補" type="button">荷</button><button class="tag on" data-t="玄" type="button">玄</button></span></td><td><span class="day-cell"><button class="day on" data-d="月" type="button"><span class="d">月</span><span class="ap">AM</span></button><button class="day" data-d="火" type="button"><span class="d">火</span><span class="ap"></span></button><button class="day on" data-d="水" type="button"><span class="d">水</span><span class="ap">AM</span></button><button class="day" data-d="木" type="button"><span class="d">木</span><span class="ap"></span></button><button class="day on" data-d="金" type="button"><span class="d">金</span><span class="ap">AM</span></button><button class="day" data-d="土" type="button"><span class="d">土</span><span class="ap"></span></button></span></td><td><span class="ops"><button class="btn end" type="button">終了</button><button class="btn danger" type="button">削除</button></span></td></tr></tbody></table></div></section>
+<section class="sheet c" data-plan="c" hidden><h3>案C　面　<span style="font-weight:400">欄を薄く塗る。押せるところが面で分かる</span></h3><div class="tools"><label class="find"><span>さがす</span><input placeholder="氏名・ふりがな・住所"></label><span class="dayfilter"><button class="dbtn" data-d="月" type="button">月</button><button class="dbtn" data-d="火" type="button">火</button><button class="dbtn" data-d="水" type="button">水</button><button class="dbtn" data-d="木" type="button">木</button><button class="dbtn" data-d="金" type="button">金</button><button class="dbtn" data-d="土" type="button">土</button></span><button class="btn" type="button">絞りを外す</button><span class="hit">62名</span><span class="sp"></span><button class="btn primary" type="button">＋ 利用者を追加</button></div><div class="scroll"><table><thead><tr><th>氏名</th><th>ふりがな</th><th>住所（市区町村以下）</th><th>介護度</th><th>認定有効期間</th><th>血圧</th><th>電話番号</th><th>連絡メモ</th><th>記号</th><th>利用曜日</th><th></th></tr></thead><tbody><tr><td><input value="青木 トメ"></td><td><input value="あおき とめ"></td><td><textarea rows="1">中央町2-5-8</textarea></td><td><select><option>事業対象者</option><option>要支援1</option><option>要支援2</option><option>要介護1</option><option>要介護2</option><option>要介護3</option><option selected>要介護4</option><option>要介護5</option></select></td><td><span class="cert"><input value="2026-04-01" placeholder="開始"><i>〜</i><input value="2029-03-31" placeholder="終了"></span></td><td><select><option>（なし）</option><option selected>上腕計</option><option>実測</option><option>左シャント</option><option>右シャント実測</option><option>左上腕計</option></select></td><td><input value="046-261-0011"></td><td><input value="" placeholder="TELなし など"></td><td><span class="tag-cell"><button class="tag" data-t="車" type="button">車</button><button class="tag on" data-t="補" type="button">荷</button><button class="tag" data-t="玄" type="button">玄</button></span></td><td><span class="day-cell"><button class="day" data-d="月" type="button"><span class="d">月</span><span class="ap"></span></button><button class="day on" data-d="火" type="button"><span class="d">火</span><span class="ap">PM</span></button><button class="day" data-d="水" type="button"><span class="d">水</span><span class="ap"></span></button><button class="day on" data-d="木" type="button"><span class="d">木</span><span class="ap">PM</span></button><button class="day on" data-d="金" type="button"><span class="d">金</span><span class="ap">PM</span></button><button class="day" data-d="土" type="button"><span class="d">土</span><span class="ap"></span></button></span></td><td><span class="ops"><button class="btn end" type="button">終了</button><button class="btn danger" type="button">削除</button></span></td></tr><tr><td><input value="秋山 三男"></td><td><input value="あきやま みつお"></td><td><textarea rows="1">若葉台5-2-6</textarea></td><td><select><option>事業対象者</option><option>要支援1</option><option>要支援2</option><option>要介護1</option><option>要介護2</option><option>要介護3</option><option>要介護4</option><option selected>要介護5</option></select></td><td><span class="cert"><input value="2024-04-01" placeholder="開始"><i>〜</i><input value="2026-03-31" placeholder="終了"></span></td><td><select><option selected>（なし）</option><option>上腕計</option><option>実測</option><option>左シャント</option><option>右シャント実測</option><option>左上腕計</option></select></td><td><input value="046-262-0011"></td><td><input value="TELなし" placeholder="TELなし など"></td><td><span class="tag-cell"><button class="tag" data-t="車" type="button">車</button><button class="tag" data-t="補" type="button">荷</button><button class="tag" data-t="玄" type="button">玄</button></span></td><td><span class="day-cell"><button class="day on" data-d="月" type="button"><span class="d">月</span><span class="ap">PM</span></button><button class="day" data-d="火" type="button"><span class="d">火</span><span class="ap"></span></button><button class="day on" data-d="水" type="button"><span class="d">水</span><span class="ap">PM</span></button><button class="day" data-d="木" type="button"><span class="d">木</span><span class="ap"></span></button><button class="day" data-d="金" type="button"><span class="d">金</span><span class="ap"></span></button><button class="day on" data-d="土" type="button"><span class="d">土</span><span class="ap">PM</span></button></span></td><td><span class="ops"><button class="btn end" type="button">終了</button><button class="btn danger" type="button">削除</button></span></td></tr><tr><td><input value="山田 太郎"></td><td><input value="やまだ たろう"></td><td><textarea rows="1">大和市下鶴間 2786-4 南林間パーク・ホームズ二番館612</textarea></td><td><select><option>事業対象者</option><option>要支援1</option><option>要支援2</option><option>要介護1</option><option selected>要介護2</option><option>要介護3</option><option>要介護4</option><option>要介護5</option></select></td><td><span class="cert"><input value="2026-01-01" placeholder="開始"><i>〜</i><input value="2029-12-31" placeholder="終了"></span></td><td><select><option>（なし）</option><option>上腕計</option><option selected>実測</option><option>左シャント</option><option>右シャント実測</option><option>左上腕計</option></select></td><td><input value="010-2345-6789"></td><td><input value="携帯へ" placeholder="TELなし など"></td><td><span class="tag-cell"><button class="tag on" data-t="車" type="button">車</button><button class="tag" data-t="補" type="button">荷</button><button class="tag on" data-t="玄" type="button">玄</button></span></td><td><span class="day-cell"><button class="day on" data-d="月" type="button"><span class="d">月</span><span class="ap">AM</span></button><button class="day" data-d="火" type="button"><span class="d">火</span><span class="ap"></span></button><button class="day on" data-d="水" type="button"><span class="d">水</span><span class="ap">AM</span></button><button class="day" data-d="木" type="button"><span class="d">木</span><span class="ap"></span></button><button class="day on" data-d="金" type="button"><span class="d">金</span><span class="ap">AM</span></button><button class="day" data-d="土" type="button"><span class="d">土</span><span class="ap"></span></button></span></td><td><span class="ops"><button class="btn end" type="button">終了</button><button class="btn danger" type="button">削除</button></span></td></tr><tr><td><input value="河合 秀子"></td><td><input value="かわい ひでこ"></td><td><textarea rows="1">曙1-7-5</textarea></td><td><select><option>事業対象者</option><option>要支援1</option><option selected>要支援2</option><option>要介護1</option><option>要介護2</option><option>要介護3</option><option>要介護4</option><option>要介護5</option></select></td><td><span class="cert"><input value="" placeholder="開始"><i>〜</i><input value="" placeholder="終了"></span></td><td><select><option>（なし）</option><option>上腕計</option><option>実測</option><option>左シャント</option><option selected>右シャント実測</option><option>左上腕計</option></select></td><td><input value="046-261-0154"></td><td><input value="ご家族へ" placeholder="TELなし など"></td><td><span class="tag-cell"><button class="tag" data-t="車" type="button">車</button><button class="tag" data-t="補" type="button">荷</button><button class="tag on" data-t="玄" type="button">玄</button></span></td><td><span class="day-cell"><button class="day on" data-d="月" type="button"><span class="d">月</span><span class="ap">AM</span></button><button class="day" data-d="火" type="button"><span class="d">火</span><span class="ap"></span></button><button class="day on" data-d="水" type="button"><span class="d">水</span><span class="ap">AM</span></button><button class="day" data-d="木" type="button"><span class="d">木</span><span class="ap"></span></button><button class="day on" data-d="金" type="button"><span class="d">金</span><span class="ap">AM</span></button><button class="day" data-d="土" type="button"><span class="d">土</span><span class="ap"></span></button></span></td><td><span class="ops"><button class="btn end" type="button">終了</button><button class="btn danger" type="button">削除</button></span></td></tr></tbody></table></div></section>
+<section class="sheet d-plan" data-plan="d-plan" hidden><h3>案D　札　<span style="font-weight:400">1人ぶんを1枚の札に。指でも使いやすい</span></h3><div class="tools"><label class="find"><span>さがす</span><input placeholder="氏名・ふりがな・住所"></label><span class="dayfilter"><button class="dbtn" data-d="月" type="button">月</button><button class="dbtn" data-d="火" type="button">火</button><button class="dbtn" data-d="水" type="button">水</button><button class="dbtn" data-d="木" type="button">木</button><button class="dbtn" data-d="金" type="button">金</button><button class="dbtn" data-d="土" type="button">土</button></span><button class="btn" type="button">絞りを外す</button><span class="hit">62名</span><span class="sp"></span><button class="btn primary" type="button">＋ 利用者を追加</button></div><div class="scroll"><table><thead><tr><th>氏名</th><th>ふりがな</th><th>住所（市区町村以下）</th><th>介護度</th><th>認定有効期間</th><th>血圧</th><th>電話番号</th><th>連絡メモ</th><th>記号</th><th>利用曜日</th><th></th></tr></thead><tbody><tr><td data-l="氏名"><input value="青木 トメ"></td><td data-l="ふりがな"><input value="あおき とめ"></td><td data-l="住所"><textarea rows="1">中央町2-5-8</textarea></td><td data-l="介護度"><select><option>事業対象者</option><option>要支援1</option><option>要支援2</option><option>要介護1</option><option>要介護2</option><option>要介護3</option><option selected>要介護4</option><option>要介護5</option></select></td><td data-l="認定有効期間"><span class="cert"><input value="2026-04-01" placeholder="開始"><i>〜</i><input value="2029-03-31" placeholder="終了"></span></td><td data-l="血圧"><select><option>（なし）</option><option selected>上腕計</option><option>実測</option><option>左シャント</option><option>右シャント実測</option><option>左上腕計</option></select></td><td data-l="電話番号"><input value="046-261-0011"></td><td data-l="連絡メモ"><input value="" placeholder="TELなし など"></td><td data-l="記号"><span class="tag-cell"><button class="tag" data-t="車" type="button">車</button><button class="tag on" data-t="補" type="button">荷</button><button class="tag" data-t="玄" type="button">玄</button></span></td><td data-l="利用曜日"><span class="day-cell"><button class="day" data-d="月" type="button"><span class="d">月</span><span class="ap"></span></button><button class="day on" data-d="火" type="button"><span class="d">火</span><span class="ap">PM</span></button><button class="day" data-d="水" type="button"><span class="d">水</span><span class="ap"></span></button><button class="day on" data-d="木" type="button"><span class="d">木</span><span class="ap">PM</span></button><button class="day on" data-d="金" type="button"><span class="d">金</span><span class="ap">PM</span></button><button class="day" data-d="土" type="button"><span class="d">土</span><span class="ap"></span></button></span></td><td data-l=""><span class="ops"><button class="btn end" type="button">終了</button><button class="btn danger" type="button">削除</button></span></td></tr><tr><td data-l="氏名"><input value="秋山 三男"></td><td data-l="ふりがな"><input value="あきやま みつお"></td><td data-l="住所"><textarea rows="1">若葉台5-2-6</textarea></td><td data-l="介護度"><select><option>事業対象者</option><option>要支援1</option><option>要支援2</option><option>要介護1</option><option>要介護2</option><option>要介護3</option><option>要介護4</option><option selected>要介護5</option></select></td><td data-l="認定有効期間"><span class="cert"><input value="2024-04-01" placeholder="開始"><i>〜</i><input value="2026-03-31" placeholder="終了"></span></td><td data-l="血圧"><select><option selected>（なし）</option><option>上腕計</option><option>実測</option><option>左シャント</option><option>右シャント実測</option><option>左上腕計</option></select></td><td data-l="電話番号"><input value="046-262-0011"></td><td data-l="連絡メモ"><input value="TELなし" placeholder="TELなし など"></td><td data-l="記号"><span class="tag-cell"><button class="tag" data-t="車" type="button">車</button><button class="tag" data-t="補" type="button">荷</button><button class="tag" data-t="玄" type="button">玄</button></span></td><td data-l="利用曜日"><span class="day-cell"><button class="day on" data-d="月" type="button"><span class="d">月</span><span class="ap">PM</span></button><button class="day" data-d="火" type="button"><span class="d">火</span><span class="ap"></span></button><button class="day on" data-d="水" type="button"><span class="d">水</span><span class="ap">PM</span></button><button class="day" data-d="木" type="button"><span class="d">木</span><span class="ap"></span></button><button class="day" data-d="金" type="button"><span class="d">金</span><span class="ap"></span></button><button class="day on" data-d="土" type="button"><span class="d">土</span><span class="ap">PM</span></button></span></td><td data-l=""><span class="ops"><button class="btn end" type="button">終了</button><button class="btn danger" type="button">削除</button></span></td></tr><tr><td data-l="氏名"><input value="山田 太郎"></td><td data-l="ふりがな"><input value="やまだ たろう"></td><td data-l="住所"><textarea rows="1">大和市下鶴間 2786-4 南林間パーク・ホームズ二番館612</textarea></td><td data-l="介護度"><select><option>事業対象者</option><option>要支援1</option><option>要支援2</option><option>要介護1</option><option selected>要介護2</option><option>要介護3</option><option>要介護4</option><option>要介護5</option></select></td><td data-l="認定有効期間"><span class="cert"><input value="2026-01-01" placeholder="開始"><i>〜</i><input value="2029-12-31" placeholder="終了"></span></td><td data-l="血圧"><select><option>（なし）</option><option>上腕計</option><option selected>実測</option><option>左シャント</option><option>右シャント実測</option><option>左上腕計</option></select></td><td data-l="電話番号"><input value="010-2345-6789"></td><td data-l="連絡メモ"><input value="携帯へ" placeholder="TELなし など"></td><td data-l="記号"><span class="tag-cell"><button class="tag on" data-t="車" type="button">車</button><button class="tag" data-t="補" type="button">荷</button><button class="tag on" data-t="玄" type="button">玄</button></span></td><td data-l="利用曜日"><span class="day-cell"><button class="day on" data-d="月" type="button"><span class="d">月</span><span class="ap">AM</span></button><button class="day" data-d="火" type="button"><span class="d">火</span><span class="ap"></span></button><button class="day on" data-d="水" type="button"><span class="d">水</span><span class="ap">AM</span></button><button class="day" data-d="木" type="button"><span class="d">木</span><span class="ap"></span></button><button class="day on" data-d="金" type="button"><span class="d">金</span><span class="ap">AM</span></button><button class="day" data-d="土" type="button"><span class="d">土</span><span class="ap"></span></button></span></td><td data-l=""><span class="ops"><button class="btn end" type="button">終了</button><button class="btn danger" type="button">削除</button></span></td></tr><tr><td data-l="氏名"><input value="河合 秀子"></td><td data-l="ふりがな"><input value="かわい ひでこ"></td><td data-l="住所"><textarea rows="1">曙1-7-5</textarea></td><td data-l="介護度"><select><option>事業対象者</option><option>要支援1</option><option selected>要支援2</option><option>要介護1</option><option>要介護2</option><option>要介護3</option><option>要介護4</option><option>要介護5</option></select></td><td data-l="認定有効期間"><span class="cert"><input value="" placeholder="開始"><i>〜</i><input value="" placeholder="終了"></span></td><td data-l="血圧"><select><option>（なし）</option><option>上腕計</option><option>実測</option><option>左シャント</option><option selected>右シャント実測</option><option>左上腕計</option></select></td><td data-l="電話番号"><input value="046-261-0154"></td><td data-l="連絡メモ"><input value="ご家族へ" placeholder="TELなし など"></td><td data-l="記号"><span class="tag-cell"><button class="tag" data-t="車" type="button">車</button><button class="tag" data-t="補" type="button">荷</button><button class="tag on" data-t="玄" type="button">玄</button></span></td><td data-l="利用曜日"><span class="day-cell"><button class="day on" data-d="月" type="button"><span class="d">月</span><span class="ap">AM</span></button><button class="day" data-d="火" type="button"><span class="d">火</span><span class="ap"></span></button><button class="day on" data-d="水" type="button"><span class="d">水</span><span class="ap">AM</span></button><button class="day" data-d="木" type="button"><span class="d">木</span><span class="ap"></span></button><button class="day on" data-d="金" type="button"><span class="d">金</span><span class="ap">AM</span></button><button class="day" data-d="土" type="button"><span class="d">土</span><span class="ap"></span></button></span></td><td data-l=""><span class="ops"><button class="btn end" type="button">終了</button><button class="btn danger" type="button">削除</button></span></td></tr></tbody></table></div></section>
+<script>
+(function () {
+  var plan = "a";
+  function draw() {
+    document.querySelectorAll(".pick").forEach(function (b) {
+      b.setAttribute("aria-pressed", String(b.dataset.p === plan));
+    });
+    document.querySelectorAll("[data-plan]").forEach(function (n) {
+      n.hidden = n.dataset.plan !== plan;
+    });
+    if (window.fitAddr) window.fitAddr();
+  }
+  document.querySelectorAll(".pick").forEach(function (b) {
+    b.addEventListener("click", function () { plan = b.dataset.p; draw(); });
+  });
+  /* 住所はアプリと同じで、入りきらない方だけ背が伸びる */
+  window.fitAddr = fitAddr;
+  function fitAddr() {
+    document.querySelectorAll("textarea").forEach(function (t) {
+      t.style.height = "auto";
+      var frame = t.offsetHeight - t.clientHeight;
+      t.style.height = Math.max(t.scrollHeight + frame, 34) + "px";
+    });
+  }
+  document.addEventListener("input", function (e) {
+    if (e.target.tagName === "TEXTAREA") fitAddr();
+  });
+  /* 記号と曜日は押して切り替わる。触った感じを確かめられるように */
+  document.addEventListener("click", function (e) {
+    var t = e.target.closest(".tag, .day, .dbtn");
+    if (t) t.classList.toggle("on");
+  });
+  draw();
+  fitAddr();
+})();
+</script>
+</body>
+</html>
