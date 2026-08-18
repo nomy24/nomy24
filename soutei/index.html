@@ -4496,7 +4496,7 @@
   <details class="fold" id="fold-legend">
     <summary><span class="fd-title">この画面の使い方</span><span class="fd-note">記号の意味と操作のまとめ</span>
       <!-- 古い控えを開いていないか、ここで見分けられるようにしておく -->
-      <span class="fd-ver">版 2026-08-17d</span></summary>
+      <span class="fd-ver">版 2026-08-17e</span></summary>
     <div class="fold-body">
   <div class="legend">
     <span class="item"><span class="swatch s-wc" data-icon="wc"></span>車椅子（リフト・スロープ使用）</span>
@@ -8304,23 +8304,58 @@
       return bd <= pitch * 0.6 ? best : null;
     };
 
-    const rows = codes.map((c) => {
-      const tm = times.find((t) => Math.abs(t.y - c.y) < 8);
-      const part = tm ? (Number(tm.t.slice(0, 2)) < 12 ? "AM" : "PM") : "";
-      /* 氏名はコードのすぐ上の行の左端。姓と名が別の塊で来るのでつなぐ */
+    /* 氏名はコードのすぐ下の行の左端。姓と名が別の塊で来るのでつなぐ */
+    const nameOf = (c) => {
       const near = runs.filter((r) => r.y > c.y + 4 && r.y < c.y + 34 && r.x < c.x + 60)
         .sort((a, b) => (a.y - b.y) || (a.x - b.x));
-      const top = near.length ? near[0].y : 0;
-      const name = near.filter((r) => Math.abs(r.y - top) < 2).map((r) => r.t).join(" ").trim();
-      const days = {};
-      marks.filter((mk) => Math.abs(mk.y - c.y) < 8).forEach((mk) => {
+      if (!near.length) return "";
+      const top = near[0].y;
+      return near.filter((r) => Math.abs(r.y - top) < 2).map((r) => r.t).join(" ").trim();
+    };
+
+    /* 午前と午後の両方に来る方は、パターンが2行に分かれて出る。
+       2行目には利用者コードも氏名も無いので、行だけを見ると午前しか拾えない。
+       利用時間のある行をひとつのパターンとして数え、
+       その上にあるいちばん近いコードの持ちものとしてまとめる */
+    const upward = (a, b) => a.y - b.y;
+    const codeList = codes.slice().sort(upward);
+    const timeList = times.slice().sort(upward);
+
+    const groups = new Map();
+    const order = [];
+    let ci = 0, cur = null;
+    timeList.forEach((t) => {
+      while (ci < codeList.length && codeList[ci].y <= t.y + 2) { cur = codeList[ci]; ci++; }
+      if (!cur) return;
+      const id = cur.t.replace(/[\[\]]/g, "");
+      if (!groups.has(id)) {
+        groups.set(id, { id: id, name: nameOf(cur), time: "", part: "", days: {}, clash: [] });
+        order.push(id);
+      }
+      const g = groups.get(id);
+      const part = Number(t.t.slice(0, 2)) < 12 ? "AM" : "PM";
+      g.time = g.time ? g.time + "・" + t.t : t.t;
+      g.part = g.part && g.part !== part ? "AM/PM" : part;
+      marks.filter((mk) => Math.abs(mk.y - t.y) < 8).forEach((mk) => {
         const d = nearestDay(mk.x);
         /* 日曜は送迎表に無いので落とす */
-        if (d && d !== "日" && part) days[d] = part;
+        if (!d || d === "日") return;
+        /* 同じ曜日が午前と午後の両方に出たときは、先に出たほうを残す。
+           送迎表は1曜日に1つしか持てないので、あとで知らせる */
+        if (g.days[d] && g.days[d] !== part) { g.clash.push(d); return; }
+        g.days[d] = part;
       });
-      return { id: c.t.replace(/[\[\]]/g, ""), name: name, time: tm ? tm.t : "", part: part, days: days };
     });
-    return { rows: rows };
+
+    /* 利用時間の無いコード（○も時間も出ていない方）も、拾えたことは伝える */
+    codeList.forEach((c) => {
+      const id = c.t.replace(/[\[\]]/g, "");
+      if (groups.has(id)) return;
+      groups.set(id, { id: id, name: nameOf(c), time: "", part: "", days: {}, clash: [] });
+      order.push(id);
+    });
+
+    return { rows: order.map((id) => groups.get(id)) };
   }
 
   /* 読み取った利用曜日を、いま編集中の名簿にあてる。
@@ -9269,6 +9304,9 @@
         if (got.error) { pdfSay(got.error, true); input.value = ""; return; }
         const r = takePatternRows(got.rows);
         drawMasterTables();
+        /* 同じ曜日に午前と午後の両方が付いている方。
+           送迎表は1曜日に1つしか持てないので、そこは見ていただく */
+        const clash = got.rows.filter((x) => x.clash && x.clash.length);
         pdfSay("PDF から " + got.rows.length + "件を読みました。"
           + "利用曜日を入れた方 " + r.changed + "名"
           + (r.same ? "／もとから同じだった方 " + r.same + "名" : "")
@@ -9277,8 +9315,14 @@
               ? "／名簿に見あたらなかった方 " + r.missed.length + "名（"
                 + r.missed.slice(0, 5).join("・") + (r.missed.length > 5 ? " ほか" : "") + "）"
               : "")
-          + "。上の「保存して送迎表へ戻る」で確定します。",
-          r.missed.length > 0);
+          + "。上の「保存して送迎表へ戻る」で確定します。"
+          + (clash.length
+              ? "　※同じ曜日に午前と午後の両方が付いている方が " + clash.length + "名います（"
+                + clash.slice(0, 3).map((x) => x.name || x.id).join("・")
+                + (clash.length > 3 ? " ほか" : "") + "）。先に出たほうを入れてあるので、"
+                + "利用者の表でお確かめください。"
+              : ""),
+          r.missed.length > 0 || clash.length > 0);
       } catch (e) {
         pdfSay("読めませんでした（" + (e && e.message) + "）。"
           + "文字を選んでコピーできる PDF かご確認ください。", true);
