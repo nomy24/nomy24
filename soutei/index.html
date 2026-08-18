@@ -1848,8 +1848,8 @@
   }
 
   .tag {
-    width: 18px;
-    height: 18px;
+    width: 22px;
+    height: 22px;
     display: grid;
     place-items: center;
     border: 1px solid currentColor;
@@ -3068,13 +3068,13 @@
 
   /* 認定の有効期間。開始と終了を上下に重ねて、桝の幅を取らないようにする */
   .cert-cell { display: flex; align-items: center; gap: 2px; min-width: 0; }
-  .cert-cell input { min-width: 0; font-size: 11px; padding: 3px 2px;
+  .cert-cell input { min-width: 0; font-size: 12.5px; padding: 6px 2px;
                      text-align: center; letter-spacing: -.2px;
                      font-variant-numeric: tabular-nums; }
   .cert-cell .cert-to { flex: 0 0 auto; font-style: normal; color: var(--ink-3, #5B646E); }
   /* 期限が切れている・近い方は色で知らせる */
   .cert-cell.is-soon input:last-child { background: #FBF1D3; }
-  .cert-cell.is-over input:last-child { background: #F8E9E7; color: #9C1414; font-weight: 600; }
+  .cert-cell.is-over input:last-child { background: #F8E9E7; color: #9C1414; }
 
   .kin-who { font-weight: 600; white-space: nowrap; }
 
@@ -3085,6 +3085,22 @@
   .ended-acts .btn { white-space: nowrap; }
   .ended-acts .btn:disabled { opacity: .45; cursor: not-allowed; }
   .ended-lock { font-variant-emoji: text; }
+
+  /* 取り込む前の「こう変わります」の窓 */
+  .modal-panel.diff { width: min(760px, 100%); }
+  .diff-note { margin: 0 0 12px; font-size: 13px; line-height: 1.7; color: var(--warn); }
+  .diff-list { display: flex; flex-direction: column; gap: 10px;
+               max-height: 52vh; overflow: auto; }
+  .diff-row { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px;
+              background: var(--sub); }
+  .diff-who { display: block; font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+  .diff-new { font-size: 13px; color: var(--ok, #2F5626); font-weight: 600; }
+  .diff-line { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
+               font-size: 13.5px; line-height: 1.9; }
+  .diff-lbl { font-style: normal; min-width: 6.5em; color: var(--ink-2); font-size: 12.5px; }
+  .diff-from { text-decoration: none; color: var(--ink-3); }
+  .diff-arrow { text-decoration: none; color: var(--ink-3); }
+  .diff-to { font-weight: 700; }
 
   .pm-tabs {
     display: flex;
@@ -3339,6 +3355,7 @@
   #mu-ok.danger:hover { filter: brightness(1.08); }
 
   /* 終了は青系、削除は赤。取り違えないように色で分ける */
+  .page-master td .btn { white-space: nowrap; }
   .page-master .btn.end {
     border-color: var(--tag-aid);
     color: var(--tag-aid);
@@ -3551,7 +3568,7 @@
   .modal h3,
   .page-master h3 {
     margin: 0 0 calc(var(--step) * 2);
-    font-size: 13px;
+    font-size: 15px;
     letter-spacing: .12em;
     color: var(--ink-2);
     display: flex;
@@ -3563,23 +3580,23 @@
   .page-master table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 13px;
+    font-size: 15px;
   }
 
   .modal th,
   .page-master th {
     text-align: left;
-    font-size: 10px;
-    letter-spacing: .1em;
-    font-weight: 400;
-    color: var(--ink-3);
-    padding: 4px 6px;
+    font-size: 12px;
+    letter-spacing: .08em;
+    font-weight: 600;
+    color: var(--ink-2);
+    padding: 8px 8px 6px;
     border-bottom: 1px solid var(--rule-2);
   }
 
   .modal td,
   .page-master td {
-    padding: 3px 6px;
+    padding: 6px 8px;
     border-bottom: 1px solid var(--rule);
     vertical-align: middle;
   }
@@ -3589,13 +3606,13 @@
   .page-master input,
   .page-master select {
     font: inherit;
-    font-size: 13px;
+    font-size: 15px;
     width: 100%;
-    padding: 3px 4px;
+    padding: 7px 8px;
     color: var(--ink);
     background: var(--card);
     border: 1px solid var(--rule-2);
-    border-radius: 0;
+    border-radius: 6px;
   }
 
   .modal input[type="text"]:focus,
@@ -3606,8 +3623,8 @@
   .modal .btn,
   .page-master .btn {
     font: inherit;
-    font-size: 12px;
-    padding: 5px 12px;
+    font-size: 13.5px;
+    padding: 8px 14px;
     background: var(--card);
     color: var(--ink-2);
     border: 1px solid var(--rule-2);
@@ -3624,7 +3641,7 @@
   .page-master .btn.danger:hover { border-color: var(--warn); color: var(--warn); }
 
   .modal .tag-cell,
-  .page-master .tag-cell { display: flex; gap: 3px; }
+  .page-master .tag-cell { display: flex; gap: 4px; }
 
   .modal-panel.narrow { width: min(660px, 100%); }
   .modal-panel.narrow .modal-head h2 { font-size: 17px; letter-spacing: .06em; }
@@ -3799,18 +3816,19 @@
   }
 
   .modal .day-cell,
-  .page-master .day-cell { display: flex; gap: 2px; }
+  .page-master .day-cell { display: flex; gap: 3px; }
 
   .modal .day,
   .page-master .day {
-    width: 26px;
+    width: 32px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 1px;
     font-family: inherit;
-    padding: 2px 0 1px;
+    padding: 5px 0 4px;
+    border-radius: 5px;
     border: 1px solid var(--rule-2);
     background: transparent;
     color: var(--ink-3);
@@ -3819,13 +3837,14 @@
   }
 
   .modal .day .d,
-  .page-master .day .d { font-size: 11px; }
+  .page-master .day .d { font-size: 14px; font-weight: 600; }
 
   .modal .day .ap,
   .page-master .day .ap {
-    font-size: 8px;
+    font-size: 10px;
+    font-weight: 700;
     letter-spacing: .04em;
-    min-height: 8px;
+    min-height: 10px;
   }
 
   .modal .day[data-ap="AM"],
@@ -3835,7 +3854,7 @@
   .modal .day[data-ap="終日"],
   .page-master .day[data-ap="終日"] { border-color: var(--furikae); background: var(--furikae); color: #fff; }
   .modal .day[data-ap="終日"] .ap,
-  .page-master .day[data-ap="終日"] .ap { font-size: 7px; }
+  .page-master .day[data-ap="終日"] .ap { font-size: 9px; }
 
   /* 曜日の色。午前は薄い地、午後はベタ、終日はベタに白い縁を足して、
      色が曜日を表しても午前・午後・終日の見分けは残るようにする */
@@ -3987,6 +4006,11 @@
 
   /* 表は画面より広い。指で横に送れるようにする（PC でも同じ） */
   .pm-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  /* 欄を大きく取ったので、画面が狭いときは詰めずに横へ流す。
+     見出しに書いた割りをそのまま使いたいので、桝の幅は決め打ちにする
+     （そうしないと中身の長さで勝手に振り分けられてしまう） */
+  #pm-users .pm-scroll table { min-width: 1560px; table-layout: fixed; }
+  #pm-kin .pm-scroll table { min-width: 980px; table-layout: fixed; }
 
   @media screen and (max-width: 760px) {
     .pm-scroll table { min-width: 52rem; }
@@ -4496,7 +4520,7 @@
   <details class="fold" id="fold-legend">
     <summary><span class="fd-title">この画面の使い方</span><span class="fd-note">記号の意味と操作のまとめ</span>
       <!-- 古い控えを開いていないか、ここで見分けられるようにしておく -->
-      <span class="fd-ver">版 2026-08-17e</span></summary>
+      <span class="fd-ver">版 2026-08-18</span></summary>
     <div class="fold-body">
   <div class="legend">
     <span class="item"><span class="swatch s-wc" data-icon="wc"></span>車椅子（リフト・スロープ使用）</span>
@@ -4640,17 +4664,17 @@
         <table>
           <thead>
             <tr>
-              <th style="width:9%">氏名</th>
+              <th style="width:8%">氏名</th>
               <th style="width:8%">ふりがな</th>
-              <th style="width:12%">住所（市区町村以下）</th>
-              <th style="width:8%">介護度</th>
-              <th style="width:15%">認定有効期間<span class="th-note">介護度の確認用</span></th>
-              <th style="width:8%">血圧<span class="th-note">日誌の備考欄</span></th>
-              <th style="width:9%">電話番号<span class="th-note">電話帳に出る</span></th>
-              <th style="width:9%">連絡メモ<span class="th-note">連絡表の3段目</span></th>
-              <th style="width:5%">記号</th>
-              <th style="width:11%">利用曜日</th>
-              <th style="width:5%"></th>
+              <th style="width:8%">住所（市区町村以下）</th>
+              <th style="width:7%">介護度</th>
+              <th style="width:16%">認定有効期間<span class="th-note">介護度の確認用</span></th>
+              <th style="width:7%">血圧<span class="th-note">日誌の備考欄</span></th>
+              <th style="width:8%">電話番号<span class="th-note">電話帳に出る</span></th>
+              <th style="width:8%">連絡メモ<span class="th-note">連絡表の3段目</span></th>
+              <th style="width:6%">記号</th>
+              <th style="width:15%">利用曜日</th>
+              <th style="width:9%"></th>
             </tr>
           </thead>
           <tbody id="user-rows"></tbody>
@@ -5345,6 +5369,75 @@
   }
 
   const normUsers = (list) => (list || []).map(normUser);
+
+  /* 取り込みで何がどう変わるかを並べる。空欄どうしは変化と数えない */
+  const USER_FIELD_LABEL = {
+    name: "氏名", kana: "ふりがな", addr: "住所", care: "介護度",
+    bp: "血圧", tel: "電話番号", note: "連絡メモ"
+  };
+  const dayText = (days) => WEEKDAYS.filter((w) => days && days[w])
+    .map((w) => w + (days[w] === "AM" ? "午前" : "午後")).join(" ") || "（なし）";
+
+  function userDiff(was, rec) {
+    const out = [];
+    const show = (v) => (v == null || v === "" ? "（空）" : String(v));
+    Object.keys(USER_FIELD_LABEL).forEach((k) => {
+      if (rec[k] === undefined) return;
+      const a = String(was[k] == null ? "" : was[k]);
+      const b = String(rec[k] == null ? "" : rec[k]);
+      if (a !== b) out.push({ label: USER_FIELD_LABEL[k], from: show(a), to: show(b) });
+    });
+    if (rec.days && JSON.stringify(normDays(was.days)) !== JSON.stringify(normDays(rec.days))) {
+      out.push({ label: "利用曜日", from: dayText(was.days), to: dayText(rec.days) });
+    }
+    if (rec.tags && (was.tags || []).join("/") !== rec.tags.join("/")) {
+      out.push({ label: "記号", from: show((was.tags || []).join("/")), to: show(rec.tags.join("/")) });
+    }
+    if (rec.cert) {
+      const a = ((was.cert || {}).from || "") + "〜" + ((was.cert || {}).to || "");
+      const b = (rec.cert.from || "") + "〜" + (rec.cert.to || "");
+      if (a !== b && b !== "〜") out.push({ label: "認定有効期間", from: a === "〜" ? "（空）" : a, to: b });
+    }
+    if (rec.kin) {
+      const flat = (k) => [k.rel, k.name, k.tel1, k.tel2].filter(Boolean).join(" ");
+      const a = flat(was.kin || {}), b = flat(rec.kin);
+      if (a !== b && b) out.push({ label: "緊急連絡先", from: show(a), to: b });
+    }
+    return out;
+  }
+
+  /* 取り込む前に「こう変わります」を見ていただく窓。
+     埋め込みでは confirm() が黙って無視されるので、確認は必ず画面の中で行う */
+  function askApply(title, lead, list, note, onYes) {
+    openUserDialog({
+      title: title,
+      lead: lead,
+      ok: "更新する",
+      cancel: "やめる",
+      panel: "diff",
+      build(body) {
+        if (note) body.append(el("p", "diff-note", note));
+        const wrap = el("div", "diff-list");
+        list.slice(0, 200).forEach((row) => {
+          const card = el("div", "diff-row");
+          card.append(el("b", "diff-who", row.name || "（氏名なし）"));
+          if (!row.fields.length) card.append(el("span", "diff-new", "新しく追加します"));
+          row.fields.forEach((f) => {
+            const line = el("span", "diff-line");
+            line.append(el("i", "diff-lbl", f.label));
+            line.append(el("s", "diff-from", f.from));
+            line.append(el("u", "diff-arrow", "→"));
+            line.append(el("b", "diff-to", f.to));
+            card.append(line);
+          });
+          wrap.append(card);
+        });
+        if (list.length > 200) wrap.append(el("p", "diff-note", "ほか " + (list.length - 200) + "件"));
+        body.append(wrap);
+      },
+      submit() { closeUserDialog(); onYes(); }
+    });
+  }
 
   /* 利用終了にした方は、まちがって書き換えないよう錠を掛ける。
      取り込み（CSV・PDF）も画面の入力も、錠が掛かっているあいだは触らない。
@@ -7840,10 +7933,14 @@
     });
     /* 曜日の列は表によらず同じ扱い */
     WEEKDAYS.forEach((w) => { at[w] = keys.indexOf(headKey(w)); });
-    return (row, field) => {
+    const get = (row, field) => {
       const i = at[field];
       return i == null || i < 0 ? "" : csvNorm(row[i]);
     };
+    /* その列が CSV にあるかどうか。無い列は「空にする」ではなく
+       「触らない」ようにするために要る */
+    get.has = (field) => at[field] != null && at[field] >= 0;
+    return get;
   }
 
   /* 利用曜日・出勤曜日。AM／PM のほか「午前」「午後」「終日」でも受ける */
@@ -8360,13 +8457,15 @@
 
   /* 読み取った利用曜日を、いま編集中の名簿にあてる。
      照らすのは利用者コード。合わなければ氏名（空白の違いは無視）で探す */
-  function takePatternRows(rows) {
+  function takePatternRows(rows, opts) {
+    const preview = !!(opts && opts.preview);
     const byId = new Map(draftUsers.map((u, i) => [String(u.id), i]));
     const flat = (v) => csvNorm(v).replace(/\s+/g, "");
     const byName = new Map(draftUsers.map((u, i) => [flat(u.name), i]));
 
     let changed = 0, same = 0, locked = 0;
     const missed = [];
+    const diffs = [];
     rows.forEach((r) => {
       let at = byId.has(r.id) ? byId.get(r.id) : -1;
       if (at < 0 && r.name && byName.has(flat(r.name))) at = byName.get(flat(r.name));
@@ -8374,11 +8473,17 @@
       /* PDF には利用終了の方も載っている。錠が掛かっているうちは触らない */
       if (isLocked(draftUsers[at])) { locked++; return; }
       if (!Object.keys(r.days).length) { missed.push((r.name || r.id) + "（○なし）"); return; }
-      const before = JSON.stringify(draftUsers[at].days || {});
+      const was = draftUsers[at];
+      if (JSON.stringify(normDays(was.days)) === JSON.stringify(normDays(r.days))) { same++; return; }
+      changed++;
+      if (preview) {
+        diffs.push({ name: was.name,
+          fields: [{ label: "利用曜日", from: dayText(was.days), to: dayText(r.days) }] });
+        return;
+      }
       draftUsers[at].days = Object.assign({}, r.days);
-      if (JSON.stringify(draftUsers[at].days) === before) same++; else changed++;
     });
-    return { changed: changed, same: same, locked: locked, missed: missed };
+    return { changed: changed, same: same, locked: locked, missed: missed, diffs: diffs };
   }
 
   /* ── 表ごとの CSV ────────────────────────
@@ -8406,12 +8511,17 @@
           ];
         });
       },
-      take(rows) {
+      /* opts.preview のときは中身を変えず、何がどう変わるかだけ返す。
+         取り込む前に画面で見ていただき、よければもう一度ほんとうに走らせる */
+      take(rows, opts) {
+        const preview = !!(opts && opts.preview);
         const pick = csvPicker(rows[0], CSV_ALIAS.users);
         const body = rows.slice(1);
         const byId = new Map(draftUsers.map((u, i) => [u.id, i]));
         const byName = new Map(draftUsers.map((u, i) => [u.name.trim() + "\u0000" + (u.kana || "").trim(), i]));
         let added = 0, changed = 0, skipped = 0, locked = 0;
+        const diffs = [];
+        const adds = [];
 
         body.forEach((r) => {
           const get = (n) => pick(r, n);
@@ -8461,15 +8571,37 @@
             end: endDay ? { d: endDay, r: get("終了理由") } : null
           };
 
+          /* CSV に無い列は、いまの中身をそのまま残す。
+             書き出しから列を削って使う方がいるので、
+             載っていない欄まで空で上書きすると持ちものが消えてしまう */
+          const HAS = {
+            kana: ["ふりがな"], addr: ["住所", "住所つづき", "郵便番号"], care: ["介護度"],
+            bp: ["血圧"], tel: ["電話"], note: ["連絡メモ"], tags: ["記号"],
+            cert: ["認定開始", "認定終了"],
+            kin: ["続柄", "緊急連絡先氏名", "緊急連絡先ふりがな", "緊急連絡先電話1", "緊急連絡先電話2"],
+            end: ["終了日", "終了理由"]
+          };
+          const patch = { name: rec.name };
+          Object.keys(HAS).forEach((k) => {
+            if (HAS[k].some((col) => pick.has(col))) patch[k] = rec[k];
+          });
+          if (WEEKDAYS.some((w) => pick.has(w))) patch.days = rec.days;
+          if (patch.addr !== undefined) patch.town = rec.town;
+
           const id = get("id");
           const key = name + "\u0000" + rec.kana;
           const at2 = id && byId.has(id) ? byId.get(id) : (byName.has(key) ? byName.get(key) : -1);
           if (at2 >= 0) {
             /* 利用終了の方は、錠が掛かっているうちは書き換えない */
             if (isLocked(draftUsers[at2])) { locked++; return; }
-            draftUsers[at2] = Object.assign({}, draftUsers[at2], rec);
+            const was = draftUsers[at2];
+            const fields = userDiff(was, patch);
+            if (!fields.length) return;          /* 中身が同じ行は数えない */
+            if (preview) { diffs.push({ name: was.name, fields: fields }); changed++; return; }
+            draftUsers[at2] = Object.assign({}, was, patch);
             changed++;
           } else {
+            if (preview) { adds.push(rec.name); added++; return; }
             const fresh = Object.assign({ id: id || ("u" + Date.now().toString(36) + added) }, rec);
             draftUsers.push(fresh);
             byId.set(fresh.id, draftUsers.length - 1);
@@ -8477,8 +8609,8 @@
             added++;
           }
         });
-        draftUsers.sort(byKana);
-        return { added, changed, skipped, locked };
+        if (!preview) draftUsers.sort(byKana);
+        return { added, changed, skipped, locked, diffs, adds };
       }
     },
 
@@ -9264,12 +9396,39 @@
         try {
           const rows = parseCSV(decodeText(reader.result));
           if (rows.length < 2) { ioSay("中身が読み取れませんでした。1行目が見出しの CSV を選んでください。", true); return; }
-          const r = def.take(rows);
-          drawMasterTables();
-          ioSay(def.name + " を取り込みました。追加 " + r.added + "件／書き換え " + r.changed + "件"
-            + (r.skipped ? "／読み飛ばし " + r.skipped + "件" : "")
-            + (r.locked ? "／利用終了のため飛ばし " + r.locked + "件" : "")
-            + "。上の「保存して送迎表へ戻る」で確定します。");
+          const pre = def.take(rows, { preview: true });
+          const tail = (r) => (r.skipped ? "／読み飛ばし " + r.skipped + "件" : "")
+            + (r.locked ? "／利用終了のため飛ばし " + r.locked + "件" : "");
+
+          /* 下見をつくれない表（運転手・担当表）は、これまでどおりそのまま入れる */
+          if (!pre.diffs) {
+            drawMasterTables();
+            ioSay(def.name + " を取り込みました。追加 " + pre.added + "件／書き換え " + pre.changed + "件"
+              + tail(pre) + "。上の「保存して送迎表へ戻る」で確定します。");
+            file.value = "";
+            return;
+          }
+
+          if (!pre.changed && !pre.added) {
+            ioSay(def.name + " を読みました。変わるところはありませんでした" + tail(pre) + "。");
+            file.value = "";
+            return;
+          }
+
+          const list = pre.diffs.concat((pre.adds || []).map((n) => ({ name: n, fields: [] })));
+          askApply(def.name + " を更新しますか？",
+            "CSV の中身と、いまの名簿を見くらべました。"
+              + (pre.changed ? "書き換え " + pre.changed + "件" : "")
+              + (pre.changed && pre.added ? "／" : "")
+              + (pre.added ? "新しく追加 " + pre.added + "件" : "") + "です。",
+            list, "",
+            () => {
+              const r = def.take(rows);
+              drawMasterTables();
+              ioSay(def.name + " を取り込みました。追加 " + r.added + "件／書き換え " + r.changed + "件"
+                + tail(r) + "。上の「保存して送迎表へ戻る」で確定します。");
+            });
+          ioSay(def.name + " を読みました。窓の中身をお確かめください。");
         } catch (e) {
           ioSay("読み込めませんでした（" + (e && e.message) + "）。", true);
         }
@@ -9302,27 +9461,50 @@
         const items = await pdfGlyphs(new Uint8Array(reader.result));
         const got = pdfPattern(items);
         if (got.error) { pdfSay(got.error, true); input.value = ""; return; }
-        const r = takePatternRows(got.rows);
-        drawMasterTables();
+
         /* 同じ曜日に午前と午後の両方が付いている方。
            送迎表は1曜日に1つしか持てないので、そこは見ていただく */
         const clash = got.rows.filter((x) => x.clash && x.clash.length);
-        pdfSay("PDF から " + got.rows.length + "件を読みました。"
-          + "利用曜日を入れた方 " + r.changed + "名"
-          + (r.same ? "／もとから同じだった方 " + r.same + "名" : "")
-          + (r.locked ? "／利用終了のため触れなかった方 " + r.locked + "名" : "")
-          + (r.missed.length
-              ? "／名簿に見あたらなかった方 " + r.missed.length + "名（"
-                + r.missed.slice(0, 5).join("・") + (r.missed.length > 5 ? " ほか" : "") + "）"
-              : "")
-          + "。上の「保存して送迎表へ戻る」で確定します。"
-          + (clash.length
-              ? "　※同じ曜日に午前と午後の両方が付いている方が " + clash.length + "名います（"
-                + clash.slice(0, 3).map((x) => x.name || x.id).join("・")
-                + (clash.length > 3 ? " ほか" : "") + "）。先に出たほうを入れてあるので、"
-                + "利用者の表でお確かめください。"
-              : ""),
-          r.missed.length > 0 || clash.length > 0);
+        const pre = takePatternRows(got.rows, { preview: true });
+
+        /* あとで知らせに出す文言。入れたあとと、やめたあとで使い回す */
+        const tell = (done) => {
+          pdfSay("PDF から " + got.rows.length + "件を読みました。"
+            + (done ? "利用曜日を入れた方 " + pre.changed + "名"
+                    : "変わるところはありませんでした")
+            + (pre.same ? "／もとから同じだった方 " + pre.same + "名" : "")
+            + (pre.locked ? "／利用終了のため触れなかった方 " + pre.locked + "名" : "")
+            + (pre.missed.length
+                ? "／名簿に見あたらなかった方 " + pre.missed.length + "名（"
+                  + pre.missed.slice(0, 5).join("・") + (pre.missed.length > 5 ? " ほか" : "") + "）"
+                : "")
+            + (done ? "。上の「保存して送迎表へ戻る」で確定します。" : "。")
+            + (clash.length
+                ? "　※同じ曜日に午前と午後の両方が付いている方が " + clash.length + "名います（"
+                  + clash.slice(0, 3).map((x) => x.name || x.id).join("・")
+                  + (clash.length > 3 ? " ほか" : "") + "）。先に出たほうを入れてあります。"
+                : ""),
+            pre.missed.length > 0 || clash.length > 0);
+        };
+
+        if (!pre.changed) { tell(false); input.value = ""; return; }
+
+        askApply("利用曜日を更新しますか？",
+          "PDF の中身と、いまの名簿を見くらべました。次の " + pre.changed + "名が変わります。",
+          pre.diffs,
+          clash.length
+            ? "※同じ曜日に午前と午後の両方が付いている方が " + clash.length + "名います（"
+              + clash.slice(0, 3).map((x) => x.name || x.id).join("・")
+              + (clash.length > 3 ? " ほか" : "")
+              + "）。送迎表は1つの曜日に午前か午後のどちらかしか持てないので、"
+              + "先に出たほうを入れます。"
+            : "",
+          () => {
+            takePatternRows(got.rows);
+            drawMasterTables();
+            tell(true);
+          });
+        pdfSay("PDF を読みました。窓の中身をお確かめください。");
       } catch (e) {
         pdfSay("読めませんでした（" + (e && e.message) + "）。"
           + "文字を選んでコピーできる PDF かご確認ください。", true);
