@@ -3078,6 +3078,14 @@
 
   .kin-who { font-weight: 600; white-space: nowrap; }
 
+  /* 利用終了の方の錠。掛かっているあいだは書き換えられない */
+  .page-master tr.is-locked input { background: var(--sub); color: var(--ink-2); cursor: default; }
+  .page-master tr.is-locked input:focus { outline: none; }
+  .ended-acts { display: flex; gap: 6px; align-items: center; }
+  .ended-acts .btn { white-space: nowrap; }
+  .ended-acts .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .ended-lock { font-variant-emoji: text; }
+
   .pm-tabs {
     display: flex;
     gap: 2px;
@@ -4488,7 +4496,7 @@
   <details class="fold" id="fold-legend">
     <summary><span class="fd-title">この画面の使い方</span><span class="fd-note">記号の意味と操作のまとめ</span>
       <!-- 古い控えを開いていないか、ここで見分けられるようにしておく -->
-      <span class="fd-ver">版 2026-08-17b</span></summary>
+      <span class="fd-ver">版 2026-08-17c</span></summary>
     <div class="fold-body">
   <div class="legend">
     <span class="item"><span class="swatch s-wc" data-icon="wc"></span>車椅子（リフト・スロープ使用）</span>
@@ -4654,18 +4662,21 @@
         <table>
           <thead>
             <tr>
-              <th style="width:16%">氏名</th>
-              <th style="width:16%">ふりがな</th>
-              <th style="width:14%">終了日</th>
-              <th style="width:30%">理由</th>
-              <th style="width:14%"></th>
+              <th style="width:15%">氏名</th>
+              <th style="width:15%">ふりがな</th>
+              <th style="width:13%">終了日</th>
+              <th style="width:27%">理由</th>
+              <th style="width:22%">錠<span class="th-note">解除するまで書き換えできません</span></th>
             </tr>
           </thead>
           <tbody id="ended-rows"></tbody>
         </table>
       </div>
       <p class="pm-note">終了にした方は、送迎表の利用者プルダウン・既定の割り当て・未割当から外れます。
-        すでに表に入っている過去の日付では、そのまま残ります。</p>
+        すでに表に入っている過去の日付では、そのまま残ります。<br>
+        <b>終了にした方には錠が掛かります。</b>CSV や PDF を取り込んでも書き換わりません
+        （利用曜日も入りません）。直したいときだけ「解除」を押してください。
+        錠は編集中のあいだだけのもので、保存すると掛かった状態に戻ります。</p>
     </section>
 
     <section class="pm-pane" id="pm-kin" hidden>
@@ -5334,6 +5345,11 @@
   }
 
   const normUsers = (list) => (list || []).map(normUser);
+
+  /* 利用終了にした方は、まちがって書き換えないよう錠を掛ける。
+     取り込み（CSV・PDF）も画面の入力も、錠が掛かっているあいだは触らない。
+     直したいときは「解除」を押す。錠は編集中のあいだだけのもので、保存には残さない */
+  const isLocked = (u) => !!(u && u.end && !u.unlocked);
 
   let USERS = normUsers(STORE.getJSON("users") || DEFAULT_USERS);
   let DRIVERS = normDrivers(STORE.getJSON("drivers")) || DEFAULT_DRIVERS.map((d) => ({ name: d.name, days: { ...d.days } }));
@@ -8171,18 +8187,20 @@
     const flat = (v) => csvNorm(v).replace(/\s+/g, "");
     const byName = new Map(draftUsers.map((u, i) => [flat(u.name), i]));
 
-    let changed = 0, same = 0;
+    let changed = 0, same = 0, locked = 0;
     const missed = [];
     rows.forEach((r) => {
       let at = byId.has(r.id) ? byId.get(r.id) : -1;
       if (at < 0 && r.name && byName.has(flat(r.name))) at = byName.get(flat(r.name));
       if (at < 0) { missed.push(r.name || r.id); return; }
+      /* PDF には利用終了の方も載っている。錠が掛かっているうちは触らない */
+      if (isLocked(draftUsers[at])) { locked++; return; }
       if (!Object.keys(r.days).length) { missed.push((r.name || r.id) + "（○なし）"); return; }
       const before = JSON.stringify(draftUsers[at].days || {});
       draftUsers[at].days = Object.assign({}, r.days);
       if (JSON.stringify(draftUsers[at].days) === before) same++; else changed++;
     });
-    return { changed: changed, same: same, missed: missed };
+    return { changed: changed, same: same, locked: locked, missed: missed };
   }
 
   /* ── 表ごとの CSV ────────────────────────
@@ -8215,7 +8233,7 @@
         const body = rows.slice(1);
         const byId = new Map(draftUsers.map((u, i) => [u.id, i]));
         const byName = new Map(draftUsers.map((u, i) => [u.name.trim() + "\u0000" + (u.kana || "").trim(), i]));
-        let added = 0, changed = 0, skipped = 0;
+        let added = 0, changed = 0, skipped = 0, locked = 0;
 
         body.forEach((r) => {
           const get = (n) => pick(r, n);
@@ -8269,6 +8287,8 @@
           const key = name + "\u0000" + rec.kana;
           const at2 = id && byId.has(id) ? byId.get(id) : (byName.has(key) ? byName.get(key) : -1);
           if (at2 >= 0) {
+            /* 利用終了の方は、錠が掛かっているうちは書き換えない */
+            if (isLocked(draftUsers[at2])) { locked++; return; }
             draftUsers[at2] = Object.assign({}, draftUsers[at2], rec);
             changed++;
           } else {
@@ -8280,7 +8300,7 @@
           }
         });
         draftUsers.sort(byKana);
-        return { added, changed, skipped };
+        return { added, changed, skipped, locked };
       }
     },
 
@@ -8500,36 +8520,59 @@
 
   function drawEndedRow(u, i) {
     const tr = document.createElement("tr");
-    tr.className = "is-ended";
+    const lock = isLocked(u);
+    tr.className = "is-ended" + (lock ? " is-locked" : "");
     const cell = (child) => { const td = document.createElement("td"); td.append(child); tr.append(td); return child; };
 
-    const nameI = document.createElement("input");
-    nameI.type = "text"; nameI.value = u.name;
-    nameI.addEventListener("input", () => { draftUsers[i].name = nameI.value; });
-    cell(nameI);
+    /* 錠が掛かっているあいだは書き換えられない。
+       うっかり直してしまうのを防ぐためで、読むのはそのままできる */
+    const box = (make, set) => {
+      const inp = make();
+      inp.readOnly = lock;
+      if (lock) inp.tabIndex = -1;
+      else inp.addEventListener(inp.type === "date" ? "change" : "input", () => set(inp.value));
+      return cell(inp);
+    };
 
-    const kanaI = document.createElement("input");
-    kanaI.type = "text"; kanaI.value = u.kana;
-    kanaI.addEventListener("input", () => { draftUsers[i].kana = kanaI.value; });
-    cell(kanaI);
+    box(() => Object.assign(document.createElement("input"), { type: "text", value: u.name }),
+        (v) => { draftUsers[i].name = v; });
+    box(() => Object.assign(document.createElement("input"), { type: "text", value: u.kana }),
+        (v) => { draftUsers[i].kana = v; });
+    box(() => Object.assign(document.createElement("input"), { type: "date", value: u.end.d || "" }),
+        (v) => { draftUsers[i].end.d = v || isoToday(); });
+    box(() => {
+          const inp = Object.assign(document.createElement("input"), {
+            type: "text", value: u.end.r || "", placeholder: "理由（入院・施設入所など）" });
+          inp.setAttribute("list", "end-reasons");
+          return inp;
+        },
+        (v) => { draftUsers[i].end.r = v; });
 
-    const dateI = document.createElement("input");
-    dateI.type = "date"; dateI.value = u.end.d || "";
-    dateI.addEventListener("change", () => { draftUsers[i].end.d = dateI.value || isoToday(); });
-    cell(dateI);
+    const acts = el("span", "ended-acts");
 
-    const reasonI = document.createElement("input");
-    reasonI.type = "text";
-    reasonI.value = u.end.r || "";
-    reasonI.placeholder = "理由（入院・施設入所など）";
-    reasonI.setAttribute("list", "end-reasons");
-    reasonI.addEventListener("input", () => { draftUsers[i].end.r = reasonI.value; });
-    cell(reasonI);
+    /* 錠の開け閉め。開けているあいだだけ、取り込みもこの方に触れる */
+    const key = el("button", "btn ended-lock", lock ? "🔒 解除" : "🔓 施錠");
+    key.type = "button";
+    key.title = lock
+      ? "この方の欄を書き換えられるようにします（取り込みもこの方に入るようになります）"
+      : "書き換えられないように戻します";
+    key.addEventListener("click", () => {
+      draftUsers[i].unlocked = lock ? true : false;
+      drawMasterTables();
+    });
+    acts.append(key);
 
     const back = el("button", "btn", "利用中に戻す");
     back.type = "button";
-    back.addEventListener("click", () => { draftUsers[i].end = null; drawMasterTables(); });
-    cell(back);
+    back.disabled = lock;
+    back.title = lock ? "先に「解除」を押してください" : "";
+    back.addEventListener("click", () => {
+      draftUsers[i].end = null;
+      draftUsers[i].unlocked = false;
+      drawMasterTables();
+    });
+    acts.append(back);
+    cell(acts);
 
     return tr;
   }
@@ -9047,6 +9090,7 @@
           drawMasterTables();
           ioSay(def.name + " を取り込みました。追加 " + r.added + "件／書き換え " + r.changed + "件"
             + (r.skipped ? "／読み飛ばし " + r.skipped + "件" : "")
+            + (r.locked ? "／利用終了のため飛ばし " + r.locked + "件" : "")
             + "。上の「保存して送迎表へ戻る」で確定します。");
         } catch (e) {
           ioSay("読み込めませんでした（" + (e && e.message) + "）。", true);
@@ -9085,6 +9129,7 @@
         pdfSay("PDF から " + got.rows.length + "件を読みました。"
           + "利用曜日を入れた方 " + r.changed + "名"
           + (r.same ? "／もとから同じだった方 " + r.same + "名" : "")
+          + (r.locked ? "／利用終了のため触れなかった方 " + r.locked + "名" : "")
           + (r.missed.length
               ? "／名簿に見あたらなかった方 " + r.missed.length + "名（"
                 + r.missed.slice(0, 5).join("・") + (r.missed.length > 5 ? " ほか" : "") + "）"
