@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>実装力カルテ</title>
-<meta name="description" content="nomy24 のコード 6,269 行から測った 8 軸の現在地と、LV4 まで上げるための 8 本のドリル。">
+<meta name="description" content="運用中の staff-todo を教材に、コードを読めるようになり自分で保守できる状態を目指す 9 本のドリル。">
 <meta name="theme-color" content="#EDF1EF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#111716" media="(prefers-color-scheme: dark)">
 <style>
@@ -391,6 +391,7 @@
     white-space: nowrap;
   }
   .chip--weak   { color: var(--rust); }
+  .chip--todo   { color: var(--ink-3); }
   .chip--growing{ color: var(--amber); }
   .chip--strong { color: var(--pine); }
   .chip--done   { color: var(--pine); }
@@ -485,12 +486,14 @@
     gap: 1.125rem;
   }
   .drill__why { margin: 1rem 0 0; font-size: var(--step-1); color: var(--ink-2); }
-  .drill__why code, .step code, .done code, .keep li code {
+  .sheet code {
     font-family: var(--font-data);
     font-size: .9em;
     background: var(--surface-sunk);
     padding: .0625rem .3125rem;
-    word-break: break-word;
+    /* URL のように途中に切れ目がない文字列でも折り返させる。
+       break-word だと min-content 幅が縮まらず、狭い画面で横スクロールが出る。 */
+    overflow-wrap: anywhere;
   }
 
   .sublabel {
@@ -593,13 +596,13 @@
 <div class="sheet">
 
   <header class="masthead">
-    <p class="eyebrow">Web 開発ドリル / 測定と処方</p>
+    <p class="eyebrow">Web 開発ドリル / 現在地と道順</p>
     <h1>実装力カルテ</h1>
     <dl class="masthead__meta">
-      <div><dt>測定対象</dt><dd>nomy24/nomy24</dd></div>
-      <div><dt>計測範囲</dt><dd>6,269 行</dd></div>
-      <div><dt>作品</dt><dd>PWA 2 本 + 収集バッチ</dd></div>
-      <div><dt>基準</dt><dd>LV1 見習い → LV5 指導者</dd></div>
+      <div><dt>教材</dt><dd>staff-todo（運用中）</dd></div>
+      <div><dt>現状</dt><dd>コードはAI作・読解はこれから</dd></div>
+      <div><dt>目標</dt><dd>自分で保守できる状態</dd></div>
+      <div><dt>基準</dt><dd>LV1 見たことがある → LV5 教えられる</dd></div>
     </dl>
   </header>
 
@@ -608,23 +611,23 @@
     <div class="section-head">
       <span class="section-head__no">01</span>
       <h2 class="section-head__title">現在地</h2>
-      <p class="section-head__note">書いたコードから測った実測値<br>チェックを入れると即座に動く</p>
+      <p class="section-head__note">自己申告からの出発点<br>チェックを入れると即座に動く</p>
     </div>
 
     <div class="verdict">
       <div class="score">
         <div class="score__figure">
-          <span class="score__now" id="scoreNow">20.0</span>
+          <span class="score__now" id="scoreNow">9.0</span>
           <span class="score__of">/ 40</span>
-          <span class="score__delta" id="scoreDelta">目標まで +12.0</span>
+          <span class="score__delta" id="scoreDelta">目標まで +16.0</span>
         </div>
         <div class="score__bar"><i id="scoreFill"></i><b id="scoreGoal"></b></div>
-        <p class="score__rank" id="scoreRank">Lv.2.5 ── 独力で出荷できる</p>
+        <p class="score__rank" id="scoreRank">Lv.1 ── 持ち主だが、まだ読み手ではない</p>
         <p class="score__diagnosis" id="scoreDiag">
-          作るところまでは一人で完走できている。弱いのは「壊れたことに気づく仕組み」で、
-          6,269 行に対してテストが 0 件、リンタも型検査もない。
-          設計の勘は良い（<code>store.js</code> の抽象化は職業レベル）のに、
-          その勘を <code>app.js</code> 2,154 行には適用できていない。
+          いちばんのリスクは <code>app.js</code> の行数ではなく、<strong>4人が業務で使うアプリを、
+          中身を読めないまま自分だけが預かっている</strong>こと。逆に、多くの学習者が持っていない
+          「本物の題材」が最初から手元にある。教材を探す必要はなく、このアプリを読み解くこと自体が
+          そのまま練習になる。
         </p>
       </div>
 
@@ -633,8 +636,8 @@
           <title id="radarTitle">八軸の現在値と目標値。数値は下の一覧と同じ。</title>
         </svg>
         <div class="radar__legend">
-          <span><i class="radar__key radar__key--now"></i>現在（実測 + ドリル進捗）</span>
-          <span><i class="radar__key radar__key--goal"></i>目標 LV4（チーム開発相当）</span>
+          <span><i class="radar__key radar__key--now"></i>現在（出発点 + ドリル進捗）</span>
+          <span><i class="radar__key radar__key--goal"></i>目標（LV3 = 自分で直せる）</span>
         </div>
         <div class="tip" id="tip"></div>
       </figure>
@@ -645,8 +648,8 @@
   <section>
     <div class="section-head">
       <span class="section-head__no">02</span>
-      <h2 class="section-head__title">八軸のパラメーター</h2>
-      <p class="section-head__note">枠つきのマスが目標 LV<br>根拠はすべて実コード由来</p>
+      <h2 class="section-head__title">八軸の出発点</h2>
+      <p class="section-head__note">枠つきのマスが目標 LV<br>LV3＝自分で直せる</p>
     </div>
     <div class="axes" id="axes"></div>
   </section>
@@ -666,7 +669,7 @@
     <div class="section-head">
       <span class="section-head__no">04</span>
       <h2 class="section-head__title">ドリル</h2>
-      <p class="section-head__note">依存関係の順に並べてある<br>上から順にやるのが最短</p>
+      <p class="section-head__note">下に行くほど難しくなる<br>飛ばさず上から順に</p>
     </div>
     <div class="drills" id="drills"></div>
   </section>
@@ -675,16 +678,16 @@
   <section>
     <div class="section-head">
       <span class="section-head__no">05</span>
-      <h2 class="section-head__title">すでに強い軸</h2>
-      <p class="section-head__note">ドリルを組んでいない<br>= 下げないことが課題</p>
+      <h2 class="section-head__title">すでに持っているもの</h2>
+      <p class="section-head__note">ゼロからの出発ではない<br>ここが他の学習者との差</p>
     </div>
     <ul class="keep" id="keep"></ul>
   </section>
 
   <footer class="colophon">
     <p>
-      現在値は <code>staff-todo/</code>・<code>sagamihara-minami/</code>・<code>scripts/</code> の実装を読んで付けた。
-      チェック状態はこの端末のブラウザにだけ保存される。
+      現在値はコードの計測ではなく、本人の自己申告（読む力・書く力・目標）から付けた。
+      進めるうちに実際と違うと感じたら、そこが測り直しの合図。チェック状態はこの端末のブラウザにだけ保存される。
     </p>
     <button class="reset" id="reset" type="button">進捗をリセット</button>
   </footer>
@@ -700,39 +703,39 @@
   /* ================= 測定結果 ================= */
 
   const AXES = [
-    { code: "A-01", name: "HTML・アクセシビリティ", base: 3, target: 4,
-      note: "skip-link、lang=\"ja\"、配色別 theme-color まで入っている。シートを開いた時のフォーカス移動と Tab の閉じ込めがない。" },
-    { code: "A-02", name: "CSS・レイアウト", base: 4, target: 4,
-      note: "手書き 1,633 行。カスタムプロパティ、ダークモード、safe-area、prefers-reduced-motion を使い分けている。" },
-    { code: "A-03", name: "JavaScript・DOM", base: 4, target: 4,
-      note: "ES モジュール、async/await、タッチジェスチャを自作。requestAnimationFrame の二段待ちまで理解して書いている。" },
-    { code: "A-04", name: "設計・アーキテクチャ", base: 2, target: 4,
-      note: "store.js のバックエンド抽象化は職業レベル。一方 app.js は 2,154 行・88 関数の一枚岩で、状態は可変オブジェクト 1 個。" },
-    { code: "A-05", name: "テスト・品質保証", base: 1, target: 4,
-      note: "6,269 行に対してテスト 0 件。リンタ・整形ツールもなし。壊れたことに気づく手段が目視だけ。" },
-    { code: "A-06", name: "データ・セキュリティ", base: 2, target: 4,
-      note: "Firestore の購読と認証は動いている。ただし firestore.rules がリポジトリにない。権限判定がクライアント側だけ。" },
-    { code: "A-07", name: "開発環境・ツール", base: 1, target: 4,
-      note: "package.json なし。ビルド・型・整形なしで素の ES モジュールを直配信。GitHub Actions は収集バッチ 1 本のみ。" },
-    { code: "A-08", name: "パフォーマンス・PWA", base: 3, target: 4,
-      note: "Service Worker のキャッシュ戦略、オフライン対応、画像圧縮まで実装済み。ただし状態が変わるたび innerHTML で全再描画。" },
+    { code: "B-01", name: "壊さない手順", base: 1, target: 3,
+      note: "本番アプリは4人の業務データが入ったまま動いている。まず「練習しても本番が壊れない場所」と「元に戻す操作」を持つこと。" },
+    { code: "B-02", name: "画面とコードの対応", base: 1, target: 3,
+      note: "読解のいちばん最初の一歩。画面の部品を指されて、それが index.html に直接書いてあるのか、app.js が後から作っているのかを言い分ける。" },
+    { code: "B-03", name: "HTML・画面の構造", base: 1, target: 3,
+      note: "タグの意味と入れ子。index.html は 287 行あるが、覚えるのは実際に使われている20種類ほどのタグだけでよい。" },
+    { code: "B-04", name: "CSS・見た目", base: 1, target: 3,
+      note: "app.css の 7 行目に --color-primary が定義され、23 箇所で使われている。この1本の線をたどれるかが最初の関門。" },
+    { code: "B-05", name: "JavaScript・動き", base: 1, target: 3,
+      note: "app.js は 2,154 行あるが、全部読む必要はない。console.log を置いて、押した時にどこが動くかを目で見るところから。" },
+    { code: "B-06", name: "データの流れ", base: 1, target: 3,
+      note: "入力した文字がどこへ行って、どこから戻ってくるか。store.js がその出入口をすべて引き受けている（182 行しかない）。" },
+    { code: "B-07", name: "直して確かめる", base: 1, target: 3,
+      note: "写経と部分的な改変はできる状態。次は「変えた結果が想像どおりか」を自分で確かめられるようにする。" },
+    { code: "B-08", name: "AIと組む", base: 2, target: 4,
+      note: "実際に AI と組んで、4人が業務で使うアプリを出荷し運用している。次は出てきたコードを読んで受け入れ判断ができる状態へ。" },
   ];
 
   const RANKS = [
-    { min: 0,  label: "Lv.1 ── 写経の段階" },
-    { min: 13, label: "Lv.2 ── 独力で出荷できる" },
-    { min: 20, label: "Lv.2.5 ── 独力で出荷できる／壊れても気づけない" },
-    { min: 24, label: "Lv.3 ── 実務相当（一人で回せる）" },
-    { min: 29, label: "Lv.3.5 ── 実務相当（他人が触れる）" },
-    { min: 32, label: "Lv.4 ── チーム開発相当" },
-    { min: 37, label: "Lv.5 ── 指導者" },
+    { min: 0,  label: "Lv.1 ── 持ち主だが、まだ読み手ではない" },
+    { min: 12, label: "Lv.1.5 ── 壊しても戻せる" },
+    { min: 16, label: "Lv.2 ── 読める" },
+    { min: 21, label: "Lv.2.5 ── 読めて、小さく直せる" },
+    { min: 25, label: "Lv.3 ── 自分で保守できる" },
+    { min: 31, label: "Lv.4 ── 自分で作れる" },
   ];
 
   const DIAG = [
-    { min: 0,  html: "作るところまでは一人で完走できている。弱いのは「壊れたことに気づく仕組み」で、6,269 行に対してテストが 0 件、リンタも型検査もない。設計の勘は良い（<code>store.js</code> の抽象化は職業レベル）のに、その勘を <code>app.js</code> 2,154 行には適用できていない。" },
-    { min: 24, html: "土台が入り、壊れたら気づけるようになった。ここから効くのは設計の分解。<code>app.js</code> を割って状態の流れを一方向にすると、機能を足すのが怖くなくなる。" },
-    { min: 29, html: "他人がリポジトリを clone して開発を続けられる状態に近い。残っているのは仕上げ（差分描画、フォーカス管理、型）。ここまで来たら実務で通用する。" },
-    { min: 32, html: "全軸 LV4。テスト・型・ルール・CI が揃い、設計が説明できる。この状態で作った 2 本の PWA はそのまま職務経歴として出せる。" },
+    { min: 0,  html: "いちばんのリスクは <code>app.js</code> の行数ではなく、<strong>4人が業務で使うアプリを、中身を読めないまま自分だけが預かっている</strong>こと。逆に、多くの学習者が持っていない「本物の題材」が最初から手元にある。教材を探す必要はなく、このアプリを読み解くこと自体がそのまま練習になる。" },
+    { min: 12, html: "戻し方を持てたので、もう壊すことを怖がらなくてよくなった。ここから先は「壊して直す」回数がそのまま上達になる。次は読む量を増やす段階。" },
+    { min: 16, html: "コードが文字列の羅列ではなく、意味のある固まりとして見えてきた段階。ここまで来ると AI の出力も「読める」ようになり、指示の精度が上がる。" },
+    { min: 21, html: "小さな不具合なら自分で直せる。運用しているアプリの持ち主として、最低限の自立ができている状態。" },
+    { min: 25, html: "保守できる状態。4人のアプリを預かる責任に、技術が追いついた。ここから先は「作れる」に向けて、新しい機能をゼロから設計する練習に移れる。" },
   ];
 
   /* ================= ドリル ================= */
@@ -740,144 +743,157 @@
   const DRILLS = [
     {
       id: "D1",
-      title: "土台を用意する",
-      sub: "npm / ESLint / Prettier / CI",
-      days: "目安 2 日",
-      gains: { "A-07": 2 },
-      why: "いま <code>package.json</code> がないので、何も自動で確かめられない。この 1 本を通すだけで以降の全ドリルが「コマンド 1 発で確認できる」形になる。最初にやる理由はそれだけ。",
+      title: "壊してもいい場所を作る",
+      sub: "練習用のコピー / 戻し方",
+      days: "目安 1 日",
+      gains: { "B-01": 2 },
+      why: "本番のアプリには4人の業務データが入っている。<strong>練習と本番を分けるまで、他のドリルを始めてはいけない。</strong>幸いこのアプリには最初から「お試しモード」があり、Firebase の設定を外すとデータが自分の端末だけに保存される。本番には一切つながらない。",
       steps: [
-        "リポジトリ直下で <code>npm init -y</code>。できた <code>package.json</code> に <code>\"type\": \"module\"</code> を足す（<code>scripts/*.mjs</code> と揃える）。",
-        "<code>npm i -D eslint @eslint/js prettier</code>。<code>eslint.config.js</code> を作り、対象を <code>staff-todo/</code>・<code>sagamihara-minami/</code>・<code>scripts/</code> に、環境を browser + node に設定する。",
-        "<code>.claude/</code> と <code>data/news.json</code> は <code>ignores</code> に入れる。他人のスキル定義と生成物を直す必要はない。",
-        "<code>\"lint\": \"eslint .\"</code> と <code>\"fmt\": \"prettier -w .\"</code> を scripts に追加し、<code>npm run lint</code> を実行する。",
-        "出た警告を全部潰す。<code>no-unused-vars</code> と <code>no-undef</code> が必ず出る。消していい変数か、消すと壊れるかを 1 件ずつ判断する。",
-        "<code>.github/workflows/ci.yml</code> を追加して、push ごとに <code>npm run lint</code> を走らせる。",
+        "リポジトリを自分のパソコンに持ってくる。<code>git clone https://github.com/nomy24/nomy24.git</code>（分からなければ GitHub の緑の Code ボタン → Download ZIP でもよい）。",
+        "<code>staff-todo/firebase-config.js</code> を開き、6つの値を全部 <code>\"REPLACE_ME\"</code> に書き換える。これで<strong>お試しモード</strong>になり、本番のデータには絶対につながらなくなる。",
+        "ターミナルで <code>cd nomy24</code> してから <code>npx serve</code> を実行し、表示された <code>http://localhost:3000/staff-todo/</code> を開く。<strong>index.html をダブルクリックで開いても動かない</strong>（app.js が module 形式のため、ブラウザに拒否される）。ここは必ずつまずくので先に書いておく。",
+        "アプリが動いたら、わざと壊す。<code>staff-todo/app.css</code> の先頭に <code>body { display: none; }</code> を足して保存し、画面が真っ白になるのを見る。",
+        "<code>git restore staff-todo/app.css</code> で元に戻す。画面が戻ることを確認する。<strong>この1コマンドがこの先ずっと効く命綱</strong>になる。",
       ],
-      done: "GitHub の Actions タブで CI が緑になり、手元で <code>npm run lint</code> が警告 0 件で終わる。",
+      done: "わざと画面を壊し、自力で元に戻せた。その間、本番アプリには一度も触っていない。",
     },
     {
       id: "D2",
-      title: "最初のテストを書く",
-      sub: "Vitest / 純粋関数の切り出し",
-      days: "目安 3 日",
-      gains: { "A-05": 2 },
-      why: "本当の目的はテストではなく<strong>テストしやすい形に直すこと</strong>。<code>app.js</code> の中の計算だけの関数を外に出すと、それ自体が設計の改善になる。テストは「出せたことの証明」として付いてくる。",
+      title: "画面の部品をコードから見つける",
+      sub: "DevTools / 静的な HTML と JS が作る HTML",
+      days: "目安 2 日",
+      gains: { "B-02": 2 },
+      why: "「コードが読めない」の中身は、たいてい<strong>画面とファイルが結びついていない</strong>こと。ここが繋がると、以後は「気になった所だけ」読めばよくなる。全部読む必要はない。",
       steps: [
-        "<code>npm i -D vitest</code>、<code>\"test\": \"vitest run\"</code> を追加する。",
-        "<code>app.js</code> から DOM を触らない関数を探す。<code>pad2</code>・<code>toDateKey</code>・<code>hexToRgba</code>・<code>formatBytes</code>・<code>escapeHtml</code> が該当する。",
-        "それらを <code>staff-todo/lib/format.js</code> に移して <code>export</code> し、<code>app.js</code> は <code>import</code> に置き換える。ブラウザで動作確認する。",
-        "<code>staff-todo/lib/format.test.js</code> を書く。1 関数につき<strong>正常系 1 件・異常系 1 件</strong>を必ず作る（<code>hexToRgba(\"\")</code>、<code>hexToRgba(\"#abc\")</code>、<code>formatBytes(0)</code>、<code>escapeHtml(null)</code>）。",
-        "<code>scripts/lib/classify.mjs</code> にもテストを書く。実際の見出し文字列を入れて分類結果を確かめる。ここは仕様が曖昧な部分なので、テストが仕様書になる。",
-        "CI に <code>npm test</code> を追加する。",
+        "練習用アプリの上で右クリック →「検証」で DevTools を開く。左上の矢印アイコンを押してから画面の部品をクリックすると、対応する HTML が光る。",
+        "光った HTML を <code>staff-todo/index.html</code> の中で検索して、行番号をメモする。まず「＋」ボタン（<code>id=\"fab\"</code>・216 行目）で練習する。",
+        "同じことを下のタブ（<code>class=\"tabbar\"</code>・220 行目）、ロック画面、設定画面の見出しでもやる。",
+        "次に Todo のカードを1枚選んで同じことをする。<strong>index.html の中に見つからない</strong>はず。",
+        "見つからない理由を確かめる。<code>app.js</code> を開いて <code>renderTodoList</code> を検索する。カードは HTML に書いてあるのではなく、<strong>JavaScript が後から作っている</strong>。この違いが分かれば、このドリルは終わり。",
       ],
-      done: "テストが 20 件以上緑になり、CI でテストが走る。<code>app.js</code> が 100 行以上短くなっている。",
+      done: "画面の部品を5つ選んで、「index.html に直接書いてある」か「app.js が作っている」かを言い分けられた。",
     },
     {
       id: "D3",
-      title: "サーバー側で権限を守る",
-      sub: "Firestore セキュリティルール / エミュレータ",
-      days: "目安 3 日",
-      gains: { "A-06": 2, "A-05": 1 },
-      why: "これは学習ではなく<strong>いま動いているアプリの穴</strong>。「本人か管理者のみ削除できる」判定が <code>app.js</code> の中にしかないので、DevTools のコンソールから Firestore を直接叩けば誰でも他人の職員データを消せる。介護施設で使うアプリなので、ここは先に閉じる。",
+      title: "文字と色を変えてみる",
+      sub: "最初の改変 / 保存して確かめる",
+      days: "目安 1 日",
+      gains: { "B-03": 1, "B-04": 1 },
+      why: "写経はできる状態なので、次は<strong>「変えた結果が思ったとおりか」を自分で確かめる</strong>回路を作る。変える → 保存 → 画面を見る、の往復を体に入れるのが目的。",
       steps: [
-        "実際に確かめる。ログイン後のコンソールから他人の職員 doc を <code>deleteDoc</code> してみて、通ってしまうことを自分の目で見る（自分のテスト環境で）。",
-        "<code>firestore.rules</code> をリポジトリに追加する。まず全 collection を <code>allow read, write: if false</code> で閉じ、そこから必要な穴だけ開ける。",
-        "<code>staff</code> の <code>delete</code> は「<code>request.auth.token.email</code> が対象 doc の email と一致」または「管理者フラグを持つ」場合だけ許す。<code>app.js</code> の既存判定と同じ条件をルール側に書き写す。",
-        "<code>npm i -D @firebase/rules-unit-testing firebase-tools</code>。エミュレータでルールのテストを書く。",
-        "テストは 3 件書く：本人の削除は <code>assertSucceeds</code>、他人になりすました削除は <code>assertFails</code>、未ログインの読み取りは <code>assertFails</code>。",
-        "<code>firebase deploy --only firestore:rules</code> で本番に反映し、手順 1 をもう一度試して弾かれることを確認する。",
+        "<code>index.html</code> でアプリ名「職員Todo」を探し、別の文字に変えて保存し、ブラウザを再読み込みする。",
+        "同じ文字が複数の場所（<code>&lt;title&gt;</code>、ヘッダー、ロック画面）にあることに気づく。<strong>1箇所変えても全部は変わらない</strong>。この感覚が後で効いてくる。",
+        "<code>app.css</code> の 7 行目 <code>--color-primary: #0d9488;</code> を <code>#7c3aed</code>（紫）に変えて保存する。",
+        "ボタン・タブ・バッジなど<strong>あちこちが一度に紫になる</strong>ことを確認する。1箇所の変更が23箇所に効いている。",
+        "<code>git restore staff-todo/</code> で全部元に戻す。",
       ],
-      done: "「他人の職員を削除」がエミュレータテストで deny され、本番でも同じ操作が拒否される。<code>firestore.rules</code> がリポジトリに入っている。",
+      done: "文字と色を自分で変えて画面に反映させ、元に戻せた。「変数を1つ変えると複数箇所が変わる」ことを自分の目で見た。",
     },
     {
       id: "D4",
-      title: "一枚岩を割る",
-      sub: "app.js 2,154 行の分解",
-      days: "目安 4 日",
-      gains: { "A-04": 1 },
-      why: "<code>store.js</code> では「同じ API で local と Firestore を切り替える」という良い分け方ができている。同じ手つきを UI 側にも入れる。1 ファイルが 2,000 行を超えると、直す前に読む時間のほうが長くなる。",
+      title: "色が使われる先をたどる",
+      sub: "検索して追いかける",
+      days: "目安 2 日",
+      gains: { "B-04": 1 },
+      why: "プログラムを読む作業の実体は、<strong>暗記ではなく検索と追跡</strong>。読める人が特別な記憶力を持っているわけではなく、定義元と使用箇所を行き来しているだけ。その手つきを1つの変数で練習する。",
       steps: [
-        "88 個の関数を責務で 4 つに分類して紙に書く：描画する／状態を変える／書式を整える／入力を受ける。<code>grep -n \"^function\\|^async function\" staff-todo/app.js</code> の出力を使う。",
-        "依存が少ない順に切り出す。<code>lib/format.js</code>（D2 で完了）→ <code>lib/dom.js</code>（<code>$</code>、<code>slideSwapContent</code>、<code>setupSwipeNav</code>、<code>animateCheck</code>）。",
-        "画面ごとに分ける：<code>views/todo.js</code>、<code>views/calendar.js</code>、<code>views/routine.js</code>、<code>views/memo.js</code>、<code>views/photo.js</code>、<code>views/settings.js</code>。",
-        "<strong>1 ファイル 300 行を上限</strong>にする。超えたら分ける。切り出しごとに commit して、その都度ブラウザで全画面を触る。",
-        "残った <code>app.js</code> は「起動して各 view を繋ぐだけ」にする。",
+        "エディタで <code>app.css</code> を開き、<code>--color-primary</code> を検索する。定義が1箇所、使用が23箇所出る。",
+        "使用箇所を上から5つ見て、それぞれ<strong>画面のどの部分か</strong>を D2 の方法（DevTools）で特定する。",
+        "<code>--color-primary-strong</code>（8行目）との違いを調べる。どんな時に濃いほうが使われているか。",
+        "<code>app.css</code> の 5〜30 行目あたりにある変数の一覧を眺め、名前から役割を推測して書き出す。<code>--color-surface</code>、<code>--color-border</code>、<code>--color-text-muted</code> など。",
+        "推測が合っているか Claude に聞いて答え合わせする。<strong>先に自分で推測してから聞く</strong>のが大事で、これをやらないと読む力は付かない。",
       ],
-      done: "<code>app.js</code> が 300 行以下になり、<code>wc -l staff-todo/**/*.js</code> のどのファイルも 300 行以下。全画面が今までどおり動く。",
+      done: "変数の定義元から使用箇所をたどれた。色の変数10個について、自分の言葉で役割を書けた。",
     },
     {
       id: "D5",
-      title: "状態の流れを一方向にする",
-      sub: "ミニストア / 描画の一本化",
-      days: "目安 4 日",
-      gains: { "A-04": 1 },
-      why: "いまは <code>state.todoFilter = x</code> と書いた後に <code>renderTodoList()</code> を手で呼ぶ形。呼び忘れると画面とデータがズレる。この種のバグは再現しにくく原因も分かりにくい。仕組みで防ぐ。",
+      title: "動いている所を目で見る",
+      sub: "console.log",
+      days: "目安 2 日",
+      gains: { "B-05": 1 },
+      why: "JavaScript が読めない最大の理由は、<strong>実行される順番が見えない</strong>こと。上から順に読んでも分からない。<code>console.log</code> を置いて、押した時に何がどの順で動くかを実際に表示させる。これはプロも毎日やっている。",
       steps: [
-        "先に問題を書き出す。<code>grep -n \"render[A-Z][a-zA-Z]*()\" staff-todo/</code> で、描画関数を手で呼んでいる箇所を全部数える。この数がバグの入り口の数。",
-        "<code>lib/store.js</code> に <code>createStore(initial)</code> を書く。公開するのは <code>getState</code>・<code>dispatch</code>・<code>subscribe</code> の 3 つだけ。<strong>50 行以内</strong>で書けるはず。",
-        "状態の更新を関数にまとめる（<code>reducer(state, action)</code>）。新しいオブジェクトを返し、元の state は書き換えない。",
-        "描画を <code>render()</code> 1 本にまとめ、<code>store.subscribe(render)</code> で購読する。",
-        "<code>state.x = ...</code> を全部 <code>dispatch</code> 経由に置き換える。手順 1 で数えた直接呼び出しを 0 にする。",
-        "<code>createStore</code> と <code>reducer</code> にテストを書く。DOM がないので素直にテストできる。ここで D2 の投資が返ってくる。",
+        "<code>app.js</code> の <code>renderTodoList</code> の中の先頭に <code>console.log(\"一覧を描き直した\");</code> を足す。",
+        "DevTools の Console タブを開いたままアプリを操作し、いつこの行が出るかを見る。<strong>思っていたより頻繁に出る</strong>はず。",
+        "<code>console.log(\"完了ボタンが押された\", todo);</code> のように、変数も一緒に出してみる。カンマで繋ぐと中身が展開される。",
+        "Todo を1件追加した時に、どの関数がどの順で呼ばれるか、3〜5個の <code>console.log</code> を仕掛けて順番を書き出す。",
+        "全部消す。<code>git restore staff-todo/app.js</code> で一括で戻せる。",
       ],
-      done: "描画関数の直接呼び出しが 0 件。state の書き換えが store の中だけで起きている。reducer のテストが緑。",
+      done: "Todo を1件追加した時に動く関数の順番を、自分で調べて書き出せた。",
     },
     {
       id: "D6",
-      title: "全再描画をやめる",
-      sub: "差分更新 / 計測して証明する",
+      title: "関数を5つ、自分の言葉で説明する",
+      sub: "store.js / 答え合わせ",
       days: "目安 3 日",
-      gains: { "A-08": 1 },
-      why: "いま 1 件チェックを付けるたびに一覧の HTML を作り直している。件数が増えると目に見えて重くなる。ここでの本題は差分更新の実装より<strong>「速くなったと数字で言えること」</strong>。感覚で最適化する癖を先に捨てる。",
+      gains: { "B-05": 1, "B-06": 1 },
+      why: "<code>store.js</code> は 182 行しかないのに、データの出入口を全部引き受けている。<strong>ここを理解すると、アプリの半分が分かる</strong>。短くて読み切れる分量なので、最初の精読対象として最適。",
       steps: [
-        "先に測る。テストデータで Todo を 100 件入れ、DevTools の Performance で「1 件完了」を記録し、Scripting 時間をメモする。この数字が基準。",
-        "<code>innerHTML</code> の全置換をやめる。各カードに <code>data-id</code> を付け、差分は<strong>追加・削除・更新の 3 操作</strong>だけにする。",
-        "更新はカードを作り直さず、変わった要素のテキストと class だけを書き換える。",
-        "同じ手順でもう一度測る。before / after を <code>staff-todo/README.md</code> に残す。",
-        "<code>escapeHtml</code> の呼び出し箇所を確認する。<code>textContent</code> に変えられたところは、エスケープ自体が要らなくなる。",
+        "<code>staff-todo/store.js</code> を開き、短い関数から順に選ぶ。<code>uid</code>（36行目）、<code>localKey</code>（42行目）、<code>localGetAll</code>（46行目）、<code>localAdd</code>（76行目）、<code>localRemove</code>（105行目）。",
+        "1つずつ、<strong>コードを見ずに</strong>日本語で「何を受け取って、何をして、何を返すか」を書く。分からない単語（<code>JSON.parse</code> など）はその場で調べる。",
+        "書いた説明を Claude に見せて答え合わせする。「この理解は合っていますか。違う所だけ指摘してください」と頼む。",
+        "間違っていた所だけをもう一度読み直す。<strong>合っていた所は読み返さない</strong>。時間を間違いに集中させる。",
+        "最後に <code>makeCrud</code>（154行目）を読む。ここまでの5つが分かっていれば読めるはずで、読めたら「お試しモードと共有モードを同じ書き方で切り替える」という、このアプリの一番うまい部分が分かる。",
       ],
-      done: "100 件で 1 件更新した時の Scripting 時間が半分以下。before / after の数字が README に書いてある。",
+      done: "store.js の関数6つについて、自分の言葉の説明が書けて、答え合わせで大きな誤解がなかった。",
     },
     {
       id: "D7",
-      title: "キーボードだけで完走させる",
-      sub: "フォーカス管理 / aria-live",
-      days: "目安 2 日",
-      gains: { "A-01": 1 },
-      why: "skip-link と <code>prefers-reduced-motion</code> を自分で入れている時点で意識はある。足りないのはモーダル（シート）のフォーカス管理で、開いても Tab が背後の画面に抜けてしまう。介護施設のように様々な人が触るアプリなら、ここは機能要件。",
+      title: "入力した文字の行き先を追う",
+      sub: "画面 → 保存 → 画面",
+      days: "目安 3 日",
+      gains: { "B-06": 1 },
+      why: "1本の線を端から端まで通す。<strong>ここが通ると、アプリ全体が「そういう仕組みだったのか」に変わる</strong>。個別の知識が繋がる瞬間で、このドリルの山場。",
       steps: [
-        "シートを開いた時、最初の入力欄にフォーカスを移す。閉じた時は<strong>開いたボタンにフォーカスを戻す</strong>（戻し忘れが一番多い抜け）。",
-        "シート内で Tab を閉じ込める（focus trap）。<code>Esc</code> で閉じられるようにする。",
-        "件数バッジと保存完了を <code>aria-live=\"polite\"</code> の領域で知らせる。いまは画面が黙って変わっている。",
-        "アイコンだけのボタンに <code>aria-label</code> を付ける。<code>grep -n \"<button\" staff-todo/index.html</code> で全部確認する。",
-        "<strong>マウスを使わずに</strong>「Todo を追加 → 完了 → 削除」を通す。詰まった場所が全部バグ。",
-        "Lighthouse の Accessibility を測って記録する。",
+        "練習用アプリで Todo を1件追加する。入力欄に打った文字が、最終的にどこに保存されるかを追う。",
+        "DevTools の Application タブ →「ローカル ストレージ」を開く。<code>staffTodo:v1:todos</code> という項目に、いま追加した文字が入っているのを<strong>自分の目で確認する</strong>。",
+        "コードの側から同じ道をたどる。<code>app.js</code> で <code>todoStore.add</code> を検索 → <code>store.js</code> の <code>makeCrud</code> の <code>add</code> → <code>localAdd</code> → <code>localSetAll</code> → <code>localStorage.setItem</code>。",
+        "逆向きもたどる。画面を再読み込みすると Todo が復活する。どこで読み出しているか（<code>localGetAll</code> と <code>subscribe</code>）を見つける。",
+        "この流れを図か箇条書きにして残す。<strong>3か月後の自分のために書く</strong>。実際に読み返すことになる。",
       ],
-      done: "マウスに触らず Todo の追加〜完了〜削除が完走でき、Lighthouse の Accessibility が 95 以上。",
+      done: "「入力 → 保存 → 再読み込み → 表示」の一周を、コードと DevTools の両方でたどれて、流れを書き出せた。",
     },
     {
       id: "D8",
-      title: "型で守る",
-      sub: "TypeScript / JSDoc / checkJs",
+      title: "小さな機能を自力で足す",
+      sub: "既存パターンの模倣 / Claude を使わずに",
       days: "目安 5 日",
-      gains: { "A-07": 1 },
-      why: "<code>.ts</code> に書き換える必要はない。<code>checkJs</code> を使えば、いまの <code>.js</code> のまま JSDoc で型が付く。ビルドを増やさず「データの形」を 1 箇所に決められるので、この構成には一番よく合う。",
+      gains: { "B-07": 1, "B-03": 1 },
+      why: "ここだけは<strong>Claude に書かせずにやる</strong>。詰まって調べる時間そのものが目的なので、答えを先に見ると何も残らない。既にあるものを真似すればできる範囲に絞ってあるので、必ず手が届く。",
       steps: [
-        "<code>npm i -D typescript</code>。<code>tsconfig.json</code> に <code>allowJs: true</code>、<code>checkJs: true</code>、<code>noEmit: true</code>、<code>strict: false</code> を書く（<strong>最初は strict を切る</strong>。全部赤くなると続かない）。",
-        "<code>staff-todo/types.js</code> に <code>@typedef</code> でデータの形を定義する。<code>Staff</code>・<code>Todo</code>・<code>RoutineTask</code>・<code>PhoneMemo</code>・<code>Attachment</code>。実際に Firestore へ入っているフィールドを <code>store.js</code> の呼び出し元から拾う。",
-        "<code>// @ts-check</code> を<strong>1 ファイルずつ</strong>付けて赤を消す。<code>lib/</code> → <code>store.js</code> → <code>views/</code> の順。",
-        "<code>\"typecheck\": \"tsc --noEmit\"</code> を CI に追加する。",
-        "全ファイルが通ったら <code>strict: true</code> に上げる。ここで <code>null</code> の扱い漏れが大量に出る。それが今まで見えていなかったバグ。",
+        "題材を決める。おすすめは「電話メモに『折り返し予定時刻』の欄を足す」。<strong>既にある入力欄をそっくり真似すればできる</strong>。",
+        "<code>openMemoSheet</code>（1556行目）を読み、いまある入力欄がどう作られているかを確認する。1つ選んでそっくり写す。",
+        "保存する側（<code>onSubmit</code> の中の <code>payload</code>）に、新しい欄の値を足す。",
+        "表示する側（<code>renderMemoList</code>・1519行目）に、新しい欄を出す処理を足す。",
+        "動かして確かめる。<strong>必ず動かない。</strong>それが普通で、そこからエラーメッセージを読んで直す時間が、このドリルの本体。DevTools の Console に出る赤い文字をそのまま検索する。",
+        "動いたら、変更した箇所を全部説明できるか自分に確認する。説明できない行が残っていたら、そこを調べ直す。",
       ],
-      done: "<code>npm run typecheck</code> がエラー 0 件で、<code>strict: true</code> でも通る。データの形が <code>types.js</code> 1 箇所に定義されている。",
+      done: "Claude を使わずに、入力・保存・表示まで通った機能を1つ足せた。変更した行を全部説明できる。",
+    },
+    {
+      id: "D9",
+      title: "AIが書いたコードを検収する",
+      sub: "読んで、質問して、確かめてから採用",
+      days: "目安 3 日",
+      gains: { "B-08": 2, "B-07": 1 },
+      why: "あなたの本当の武器はここ。ただし<strong>読めないまま採用すると、今回のような「自分では直せない資産」が増え続ける</strong>。速度を落とさずに、読める範囲だけを増やしていく手順を型にする。",
+      steps: [
+        "D8 で作った機能を、今度は Claude に作らせる。同じお題なので、自分の答えと比べられる。",
+        "出てきたコードを<strong>採用する前に</strong>読む。分からない行を全部リストアップする。0 行なら、お題が易しすぎる。",
+        "分からない行について「この行は何をしていますか。なぜ必要ですか」と1つずつ聞く。<strong>まとめて聞かず、1行ずつ</strong>。",
+        "「この変更で壊れる可能性がある既存機能はどれですか」と聞き、挙がった箇所を<strong>自分で操作して確かめる</strong>。この確認だけは人間の仕事として残る。",
+        "自分の実装と Claude の実装を比べ、違う所の理由を考える。どちらが良いかではなく、なぜ違うのかを言葉にする。",
+        "最後に、採用したコードの変更点を自分の言葉で commit メッセージに書く。書けなければ、まだ理解していない。",
+      ],
+      done: "Claude が書いたコードについて、全部の行を説明でき、影響範囲を自分で確認してから採用できた。",
     },
   ];
 
   const KEEP = [
-    { code: "A-02", name: "CSS・レイアウト",
-      text: "1,633 行を素の CSS で書き切っている。カスタムプロパティでの配色管理、配色別 <code>theme-color</code>、<code>safe-area</code>、<code>prefers-reduced-motion</code> の使い分けはフレームワーク任せでは身に付かない部分。<strong>Tailwind に移したくなっても急がないこと</strong>。この手書きの感覚が今の一番の資産。" },
-    { code: "A-03", name: "JavaScript・DOM",
-      text: "タッチのフリック判定を自分で書き、<code>requestAnimationFrame</code> を二段重ねて再描画のタイミングを合わせている。ライブラリの下で何が起きているかを知っている状態。<strong>React を触るのはドリル 8 本が終わってから</strong>。土台がある上で使うのと、逃げ場として使うのは別物。" },
+    { code: "B-08", name: "AIと組んで出荷した経験",
+      text: "4人が実際の業務で使う PWA を、Firebase 認証・オフライン対応・PWA 化まで含めて<strong>出荷し、運用し続けている</strong>。多くの学習者は動くものを人に使ってもらう段階まで到達しない。題材を探す必要がないのは大きな利点で、このドリルが全部あなたのアプリを教材にできているのはそのため。" },
+    { code: "B-08", name: "前提を疑えること",
+      text: "このカルテの最初の版は、6,269 行をあなたが書いた前提で測っていて、<strong>結論が丸ごと間違っていた</strong>。それを指摘したのはあなた。AI と組むうえで一番効くのは、出てきたものを鵜呑みにせず前提を確かめる姿勢で、それは既にできている。ドリル 9 は、この姿勢をコードにも向ける練習。" },
   ];
 
   /* ================= 状態 ================= */
@@ -909,7 +925,7 @@
     return { done: n, total: drill.steps.length, ratio: n / drill.steps.length };
   }
 
-  /** 実測値 + ドリル進捗ぶん（手順の達成率に比例して上がる） */
+  /** 出発点 + ドリル進捗ぶん（手順の達成率に比例して上がる） */
   function levels() {
     const out = new Map(AXES.map((a) => [a.code, a.base]));
     for (const drill of DRILLS) {
@@ -1061,12 +1077,13 @@
   /* --- 八軸ゲージ --- */
   const RAMP = ["var(--lv1)", "var(--lv2)", "var(--lv3)", "var(--lv4)", "var(--lv5)"];
 
+  // 出発点がほぼ横並びなので、「弱点」ではなく「着手したか」で色分けする。
+  // 全部を赤く塗っても情報量がないうえ、続ける気を削ぐだけなので。
   function stateChip(value, axis) {
     if (value >= axis.target) return { cls: "chip--done", text: "達成" };
-    if (axis.base >= 4) return { cls: "chip--strong", text: "強み" };
     if (value > axis.base) return { cls: "chip--growing", text: "伸ばし中" };
-    if (axis.base <= 2) return { cls: "chip--weak", text: "要強化" };
-    return { cls: "chip--growing", text: "あと一歩" };
+    if (axis.base >= 2) return { cls: "chip--strong", text: "強み" };
+    return { cls: "chip--todo", text: "これから" };
   }
 
   function buildAxes() {
@@ -1138,8 +1155,8 @@
       host.className = "next next--clear";
       host.innerHTML = `
         <p class="next__label">全ドリル完了</p>
-        <p class="next__body">八軸すべて LV4。次は自分でカルテを引き直すこと。</p>
-        <p class="next__from">測り直す観点：他人が clone して 30 分で開発を始められるか／障害の原因をログから 10 分で特定できるか</p>`;
+        <p class="next__body">九本すべて完了。自分のアプリを、自分で読んで直せる状態になった。</p>
+        <p class="next__from">次の目標は「作れる」。まず新しい画面を1つ、設計から自分で決めて足してみる。そこで詰まった軸が、次のカルテの出発点になる。</p>`;
       return;
     }
     const { drill, index } = next;
@@ -1246,7 +1263,7 @@
   function buildKeep() {
     el("keep").innerHTML = KEEP.map((k) => `
       <li>
-        <span class="keep__code">${k.code}　LV4 実測</span>
+        <span class="keep__code">${k.code}　強み</span>
         <h3>${k.name}</h3>
         <p>${k.text}</p>
       </li>`).join("");
@@ -1276,7 +1293,7 @@
   }
 
   el("reset").addEventListener("click", () => {
-    if (!confirm("チェックした手順をすべて消して、実測値の状態に戻します。よろしいですか？")) return;
+    if (!confirm("チェックした手順をすべて消して、出発点の状態に戻します。よろしいですか？")) return;
     checked = new Set();
     save();
     render();
