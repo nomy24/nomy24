@@ -3627,11 +3627,18 @@
   /* 住所の欄。折り返して、中身の量だけ背を伸ばす */
   .page-master textarea.addr-cell {
     display: block;
-    resize: none;
+    resize: vertical;
     overflow: hidden;
-    line-height: 1.4;
+    line-height: 1.45;
     white-space: pre-wrap;
     overflow-wrap: anywhere;
+  }
+  /* 打っているあいだは、そこだけ広げて見やすくする */
+  .page-master textarea.addr-cell:focus {
+    position: relative;
+    z-index: 2;
+    min-width: 300px;
+    box-shadow: 0 6px 18px rgba(20, 34, 36, .18);
   }
 
   .modal .btn,
@@ -4023,7 +4030,7 @@
   /* 欄を大きく取ったので、画面が狭いときは詰めずに横へ流す。
      見出しに書いた割りをそのまま使いたいので、桝の幅は決め打ちにする
      （そうしないと中身の長さで勝手に振り分けられてしまう） */
-  #pm-users .pm-scroll table { min-width: 1680px; table-layout: fixed; }
+  #pm-users .pm-scroll table { min-width: 1760px; table-layout: fixed; }
   #pm-kin .pm-scroll table { min-width: 980px; table-layout: fixed; }
 
   @media screen and (max-width: 760px) {
@@ -4534,7 +4541,7 @@
   <details class="fold" id="fold-legend">
     <summary><span class="fd-title">この画面の使い方</span><span class="fd-note">記号の意味と操作のまとめ</span>
       <!-- 古い控えを開いていないか、ここで見分けられるようにしておく -->
-      <span class="fd-ver">版 2026-08-18b</span></summary>
+      <span class="fd-ver">版 2026-08-18c</span></summary>
     <div class="fold-body">
   <div class="legend">
     <span class="item"><span class="swatch s-wc" data-icon="wc"></span>車椅子（リフト・スロープ使用）</span>
@@ -4679,16 +4686,16 @@
           <thead>
             <tr>
               <th style="width:8%">氏名</th>
-              <th style="width:8%">ふりがな</th>
-              <th style="width:10%">住所（市区町村以下）<span class="th-note">建物名まで入ります</span></th>
+              <th style="width:7%">ふりがな</th>
+              <th style="width:15%">住所（市区町村以下）<span class="th-note">建物名まで入ります</span></th>
               <th style="width:7%">介護度</th>
-              <th style="width:15%">認定有効期間<span class="th-note">介護度の確認用</span></th>
+              <th style="width:14%">認定有効期間<span class="th-note">介護度の確認用</span></th>
               <th style="width:7%">血圧<span class="th-note">日誌の備考欄</span></th>
-              <th style="width:8%">電話番号<span class="th-note">電話帳に出る</span></th>
+              <th style="width:7%">電話番号<span class="th-note">電話帳に出る</span></th>
               <th style="width:7%">連絡メモ<span class="th-note">連絡表の3段目</span></th>
               <th style="width:6%">記号</th>
-              <th style="width:15%">利用曜日</th>
-              <th style="width:9%"></th>
+              <th style="width:14%">利用曜日</th>
+              <th style="width:8%"></th>
             </tr>
           </thead>
           <tbody id="user-rows"></tbody>
