@@ -3600,10 +3600,13 @@
     border-bottom: 1px solid var(--rule);
     vertical-align: middle;
   }
+  /* 住所の背が伸びた行は、どの欄も頭をそろえる */
+  #user-rows td { vertical-align: top; }
 
   .modal input[type="text"],
   .modal select,
   .page-master input,
+  .page-master textarea,
   .page-master select {
     font: inherit;
     font-size: 15px;
@@ -3618,7 +3621,18 @@
   .modal input[type="text"]:focus,
   .modal select:focus,
   .page-master input:focus,
+  .page-master textarea:focus,
   .page-master select:focus { border-color: var(--accent); }
+
+  /* 住所の欄。折り返して、中身の量だけ背を伸ばす */
+  .page-master textarea.addr-cell {
+    display: block;
+    resize: none;
+    overflow: hidden;
+    line-height: 1.4;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
 
   .modal .btn,
   .page-master .btn {
@@ -4009,7 +4023,7 @@
   /* 欄を大きく取ったので、画面が狭いときは詰めずに横へ流す。
      見出しに書いた割りをそのまま使いたいので、桝の幅は決め打ちにする
      （そうしないと中身の長さで勝手に振り分けられてしまう） */
-  #pm-users .pm-scroll table { min-width: 1560px; table-layout: fixed; }
+  #pm-users .pm-scroll table { min-width: 1680px; table-layout: fixed; }
   #pm-kin .pm-scroll table { min-width: 980px; table-layout: fixed; }
 
   @media screen and (max-width: 760px) {
@@ -4520,7 +4534,7 @@
   <details class="fold" id="fold-legend">
     <summary><span class="fd-title">この画面の使い方</span><span class="fd-note">記号の意味と操作のまとめ</span>
       <!-- 古い控えを開いていないか、ここで見分けられるようにしておく -->
-      <span class="fd-ver">版 2026-08-18</span></summary>
+      <span class="fd-ver">版 2026-08-18b</span></summary>
     <div class="fold-body">
   <div class="legend">
     <span class="item"><span class="swatch s-wc" data-icon="wc"></span>車椅子（リフト・スロープ使用）</span>
@@ -4666,12 +4680,12 @@
             <tr>
               <th style="width:8%">氏名</th>
               <th style="width:8%">ふりがな</th>
-              <th style="width:8%">住所（市区町村以下）</th>
+              <th style="width:10%">住所（市区町村以下）<span class="th-note">建物名まで入ります</span></th>
               <th style="width:7%">介護度</th>
-              <th style="width:16%">認定有効期間<span class="th-note">介護度の確認用</span></th>
+              <th style="width:15%">認定有効期間<span class="th-note">介護度の確認用</span></th>
               <th style="width:7%">血圧<span class="th-note">日誌の備考欄</span></th>
               <th style="width:8%">電話番号<span class="th-note">電話帳に出る</span></th>
-              <th style="width:8%">連絡メモ<span class="th-note">連絡表の3段目</span></th>
+              <th style="width:7%">連絡メモ<span class="th-note">連絡表の3段目</span></th>
               <th style="width:6%">記号</th>
               <th style="width:15%">利用曜日</th>
               <th style="width:9%"></th>
@@ -8711,12 +8725,19 @@
     kanaI.addEventListener("input", () => { draftUsers[i].kana = kanaI.value; });
     cell(kanaI);
 
-    const addrI = document.createElement("input");
-    addrI.type = "text"; addrI.value = u.addr;
+    /* 住所は建物名まで入ると1行に収まらない（介護ソフトから住所1と住所2を
+       つないで入れるため）。欄の中で折り返し、中身の量に合わせて背を伸ばす */
+    const addrI = document.createElement("textarea");
+    addrI.rows = 1;
+    addrI.className = "addr-cell";
+    addrI.value = u.addr;
     addrI.placeholder = "〇〇市中央町3-14-2";
+    addrI.title = u.addr || "";
     addrI.addEventListener("input", () => {
       draftUsers[i].addr = addrI.value;
       draftUsers[i].town = deriveTown(addrI.value, draftUsers[i].town);
+      addrI.title = addrI.value;
+      fitAddr(addrI);
     });
     cell(addrI);
 
@@ -8904,6 +8925,14 @@
     return [u.name, u.kana, u.addr, u.town].some((v) => kanaKey(v).indexOf(q) >= 0);
   }
 
+  /* 中身の行数に合わせて背を決める。短い住所は1行のまま */
+  function fitAddr(el) {
+    el.style.height = "auto";
+    /* 枠の太さは中身の高さに入らないので、そのぶんを足す */
+    const frame = el.offsetHeight - el.clientHeight;
+    el.style.height = Math.max(el.scrollHeight + frame, 20) + "px";
+  }
+
   function drawMasterTables() {
     const ub = document.getElementById("user-rows");
     const eb = document.getElementById("ended-rows");
@@ -8938,6 +8967,8 @@
     document.getElementById("ended-count").textContent = ended + "名";
 
     drawKinTable();
+    /* 表に入れてからでないと背丈が測れない */
+    document.querySelectorAll("#user-rows .addr-cell").forEach(fitAddr);
 
     const db = document.getElementById("driver-rows");
     db.innerHTML = "";
