@@ -192,14 +192,29 @@
 
   /* スクロールしても日付・便・操作は手元に残す */
   /* 上に貼り付くのは便の見出しの行だけにして、作業面を広く取る */
+  /* 日付・便・道具はひとつの札にまとめる。
+     タイトル画面や出欠カレンダーと同じ「浮いた札」の見え方に揃えた */
   .sticky-top {
     position: relative;
     z-index: 15;
-    background: var(--paper);
-    padding: calc(var(--step) * 6) 0 calc(var(--step) * 3);
+    margin-top: calc(var(--step) * 5);
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-radius: 20px;
+    box-shadow: 0 2px 10px rgba(16, 24, 32, .05);
+    padding: calc(var(--step) * 5) calc(var(--step) * 5) calc(var(--step) * 4);
     display: flex;
     flex-direction: column;
     gap: calc(var(--step) * 4);
+  }
+
+  /* 携帯では札の余白を詰める。作業面をなるべく広く取る */
+  @media screen and (max-width: 760px) {
+    .sticky-top {
+      margin-top: calc(var(--step) * 3);
+      border-radius: 16px;
+      padding: calc(var(--step) * 4) calc(var(--step) * 3) calc(var(--step) * 3);
+    }
   }
 
   .sticky-top::after {
@@ -230,7 +245,7 @@
     align-items: baseline;
     gap: calc(var(--step) * 2) calc(var(--step) * 5);
     padding-bottom: calc(var(--step) * 4);
-    border-bottom: 2px solid var(--ink);
+    border-bottom: 1px solid var(--rule);
   }
 
   .eyebrow {
@@ -334,6 +349,7 @@
     color: var(--ink-2);
     background: var(--card);
     border: 1px solid var(--rule-2);
+    border-radius: 999px;
     cursor: pointer;
   }
 
@@ -374,8 +390,8 @@
     align-items: center;
     gap: 2px;
     background: var(--sub);
-    border-radius: 11px;
-    padding: 3px 3px 3px 10px;
+    border-radius: 999px;
+    padding: 3px 4px 3px 12px;
   }
 
   .group-label {
@@ -389,9 +405,9 @@
   .legs button {
     font: inherit;
     font-size: 14px;
-    padding: 7px 16px;
+    padding: 7px 17px;
     border: 0;
-    border-radius: 8px;
+    border-radius: 999px;
     background: transparent;
     color: var(--ink-2);
     cursor: pointer;
@@ -402,7 +418,7 @@
   .legs button[aria-selected="true"] {
     background: var(--card);
     color: var(--ink);
-    box-shadow: inset 0 -2px 0 var(--tab, var(--ai));
+    box-shadow: inset 0 0 0 1.5px var(--tab, var(--ai)), 0 2px 6px rgba(16, 24, 32, .10);
   }
 
   .tools {
@@ -413,11 +429,11 @@
   .tools button {
     font: inherit;
     font-size: 13px;
-    padding: 7px 16px;
+    padding: 7px 17px;
     background: var(--card);
     color: var(--ink-2);
     border: 1px solid var(--rule-2);
-    border-radius: 8px;
+    border-radius: 999px;
     cursor: pointer;
     transition: border-color .12s, color .12s, background-color .12s;
   }
@@ -432,7 +448,8 @@
     display: flex;
     align-items: center;
     gap: calc(var(--step) * 2);
-    padding: 5px 16px 5px 12px;
+    padding: 5px 18px 5px 14px;
+    box-shadow: 0 2px 8px rgba(16, 24, 32, .07);
     text-align: left;
     border-color: var(--accent);
     color: var(--accent);
@@ -504,8 +521,8 @@
     padding: 6px;
     background: var(--card);
     border: 1px solid var(--rule-2);
-    border-radius: 10px;
-    box-shadow: 0 10px 28px rgba(0, 0, 0, .16);
+    border-radius: 18px;
+    box-shadow: 0 14px 34px rgba(0, 0, 0, .16);
   }
 
   .menu-pop[hidden] { display: none; }
@@ -550,9 +567,10 @@
     align-items: center;
     gap: calc(var(--step) * 2);
     width: 100%;
-    padding: 9px 10px;
+    padding: 9px 12px;
     text-align: left;
     border-color: transparent;
+    border-radius: 13px;
     background: var(--sub);
     color: var(--ink);
   }
@@ -633,9 +651,9 @@
     display: flex;
     align-items: stretch;
     gap: calc(var(--step) * 2);
-    padding: 3px 4px 3px 10px;
+    padding: 3px 5px 3px 12px;
     border: 1px solid var(--rule-2);
-    border-radius: 8px;
+    border-radius: 999px;
     background: var(--card);
   }
 
@@ -662,7 +680,7 @@
     min-width: 32px;
     padding: 5px 0;
     border: 1px solid transparent;
-    border-radius: 6px;
+    border-radius: 999px;
     background: transparent;
     color: var(--ink-2);
   }
@@ -682,7 +700,7 @@
   .fold {
     margin-top: calc(var(--step) * 4);
     border: 1px solid var(--rule);
-    border-radius: 9px;
+    border-radius: 16px;
     background: var(--card);
     overflow: hidden;
   }
@@ -761,10 +779,11 @@
     flex-direction: column;
     gap: calc(var(--step) * 3);
     max-height: calc(100vh - var(--step) * 6);
-    padding: calc(var(--step) * 3);
+    padding: calc(var(--step) * 4);
     background: var(--card);
     border: 1px solid var(--rule);
-    border-radius: 10px;
+    border-radius: 18px;
+    box-shadow: 0 2px 10px rgba(16, 24, 32, .05);
   }
 
   /* 脇は「未割当」と「振替利用」の2段だけ。
@@ -827,7 +846,7 @@
     padding: 7px 9px;
     border: 1px solid var(--warn);
     border-left-width: 4px;
-    border-radius: 8px;
+    border-radius: 12px;
     background: var(--warn-soft);
     color: var(--warn);
     cursor: grab;
@@ -935,9 +954,9 @@
     font-size: 12px;
     flex: 1 1 auto;
     min-width: 0;
-    padding: 5px 8px;
+    padding: 5px 10px;
     border: 1px solid var(--rule-2);
-    border-radius: 7px;
+    border-radius: 999px;
     background: var(--card);
     color: var(--ink);
   }
@@ -952,7 +971,7 @@
     width: 30px;
     padding: 0;
     border: 1px solid var(--furikae);
-    border-radius: 7px;
+    border-radius: 999px;
     background: var(--card);
     color: var(--furikae);
     cursor: pointer;
@@ -1030,6 +1049,7 @@
 
   @media (prefers-reduced-motion: reduce) {
     .car { transition: none; }
+    .car:hover,
     .car.drop-car { transform: none; }
   }
 
@@ -1090,10 +1110,10 @@
     align-items: center;
     gap: 1px;
     min-width: 4.6rem;
-    padding: 4px 10px 5px;
+    padding: 5px 12px 6px;
     background: var(--card);
     border: 1px solid var(--rule);
-    border-radius: 8px;
+    border-radius: 14px;
     font-size: 11px;
     letter-spacing: .04em;
     color: var(--ink-3);
@@ -1210,16 +1230,16 @@
     grid-template-columns: 116px minmax(0, 1fr);
     background: var(--card);
     border: 1px solid var(--rule);
-    border-radius: 12px;
+    border-radius: 18px;
     overflow: hidden;
     break-inside: avoid;
     font-weight: 600;
-    box-shadow: 0 1px 2px rgba(16, 24, 32, .05);
-    transition: box-shadow .14s, border-color .14s;
+    box-shadow: 0 2px 8px rgba(16, 24, 32, .06);
+    transition: box-shadow .14s, border-color .14s, transform .14s;
   }
 
   @media screen {
-    .car:hover { box-shadow: 0 3px 10px rgba(16, 24, 32, .09); }
+    .car:hover { box-shadow: 0 10px 24px rgba(16, 24, 32, .10); transform: translateY(-2px); }
     .car.is-over { border-color: var(--warn); }
   }
 
@@ -1255,7 +1275,7 @@
   .no-box {
     width: 32px;
     height: 32px;
-    border-radius: 8px;
+    border-radius: 10px;
     border: 1px solid var(--accent);
     background: var(--card);
     font-family: var(--mincho);
@@ -1303,7 +1323,7 @@
     color: var(--ink);
     background: var(--card);
     border: 1px solid var(--accent);
-    border-radius: 6px;
+    border-radius: 9px;
   }
 
   /* 運転手：号車と同じ記入枠。プルダウンから選ぶ */
@@ -1330,7 +1350,7 @@
     color: var(--ink);
     background: var(--card);
     border: 1px solid var(--accent);
-    border-radius: 6px;
+    border-radius: 9px;
     appearance: none;
     -webkit-appearance: none;
     cursor: pointer;
@@ -4913,7 +4933,7 @@
   <details class="fold" id="fold-legend">
     <summary><span class="fd-title">この画面の使い方</span><span class="fd-note">記号の意味と操作のまとめ</span>
       <!-- 古い控えを開いていないか、ここで見分けられるようにしておく -->
-      <span class="fd-ver">版 2026-08-19d</span></summary>
+      <span class="fd-ver">版 2026-08-19e</span></summary>
     <div class="fold-body">
   <div class="legend">
     <span class="item"><span class="swatch s-wc" data-icon="wc"></span>車椅子（リフト・スロープ使用）</span>
