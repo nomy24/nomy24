@@ -4390,6 +4390,139 @@
   }
 
 
+
+  /* ── 出欠カレンダー ────────────────────────
+     休みの連絡・振替の相談を受けたその場で入れる画面。
+     1か月を見わたして、日を押すとその日の出欠を右で入れる */
+  .page-cal[hidden] { display: none; }
+  .page-cal {
+    min-height: 100vh;
+    padding: calc(var(--step) * 6) calc(var(--step) * 8) calc(var(--step) * 12);
+    background: var(--paper);
+  }
+
+  .pc-head {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: calc(var(--step) * 4); flex-wrap: wrap;
+    margin-bottom: calc(var(--step) * 5);
+  }
+  .pc-head h1 { margin: 0; font-size: 22px; letter-spacing: .06em; }
+  .pc-sub { margin-left: 12px; font-size: 13px; font-weight: 400; color: var(--ink-3); }
+  .pc-actions { display: flex; gap: 8px; }
+
+  .pc-body { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 16px; }
+
+  .pc-cal, .pc-side {
+    background: var(--card); border: 1px solid var(--rule);
+    border-radius: 18px; padding: 18px 20px;
+  }
+  .pc-cal, .pc-side { align-self: start; }
+
+  .pc-nav { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+  .pc-nav h2 { margin: 0; font-size: 17px; letter-spacing: .06em; }
+  .pc-nav .btn { font-size: 13px; padding: 7px 14px; border-radius: 999px; }
+  .pc-nav #cal-today { margin-left: auto; }
+
+  .pc-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+  .pc-dow { text-align: center; font-size: 11px; font-weight: 700; color: var(--ink-3); padding-bottom: 4px; }
+  .pc-dow.sun { color: var(--warn); }
+  .pc-dow.sat { color: var(--ai); }
+
+  .pc-cell {
+    min-height: 74px; border-radius: 12px; background: var(--sub); border: 1.5px solid transparent;
+    padding: 6px 7px; display: flex; flex-direction: column; gap: 3px; align-items: flex-start;
+    font: inherit; color: inherit; cursor: pointer; text-align: left;
+    transition: box-shadow .14s, transform .14s, border-color .14s;
+  }
+  .pc-cell:hover { box-shadow: 0 6px 16px rgba(20, 34, 36, .12); transform: translateY(-2px); }
+  .pc-cell.empty { background: transparent; cursor: default; }
+  .pc-cell.empty:hover { box-shadow: none; transform: none; }
+  .pc-cell.off { background: var(--paper); color: var(--ink-3); cursor: default; }
+  .pc-cell.off:hover { box-shadow: none; transform: none; }
+  .pc-cell.is-pick { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .pc-cell.is-today .pc-num { color: var(--accent); }
+  .pc-cell.is-today .pc-num::after {
+    content: "きょう"; margin-left: 5px; font-size: 9.5px; font-weight: 700;
+    background: var(--accent); color: #fff; border-radius: 999px; padding: 1px 6px;
+  }
+
+  .pc-num { font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .pc-cnt { display: flex; flex-direction: column; gap: 2px; width: 100%; }
+  .pc-cnt i {
+    font-style: normal; font-size: 10.5px; font-weight: 700; border-radius: 5px; padding: 1px 5px;
+  }
+  .pc-cnt .am { background: var(--ai-soft); color: var(--ai); }
+  .pc-cnt .pm { background: var(--enji-soft); color: var(--enji); }
+  .pc-flags { display: flex; gap: 4px; flex-wrap: wrap; }
+  .pc-flag { font-size: 9.5px; font-weight: 700; border-radius: 999px; padding: 1px 7px; }
+  .pc-flag.off { background: var(--warn-soft); color: var(--warn); }
+  .pc-flag.furi { background: var(--furikae-soft); color: var(--furikae); }
+  .pc-rest { font-size: 11px; color: var(--ink-3); }
+
+  .pc-legend { display: flex; gap: 16px; flex-wrap: wrap; align-items: center;
+               margin: 14px 0 0; font-size: 12px; color: var(--ink-2); }
+  .pc-legend .sw { width: 12px; height: 12px; border-radius: 4px; display: inline-block;
+                   margin-right: 5px; vertical-align: -1px; }
+  .pc-legend .sw.am { background: var(--ai-soft); }
+  .pc-legend .sw.pm { background: var(--enji-soft); }
+  .pc-legend .sw.off { background: var(--warn-soft); }
+  .pc-legend .sw.furi { background: var(--furikae-soft); }
+  .pc-hint { margin-left: auto; color: var(--ink-3); }
+
+  /* 右側：その日の出欠 */
+  .pc-day-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
+                 margin-bottom: 12px; }
+  .pc-day-head h2 { margin: 0; font-size: 17px; letter-spacing: .04em; }
+  .pc-day-head .pc-open { margin-left: auto; font-size: 12px; padding: 6px 13px; border-radius: 999px; }
+
+  .pc-part { margin-bottom: 16px; }
+  .pc-part-head { display: flex; align-items: baseline; gap: 8px; padding: 6px 10px;
+                  border-radius: 10px; background: var(--accent-soft); color: var(--accent);
+                  margin-bottom: 8px; }
+  .pc-part-head b { font-size: 14px; letter-spacing: .1em; }
+  .pc-part-head .n { margin-left: auto; font-size: 12px; font-weight: 700; }
+
+  .pc-row { display: flex; align-items: center; gap: 8px; padding: 5px 2px;
+            border-bottom: 1px solid var(--rule); }
+  .pc-row:last-child { border-bottom: 0; }
+  .pc-row .nm { flex: 1 1 auto; min-width: 0; font-size: 14px; font-weight: 600;
+                overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pc-row .nm small { margin-left: 6px; font-size: 11px; color: var(--ink-3); font-weight: 400; }
+  .pc-row select { font: inherit; font-size: 13px; padding: 6px 8px; border-radius: 10px;
+                   border: 1.5px solid var(--rule-2); background: var(--card); color: var(--ink);
+                   min-width: 7.5em; }
+  .pc-row select:focus { outline: none; border-color: var(--accent); }
+  .pc-row.is-off .nm { color: var(--warn); text-decoration: line-through; }
+  .pc-row.is-off select { border-color: var(--warn); color: var(--warn); }
+  .pc-row.is-furi .nm { color: var(--furikae); }
+  .pc-row.is-furi select { border-color: var(--furikae); color: var(--furikae); }
+  .pc-row .fu { font-size: 10.5px; font-weight: 700; color: var(--furikae);
+                background: var(--furikae-soft); border-radius: 999px; padding: 1px 7px; }
+
+  .pc-add { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+  .pc-add input { flex: 1 1 10em; min-width: 0; font: inherit; font-size: 13px; padding: 7px 10px;
+                  border: 1.5px solid var(--rule-2); border-radius: 10px; background: var(--card); }
+  .pc-add input[type="date"] { flex: 0 1 9.5em; }
+  .pc-add input:focus { outline: none; border-color: var(--furikae); }
+  .pc-add .btn { font-size: 12.5px; padding: 7px 14px; border-radius: 999px;
+                 border-color: var(--furikae); color: var(--furikae); }
+  .pc-none { font-size: 13px; color: var(--ink-3); padding: 8px 2px; }
+  .pc-note { font-size: 12px; color: var(--ink-2); line-height: 1.8; margin: 10px 0 0; }
+
+  @media screen and (max-width: 1100px) {
+    .pc-body { grid-template-columns: minmax(0, 1fr); }
+  }
+  @media screen and (max-width: 760px) {
+    .page-cal { padding: calc(var(--step) * 4) calc(var(--step) * 3) calc(var(--step) * 12); }
+    .pc-cell { min-height: 62px; padding: 5px 4px; }
+    /* 桝が細くなるので「午前／午後」の語は落として数だけ。色で見分ける（凡例あり） */
+    .pc-cnt i b { display: none; }
+    .pc-cnt i { text-align: center; padding: 1px 2px; }
+    /* 「きょう」の札も桝からあふれるので、数字の色だけで示す */
+    .pc-cell.is-today .pc-num::after { display: none; }
+    .pc-add input[type="date"] { flex: 1 1 100%; }
+  }
+
   /* ── マスタの利用者は1人＝1枚の札 ─────────────
      桝を横に11も並べると、どれも小さくなって読めなくなる。
      欄に見出しを付けて札にまとめ、横に流さずに済むようにした。
@@ -4780,7 +4913,7 @@
   <details class="fold" id="fold-legend">
     <summary><span class="fd-title">この画面の使い方</span><span class="fd-note">記号の意味と操作のまとめ</span>
       <!-- 古い控えを開いていないか、ここで見分けられるようにしておく -->
-      <span class="fd-ver">版 2026-08-19c</span></summary>
+      <span class="fd-ver">版 2026-08-19d</span></summary>
     <div class="fold-body">
   <div class="legend">
     <span class="item"><span class="swatch s-wc" data-icon="wc"></span>車椅子（リフト・スロープ使用）</span>
@@ -4917,6 +5050,45 @@
 </div>
 
 <!-- ── 印刷レイアウト（紙のまま見せる。送迎表と業務日誌） ───────── -->
+
+<!-- ── 出欠カレンダー ──────────────────────────
+     休みの連絡・振替の相談を受けたら、まずここに入れる。
+     日ごとの出欠と同じ中身を持つので、送迎表・業務日誌にそのまま出る -->
+<div class="page-cal" id="page-cal" hidden>
+  <header class="pc-head">
+    <div>
+      <p class="eyebrow"><button type="button" class="to-home" id="home-4"
+         title="タイトル画面へ戻る" aria-label="タイトル画面へ戻る">🌿</button><span
+         class="office-name-echo"></span></p>
+      <h1>出欠カレンダー<span class="pc-sub" id="pc-sub"></span></h1>
+    </div>
+    <div class="pc-actions">
+      <button type="button" class="btn" id="cal-back">送迎編集へ</button>
+    </div>
+  </header>
+
+  <div class="pc-body">
+    <section class="pc-cal">
+      <div class="pc-nav">
+        <button type="button" class="btn" id="cal-prev">‹ 前の月</button>
+        <h2 id="cal-title"></h2>
+        <button type="button" class="btn" id="cal-next">次の月 ›</button>
+        <button type="button" class="btn" id="cal-today">今日へ</button>
+      </div>
+      <div class="pc-grid" id="cal-grid"></div>
+      <p class="pc-legend">
+        <span><i class="sw am"></i>午前の人数</span>
+        <span><i class="sw pm"></i>午後の人数</span>
+        <span><i class="sw off"></i>休みあり</span>
+        <span><i class="sw furi"></i>振替あり</span>
+        <span class="pc-hint">日を押すと、右でその日の出欠を入れられます</span>
+      </p>
+    </section>
+
+    <section class="pc-side" id="cal-side"></section>
+  </div>
+</div>
+
 <div class="page-print" id="page-print" hidden>
   <header class="pp-head">
     <div class="pp-lede">
@@ -9589,6 +9761,7 @@
   /* 送迎編集の画面へ。開き直しても同じ画面に戻るよう、行き先を残しておく */
   function toSheet() {
     document.getElementById("page-home").hidden = true;
+    document.getElementById("page-cal").hidden = true;
     document.getElementById("page-master").hidden = true;
     document.getElementById("page-print").hidden = true;
     document.getElementById("page-attend").hidden = true;
@@ -9600,6 +9773,7 @@
   function showHome(on) {
     document.getElementById("page-home").hidden = !on;
     if (on) {
+      document.getElementById("page-cal").hidden = true;
       document.querySelector(".sheet").hidden = true;
       document.getElementById("page-master").hidden = true;
       document.getElementById("page-print").hidden = true;
@@ -9642,7 +9816,7 @@
     if (furi) chip(furi, " 名 振替", "good");
   }
 
-  ["home-1", "home-2", "home-3"].forEach((id) => {
+  ["home-1", "home-2", "home-3", "home-4"].forEach((id) => {
     const b = document.getElementById(id);
     if (b) b.addEventListener("click", () => showHome(true));
   });
@@ -9659,17 +9833,319 @@
       if (go === "people") { openMaster(); return; }
       if (go === "data") { openMaster(); document.getElementById("pmtab-io").click(); return; }
       if (go === "print") { openPrintPage("soutei"); return; }
-      if (go === "cal") {
-        /* 出欠カレンダーはこれから作るところ。いまは日ごとの出欠を開く */
-        document.querySelector(".sheet").hidden = false;
-        openAttendPage();
-        notify("出欠カレンダーは準備中です。いまは日ごとの出欠を開きます。", "warn");
-      }
+      if (go === "cal") { openCalPage(); return; }
     });
   });
 
+
+  /* ── 出欠カレンダー ────────────────────────
+     休みの連絡・振替の相談を受けたら、その場でここに入れる。
+     持ちものは日ごとの出欠とまったく同じなので、
+     入れたぶんは送迎表・業務日誌・電話連絡表にそのまま出る。
+
+     いま開いている日はメモリの ATTEND／SWAP を、
+     ほかの日は保存してある「day.日付」を直に書き換える。 */
+  let calMonth = String(currentDate).slice(0, 7);
+  let calPick = currentDate;
+
+  const isoOf = (y, m, d) =>
+    y + "-" + String(m).padStart(2, "0") + "-" + String(d).padStart(2, "0");
+
+  /* その日の持ちもの。まだ開いたことのない日は、利用曜日から起こす */
+  function calDayData(date) {
+    if (date === currentDate) {
+      return {
+        attend: { am: { ...ATTEND.am }, pm: { ...ATTEND.pm } },
+        swap: { am: SWAP.am.map((x) => ({ ...x })), pm: SWAP.pm.map((x) => ({ ...x })) }
+      };
+    }
+    const d = STORE.getJSON("day." + date) || {};
+    return {
+      attend: { am: { ...((d.attend || {}).am || {}) }, pm: { ...((d.attend || {}).pm || {}) } },
+      swap: { am: normSwapList((d.swap || {}).am), pm: normSwapList((d.swap || {}).pm) }
+    };
+  }
+
+  /* 書き換える。いま開いている日なら画面にも流す */
+  function calWrite(date, change) {
+    if (date === currentDate) {
+      change({ attend: ATTEND, swap: SWAP });
+      applyAttendToRows();
+      drawSwapChips();
+      refresh();
+      STORE.setJSON("day." + date, captureDay());
+      STORE.addDay(date);
+    } else {
+      const d = STORE.getJSON("day." + date) || {};
+      d.attend = { am: { ...((d.attend || {}).am || {}) }, pm: { ...((d.attend || {}).pm || {}) } };
+      d.swap = { am: normSwapList((d.swap || {}).am), pm: normSwapList((d.swap || {}).pm) };
+      change(d);
+      STORE.setJSON("day." + date, d);
+      STORE.addDay(date);
+    }
+  }
+
+  /* その日の便ごとの名簿。いつもの利用曜日＋振替で来る方 */
+  function calRoster(date, part, data) {
+    const wd = weekdayOf(date);
+    if (!wd) return [];
+    const base = rosterFor(part, wd);
+    const extra = data.swap[part].map((x) => x.id);
+    return [...new Set([...base, ...extra])]
+      .map((id) => USER_BY_ID.get(id))
+      .filter(Boolean)
+      .sort(byKana);
+  }
+
+  /* カレンダーの桝に出す数。人数・休み・振替 */
+  function calCount(date) {
+    const wd = weekdayOf(date);
+    if (!wd) return null;
+    const data = calDayData(date);
+    const out = { am: 0, pm: 0, off: 0, furi: 0 };
+    ["am", "pm"].forEach((part) => {
+      const swapSet = new Set(data.swap[part].map((x) => x.id));
+      calRoster(date, part, data).forEach((u) => {
+        const code = data.attend[part][u.id] || "";
+        if (codeState(code) === "absent") { out.off += 1; return; }
+        out[part] += 1;
+        if (code === "振替" || swapSet.has(u.id)) out.furi += 1;
+      });
+    });
+    return out;
+  }
+
+  function drawCalGrid() {
+    const [y, m] = calMonth.split("-").map(Number);
+    document.getElementById("cal-title").textContent = y + "年 " + m + "月";
+
+    const grid = document.getElementById("cal-grid");
+    grid.innerHTML = "";
+    ["日", "月", "火", "水", "木", "金", "土"].forEach((d, i) => {
+      grid.append(el("span", "pc-dow" + (i === 0 ? " sun" : (i === 6 ? " sat" : "")), d));
+    });
+
+    const first = new Date(y, m - 1, 1);
+    const last = new Date(y, m, 0).getDate();
+    for (let i = 0; i < first.getDay(); i++) grid.append(el("span", "pc-cell empty"));
+
+    for (let d = 1; d <= last; d++) {
+      const date = isoOf(y, m, d);
+      const wd = weekdayOf(date);
+      const cell = el("button", "pc-cell");
+      cell.type = "button";
+      cell.dataset.date = date;
+      cell.append(el("span", "pc-num", String(d)));
+
+      if (!wd) {
+        /* 日曜など、送迎のない日 */
+        cell.classList.add("off");
+        cell.disabled = true;
+        cell.append(el("span", "pc-rest", "休"));
+      } else {
+        const c = calCount(date);
+        const cnt = el("span", "pc-cnt");
+        /* 「午前」の語は札が細いと落とす。数だけ残しても色で見分けられる */
+        const one = (key, label, n) => {
+          const i = el("i", key);
+          i.append(el("b", null, label), document.createTextNode(String(n)));
+          return i;
+        };
+        cnt.append(one("am", "午前 ", c.am), one("pm", "午後 ", c.pm));
+        cell.append(cnt);
+        if (c.off || c.furi) {
+          const flags = el("span", "pc-flags");
+          if (c.off) flags.append(el("span", "pc-flag off", "休" + c.off));
+          if (c.furi) flags.append(el("span", "pc-flag furi", "振" + c.furi));
+          cell.append(flags);
+        }
+        if (date === calPick) cell.classList.add("is-pick");
+        if (date === isoToday()) cell.classList.add("is-today");
+        cell.addEventListener("click", () => { calPick = date; drawCal(); });
+      }
+      grid.append(cell);
+    }
+  }
+
+  /* 右側。その日の名簿と、休み・振替の入れ口 */
+  function drawCalSide() {
+    const box = document.getElementById("cal-side");
+    box.innerHTML = "";
+    const date = calPick;
+    const wd = weekdayOf(date);
+
+    const head = el("div", "pc-day-head");
+    head.append(el("h2", null, titleDate(date)));
+    const open = el("button", "btn pc-open", "この日の送迎表を開く");
+    open.type = "button";
+    open.addEventListener("click", () => {
+      if (date !== currentDate) openDay(date);
+      showCal(false);
+      document.querySelector(".sheet").hidden = false;
+      location.hash = "soutei";
+    });
+    head.append(open);
+    box.append(head);
+
+    if (!wd) {
+      box.append(el("p", "pc-none", "この日は送迎がありません。"));
+      return;
+    }
+
+    const data = calDayData(date);
+
+    [["am", "午前", "ai"], ["pm", "午後", "enji"]].forEach(([part, label, accent]) => {
+      const sec = el("section", "pc-part");
+      sec.style.setProperty("--accent", "var(--" + accent + ")");
+      sec.style.setProperty("--accent-soft", "var(--" + accent + "-soft)");
+
+      const roster = calRoster(date, part, data);
+      const swapSet = new Set(data.swap[part].map((x) => x.id));
+      let off = 0;
+      roster.forEach((u) => {
+        if (codeState(data.attend[part][u.id] || "") === "absent") off += 1;
+      });
+
+      const h = el("div", "pc-part-head");
+      h.append(el("b", null, label));
+      h.append(el("span", "n", (roster.length - off) + "名"
+        + (off ? "（休み " + off + "）" : "")));
+      sec.append(h);
+
+      if (!roster.length) {
+        sec.append(el("p", "pc-none", "この便に来る予定の方はいません。"));
+      }
+
+      roster.forEach((u) => {
+        const code = data.attend[part][u.id] || "";
+        const st = codeState(code);
+        const row = el("div", "pc-row" + (st === "absent" ? " is-off" : "")
+          + (st === "furikae" ? " is-furi" : ""));
+
+        const nm = el("span", "nm", u.name);
+        if (swapSet.has(u.id)) {
+          const e = data.swap[part].find((x) => x.id === u.id);
+          nm.append(el("small", null, e && e.from ? swapLabel(e.from) + "振替" : "振替"));
+        } else if (u.care) nm.append(el("small", null, u.care));
+        row.append(nm);
+
+        const pick = document.createElement("select");
+        pick.append(new Option("出席", ""));
+        STATUS_CODES.forEach((c) => pick.append(new Option(c, c)));
+        pick.value = code;
+        pick.title = u.name + " さんの" + label + "の出欠";
+        pick.addEventListener("change", () => {
+          const v = pick.value;
+          calWrite(date, (d) => {
+            if (v) d.attend[part][u.id] = v;
+            else delete d.attend[part][u.id];
+            /* 振替でなくなったら、振替の控えからも外す */
+            if (v !== "振替") d.swap[part] = d.swap[part].filter((x) => x.id !== u.id);
+          });
+          drawCal();
+          notify(u.name + " さんの" + label + "を「" + (v || "出席") + "」にしました。");
+        });
+        row.append(pick);
+        sec.append(row);
+      });
+
+      /* 振替で来る方をここで足す。いつもは来ない曜日の方を入れられる */
+      const add = el("div", "pc-add");
+      const who = document.createElement("input");
+      who.type = "text";
+      who.placeholder = label + "に振替で来る方の氏名";
+      who.setAttribute("list", "swap-datalist");
+      const from = document.createElement("input");
+      from.type = "date";
+      from.title = "いつのぶんの振替か（分からなければ空のままで構いません）";
+      const go = el("button", "btn", "振替で足す");
+      go.type = "button";
+      go.addEventListener("click", () => {
+        const name = who.value.trim();
+        if (!name) { notify("振替で来る方の氏名を入れてください。", "warn"); who.focus(); return; }
+        const u = activeUsers().find((x) => x.name.replace(/\s/g, "") === name.replace(/\s/g, ""))
+          || activeUsers().find((x) => kanaKey(x.name).indexOf(kanaKey(name)) >= 0
+            || kanaKey(x.kana).indexOf(kanaKey(name)) >= 0);
+        if (!u) { notify("「" + name + "」さんが名簿に見あたりません。", "warn"); return; }
+        if (roster.some((x) => x.id === u.id)) {
+          notify(u.name + " さんは、もともとこの日の" + label + "に来る予定です。", "warn");
+          return;
+        }
+        calWrite(date, (d) => {
+          d.swap[part] = d.swap[part].filter((x) => x.id !== u.id);
+          d.swap[part].push({ id: u.id, from: from.value || "" });
+          d.attend[part][u.id] = "振替";
+        });
+        who.value = "";
+        from.value = "";
+        drawCal();
+        notify(u.name + " さんを " + titleDate(date) + " の" + label + "に振替で足しました。");
+      });
+      add.append(who, from, go);
+      sec.append(add);
+
+      box.append(sec);
+    });
+
+    box.append(el("p", "pc-note",
+      "ここで入れた内容は、その日の送迎表・業務日誌・電話連絡表にそのまま出ます。"
+      + "休みは理由（体調・受診・都合・入院・SS）を選ぶと、紙にもその語が出ます。"));
+  }
+
+  function drawCal() {
+    document.getElementById("pc-sub").textContent =
+      "休みの連絡・振替の相談を受けたら、ここに入れてください";
+    drawCalGrid();
+    drawCalSide();
+  }
+
+  function showCal(on) {
+    document.getElementById("page-cal").hidden = !on;
+    if (on) {
+      document.getElementById("page-home").hidden = true;
+      document.querySelector(".sheet").hidden = true;
+      document.getElementById("page-master").hidden = true;
+      document.getElementById("page-print").hidden = true;
+      document.getElementById("page-attend").hidden = true;
+      drawCal();
+      if (location.hash !== "#cal") location.hash = "cal";
+      window.scrollTo(0, 0);
+    }
+  }
+
+  function openCalPage() {
+    calMonth = String(calPick).slice(0, 7);
+    showCal(true);
+  }
+
+  document.getElementById("cal-prev").addEventListener("click", () => {
+    const [y, m] = calMonth.split("-").map(Number);
+    const d = new Date(y, m - 2, 1);
+    calMonth = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0");
+    drawCalGrid();
+  });
+  document.getElementById("cal-next").addEventListener("click", () => {
+    const [y, m] = calMonth.split("-").map(Number);
+    const d = new Date(y, m, 1);
+    calMonth = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0");
+    drawCalGrid();
+  });
+  document.getElementById("cal-today").addEventListener("click", () => {
+    calPick = isoToday();
+    calMonth = String(calPick).slice(0, 7);
+    drawCal();
+  });
+  document.getElementById("cal-back").addEventListener("click", () => {
+    showCal(false);
+    document.querySelector(".sheet").hidden = false;
+    location.hash = "soutei";
+  });
+
   function showMaster(on) {
-    if (on) document.getElementById("page-home").hidden = true;
+    if (on) {
+      document.getElementById("page-home").hidden = true;
+      document.getElementById("page-cal").hidden = true;
+    }
     document.querySelector(".sheet").hidden = on;
     document.getElementById("page-master").hidden = !on;
     if (on && location.hash !== "#master") location.hash = "master";
@@ -9691,10 +10167,12 @@
     const doc = Object.values(DOCS).find((d) => d.hash === where);
 
     if (where === "home") { showHome(true); return; }
+    if (where === "cal") { showCal(true); return; }
     if (!document.getElementById("page-home").hidden) {
       document.getElementById("page-home").hidden = true;
       document.querySelector(".sheet").hidden = false;
     }
+    if (!document.getElementById("page-cal").hidden) document.getElementById("page-cal").hidden = true;
     if (where === "soutei") {
       if (onMaster) closeMaster();
       if (onPrint) showPrintPage(false);
@@ -10424,6 +10902,7 @@
   }
 
   function showAttendPage(on) {
+    if (on) document.getElementById("page-cal").hidden = true;
     document.querySelector(".sheet").hidden = on;
     document.getElementById("page-attend").hidden = !on;
     if (on && location.hash !== "#attend") location.hash = "attend";
@@ -11043,6 +11522,7 @@
   let printDoc = "soutei";
 
   function showPrintPage(on) {
+    if (on) document.getElementById("page-cal").hidden = true;
     const hash = DOCS[printDoc].hash;
     document.querySelector(".sheet").hidden = on;
     document.getElementById("page-print").hidden = !on;
@@ -11808,6 +12288,7 @@
   renderDay(currentDate, LEGS[0].key);
   syncStickyHeight();
   if (location.hash === "#master") openMaster();
+  else if (location.hash === "#cal") openCalPage();
   else if (location.hash === "#attend") openAttendPage();
   else if (location.hash === "#soutei") {
     /* 送迎編集の画面。タイトルは通らない */
