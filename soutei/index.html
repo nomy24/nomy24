@@ -3170,6 +3170,9 @@
   }
 
   .pf-find input:focus { border-color: var(--ai); outline: none; }
+  /* 欄を大きくしたぶん、見出しの字が折り返さないようにする */
+  .pf-label { white-space: nowrap; }
+
   .pf-days { display: flex; gap: 3px; }
 
   .pf-days button {
@@ -3839,6 +3842,15 @@
   .modal .day-cell,
   .page-master .day-cell { display: flex; gap: 3px; }
 
+  /* 曜日で絞るボタンも、押したら曜日の色になる。
+     利用曜日の札・担当表・電話連絡表と同じ色でそろえる */
+  .pf-days button[data-day][aria-pressed="true"] {
+    border-color: var(--day-line);
+    background: var(--day-soft);
+    color: var(--day-ink);
+    font-weight: 700;
+  }
+
   /* マスタの記号は、利用曜日の札と同じ大きさに取る。
      どちらも同じ列の並びなので、大きさが違うと目が落ち着かない */
   .page-master .tag-cell .tag { width: 32px; height: 36px; border-radius: 5px; }
@@ -4378,13 +4390,147 @@
       color: var(--ink-2);
     }
   }
+
+  /* ── タイトル画面 ──────────────────────────
+     お預かりしたデザイン仕様書（フローティング・ピル型）の数値どおり。
+     浮いたカードの中に、錠剤形のボタンとタイルを置く。
+     色はこの画面の中だけで閉じていて、送迎表や紙には及ばない */
+  .page-home {
+    --hm-bg: #f3ece1;
+    --hm-card: #fffaf2;
+    --hm-inner: #fff4e6;
+    --hm-ink: #5c3d20;
+    --hm-ink-2: #a98a6a;
+    --hm-ink-3: #c2a37c;
+    --hm-acc-from: #e8b98a;
+    --hm-acc-to: #c97a3a;
+    --hm-acc-ink: #a9702f;
+    --hm-deep: #b5702f;
+    --hm-warn-bg: #fdeadb; --hm-warn-ink: #c9791f;
+    --hm-good-bg: #e6f0da; --hm-good-ink: #5c8a4a;
+    --hm-open-bg: #e8eefc; --hm-open-ink: #3f5fbf;
+
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    overflow: auto;
+    background: var(--hm-bg);
+    color: var(--hm-ink);
+    font-family: "Hiragino Sans", "Yu Gothic", "Segoe UI", var(--gothic);
+    padding: 40px 20px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+  }
+  .page-home[hidden] { display: none; }
+
+  .hm-wrap { width: 100%; max-width: 980px; display: flex; flex-direction: column; gap: 18px; }
+
+  .hm-head {
+    background: var(--hm-card);
+    border-radius: 26px;
+    padding: 32px 36px;
+    box-shadow: 0 12px 32px rgba(150, 110, 60, .12);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .hm-brand { display: flex; align-items: center; gap: 14px; }
+  .hm-logo {
+    width: 52px; height: 52px; border-radius: 16px;
+    background: linear-gradient(135deg, var(--hm-acc-from), var(--hm-acc-to));
+    display: flex; align-items: center; justify-content: center; font-size: 24px;
+    box-shadow: 0 8px 18px rgba(201, 122, 58, .3);
+  }
+  .hm-name { display: block; font-size: 21px; font-weight: 800; letter-spacing: .02em; }
+  .hm-tag { display: block; font-size: 12px; color: var(--hm-ink-2); margin-top: 2px; }
+  .hm-user { display: flex; align-items: center; gap: 12px; }
+  .hm-utext { text-align: right; }
+  .hm-hello { display: block; font-size: 13px; font-weight: 700; }
+  .hm-date { display: block; font-size: 11.5px; color: var(--hm-ink-2); margin-top: 2px; }
+  .hm-avatar {
+    width: 42px; height: 42px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--hm-acc-from), var(--hm-acc-to));
+    color: #fff; display: flex; align-items: center; justify-content: center;
+    font-size: 15px; font-weight: 800;
+  }
+
+  .hm-label { margin: 0; padding: 0 6px; font-size: 12.5px; font-weight: 700; color: var(--hm-acc-ink); }
+
+  .hm-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .hm-tile {
+    background: var(--hm-card);
+    border: 0;
+    border-radius: 22px;
+    padding: 26px 20px;
+    box-shadow: 0 8px 22px rgba(150, 110, 60, .10);
+    display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px;
+    font-family: inherit; color: inherit; cursor: pointer;
+    transition: transform .18s ease, box-shadow .18s ease, background-color .18s ease;
+  }
+  .hm-tile:hover, .hm-tile:focus-visible {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 30px rgba(201, 122, 58, .22);
+    background: #fff6e9;
+    outline: none;
+  }
+  .hm-ic {
+    width: 60px; height: 60px; border-radius: 18px; background: #f7dcb8;
+    display: flex; align-items: center; justify-content: center; transition: .18s ease;
+  }
+  .hm-ic svg { stroke: var(--hm-deep); transition: .18s ease; }
+  .hm-tile:hover .hm-ic { background: linear-gradient(135deg, var(--hm-acc-from), var(--hm-acc-to)); }
+  .hm-tile:hover .hm-ic svg { stroke: #fff; }
+  .hm-t { font-size: 14.5px; font-weight: 800; }
+  .hm-d { font-size: 11.5px; color: var(--hm-ink-2); line-height: 1.5; }
+  .hm-b {
+    margin-top: 2px; font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 999px;
+    background: var(--hm-warn-bg); color: var(--hm-warn-ink);
+  }
+  .hm-b.alt { background: var(--hm-open-bg); color: var(--hm-open-ink); }
+
+  .hm-quick {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    background: var(--hm-card); border-radius: 18px; padding: 14px 20px;
+    box-shadow: 0 10px 28px rgba(150, 110, 60, .08);
+  }
+  .hm-quick .lbl { font-size: 12px; font-weight: 700; color: var(--hm-ink-2); margin-right: 4px; }
+  .hm-chip {
+    display: inline-flex; align-items: baseline; gap: 4px; padding: 5px 14px; border-radius: 999px;
+    background: var(--hm-inner); font-size: 11.5px; font-weight: 700; color: var(--hm-acc-ink);
+  }
+  .hm-chip b { font-size: 15px; font-weight: 800; }
+  .hm-chip.warn { background: var(--hm-warn-bg); color: var(--hm-warn-ink); }
+  .hm-chip.good { background: var(--hm-good-bg); color: var(--hm-good-ink); }
+
+  .hm-foot { margin: 0; text-align: center; font-size: 11px; color: var(--hm-ink-3); padding-top: 6px; }
+
+  /* 各画面からタイトルへ戻る芽 */
+  .to-home {
+    border: 0; background: transparent; cursor: pointer; font: inherit;
+    font-size: 17px; line-height: 1; padding: 6px 8px; border-radius: 10px;
+    color: var(--ink-2); transition: background-color .12s;
+  }
+  .to-home:hover { background: var(--sub); }
+
+  @media screen and (max-width: 760px) {
+    .page-home { padding: 24px 14px; }
+    .hm-head { padding: 22px 20px; }
+    .hm-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .hm-tile { padding: 20px 14px; }
+  }
 </style>
 
 <div class="sheet">
   <div class="sticky-top" id="sticky-top">
   <header class="masthead">
-    <p class="eyebrow" id="office-name-top" contenteditable="true" spellcheck="false"
-       title="事業所名。ここで直すとマスタにも入り、印刷にも出ます"></p>
+    <p class="eyebrow">
+      <button type="button" class="to-home" id="home-1" title="タイトル画面へ戻る"
+              aria-label="タイトル画面へ戻る">🌿</button><span id="office-name-top"
+       contenteditable="true" spellcheck="false"
+       title="事業所名。ここで直すとマスタにも入り、印刷にも出ます"></span></p>
     <h1>
       <button type="button" class="date-step" id="date-prev" aria-label="前の日へ" title="前の日へ">‹</button>
       <span class="title-mid">
@@ -4549,7 +4695,7 @@
   <details class="fold" id="fold-legend">
     <summary><span class="fd-title">この画面の使い方</span><span class="fd-note">記号の意味と操作のまとめ</span>
       <!-- 古い控えを開いていないか、ここで見分けられるようにしておく -->
-      <span class="fd-ver">版 2026-08-18d</span></summary>
+      <span class="fd-ver">版 2026-08-19</span></summary>
     <div class="fold-body">
   <div class="legend">
     <span class="item"><span class="swatch s-wc" data-icon="wc"></span>車椅子（リフト・スロープ使用）</span>
@@ -4606,6 +4752,68 @@
 <!-- ── どの車両の利用者を取り消すか ───────── -->
 <!-- ── マスタ編集（別ページ） ───────────────── -->
 <!-- ── 出欠（業務日誌の1枚目） ───────────────── -->
+
+<!-- ── タイトル画面。ここから各画面へ入る ───────── -->
+<div class="page-home" id="page-home" hidden>
+  <div class="hm-wrap">
+    <div class="hm-head">
+      <span class="hm-brand">
+        <span class="hm-logo">🌿</span>
+        <span>
+          <span class="hm-name">あさひ 送迎支援</span>
+          <span class="hm-tag" id="hm-office"></span>
+        </span>
+      </span>
+      <span class="hm-user">
+        <span class="hm-utext">
+          <span class="hm-hello">こんにちは</span>
+          <span class="hm-date" id="hm-date"></span>
+        </span>
+        <span class="hm-avatar">あ</span>
+      </span>
+    </div>
+
+    <p class="hm-label">メニューを選んでください</p>
+    <div class="hm-grid">
+    <button type="button" class="hm-tile" data-go="todo">
+      <span class="hm-ic"><svg viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:26px;height:26px"><path d="M7.5 5.5h9M7.5 10h9M7.5 14.5h6"/><path d="M3 5.2l1.1 1.1L6.2 4"/><path d="M3 9.7l1.1 1.1L6.2 8.5"/><path d="M3.2 14.5h2"/></svg></span>
+      <span class="hm-t">Todo タスク</span>
+      <span class="hm-d">職員のやることを共有する</span>
+      <span class="hm-b alt">別アプリ</span>
+    </button>
+    <button type="button" class="hm-tile" data-go="van">
+      <span class="hm-ic"><svg viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:26px;height:26px"><path d="M3 12.5l1.3-4A1.4 1.4 0 0 1 5.6 7.5h8.8a1.4 1.4 0 0 1 1.3 1l1.3 4"/><rect x="2" y="12.5" width="16" height="3" rx="1.2"/><circle cx="6" cy="17" r="1.3"/><circle cx="14" cy="17" r="1.3"/></svg></span>
+      <span class="hm-t">送迎編集</span>
+      <span class="hm-d">その日の便・車・乗る方を組む</span>
+    </button>
+    <button type="button" class="hm-tile" data-go="people">
+      <span class="hm-ic"><svg viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:26px;height:26px"><circle cx="7.5" cy="7" r="3"/><path d="M2.5 17c0-3 2.2-5 5-5s5 2 5 5"/><circle cx="14.5" cy="8" r="2.3"/><path d="M12 12.2c1.7.3 3 1.8 3.5 4.8"/></svg></span>
+      <span class="hm-t">マスタ管理</span>
+      <span class="hm-d">利用者・運転手・配車・担当表</span>
+    </button>
+    <button type="button" class="hm-tile" data-go="cal">
+      <span class="hm-ic"><svg viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:26px;height:26px"><rect x="3" y="4.5" width="14" height="12" rx="2"/><path d="M3 8.5h14M7 3v3M13 3v3"/><path d="M6.5 11.5h2M11 11.5h2M6.5 14h2"/></svg></span>
+      <span class="hm-t">出欠カレンダー</span>
+      <span class="hm-d">1か月ぶんの出欠をまとめて入れる</span>
+      <span class="hm-b">準備中</span>
+    </button>
+    <button type="button" class="hm-tile" data-go="data">
+      <span class="hm-ic"><svg viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:26px;height:26px"><ellipse cx="10" cy="5.5" rx="6" ry="2.5"/><path d="M4 5.5v9c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5v-9"/><path d="M4 10c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5"/></svg></span>
+      <span class="hm-t">データ管理</span>
+      <span class="hm-d">CSV・PDF の取り込みと書き出し</span>
+    </button>
+    <button type="button" class="hm-tile" data-go="print">
+      <span class="hm-ic"><svg viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:26px;height:26px"><path d="M6 7.5V3.5h8v4"/><rect x="3" y="7.5" width="14" height="6" rx="1.6"/><path d="M6 12.5h8v4H6z"/></svg></span>
+      <span class="hm-t">印刷レイアウト</span>
+      <span class="hm-d">送迎表・業務日誌・電話連絡表</span>
+    </button>
+    </div>
+
+    <div class="hm-quick" id="hm-quick"></div>
+    <p class="hm-foot">あさひ 送迎支援</p>
+  </div>
+</div>
+
 <div class="page-attend" id="page-attend" hidden>
   <header class="pa-head">
     <div>
@@ -4627,7 +4835,9 @@
 <div class="page-print" id="page-print" hidden>
   <header class="pp-head">
     <div class="pp-lede">
-      <p class="eyebrow office-name-echo"></p>
+      <p class="eyebrow"><button type="button" class="to-home" id="home-3"
+         title="タイトル画面へ戻る" aria-label="タイトル画面へ戻る">🌿</button><span
+         class="office-name-echo"></span></p>
       <h1>印刷レイアウト<span class="pp-count" id="pp-count"></span></h1>
       <details class="fold is-lead" id="fold-lead" open>
         <summary><span class="fd-title">この紙について</span></summary>
@@ -4657,7 +4867,9 @@
 <div class="page-master" id="page-master" hidden>
   <header class="pm-head">
     <div>
-      <p class="eyebrow office-name-echo"></p>
+      <p class="eyebrow"><button type="button" class="to-home" id="home-2"
+         title="タイトル画面へ戻る" aria-label="タイトル画面へ戻る">🌿</button><span
+         class="office-name-echo"></span></p>
       <h1>マスタ編集</h1>
     </div>
     <div class="pm-actions">
@@ -9285,11 +9497,100 @@
   }
 
   /* マスタ編集は別ページとして開く。#master を付けるので再読み込みしても残る */
+  /* ── タイトル画面 ────────────────────────
+     入口をここに置く。送迎編集・マスタ管理・印刷レイアウトは
+     これまでどおりの画面をそのまま開く。Todo は別のアプリなので、
+     この端末の外（別のタブ）へ出す */
+  const TODO_URL = "https://nomy24.github.io/nomy24/staff-todo/";
+
+  /* 送迎編集の画面へ。開き直しても同じ画面に戻るよう、行き先を残しておく */
+  function toSheet() {
+    document.getElementById("page-home").hidden = true;
+    document.getElementById("page-master").hidden = true;
+    document.getElementById("page-print").hidden = true;
+    document.getElementById("page-attend").hidden = true;
+    document.querySelector(".sheet").hidden = false;
+    if (location.hash !== "#soutei") location.hash = "soutei";
+    window.scrollTo(0, 0);
+  }
+
+  function showHome(on) {
+    document.getElementById("page-home").hidden = !on;
+    if (on) {
+      document.querySelector(".sheet").hidden = true;
+      document.getElementById("page-master").hidden = true;
+      document.getElementById("page-print").hidden = true;
+      document.getElementById("page-attend").hidden = true;
+      drawHome();
+      if (location.hash !== "#home") location.hash = "home";
+      window.scrollTo(0, 0);
+    }
+  }
+
+  /* 今日のようすを見出しの下に出す。開くたびに数え直す */
+  function drawHome() {
+    const off = document.getElementById("hm-office");
+    if (off) off.textContent = OFFICE.name || "";
+    const d = document.getElementById("hm-date");
+    if (d) d.textContent = titleDate(currentDate);
+
+    const box = document.getElementById("hm-quick");
+    if (!box) return;
+    box.innerHTML = "";
+    const am = attendRoster("am").length;
+    const pm = attendRoster("pm").length;
+    let off2 = 0, furi = 0;
+    ["am", "pm"].forEach((part) => {
+      attendRoster(part).forEach((u) => {
+        const code = attendCode(part, u.id);
+        if (codeState(code) === "absent") off2 += 1;
+        if (code === "振替") furi += 1;
+      });
+    });
+    const chip = (n, text, cls) => {
+      const e = el("span", "hm-chip" + (cls ? " " + cls : ""));
+      e.append(el("b", null, String(n)), document.createTextNode(text));
+      box.append(e);
+    };
+    box.append(el("span", "lbl", "きょうのようす"));
+    chip(am, " 名 午前");
+    chip(pm, " 名 午後");
+    if (off2) chip(off2, " 名 欠席", "warn");
+    if (furi) chip(furi, " 名 振替", "good");
+  }
+
+  ["home-1", "home-2", "home-3"].forEach((id) => {
+    const b = document.getElementById(id);
+    if (b) b.addEventListener("click", () => showHome(true));
+  });
+
+  document.querySelectorAll(".hm-tile").forEach((tile) => {
+    tile.addEventListener("click", () => {
+      const go = tile.dataset.go;
+      if (go === "todo") { window.open(TODO_URL, "_blank", "noopener"); return; }
+      showHome(false);
+      if (go === "van") {
+        toSheet();
+        return;
+      }
+      if (go === "people") { openMaster(); return; }
+      if (go === "data") { openMaster(); document.getElementById("pmtab-io").click(); return; }
+      if (go === "print") { openPrintPage("soutei"); return; }
+      if (go === "cal") {
+        /* 出欠カレンダーはこれから作るところ。いまは日ごとの出欠を開く */
+        document.querySelector(".sheet").hidden = false;
+        openAttendPage();
+        notify("出欠カレンダーは準備中です。いまは日ごとの出欠を開きます。", "warn");
+      }
+    });
+  });
+
   function showMaster(on) {
+    if (on) document.getElementById("page-home").hidden = true;
     document.querySelector(".sheet").hidden = on;
     document.getElementById("page-master").hidden = !on;
     if (on && location.hash !== "#master") location.hash = "master";
-    if (!on && location.hash === "#master") history.replaceState(null, "", location.pathname + location.search);
+    if (!on && location.hash === "#master") location.hash = "soutei";
     window.scrollTo(0, 0);
   }
 
@@ -9306,6 +9607,18 @@
     const onAttend = !document.getElementById("page-attend").hidden;
     const doc = Object.values(DOCS).find((d) => d.hash === where);
 
+    if (where === "home") { showHome(true); return; }
+    if (!document.getElementById("page-home").hidden) {
+      document.getElementById("page-home").hidden = true;
+      document.querySelector(".sheet").hidden = false;
+    }
+    if (where === "soutei") {
+      if (onMaster) closeMaster();
+      if (onPrint) showPrintPage(false);
+      if (onAttend) document.getElementById("page-attend").hidden = true;
+      document.querySelector(".sheet").hidden = false;
+      return;
+    }
     if (where === "attend") {
       document.getElementById("page-print").hidden = true;
       if (onMaster) closeMaster();
@@ -9624,6 +9937,8 @@
   WEEKDAYS.forEach((w) => {
     const b = el("button", null, w);
     b.type = "button";
+    /* 押したときに曜日の色が出るよう、その曜日を持たせておく */
+    b.dataset.day = w;
     b.setAttribute("aria-pressed", "false");
     b.title = w + "曜日に来る方だけにする";
     b.addEventListener("click", () => {
@@ -10029,7 +10344,7 @@
     document.querySelector(".sheet").hidden = on;
     document.getElementById("page-attend").hidden = !on;
     if (on && location.hash !== "#attend") location.hash = "attend";
-    if (!on && location.hash === "#attend") history.replaceState(null, "", location.pathname + location.search);
+    if (!on && location.hash === "#attend") location.hash = "soutei";
     window.scrollTo(0, 0);
   }
 
@@ -10651,7 +10966,7 @@
     if (on && location.hash !== "#" + hash) location.hash = hash;
     /* 閉じるときは、どの刷りものの印であっても外す */
     if (!on && Object.values(DOCS).some((d) => location.hash === "#" + d.hash)) {
-      history.replaceState(null, "", location.pathname + location.search);
+      location.hash = "soutei";
     }
     window.scrollTo(0, 0);
   }
@@ -11411,9 +11726,15 @@
   syncStickyHeight();
   if (location.hash === "#master") openMaster();
   else if (location.hash === "#attend") openAttendPage();
+  else if (location.hash === "#soutei") {
+    /* 送迎編集の画面。タイトルは通らない */
+    document.getElementById("page-home").hidden = true;
+  }
   else {
     const boot = Object.values(DOCS).find((d) => "#" + d.hash === location.hash);
     if (boot) openPrintPage(boot.key);
+    /* どこも指していなければ、入口のタイトル画面から始める */
+    else showHome(true);
   }
   SYNC.start();
 </script>
