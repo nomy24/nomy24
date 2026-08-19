@@ -1534,8 +1534,12 @@ function renderMemoList() {
             <span class="badge ${badgeClass}">${escapeHtml(m.status)}</span>
           </div>
           <div class="card__memo">${escapeHtml(m.content || "")}</div>
-          ${m.progress ? `<div class="card__memo card__memo--progress">経過: ${escapeHtml(m.progress)}</div>` : ""}
-          <div class="card__meta"><span class="badge">${escapeHtml(time)}受電</span><span class="badge">受: ${escapeHtml(m.staff || "-")}</span>${m.responder ? `<span class="badge">対: ${escapeHtml(m.responder)}</span>` : ""}</div>
+          ${m.progress ? `
+          <div class="memo-progress">
+            <span class="memo-progress__label">経過</span>
+            <span class="memo-progress__text">${escapeHtml(m.progress)}</span>
+          </div>` : ""}
+          <div class="card__meta"><span class="badge">${escapeHtml(time)}受電</span><span class="badge">受: ${escapeHtml(m.staff || "-")}</span>${m.responder ? `<span class="badge">対応: ${escapeHtml(m.responder)}</span>` : ""}</div>
         </div>
         <select class="memo-select" data-action="quick-status" aria-label="対応状況を変更">${options}</select>
       </div>`;
@@ -1573,10 +1577,6 @@ function openMemoSheet(existing) {
       <textarea id="m-content" name="content" required maxlength="500" placeholder="例：来週の送迎時間を変更したい">${escapeHtml(existing?.content || "")}</textarea>
     </div>
     <div class="field">
-      <label for="m-progress">経過（任意）</label>
-      <textarea id="m-progress" name="progress" maxlength="500" placeholder="例：ご家族に折り返し、来週火曜に変更で承諾済み">${escapeHtml(existing?.progress || "")}</textarea>
-    </div>
-    <div class="field">
       <label for="m-staff">受けた担当者</label>
       <select id="m-staff" name="staff">
         <option value="">選択してください</option>
@@ -1591,6 +1591,10 @@ function openMemoSheet(existing) {
         ${extraResponderOption}
         ${state.staff.map((s) => `<option value="${escapeHtml(s.name)}" ${currentResponderName === s.name ? "selected" : ""}>${escapeHtml(s.name)}</option>`).join("")}
       </select>
+    </div>
+    <div class="field">
+      <label for="m-progress">経過（任意）</label>
+      <textarea id="m-progress" name="progress" maxlength="500" placeholder="例：ご家族に折り返し、来週火曜に変更で承諾済み">${escapeHtml(existing?.progress || "")}</textarea>
     </div>
     <div class="field">
       <label>対応状況</label>
