@@ -4407,11 +4407,20 @@
   .u-head { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
   .u-sp { flex: 1 1 auto; }
 
-  .u-ava {
-    width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0;
+  /* 札の頭に置く利用者コード。取り込みのときの合わせ先なので、
+     読み違えないよう数字は等幅で並べる */
+  .u-code {
+    flex-shrink: 0;
+    border-radius: 12px;
     background: linear-gradient(135deg, #e8b98a, #c97a3a);
-    color: #fff; display: flex; align-items: center; justify-content: center;
-    font-size: 17px; font-weight: 800;
+    color: #fff;
+    padding: 9px 13px;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: .04em;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    user-select: all;
   }
 
   .u-id { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
@@ -4771,7 +4780,7 @@
   <details class="fold" id="fold-legend">
     <summary><span class="fd-title">この画面の使い方</span><span class="fd-note">記号の意味と操作のまとめ</span>
       <!-- 古い控えを開いていないか、ここで見分けられるようにしておく -->
-      <span class="fd-ver">版 2026-08-19b</span></summary>
+      <span class="fd-ver">版 2026-08-19c</span></summary>
     <div class="fold-body">
   <div class="legend">
     <span class="item"><span class="swatch s-wc" data-icon="wc"></span>車椅子（リフト・スロープ使用）</span>
@@ -9013,14 +9022,14 @@
       return child;
     };
 
-    const ava = el("span", "u-ava", (u.name || "　").trim().charAt(0));
+    /* 札の頭は利用者コード。CSV の id、PDF の「利用者ｺｰﾄﾞ」と同じもので、
+       取り込みのときはこの番号で名簿と照らす。書き換えると結び付きが切れるので読むだけ */
+    const ava = el("span", "u-code", u.id || "—");
+    ava.title = "利用者コード（CSV の id・PDF の利用者ｺｰﾄﾞと同じ）";
     const nameI = document.createElement("input");
     nameI.type = "text"; nameI.value = u.name; nameI.className = "u-name";
     nameI.title = "氏名";
-    nameI.addEventListener("input", () => {
-      draftUsers[i].name = nameI.value;
-      ava.textContent = (nameI.value || "　").trim().charAt(0);
-    });
+    nameI.addEventListener("input", () => { draftUsers[i].name = nameI.value; });
 
     const kanaI = document.createElement("input");
     kanaI.type = "text"; kanaI.value = u.kana; kanaI.className = "u-kana";
