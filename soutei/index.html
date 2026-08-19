@@ -3603,8 +3603,7 @@
     border-bottom: 1px solid var(--rule);
     vertical-align: middle;
   }
-  /* 住所の背が伸びた行は、どの欄も頭をそろえる */
-  #user-rows td { vertical-align: top; }
+
 
   .modal input[type="text"],
   .modal select,
@@ -4050,7 +4049,6 @@
   /* 欄を大きく取ったので、画面が狭いときは詰めずに横へ流す。
      見出しに書いた割りをそのまま使いたいので、桝の幅は決め打ちにする
      （そうしないと中身の長さで勝手に振り分けられてしまう） */
-  #pm-users .pm-scroll table { min-width: 1760px; table-layout: fixed; }
   #pm-kin .pm-scroll table { min-width: 980px; table-layout: fixed; }
 
   @media screen and (max-width: 760px) {
@@ -4391,6 +4389,84 @@
     }
   }
 
+
+  /* ── マスタの利用者は1人＝1枚の札 ─────────────
+     桝を横に11も並べると、どれも小さくなって読めなくなる。
+     欄に見出しを付けて札にまとめ、横に流さずに済むようにした。
+     色と角丸はタイトル画面と同じ考え方（浮いた札＋錠剤形のボタン） */
+  .u-list { display: flex; flex-direction: column; gap: 14px; }
+
+  .u-card {
+    background: var(--sub);
+    border-radius: 18px;
+    padding: 16px 20px 18px;
+    transition: box-shadow .16s;
+  }
+  .u-card:hover { box-shadow: 0 10px 24px rgba(20, 34, 36, .10); }
+
+  .u-head { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+  .u-sp { flex: 1 1 auto; }
+
+  .u-ava {
+    width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0;
+    background: linear-gradient(135deg, #e8b98a, #c97a3a);
+    color: #fff; display: flex; align-items: center; justify-content: center;
+    font-size: 17px; font-weight: 800;
+  }
+
+  .u-id { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .page-master .u-id input.u-name { width: 180px; font-size: 17px; font-weight: 700; }
+  .page-master .u-id input.u-kana { width: 160px; font-size: 13px; color: var(--ink-2); }
+
+  .u-body { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px 14px; }
+  .u-f { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .u-f.wide { grid-column: span 2; }
+  .u-l { font-size: 11px; font-weight: 700; color: var(--ink-3); letter-spacing: .04em; }
+
+  /* 札の中の欄は、地の色に浮くよう白で置く */
+  .page-master .u-card input,
+  .page-master .u-card textarea,
+  .page-master .u-card select {
+    background: var(--card);
+    border: 1.5px solid transparent;
+    border-radius: 12px;
+    padding: 9px 12px;
+  }
+  .page-master .u-card input:hover,
+  .page-master .u-card textarea:hover { border-color: var(--rule-2); }
+  .page-master .u-card input:focus,
+  .page-master .u-card textarea:focus,
+  .page-master .u-card select:focus {
+    border-color: #dd9d5f;
+    box-shadow: 0 0 0 3px rgba(232, 185, 138, .35);
+  }
+  .page-master .u-card textarea.addr-cell { line-height: 1.45; }
+
+  /* 終了・削除は錠剤形。札の右肩に置く */
+  .page-master .u-head .btn {
+    border-radius: 999px;
+    font-size: 12px;
+    padding: 8px 16px;
+    white-space: nowrap;
+  }
+
+  .u-card .cert-cell input { text-align: center; font-size: 13px; }
+  .u-card .tag-cell, .u-card .day-cell { display: flex; gap: 5px; flex-wrap: wrap; }
+  .u-card .tag { width: 38px; height: 40px; border-radius: 10px; }
+  .u-card .tag svg { width: 20px; height: 20px; }
+  .page-master .u-card .day { width: 40px; height: 42px; border-radius: 10px; }
+
+  .u-list.is-empty { gap: 0; }
+  .u-list .pm-none { padding: 26px 0; text-align: center; color: var(--ink-3); font-size: 14px; }
+
+  @media screen and (max-width: 1100px) {
+    .u-body { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media screen and (max-width: 700px) {
+    .u-body { grid-template-columns: minmax(0, 1fr); }
+    .u-f.wide { grid-column: span 1; }
+  }
+
   /* ── タイトル画面 ──────────────────────────
      お預かりしたデザイン仕様書（フローティング・ピル型）の数値どおり。
      浮いたカードの中に、錠剤形のボタンとタイルを置く。
@@ -4695,7 +4771,7 @@
   <details class="fold" id="fold-legend">
     <summary><span class="fd-title">この画面の使い方</span><span class="fd-note">記号の意味と操作のまとめ</span>
       <!-- 古い控えを開いていないか、ここで見分けられるようにしておく -->
-      <span class="fd-ver">版 2026-08-19</span></summary>
+      <span class="fd-ver">版 2026-08-19b</span></summary>
     <div class="fold-body">
   <div class="legend">
     <span class="item"><span class="swatch s-wc" data-icon="wc"></span>車椅子（リフト・スロープ使用）</span>
@@ -4901,26 +4977,7 @@
         <button type="button" class="btn pf-clear" id="user-filter-clear" hidden>絞りを外す</button>
         <span class="pf-hit" id="user-hit"></span>
       </div>
-      <div class="pm-scroll">
-        <table>
-          <thead>
-            <tr>
-              <th style="width:8%">氏名</th>
-              <th style="width:7%">ふりがな</th>
-              <th style="width:15%">住所（市区町村以下）<span class="th-note">建物名まで入ります</span></th>
-              <th style="width:7%">介護度</th>
-              <th style="width:14%">認定有効期間<span class="th-note">介護度の確認用</span></th>
-              <th style="width:7%">血圧<span class="th-note">日誌の備考欄</span></th>
-              <th style="width:7%">電話番号<span class="th-note">電話帳に出る</span></th>
-              <th style="width:7%">連絡メモ<span class="th-note">連絡表の3段目</span></th>
-              <th style="width:7%">記号</th>
-              <th style="width:14%">利用曜日</th>
-              <th style="width:7%"></th>
-            </tr>
-          </thead>
-          <tbody id="user-rows"></tbody>
-        </table>
-      </div>
+      <div class="u-list" id="user-rows"></div>
 
       <h3 class="pm-ended">利用終了<span class="h3-note" id="ended-count"></span></h3>
       <div class="pm-scroll">
@@ -8938,19 +8995,42 @@
   /* ── マスタの表（利用者・運転手・配車） ────
      マスタ編集のページに出る3つの表と、配車の割り当てを組む欄。 */
 
+  /* 1人ぶんを1枚の札にする。桝を横に11も並べると、どれも小さくなって
+     読めなくなるため。欄には見出しを付け、横に流さずに済むようにした */
   function drawUserRow(u, i) {
-    const tr = document.createElement("tr");
-    const cell = (child) => { const td = document.createElement("td"); td.append(child); tr.append(td); return child; };
+    const card = el("div", "u-card");
+    const head = el("div", "u-head");
+    const body = el("div", "u-body");
+    card.append(head, body);
 
+    /* 見出しの欄には印を付けない。氏名とふりがなは札の頭に置く */
+    const cell = (child) => { body.append(child); return child; };
+    /* 見出し付きの欄をひとつ作る */
+    const field = (label, child, wide) => {
+      const box = el("div", "u-f" + (wide ? " wide" : ""));
+      box.append(el("span", "u-l", label), child);
+      body.append(box);
+      return child;
+    };
+
+    const ava = el("span", "u-ava", (u.name || "　").trim().charAt(0));
     const nameI = document.createElement("input");
-    nameI.type = "text"; nameI.value = u.name;
-    nameI.addEventListener("input", () => { draftUsers[i].name = nameI.value; });
-    cell(nameI);
+    nameI.type = "text"; nameI.value = u.name; nameI.className = "u-name";
+    nameI.title = "氏名";
+    nameI.addEventListener("input", () => {
+      draftUsers[i].name = nameI.value;
+      ava.textContent = (nameI.value || "　").trim().charAt(0);
+    });
 
     const kanaI = document.createElement("input");
-    kanaI.type = "text"; kanaI.value = u.kana;
+    kanaI.type = "text"; kanaI.value = u.kana; kanaI.className = "u-kana";
+    kanaI.title = "ふりがな";
+    kanaI.placeholder = "ふりがな";
     kanaI.addEventListener("input", () => { draftUsers[i].kana = kanaI.value; });
-    cell(kanaI);
+
+    const idBox = el("span", "u-id");
+    idBox.append(nameI, kanaI);
+    head.append(ava, idBox, el("span", "u-sp"));
 
     /* 住所は建物名まで入ると1行に収まらない（介護ソフトから住所1と住所2を
        つないで入れるため）。欄の中で折り返し、中身の量に合わせて背を伸ばす */
@@ -8966,9 +9046,10 @@
       addrI.title = addrI.value;
       fitAddr(addrI);
     });
-    cell(addrI);
+    field("住所（市区町村以下）", addrI, true);
 
-    cell(careSelect(u.care)).addEventListener("change", function () { draftUsers[i].care = this.value; });
+    field("介護度", careSelect(u.care))
+      .addEventListener("change", function () { draftUsers[i].care = this.value; });
 
     /* 認定の有効期間。介護度がいつまで有効かを、その場で見比べられるように置く。
        日付の桝は横に広いので、62行の表では字の欄にしてある。
@@ -8997,9 +9078,9 @@
       certWrap.classList.toggle("is-soon", !!to && to >= isoToday() && to <= isoPlusDays(60));
     };
     markCert();
-    cell(certWrap);
+    field("認定有効期間", certWrap);
 
-    cell(bpSelect(u.bp)).addEventListener("change", function () {
+    field("血圧（日誌の備考）", bpSelect(u.bp)).addEventListener("change", function () {
       draftUsers[i].bp = this.value;
       this.classList.toggle("is-shunt", isShunt(this.value));
     });
@@ -9009,7 +9090,7 @@
     telI.value = u.tel || "";
     telI.placeholder = "046-000-0000";
     telI.addEventListener("input", () => { draftUsers[i].tel = telI.value; });
-    cell(telI);
+    field("電話番号", telI);
 
     const noteI = document.createElement("input");
     noteI.type = "text";
@@ -9017,7 +9098,7 @@
     noteI.placeholder = "TELなし など";
     noteI.setAttribute("list", "tel-notes");
     noteI.addEventListener("input", () => { draftUsers[i].note = noteI.value; });
-    cell(noteI);
+    field("連絡メモ", noteI);
 
     const tagWrap = el("span", "tag-cell");
     TAGS.forEach((t) => {
@@ -9032,7 +9113,7 @@
       });
       tagWrap.append(b);
     });
-    cell(tagWrap);
+    field("記号", tagWrap);
 
     const dayWrap = el("span", "day-cell");
     const AP_CYCLE = ["", "AM", "PM"];
@@ -9059,10 +9140,9 @@
       });
       dayWrap.append(b);
     });
-    cell(dayWrap);
+    field("利用曜日", dayWrap, true);
 
-    const actions = el("span", "ops-cell");
-    const endBtn = el("button", "btn end", "終了");
+    const endBtn = el("button", "btn end", "利用終了にする");
     endBtn.type = "button";
     endBtn.title = "利用終了にして、送迎表の候補から外す（記録は残る）";
     endBtn.addEventListener("click", () => openEndDialog(i));
@@ -9070,10 +9150,9 @@
     del.type = "button";
     del.title = "記録ごと消す（履歴を残すなら「終了」）";
     del.addEventListener("click", () => openDeleteDialog(i));
-    actions.append(endBtn, del);
-    cell(actions);
+    head.append(endBtn, del);
 
-    return tr;
+    return card;
   }
 
   function drawEndedRow(u, i) {
@@ -9180,18 +9259,13 @@
       ub.append(drawUserRow(u, i));
       shown++;
     });
+    ub.classList.toggle("is-empty", shown === 0);
 
     const filtered = !!(userFind || userDay);
     document.getElementById("user-filter-clear").hidden = !filtered;
     document.getElementById("user-hit").textContent = filtered ? shown + " / " + active + "名" : "";
     if (filtered && shown === 0) {
-      const tr = document.createElement("tr");
-      const td = document.createElement("td");
-      td.colSpan = 11;
-      td.className = "pm-none";
-      td.textContent = "あてはまる方はいません。";
-      tr.append(td);
-      ub.append(tr);
+      ub.append(el("p", "pm-none", "あてはまる方はいません。"));
     }
 
     document.getElementById("active-count").textContent = active + "名";
