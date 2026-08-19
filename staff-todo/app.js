@@ -1534,7 +1534,8 @@ function renderMemoList() {
             <span class="badge ${badgeClass}">${escapeHtml(m.status)}</span>
           </div>
           <div class="card__memo">${escapeHtml(m.content || "")}</div>
-          <div class="card__meta"><span class="badge">${escapeHtml(time)}受電</span><span class="badge">受: ${escapeHtml(m.staff || "-")}</span></div>
+          ${m.progress ? `<div class="card__memo card__memo--progress">経過: ${escapeHtml(m.progress)}</div>` : ""}
+          <div class="card__meta"><span class="badge">${escapeHtml(time)}受電</span><span class="badge">受: ${escapeHtml(m.staff || "-")}</span>${m.responder ? `<span class="badge">対: ${escapeHtml(m.responder)}</span>` : ""}</div>
         </div>
         <select class="memo-select" data-action="quick-status" aria-label="対応状況を変更">${options}</select>
       </div>`;
@@ -1556,9 +1557,12 @@ function renderMemoList() {
 function openMemoSheet(existing) {
   const status = existing?.status || "未対応";
   const currentStaffName = existing?.staff ?? meStaff()?.name ?? "";
+  const currentResponderName = existing?.responder ?? "";
   // 過去に手入力された名前が今の職員一覧にない場合(退職・改名など)も選択肢から消えないようにする
   const extraStaffOption = currentStaffName && !state.staff.some((s) => s.name === currentStaffName)
     ? `<option value="${escapeHtml(currentStaffName)}" selected>${escapeHtml(currentStaffName)}（一覧になし）</option>` : "";
+  const extraResponderOption = currentResponderName && !state.staff.some((s) => s.name === currentResponderName)
+    ? `<option value="${escapeHtml(currentResponderName)}" selected>${escapeHtml(currentResponderName)}（一覧になし）</option>` : "";
   const html = `
     <div class="field">
       <label for="m-caller">相手先（氏名・施設名など）</label>
@@ -1569,11 +1573,23 @@ function openMemoSheet(existing) {
       <textarea id="m-content" name="content" required maxlength="500" placeholder="例：来週の送迎時間を変更したい">${escapeHtml(existing?.content || "")}</textarea>
     </div>
     <div class="field">
+      <label for="m-progress">経過（任意）</label>
+      <textarea id="m-progress" name="progress" maxlength="500" placeholder="例：ご家族に折り返し、来週火曜に変更で承諾済み">${escapeHtml(existing?.progress || "")}</textarea>
+    </div>
+    <div class="field">
       <label for="m-staff">受けた担当者</label>
       <select id="m-staff" name="staff">
         <option value="">選択してください</option>
         ${extraStaffOption}
         ${state.staff.map((s) => `<option value="${escapeHtml(s.name)}" ${currentStaffName === s.name ? "selected" : ""}>${escapeHtml(s.name)}</option>`).join("")}
+      </select>
+    </div>
+    <div class="field">
+      <label for="m-responder">対応者（任意）</label>
+      <select id="m-responder" name="responder">
+        <option value="">選択してください</option>
+        ${extraResponderOption}
+        ${state.staff.map((s) => `<option value="${escapeHtml(s.name)}" ${currentResponderName === s.name ? "selected" : ""}>${escapeHtml(s.name)}</option>`).join("")}
       </select>
     </div>
     <div class="field">
@@ -1589,7 +1605,9 @@ function openMemoSheet(existing) {
       const payload = {
         caller: data.caller.trim(),
         content: data.content.trim(),
+        progress: data.progress?.trim() || "",
         staff: data.staff.trim(),
+        responder: data.responder.trim(),
         status: data.status || "未対応",
       };
       if (!payload.content) return;
