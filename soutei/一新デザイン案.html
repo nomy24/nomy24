@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>あさひ 送迎支援　デザイン一新案</title>
+<style>
+  :root {
+    --bg:#f3ece1; --card:#fffaf2; --inner:#fff4e6; --inner-2:#fff1de;
+    --ink:#5c3d20; --ink-2:#a98a6a; --ink-3:#c2a37c; --nav-ink:#8a6a4a;
+    --icon:#b5895a; --icon-on:#4a2f16; --line:#f0ddc0; --line-2:#f3e6d2;
+    --acc-from:#e8b98a; --acc-to:#c97a3a; --acc-mid:#dd9d5f;
+    --acc-ink:#a9702f; --acc-deep:#b5702f;
+    --good-bg:#e6f0da; --good-ink:#5c8a4a;
+    --warn-bg:#fdeadb; --warn-ink:#c9791f;
+    --neut-bg:#eef1f5; --neut-ink:#7a8aa0;
+    --open-bg:#e8eefc; --open-ink:#3f5fbf;
+    --r-card:22px; --r-head:26px; --r-mid:18px; --r-small:16px; --r-pill:999px; --r-cell:12px;
+    --sh-card:0 10px 28px rgba(150,110,60,.12);
+    --sh-main:0 10px 28px rgba(150,110,60,.08);
+    --sh-cta:0 6px 14px rgba(201,122,58,.35);
+    --sh-tile:0 14px 30px rgba(201,122,58,.22);
+    --font:"Hiragino Sans","Yu Gothic","Segoe UI",sans-serif;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--font); background:var(--bg); color:var(--ink); line-height:1.5; }
+  .ic { flex-shrink:0; }
+
+  .switch { position:sticky; top:0; z-index:40; background:var(--card);
+            border-bottom:1px solid var(--line); padding:12px 22px;
+            box-shadow:0 2px 14px rgba(150,110,60,.10); }
+  .switch h2 { font-size:13px; color:var(--ink-2); margin-bottom:8px; font-weight:700; }
+  .switch .row { display:flex; gap:8px; flex-wrap:wrap; }
+  .pick { border:1.5px solid var(--line); border-radius:var(--r-pill); background:var(--card);
+          padding:9px 18px; font-family:inherit; font-size:13px; font-weight:700;
+          color:var(--nav-ink); cursor:pointer; }
+  .pick[aria-pressed="true"] { background:linear-gradient(135deg,var(--acc-from),var(--acc-mid));
+                               color:var(--icon-on); border-color:transparent; box-shadow:var(--sh-cta); }
+  .note { max-width:1180px; margin:16px auto 0; padding:0 22px; font-size:13px;
+          color:var(--nav-ink); line-height:1.85; }
+  .note b { color:var(--ink); }
+
+  .stage { padding:26px; max-width:1560px; margin:0 auto; }
+  .stage[hidden] { display:none; }
+
+  /* ── タイトル画面 ─────────────────────── */
+  .launcher { max-width:980px; margin:0 auto; display:flex; flex-direction:column; gap:18px; }
+  .l-header { background:var(--card); border-radius:var(--r-head); padding:32px 36px;
+              box-shadow:0 12px 32px rgba(150,110,60,.12); display:flex;
+              justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; }
+  .l-brand { display:flex; align-items:center; gap:14px; }
+  .l-logo { width:52px; height:52px; border-radius:var(--r-small);
+            background:linear-gradient(135deg,var(--acc-from),var(--acc-to));
+            display:flex; align-items:center; justify-content:center; font-size:24px;
+            box-shadow:0 8px 18px rgba(201,122,58,.3); }
+  .l-name { font-size:21px; font-weight:800; }
+  .l-tagline { font-size:12px; color:var(--ink-2); margin-top:2px; }
+  .l-user { display:flex; align-items:center; gap:12px; }
+  .l-user-text { text-align:right; }
+  .l-greeting { font-size:13px; font-weight:700; }
+  .l-date { font-size:11.5px; color:var(--ink-2); margin-top:2px; }
+  .l-avatar { width:42px; height:42px; border-radius:50%;
+              background:linear-gradient(135deg,var(--acc-from),var(--acc-to)); color:#fff;
+              display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:800; }
+  .l-section-label { font-size:12.5px; font-weight:700; color:var(--acc-ink); padding:0 6px; }
+  .l-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  .l-tile { background:var(--card); border-radius:var(--r-card); padding:26px 20px;
+            box-shadow:0 8px 22px rgba(150,110,60,.10); display:flex; flex-direction:column;
+            align-items:center; text-align:center; gap:10px; text-decoration:none; color:inherit;
+            transition:transform .18s ease, box-shadow .18s ease, background .18s ease; cursor:pointer; }
+  .l-tile:hover { transform:translateY(-4px); box-shadow:var(--sh-tile); background:#fff6e9; }
+  .l-tile-icon { width:60px; height:60px; border-radius:var(--r-mid); background:#f7dcb8;
+                 display:flex; align-items:center; justify-content:center; transition:.18s ease; }
+  .l-tile:hover .l-tile-icon { background:linear-gradient(135deg,var(--acc-from),var(--acc-to)); }
+  .l-tile-icon svg { stroke:var(--acc-deep); transition:.18s ease; }
+  .l-tile:hover .l-tile-icon svg { stroke:#fff; }
+  .l-tile-title { font-size:14.5px; font-weight:800; }
+  .l-tile-desc { font-size:11.5px; color:var(--ink-2); line-height:1.5; }
+  .l-tile-badge { margin-top:2px; font-size:10px; font-weight:700; padding:3px 10px;
+                  border-radius:var(--r-pill); background:var(--warn-bg); color:var(--warn-ink); }
+  .l-tile-badge.alt { background:var(--open-bg); color:var(--open-ink); }
+  .l-quick { display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+             background:var(--card); border-radius:var(--r-mid); padding:14px 20px;
+             box-shadow:var(--sh-main); }
+  .l-quick-l { font-size:12px; font-weight:700; color:var(--ink-2); margin-right:4px; }
+  .l-footer { text-align:center; font-size:11px; color:var(--ink-3); padding-top:6px; }
+
+  .chip { display:inline-flex; align-items:baseline; gap:4px; padding:5px 14px;
+          border-radius:var(--r-pill); background:var(--inner); font-size:11.5px;
+          font-weight:700; color:var(--acc-ink); }
+  .chip b { font-size:15px; font-weight:800; }
+  .chip.warn { background:var(--warn-bg); color:var(--warn-ink); }
+  .chip.good { background:var(--good-bg); color:var(--good-ink); }
+
+  /* ── 中の画面 ─────────────────────────── */
+  .e-shell { display:flex; gap:20px; align-items:flex-start; }
+  .e-nav { width:224px; background:var(--card); border-radius:var(--r-card); padding:18px 14px;
+           box-shadow:var(--sh-card); position:sticky; top:26px; flex-shrink:0; }
+  .e-logo { display:flex; align-items:center; gap:8px; font-weight:800; color:#7a4f24;
+            padding:6px 8px 18px; font-size:15px; }
+  .e-item { display:flex; align-items:center; gap:10px; width:100%; padding:11px 16px;
+            border-radius:var(--r-pill); font-size:13.5px; color:var(--nav-ink); font-weight:600;
+            margin-bottom:6px; cursor:pointer; border:none; background:none; text-align:left;
+            font-family:inherit; transition:.15s; }
+  .e-item svg { stroke:var(--icon); }
+  .e-item:hover { background:var(--inner-2); }
+  .e-item.on { background:linear-gradient(135deg,var(--acc-from),var(--acc-mid));
+               color:var(--icon-on); box-shadow:0 6px 14px rgba(210,150,80,.35); }
+  .e-item.on svg { stroke:var(--icon-on); }
+  .e-profile { display:flex; align-items:center; gap:10px; margin-top:14px; padding:10px 12px;
+               border-radius:var(--r-small); background:var(--inner-2); }
+  .e-avatar { width:32px; height:32px; border-radius:50%;
+              background:linear-gradient(135deg,var(--acc-from),var(--acc-to)); display:flex;
+              align-items:center; justify-content:center; color:#fff; font-size:13px; font-weight:800; }
+  .e-pname { font-size:12px; font-weight:700; }
+  .e-prole { font-size:10.5px; color:var(--ink-2); }
+
+  .e-main { flex:1; min-width:0; background:var(--card); border-radius:var(--r-card);
+            padding:26px 30px; box-shadow:var(--sh-main); min-height:640px; }
+  .e-top { display:flex; justify-content:space-between; align-items:flex-start;
+           margin-bottom:22px; gap:12px; flex-wrap:wrap; }
+  .e-title { font-size:20px; font-weight:800; }
+  .e-sub { font-size:12.5px; color:var(--ink-2); margin-top:4px; }
+  .e-actions { display:flex; gap:8px; }
+  .e-card { background:var(--inner); border-radius:var(--r-mid); padding:18px 20px; }
+  .e-card h3 { font-size:13.5px; color:#7a4f24; margin-bottom:12px; }
+
+  .pill { border:none; border-radius:var(--r-pill); font-family:inherit; font-size:13px;
+          font-weight:700; padding:11px 22px; cursor:pointer;
+          background:linear-gradient(135deg,var(--acc-from),var(--acc-to)); color:#fff;
+          box-shadow:var(--sh-cta); display:inline-flex; align-items:center; gap:6px; }
+  .pill.ghost { background:var(--inner-2); color:var(--acc-ink); box-shadow:none; }
+  .pill.ghost:hover { background:#ffe8cd; }
+  .pill.danger { background:var(--warn-bg); color:#b2452b; box-shadow:none; }
+  .pill.danger:hover { background:#f8d9c8; }
+  .pill.small { font-size:11.5px; padding:7px 14px; }
+  .sp { flex:1; }
+
+  /* ── 出欠カレンダー（月） ───────────────── */
+  .c-wrap { display:grid; grid-template-columns:1.55fr 1fr; gap:16px; align-items:start; }
+  .c-cal { background:var(--inner); border-radius:var(--r-mid); padding:18px 20px; }
+  .c-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; gap:10px; }
+  .c-head h3 { font-size:15px; color:#7a4f24; }
+  .c-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:6px; }
+  .c-dow { text-align:center; font-size:10.5px; font-weight:700; color:#b39170; padding-bottom:4px; }
+  .c-cell { min-height:70px; border-radius:var(--r-cell); background:var(--card); padding:6px 7px;
+            display:flex; flex-direction:column; gap:3px; cursor:pointer; transition:.15s; }
+  .c-cell:hover { box-shadow:0 6px 16px rgba(201,122,58,.20); transform:translateY(-2px); }
+  .c-cell.empty { background:transparent; cursor:default; }
+  .c-cell.empty:hover { box-shadow:none; transform:none; }
+  .c-cell.off { background:#f7f2ea; color:var(--ink-3); cursor:default; }
+  .c-cell.off:hover { box-shadow:none; transform:none; }
+  .c-num { font-size:12.5px; font-weight:800; }
+  .c-none { font-size:10.5px; color:var(--ink-3); }
+  .c-cnt { display:flex; flex-direction:column; gap:2px; }
+  .c-cnt i { font-style:normal; font-size:10.5px; font-weight:700; border-radius:5px;
+             padding:1px 5px; }
+  .c-cnt .am { background:#e6f0fc; color:#28486f; }
+  .c-cnt .pm { background:#fcecf2; color:#7b3149; }
+  .c-flag { align-self:flex-start; font-size:9.5px; font-weight:700; border-radius:var(--r-pill);
+            padding:1px 7px; }
+  .c-flag.warn { background:var(--warn-bg); color:var(--warn-ink); }
+  .c-flag.good { background:var(--good-bg); color:var(--good-ink); }
+  .c-cell.today { background:linear-gradient(135deg,var(--acc-from),var(--acc-mid)); }
+  .c-cell.today .c-num { color:var(--icon-on); }
+  .c-legend { display:flex; gap:16px; flex-wrap:wrap; align-items:center; margin-top:14px;
+              font-size:11.5px; color:var(--ink-2); }
+  .c-legend .sw { width:12px; height:12px; border-radius:4px; display:inline-block; margin-right:5px;
+                  vertical-align:-1px; }
+  .c-legend .sw.am { background:#e6f0fc; } .c-legend .sw.pm { background:#fcecf2; }
+  .c-legend .sw.warn { background:var(--warn-bg); } .c-legend .sw.good { background:var(--good-bg); }
+  .c-hint { margin-left:auto; color:var(--ink-3); }
+  .c-side { display:flex; flex-direction:column; gap:14px; }
+  .c-sum { display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
+  .c-list { display:flex; flex-direction:column; gap:7px; }
+  .c-row { display:flex; align-items:center; gap:10px; }
+  .c-row.off .c-nm { color:#b2452b; text-decoration:line-through; }
+  .c-nm { font-size:13px; font-weight:700; flex:1; }
+  .seg { display:inline-flex; border-radius:var(--r-pill); background:var(--card); padding:2px; gap:2px; }
+  .seg i { font-style:normal; font-size:10.5px; font-weight:700; padding:4px 9px;
+           border-radius:var(--r-pill); color:var(--ink-2); cursor:pointer; }
+  .seg i.on { background:linear-gradient(135deg,var(--acc-from),var(--acc-mid)); color:var(--icon-on); }
+  .seg i.on.warn { background:var(--warn-bg); color:var(--warn-ink); }
+  .c-more { margin-top:10px; font-size:11.5px; color:var(--ink-3); }
+  .c-link { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--nav-ink);
+            padding:7px 0; border-bottom:1px solid var(--line); }
+  .c-link:last-child { border-bottom:none; }
+  .c-link svg { stroke:var(--icon); }
+
+  /* ── 出欠カレンダー（利用者×日付） ──────── */
+  .m-tools { display:flex; align-items:center; gap:10px; margin-bottom:14px; flex-wrap:wrap; }
+  .m-title { font-size:15px; color:#7a4f24; }
+  .m-key { display:inline-flex; align-items:center; gap:6px; font-size:11.5px; color:var(--ink-2); }
+  .m-key .k { font-style:normal; font-size:10px; font-weight:800; border-radius:5px; padding:2px 6px;
+              margin-left:8px; }
+  .m-key .k.am { background:#e6f0fc; color:#28486f; }
+  .m-key .k.pm { background:#fcecf2; color:#7b3149; }
+  .m-key .k.kes { background:var(--warn-bg); color:var(--warn-ink); }
+  .m-key .k.furi { background:var(--good-bg); color:var(--good-ink); }
+  .m-scroll { overflow-x:auto; background:var(--inner); border-radius:var(--r-mid); padding:14px; }
+  .m-grid { min-width:1180px; display:flex; flex-direction:column; gap:4px; }
+  .m-row { display:grid; grid-template-columns:150px repeat(31, 1fr); gap:3px; align-items:center; }
+  .m-row.head { position:sticky; top:0; }
+  .m-h { text-align:center; font-size:10px; font-weight:700; color:var(--ink-2); line-height:1.2; }
+  .m-h i { display:block; font-style:normal; font-size:9px; color:var(--ink-3); }
+  .m-h.sun { color:#b2452b; } .m-h.sat { color:#3f5fbf; }
+  .m-nm { font-size:12.5px; }
+  .m-nm b { display:block; font-weight:700; }
+  .m-nm s { display:block; text-decoration:none; font-size:10px; color:var(--ink-2); }
+  .m-c { height:26px; border-radius:6px; background:var(--card); display:flex; align-items:center;
+         justify-content:center; font-size:9.5px; font-weight:800; color:var(--ink-3);
+         cursor:pointer; transition:.12s; }
+  .m-c:hover { box-shadow:0 3px 10px rgba(201,122,58,.25); }
+  .m-c.off { background:#f7f2ea; cursor:default; }
+  .m-c.on.am { background:#e6f0fc; color:#28486f; }
+  .m-c.on.pm { background:#fcecf2; color:#7b3149; }
+  .m-c.kes { background:var(--warn-bg); color:var(--warn-ink); }
+  .m-c.furi { background:var(--good-bg); color:var(--good-ink); }
+  .m-note { margin-top:14px; font-size:12px; color:var(--nav-ink); line-height:1.8; }
+
+  /* ── マスタ管理（札） ───────────────────── */
+  .m-bar { display:flex; align-items:center; gap:10px; margin-bottom:16px; flex-wrap:wrap; }
+  .search { display:inline-flex; align-items:center; gap:8px; background:var(--inner-2);
+            border-radius:var(--r-pill); padding:8px 16px; min-width:300px; }
+  .search svg { stroke:var(--icon); }
+  .search .inp { border:none; background:transparent; box-shadow:none; padding:2px 0; }
+  .dayfilter { display:flex; gap:5px; }
+  .dbtn { width:36px; height:36px; border-radius:var(--r-pill); border:1.5px solid var(--line);
+          background:var(--card); font-family:inherit; font-size:13.5px; font-weight:700;
+          color:var(--nav-ink); cursor:pointer; }
+  .dbtn.on { background:linear-gradient(135deg,var(--acc-from),var(--acc-mid));
+             color:var(--icon-on); border-color:transparent; }
+  .hit { font-size:12.5px; color:var(--ink-2); }
+
+  .u-list { display:flex; flex-direction:column; gap:14px; }
+  .u-card { background:var(--inner); border-radius:var(--r-mid); padding:16px 20px 18px;
+            transition:.16s; }
+  .u-card:hover { box-shadow:0 10px 24px rgba(201,122,58,.16); }
+  .u-head { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+  .u-ava { width:40px; height:40px; border-radius:var(--r-cell); flex-shrink:0;
+           background:linear-gradient(135deg,var(--acc-from),var(--acc-to)); color:#fff;
+           display:flex; align-items:center; justify-content:center; font-size:17px; font-weight:800; }
+  .u-id { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .u-id .nm { width:170px; font-size:16px; font-weight:700; }
+  .u-id .kn { width:150px; font-size:12.5px; color:var(--ink-2); }
+  .u-body { display:grid; grid-template-columns:repeat(4, 1fr); gap:12px 14px; }
+  .f { display:flex; flex-direction:column; gap:4px; min-width:0; }
+  .f.wide { grid-column:span 2; }
+  .f-l { font-size:10.5px; font-weight:700; color:var(--ink-2); letter-spacing:.04em; }
+  .inp { font-family:inherit; font-size:14px; width:100%; color:var(--ink);
+         background:var(--card); border:1.5px solid transparent; border-radius:12px;
+         padding:9px 12px; transition:.14s; }
+  .inp:hover { border-color:var(--line); }
+  .inp:focus { outline:none; border-color:var(--acc-mid); background:#fff;
+               box-shadow:0 0 0 3px rgba(232,185,138,.35); }
+  textarea.inp { resize:none; overflow:hidden; line-height:1.45; height:40px;
+                 white-space:pre-wrap; overflow-wrap:anywhere; }
+  .cert { display:flex; align-items:center; gap:5px; }
+  .cert .inp { text-align:center; font-size:13px; }
+  .cert i { font-style:normal; color:var(--ink-2); }
+  .tag-cell, .day-cell { display:flex; gap:5px; flex-wrap:wrap; }
+  .tag { border:1.5px solid var(--line); border-radius:var(--r-pill); background:var(--card);
+         font-family:inherit; font-size:11.5px; font-weight:700; color:var(--ink-2);
+         padding:8px 14px; cursor:pointer; }
+  .tag.on[data-t="車"] { background:#f6e4e1; border-color:#B23A2C; color:#8f2c20; }
+  .tag.on[data-t="補"] { background:#e2eff8; border-color:#1B87C9; color:#125f8e; }
+  .tag.on[data-t="玄"] { background:#e4efe7; border-color:#3F6B4E; color:#2c4c37; }
+  .day { width:40px; height:42px; border-radius:12px; border:1.5px solid var(--line);
+         background:var(--card); font-family:inherit; cursor:pointer; display:flex;
+         flex-direction:column; align-items:center; justify-content:center; line-height:1;
+         color:var(--ink-3); gap:2px; }
+  .day .d { font-size:14px; font-weight:700; }
+  .day .ap { font-size:10px; font-weight:800; min-height:10px; }
+  .day.on[data-d="月"] { background:#FBE4E4; border-color:#B34747; color:#8E2F2F; }
+  .day.on[data-d="火"] { background:#E4F1DF; border-color:#4C7A3E; color:#2F5626; }
+  .day.on[data-d="水"] { background:#DEE9F6; border-color:#2F5E9E; color:#1B3E70; }
+  .day.on[data-d="木"] { background:#FBF1D3; border-color:#A88214; color:#6E5405; }
+  .day.on[data-d="金"] { background:#ECEEF0; border-color:#6E7780; color:#3C444C; }
+  .day.on[data-d="土"] { background:#FBE3EE; border-color:#B04A80; color:#832E5A; }</style>
+</head>
+<body>
+<div class="switch"><h2>画面を切り替える</h2><div class="row"><button class="pick" data-s="title" aria-pressed="true">タイトル画面</button><button class="pick" data-s="cal1" aria-pressed="false">出欠カレンダー 案あ</button><button class="pick" data-s="cal2" aria-pressed="false">出欠カレンダー 案い</button><button class="pick" data-s="master" aria-pressed="false">マスタ管理</button></div></div>
+<div class="note">
+  お預かりした<b>デザイン仕様書（E: フローティング・ピル型）</b>の数値どおりに作ったたたき台です。
+  色・角丸・影・余白・字の大きさは仕様書の値をそのまま使っています。<br>
+  <b>出欠カレンダーは2案</b>あります。押せるところ（タイル・曜日・記号・出欠の桝）は実際に反応します。
+</div>
+<div class="stage" data-s="title"><div class="launcher"><div class="l-header"><div class="l-brand"><div class="l-logo">🌿</div><div><div class="l-name">あさひ 送迎支援</div><div class="l-tagline">通所介護事業所　デイサービス あさひ</div></div></div><div class="l-user"><div class="l-user-text"><div class="l-greeting">こんにちは</div><div class="l-date">令和8年8月18日（火）</div></div><div class="l-avatar">あ</div></div></div><div class="l-section-label">メニューを選んでください</div><div class="l-grid"><a class="l-tile" href="#"><div class="l-tile-icon"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:26px;height:26px"><path d="M7.5 5.5h9M7.5 10h9M7.5 14.5h6"/><path d="M3 5.2l1.1 1.1L6.2 4"/><path d="M3 9.7l1.1 1.1L6.2 8.5"/><path d="M3.2 14.5h2"/></svg></div><div class="l-tile-title">Todo タスク</div><div class="l-tile-desc">職員のやることを共有する</div><div class="l-tile-badge alt">別アプリ</div></a><a class="l-tile" href="#"><div class="l-tile-icon"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:26px;height:26px"><path d="M3 12.5l1.3-4A1.4 1.4 0 0 1 5.6 7.5h8.8a1.4 1.4 0 0 1 1.3 1l1.3 4"/><rect x="2" y="12.5" width="16" height="3" rx="1.2"/><circle cx="6" cy="17" r="1.3"/><circle cx="14" cy="17" r="1.3"/></svg></div><div class="l-tile-title">送迎編集</div><div class="l-tile-desc">その日の便・車・乗る方を組む</div></a><a class="l-tile" href="#"><div class="l-tile-icon"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:26px;height:26px"><circle cx="7.5" cy="7" r="3"/><path d="M2.5 17c0-3 2.2-5 5-5s5 2 5 5"/><circle cx="14.5" cy="8" r="2.3"/><path d="M12 12.2c1.7.3 3 1.8 3.5 4.8"/></svg></div><div class="l-tile-title">マスタ管理</div><div class="l-tile-desc">利用者・運転手・配車・担当表</div></a><a class="l-tile" href="#"><div class="l-tile-icon"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:26px;height:26px"><rect x="3" y="4.5" width="14" height="12" rx="2"/><path d="M3 8.5h14M7 3v3M13 3v3"/><path d="M6.5 11.5h2M11 11.5h2M6.5 14h2"/></svg></div><div class="l-tile-title">出欠カレンダー</div><div class="l-tile-desc">1か月ぶんの出欠をまとめて入れる</div><div class="l-tile-badge">新機能</div></a><a class="l-tile" href="#"><div class="l-tile-icon"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:26px;height:26px"><ellipse cx="10" cy="5.5" rx="6" ry="2.5"/><path d="M4 5.5v9c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5v-9"/><path d="M4 10c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5"/></svg></div><div class="l-tile-title">データ管理</div><div class="l-tile-desc">CSV・PDF の取り込みと書き出し</div></a><a class="l-tile" href="#"><div class="l-tile-icon"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:26px;height:26px"><path d="M6 7.5V3.5h8v4"/><rect x="3" y="7.5" width="14" height="6" rx="1.6"/><path d="M6 12.5h8v4H6z"/></svg></div><div class="l-tile-title">印刷レイアウト</div><div class="l-tile-desc">送迎表・業務日誌・電話連絡表・電話帳</div></a></div><div class="l-quick"><span class="l-quick-l">今日のようす</span><span class="chip"><b>34</b> 名</span><span class="chip"><b>8</b> 台</span><span class="chip warn"><b>2</b> 名 欠席</span><span class="chip good"><b>1</b> 名 振替</span></div><div class="l-footer">あさひ 送迎支援　デザイン検討用</div></div></div><div class="stage" data-s="cal1" hidden><div class="e-shell"><div class="e-nav"><div class="e-logo">🌿 あさひ 送迎支援</div><button class="e-item"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px"><path d="M7.5 5.5h9M7.5 10h9M7.5 14.5h6"/><path d="M3 5.2l1.1 1.1L6.2 4"/><path d="M3 9.7l1.1 1.1L6.2 8.5"/><path d="M3.2 14.5h2"/></svg>Todo タスク</button><button class="e-item"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px"><path d="M3 12.5l1.3-4A1.4 1.4 0 0 1 5.6 7.5h8.8a1.4 1.4 0 0 1 1.3 1l1.3 4"/><rect x="2" y="12.5" width="16" height="3" rx="1.2"/><circle cx="6" cy="17" r="1.3"/><circle cx="14" cy="17" r="1.3"/></svg>送迎編集</button><button class="e-item"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px"><circle cx="7.5" cy="7" r="3"/><path d="M2.5 17c0-3 2.2-5 5-5s5 2 5 5"/><circle cx="14.5" cy="8" r="2.3"/><path d="M12 12.2c1.7.3 3 1.8 3.5 4.8"/></svg>マスタ管理</button><button class="e-item on"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px"><rect x="3" y="4.5" width="14" height="12" rx="2"/><path d="M3 8.5h14M7 3v3M13 3v3"/><path d="M6.5 11.5h2M11 11.5h2M6.5 14h2"/></svg>出欠カレンダー</button><button class="e-item"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px"><ellipse cx="10" cy="5.5" rx="6" ry="2.5"/><path d="M4 5.5v9c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5v-9"/><path d="M4 10c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5"/></svg>データ管理</button><button class="e-item"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px"><path d="M6 7.5V3.5h8v4"/><rect x="3" y="7.5" width="14" height="6" rx="1.6"/><path d="M6 12.5h8v4H6z"/></svg>印刷レイアウト</button><div class="e-profile"><div class="e-avatar">あ</div><div><div class="e-pname">のみ さん</div><div class="e-prole">生活相談員</div></div></div></div><div class="e-main"><div class="e-top"><div><div class="e-title">出欠カレンダー</div><div class="e-sub">2026年8月　日をクリックすると、その日の出欠を入れられます</div></div><div class="e-actions"><button class="pill ghost">前の月をコピー</button><button class="pill"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M3 12.5l1.3-4A1.4 1.4 0 0 1 5.6 7.5h8.8a1.4 1.4 0 0 1 1.3 1l1.3 4"/><rect x="2" y="12.5" width="16" height="3" rx="1.2"/><circle cx="6" cy="17" r="1.3"/><circle cx="14" cy="17" r="1.3"/></svg> 送迎表に反映</button></div></div><div class="c-wrap"><div class="c-cal"><div class="c-head"><button class="pill ghost">‹ 7月</button><h3>2026年 8月</h3><button class="pill ghost">9月 ›</button></div><div class="c-grid"><div class="c-dow">日</div><div class="c-dow">月</div><div class="c-dow">火</div><div class="c-dow">水</div><div class="c-dow">木</div><div class="c-dow">金</div><div class="c-dow">土</div><div class="c-cell empty"></div><div class="c-cell empty"></div><div class="c-cell empty"></div><div class="c-cell empty"></div><div class="c-cell empty"></div><div class="c-cell empty"></div><div class="c-cell"><span class="c-num">1</span><span class="c-cnt"><i class="am">午前 13</i><i class="pm">午後 10</i></span></div><div class="c-cell off"><span class="c-num">2</span><span class="c-none">休</span></div><div class="c-cell"><span class="c-num">3</span><span class="c-cnt"><i class="am">午前 15</i><i class="pm">午後 12</i></span></div><div class="c-cell"><span class="c-num">4</span><span class="c-cnt"><i class="am">午前 16</i><i class="pm">午後 9</i></span></div><div class="c-cell"><span class="c-num">5</span><span class="c-cnt"><i class="am">午前 12</i><i class="pm">午後 10</i></span><span class="c-flag warn">欠2</span></div><div class="c-cell"><span class="c-num">6</span><span class="c-cnt"><i class="am">午前 13</i><i class="pm">午後 11</i></span></div><div class="c-cell"><span class="c-num">7</span><span class="c-cnt"><i class="am">午前 14</i><i class="pm">午後 12</i></span></div><div class="c-cell"><span class="c-num">8</span><span class="c-cnt"><i class="am">午前 15</i><i class="pm">午後 9</i></span></div><div class="c-cell off"><span class="c-num">9</span><span class="c-none">休</span></div><div class="c-cell"><span class="c-num">10</span><span class="c-cnt"><i class="am">午前 12</i><i class="pm">午後 11</i></span></div><div class="c-cell"><span class="c-num">11</span><span class="c-cnt"><i class="am">午前 13</i><i class="pm">午後 12</i></span></div><div class="c-cell"><span class="c-num">12</span><span class="c-cnt"><i class="am">午前 14</i><i class="pm">午後 9</i></span><span class="c-flag good">振1</span></div><div class="c-cell"><span class="c-num">13</span><span class="c-cnt"><i class="am">午前 15</i><i class="pm">午後 10</i></span></div><div class="c-cell"><span class="c-num">14</span><span class="c-cnt"><i class="am">午前 16</i><i class="pm">午後 11</i></span></div><div class="c-cell"><span class="c-num">15</span><span class="c-cnt"><i class="am">午前 12</i><i class="pm">午後 12</i></span></div><div class="c-cell off"><span class="c-num">16</span><span class="c-none">休</span></div><div class="c-cell"><span class="c-num">17</span><span class="c-cnt"><i class="am">午前 14</i><i class="pm">午後 10</i></span></div><div class="c-cell today"><span class="c-num">18</span><span class="c-cnt"><i class="am">午前 15</i><i class="pm">午後 11</i></span></div><div class="c-cell"><span class="c-num">19</span><span class="c-cnt"><i class="am">午前 16</i><i class="pm">午後 12</i></span></div><div class="c-cell"><span class="c-num">20</span><span class="c-cnt"><i class="am">午前 12</i><i class="pm">午後 9</i></span></div><div class="c-cell"><span class="c-num">21</span><span class="c-cnt"><i class="am">午前 13</i><i class="pm">午後 10</i></span><span class="c-flag warn">欠1</span></div><div class="c-cell"><span class="c-num">22</span><span class="c-cnt"><i class="am">午前 14</i><i class="pm">午後 11</i></span></div><div class="c-cell off"><span class="c-num">23</span><span class="c-none">休</span></div><div class="c-cell"><span class="c-num">24</span><span class="c-cnt"><i class="am">午前 16</i><i class="pm">午後 9</i></span></div><div class="c-cell"><span class="c-num">25</span><span class="c-cnt"><i class="am">午前 12</i><i class="pm">午後 10</i></span></div><div class="c-cell"><span class="c-num">26</span><span class="c-cnt"><i class="am">午前 13</i><i class="pm">午後 11</i></span><span class="c-flag warn">欠1・振1</span></div><div class="c-cell"><span class="c-num">27</span><span class="c-cnt"><i class="am">午前 14</i><i class="pm">午後 12</i></span></div><div class="c-cell"><span class="c-num">28</span><span class="c-cnt"><i class="am">午前 15</i><i class="pm">午後 9</i></span></div><div class="c-cell"><span class="c-num">29</span><span class="c-cnt"><i class="am">午前 16</i><i class="pm">午後 10</i></span></div><div class="c-cell off"><span class="c-num">30</span><span class="c-none">休</span></div><div class="c-cell"><span class="c-num">31</span><span class="c-cnt"><i class="am">午前 13</i><i class="pm">午後 12</i></span></div></div><div class="c-legend"><span><i class="sw am"></i>午前の人数</span><span><i class="sw pm"></i>午後の人数</span><span><i class="sw warn"></i>欠席あり</span><span><i class="sw good"></i>振替あり</span><span class="c-hint">日をクリックすると、その日の出欠を入れる画面が開きます</span></div></div><div class="c-side"><div class="e-card"><h3>8月18日（火）の出欠</h3><div class="c-sum"><span class="chip"><b>13</b> 午前</span><span class="chip"><b>11</b> 午後</span><span class="chip warn"><b>1</b> 欠席</span></div><div class="c-list"><div class="c-row"><span class="c-nm">秋元 宏敏</span><span class="seg"><i class="on">午前</i><i>午後</i><i>欠</i><i>振</i></span></div><div class="c-row"><span class="c-nm">井田 ミチ</span><span class="seg"><i>午前</i><i class="on">午後</i><i>欠</i><i>振</i></span></div><div class="c-row"><span class="c-nm">武田 モリヱ</span><span class="seg"><i class="on">午前</i><i>午後</i><i>欠</i><i>振</i></span></div><div class="c-row off"><span class="c-nm">大野 スミ</span><span class="seg"><i>午前</i><i>午後</i><i class="on warn">欠</i><i>振</i></span></div><div class="c-row"><span class="c-nm">小島 チヨ</span><span class="seg"><i class="on">午前</i><i>午後</i><i>欠</i><i>振</i></span></div></div><div class="c-more">ほか 19名…</div></div><div class="e-card"><h3>この月のつながり先</h3><div class="c-link"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M3 12.5l1.3-4A1.4 1.4 0 0 1 5.6 7.5h8.8a1.4 1.4 0 0 1 1.3 1l1.3 4"/><rect x="2" y="12.5" width="16" height="3" rx="1.2"/><circle cx="6" cy="17" r="1.3"/><circle cx="14" cy="17" r="1.3"/></svg> 送迎表　その日の名簿になります</div><div class="c-link"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M6 7.5V3.5h8v4"/><rect x="3" y="7.5" width="14" height="6" rx="1.6"/><path d="M6 12.5h8v4H6z"/></svg> 業務日誌　午前・午後の名簿と人数</div><div class="c-link"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><rect x="3" y="4.5" width="14" height="12" rx="2"/><path d="M3 8.5h14M7 3v3M13 3v3"/><path d="M6.5 11.5h2M11 11.5h2M6.5 14h2"/></svg> 出欠表　1か月ぶんを1枚に</div></div></div></div></div></div></div><div class="stage" data-s="cal2" hidden><div class="e-shell"><div class="e-nav"><div class="e-logo">🌿 あさひ 送迎支援</div><button class="e-item"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px"><path d="M7.5 5.5h9M7.5 10h9M7.5 14.5h6"/><path d="M3 5.2l1.1 1.1L6.2 4"/><path d="M3 9.7l1.1 1.1L6.2 8.5"/><path d="M3.2 14.5h2"/></svg>Todo タスク</button><button class="e-item"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px"><path d="M3 12.5l1.3-4A1.4 1.4 0 0 1 5.6 7.5h8.8a1.4 1.4 0 0 1 1.3 1l1.3 4"/><rect x="2" y="12.5" width="16" height="3" rx="1.2"/><circle cx="6" cy="17" r="1.3"/><circle cx="14" cy="17" r="1.3"/></svg>送迎編集</button><button class="e-item"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px"><circle cx="7.5" cy="7" r="3"/><path d="M2.5 17c0-3 2.2-5 5-5s5 2 5 5"/><circle cx="14.5" cy="8" r="2.3"/><path d="M12 12.2c1.7.3 3 1.8 3.5 4.8"/></svg>マスタ管理</button><button class="e-item on"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px"><rect x="3" y="4.5" width="14" height="12" rx="2"/><path d="M3 8.5h14M7 3v3M13 3v3"/><path d="M6.5 11.5h2M11 11.5h2M6.5 14h2"/></svg>出欠カレンダー</button><button class="e-item"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px"><ellipse cx="10" cy="5.5" rx="6" ry="2.5"/><path d="M4 5.5v9c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5v-9"/><path d="M4 10c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5"/></svg>データ管理</button><button class="e-item"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px"><path d="M6 7.5V3.5h8v4"/><rect x="3" y="7.5" width="14" height="6" rx="1.6"/><path d="M6 12.5h8v4H6z"/></svg>印刷レイアウト</button><div class="e-profile"><div class="e-avatar">あ</div><div><div class="e-pname">のみ さん</div><div class="e-prole">生活相談員</div></div></div></div><div class="e-main"><div class="e-top"><div><div class="e-title">出欠カレンダー</div><div class="e-sub">2026年8月　利用者ごとに、1か月ぶんをまとめて入れられます</div></div><div class="e-actions"><button class="pill ghost">いつもの曜日で埋める</button><button class="pill"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M3 12.5l1.3-4A1.4 1.4 0 0 1 5.6 7.5h8.8a1.4 1.4 0 0 1 1.3 1l1.3 4"/><rect x="2" y="12.5" width="16" height="3" rx="1.2"/><circle cx="6" cy="17" r="1.3"/><circle cx="14" cy="17" r="1.3"/></svg> 送迎表に反映</button></div></div><div class="m-tools"><button class="pill ghost">‹ 7月</button><h3 class="m-title">2026年 8月</h3><button class="pill ghost">9月 ›</button><span class="sp"></span><span class="m-key"><i class="k am">AM</i>午前<i class="k pm">PM</i>午後<i class="k kes">欠</i>欠席<i class="k furi">振</i>振替</span></div><div class="m-scroll"><div class="m-grid"><div class="m-row head"><div class="m-nm">利用者</div><div class="m-h sat"><i>土</i>1</div><div class="m-h sun"><i>日</i>2</div><div class="m-h"><i>月</i>3</div><div class="m-h"><i>火</i>4</div><div class="m-h"><i>水</i>5</div><div class="m-h"><i>木</i>6</div><div class="m-h"><i>金</i>7</div><div class="m-h sat"><i>土</i>8</div><div class="m-h sun"><i>日</i>9</div><div class="m-h"><i>月</i>10</div><div class="m-h"><i>火</i>11</div><div class="m-h"><i>水</i>12</div><div class="m-h"><i>木</i>13</div><div class="m-h"><i>金</i>14</div><div class="m-h sat"><i>土</i>15</div><div class="m-h sun"><i>日</i>16</div><div class="m-h"><i>月</i>17</div><div class="m-h"><i>火</i>18</div><div class="m-h"><i>水</i>19</div><div class="m-h"><i>木</i>20</div><div class="m-h"><i>金</i>21</div><div class="m-h sat"><i>土</i>22</div><div class="m-h sun"><i>日</i>23</div><div class="m-h"><i>月</i>24</div><div class="m-h"><i>火</i>25</div><div class="m-h"><i>水</i>26</div><div class="m-h"><i>木</i>27</div><div class="m-h"><i>金</i>28</div><div class="m-h sat"><i>土</i>29</div><div class="m-h sun"><i>日</i>30</div><div class="m-h"><i>月</i>31</div></div><div class="m-row"><div class="m-nm"><b>秋元 宏敏</b><s>あきもと ひろとし</s></div><div class="m-c on am">AM</div><div class="m-c off"></div><div class="m-c on am">AM</div><div class="m-c"></div><div class="m-c on am">AM</div><div class="m-c on am">AM</div><div class="m-c"></div><div class="m-c on am">AM</div><div class="m-c off"></div><div class="m-c on am">AM</div><div class="m-c"></div><div class="m-c on am">AM</div><div class="m-c on am">AM</div><div class="m-c"></div><div class="m-c on am">AM</div><div class="m-c off"></div><div class="m-c on am">AM</div><div class="m-c"></div><div class="m-c on am">AM</div><div class="m-c on am">AM</div><div class="m-c"></div><div class="m-c on am">AM</div><div class="m-c off"></div><div class="m-c on am">AM</div><div class="m-c"></div><div class="m-c on am">AM</div><div class="m-c on am">AM</div><div class="m-c"></div><div class="m-c on am">AM</div><div class="m-c off"></div><div class="m-c on am">AM</div></div><div class="m-row"><div class="m-nm"><b>井田 ミチ</b><s>いだ みち</s></div><div class="m-c"></div><div class="m-c off"></div><div class="m-c on pm">PM</div><div class="m-c"></div><div class="m-c"></div><div class="m-c on pm">PM</div><div class="m-c"></div><div class="m-c"></div><div class="m-c off"></div><div class="m-c on pm">PM</div><div class="m-c"></div><div class="m-c"></div><div class="m-c on pm">PM</div><div class="m-c"></div><div class="m-c"></div><div class="m-c off"></div><div class="m-c on pm">PM</div><div class="m-c"></div><div class="m-c"></div><div class="m-c on pm">PM</div><div class="m-c"></div><div class="m-c"></div><div class="m-c off"></div><div class="m-c on pm">PM</div><div class="m-c"></div><div class="m-c"></div><div class="m-c on pm">PM</div><div class="m-c"></div><div class="m-c"></div><div class="m-c off"></div><div class="m-c on pm">PM</div></div><div class="m-row"><div class="m-nm"><b>上田 ノブ</b><s>うえだ のぶ</s></div><div class="m-c"></div><div class="m-c off"></div><div class="m-c on am">AM</div><div class="m-c"></div><div class="m-c on am">AM</div><div class="m-c"></div><div class="m-c on am">AM</div><div class="m-c"></div><div class="m-c off"></div><div class="m-c on am">AM</div><div class="m-c"></div><div class="m-c furi">振</div><div class="m-c"></div><div class="m-c on am">AM</div><div class="m-c"></div><div class="m-c off"></div><div class="m-c on am">AM</div><div class="m-c"></div><div class="m-c on am">AM</div><div class="m-c"></div><div class="m-c on am">AM</div><div class="m-c"></div><div class="m-c off"></div><div class="m-c on am">AM</div><div class="m-c"></div><div class="m-c on am">AM</div><div class="m-c"></div><div class="m-c on am">AM</div><div class="m-c"></div><div class="m-c off"></div><div class="m-c on am">AM</div></div><div class="m-row"><div class="m-nm"><b>大野 スミ</b><s>おおの すみ</s></div><div class="m-c"></div><div class="m-c off"></div><div class="m-c on am">AM</div><div class="m-c"></div><div class="m-c kes">欠</div><div class="m-c"></div><div class="m-c on am">AM</div><div class="m-c"></div><div class="m-c off"></div><div class="m-c on am">AM</div><div class="m-c"></div><div class="m-c on am">AM</div><div class="m-c"></div><div class="m-c on am">AM</div><div class="m-c"></div><div class="m-c off"></div><div class="m-c on am">AM</div><div class="m-c"></div><div class="m-c on am">AM</div><div class="m-c"></div><div class="m-c on am">AM</div><div class="m-c"></div><div class="m-c off"></div><div class="m-c on am">AM</div><div class="m-c"></div><div class="m-c on am">AM</div><div class="m-c"></div><div class="m-c on am">AM</div><div class="m-c"></div><div class="m-c off"></div><div class="m-c on am">AM</div></div><div class="m-row"><div class="m-nm"><b>小島 チヨ</b><s>こじま ちよ</s></div><div class="m-c"></div><div class="m-c off"></div><div class="m-c on am">AM</div><div class="m-c"></div><div class="m-c on am">AM</div><div class="m-c"></div><div class="m-c on am">AM</div><div class="m-c"></div><div class="m-c off"></div><div class="m-c on am">AM</div><div class="m-c"></div><div class="m-c on am">AM</div><div class="m-c"></div><div class="m-c on am">AM</div><div class="m-c"></div><div class="m-c off"></div><div class="m-c on am">AM</div><div class="m-c"></div><div class="m-c on am">AM</div><div class="m-c"></div><div class="m-c on am">AM</div><div class="m-c"></div><div class="m-c off"></div><div class="m-c on am">AM</div><div class="m-c"></div><div class="m-c on am">AM</div><div class="m-c"></div><div class="m-c on am">AM</div><div class="m-c"></div><div class="m-c off"></div><div class="m-c on am">AM</div></div><div class="m-row"><div class="m-nm"><b>武田 モリヱ</b><s>たけだ もりゑ</s></div><div class="m-c"></div><div class="m-c off"></div><div class="m-c"></div><div class="m-c"></div><div class="m-c on am">AM</div><div class="m-c"></div><div class="m-c on am">AM</div><div class="m-c"></div><div class="m-c off"></div><div class="m-c"></div><div class="m-c"></div><div class="m-c on am">AM</div><div class="m-c"></div><div class="m-c on am">AM</div><div class="m-c"></div><div class="m-c off"></div><div class="m-c"></div><div class="m-c"></div><div class="m-c on am">AM</div><div class="m-c"></div><div class="m-c on am">AM</div><div class="m-c"></div><div class="m-c off"></div><div class="m-c"></div><div class="m-c"></div><div class="m-c on am">AM</div><div class="m-c"></div><div class="m-c on am">AM</div><div class="m-c"></div><div class="m-c off"></div><div class="m-c"></div></div><div class="m-row"><div class="m-nm"><b>秋山 三男</b><s>あきやま みつお</s></div><div class="m-c on pm">PM</div><div class="m-c off"></div><div class="m-c on pm">PM</div><div class="m-c"></div><div class="m-c on pm">PM</div><div class="m-c"></div><div class="m-c"></div><div class="m-c on pm">PM</div><div class="m-c off"></div><div class="m-c on pm">PM</div><div class="m-c"></div><div class="m-c on pm">PM</div><div class="m-c"></div><div class="m-c"></div><div class="m-c on pm">PM</div><div class="m-c off"></div><div class="m-c on pm">PM</div><div class="m-c"></div><div class="m-c on pm">PM</div><div class="m-c"></div><div class="m-c kes">欠</div><div class="m-c on pm">PM</div><div class="m-c off"></div><div class="m-c on pm">PM</div><div class="m-c"></div><div class="m-c on pm">PM</div><div class="m-c"></div><div class="m-c"></div><div class="m-c on pm">PM</div><div class="m-c off"></div><div class="m-c on pm">PM</div></div><div class="m-row"><div class="m-nm"><b>東 ミサヲ</b><s>あずま みさを</s></div><div class="m-c"></div><div class="m-c off"></div><div class="m-c on pm">PM</div><div class="m-c"></div><div class="m-c on pm">PM</div><div class="m-c"></div><div class="m-c on pm">PM</div><div class="m-c"></div><div class="m-c off"></div><div class="m-c on pm">PM</div><div class="m-c"></div><div class="m-c on pm">PM</div><div class="m-c"></div><div class="m-c on pm">PM</div><div class="m-c"></div><div class="m-c off"></div><div class="m-c on pm">PM</div><div class="m-c"></div><div class="m-c on pm">PM</div><div class="m-c"></div><div class="m-c on pm">PM</div><div class="m-c"></div><div class="m-c off"></div><div class="m-c on pm">PM</div><div class="m-c"></div><div class="m-c on pm">PM</div><div class="m-c"></div><div class="m-c on pm">PM</div><div class="m-c"></div><div class="m-c off"></div><div class="m-c on pm">PM</div></div></div></div><div class="m-note">桝を押すたびに <b>いつもどおり → 欠席 → 振替 → 空</b> と変わります。いつもの利用曜日は、マスタの利用曜日からあらかじめ入っています。</div></div></div></div><div class="stage" data-s="master" hidden><div class="e-shell"><div class="e-nav"><div class="e-logo">🌿 あさひ 送迎支援</div><button class="e-item"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px"><path d="M7.5 5.5h9M7.5 10h9M7.5 14.5h6"/><path d="M3 5.2l1.1 1.1L6.2 4"/><path d="M3 9.7l1.1 1.1L6.2 8.5"/><path d="M3.2 14.5h2"/></svg>Todo タスク</button><button class="e-item"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px"><path d="M3 12.5l1.3-4A1.4 1.4 0 0 1 5.6 7.5h8.8a1.4 1.4 0 0 1 1.3 1l1.3 4"/><rect x="2" y="12.5" width="16" height="3" rx="1.2"/><circle cx="6" cy="17" r="1.3"/><circle cx="14" cy="17" r="1.3"/></svg>送迎編集</button><button class="e-item on"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px"><circle cx="7.5" cy="7" r="3"/><path d="M2.5 17c0-3 2.2-5 5-5s5 2 5 5"/><circle cx="14.5" cy="8" r="2.3"/><path d="M12 12.2c1.7.3 3 1.8 3.5 4.8"/></svg>マスタ管理</button><button class="e-item"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px"><rect x="3" y="4.5" width="14" height="12" rx="2"/><path d="M3 8.5h14M7 3v3M13 3v3"/><path d="M6.5 11.5h2M11 11.5h2M6.5 14h2"/></svg>出欠カレンダー</button><button class="e-item"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px"><ellipse cx="10" cy="5.5" rx="6" ry="2.5"/><path d="M4 5.5v9c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5v-9"/><path d="M4 10c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5"/></svg>データ管理</button><button class="e-item"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px"><path d="M6 7.5V3.5h8v4"/><rect x="3" y="7.5" width="14" height="6" rx="1.6"/><path d="M6 12.5h8v4H6z"/></svg>印刷レイアウト</button><div class="e-profile"><div class="e-avatar">あ</div><div><div class="e-pname">のみ さん</div><div class="e-prole">生活相談員</div></div></div></div><div class="e-main"><div class="e-top"><div><div class="e-title">マスタ管理</div><div class="e-sub">利用者 62名　利用中の方を上から五十音順に</div></div><div class="e-actions"><button class="pill ghost">CSV を書き出す</button><button class="pill"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M10 4v12M4 10h12"/></svg> 利用者を追加</button></div></div><div class="m-bar"><span class="search"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><circle cx="9" cy="9" r="5.5"/><path d="M17 17l-3.5-3.5"/></svg><input class="inp" placeholder="氏名・ふりがな・住所でさがす"></span><span class="dayfilter"><button class="dbtn">月</button><button class="dbtn">火</button><button class="dbtn">水</button><button class="dbtn">木</button><button class="dbtn">金</button><button class="dbtn">土</button></span><span class="hit">62名</span></div><div class="u-list"><div class="u-card"><div class="u-head"><div class="u-ava">青</div><div class="u-id"><input class="inp nm" value="青木 トメ"><input class="inp kn" value="あおき とめ"></div><span class="sp"></span><button class="pill ghost small">利用終了にする</button><button class="pill danger small">削除</button></div><div class="u-body"><div class="f wide"><span class="f-l">住所（市区町村以下）</span><textarea class="inp addr" rows="1">中央町2-5-8</textarea></div><div class="f"><span class="f-l">介護度</span><select class="inp"><option>事業対象者</option><option>要支援1</option><option>要支援2</option><option>要介護1</option><option>要介護2</option><option>要介護3</option><option selected>要介護4</option><option>要介護5</option></select></div><div class="f"><span class="f-l">認定有効期間</span><span class="cert"><input class="inp" value="2026-04-01"><i>〜</i><input class="inp" value="2029-03-31"></span></div><div class="f"><span class="f-l">血圧（日誌の備考）</span><select class="inp"><option>（なし）</option><option selected>上腕計</option><option>実測</option><option>左シャント</option><option>右シャント実測</option></select></div><div class="f"><span class="f-l">電話番号</span><input class="inp" value="046-261-0011"></div><div class="f"><span class="f-l">連絡メモ</span><input class="inp" value="" placeholder="TELなし など"></div><div class="f"><span class="f-l">記号</span><span class="tag-cell"><button class="tag" data-t="車">車椅子</button><button class="tag on" data-t="補">荷物</button><button class="tag" data-t="玄">玄関</button></span></div><div class="f wide"><span class="f-l">利用曜日</span><span class="day-cell"><button class="day" data-d="月"><span class="d">月</span><span class="ap"></span></button><button class="day on" data-d="火"><span class="d">火</span><span class="ap">PM</span></button><button class="day" data-d="水"><span class="d">水</span><span class="ap"></span></button><button class="day on" data-d="木"><span class="d">木</span><span class="ap">PM</span></button><button class="day on" data-d="金"><span class="d">金</span><span class="ap">PM</span></button><button class="day" data-d="土"><span class="d">土</span><span class="ap"></span></button></span></div></div></div><div class="u-card"><div class="u-head"><div class="u-ava">秋</div><div class="u-id"><input class="inp nm" value="秋山 三男"><input class="inp kn" value="あきやま みつお"></div><span class="sp"></span><button class="pill ghost small">利用終了にする</button><button class="pill danger small">削除</button></div><div class="u-body"><div class="f wide"><span class="f-l">住所（市区町村以下）</span><textarea class="inp addr" rows="1">若葉台5-2-6</textarea></div><div class="f"><span class="f-l">介護度</span><select class="inp"><option>事業対象者</option><option>要支援1</option><option>要支援2</option><option>要介護1</option><option>要介護2</option><option>要介護3</option><option>要介護4</option><option selected>要介護5</option></select></div><div class="f"><span class="f-l">認定有効期間</span><span class="cert"><input class="inp" value="2024-04-01"><i>〜</i><input class="inp" value="2026-03-31"></span></div><div class="f"><span class="f-l">血圧（日誌の備考）</span><select class="inp"><option selected>（なし）</option><option>上腕計</option><option>実測</option><option>左シャント</option><option>右シャント実測</option></select></div><div class="f"><span class="f-l">電話番号</span><input class="inp" value="046-262-0011"></div><div class="f"><span class="f-l">連絡メモ</span><input class="inp" value="TELなし" placeholder="TELなし など"></div><div class="f"><span class="f-l">記号</span><span class="tag-cell"><button class="tag" data-t="車">車椅子</button><button class="tag" data-t="補">荷物</button><button class="tag" data-t="玄">玄関</button></span></div><div class="f wide"><span class="f-l">利用曜日</span><span class="day-cell"><button class="day on" data-d="月"><span class="d">月</span><span class="ap">PM</span></button><button class="day" data-d="火"><span class="d">火</span><span class="ap"></span></button><button class="day on" data-d="水"><span class="d">水</span><span class="ap">PM</span></button><button class="day" data-d="木"><span class="d">木</span><span class="ap"></span></button><button class="day" data-d="金"><span class="d">金</span><span class="ap"></span></button><button class="day on" data-d="土"><span class="d">土</span><span class="ap">PM</span></button></span></div></div></div><div class="u-card"><div class="u-head"><div class="u-ava">山</div><div class="u-id"><input class="inp nm" value="山田 太郎"><input class="inp kn" value="やまだ たろう"></div><span class="sp"></span><button class="pill ghost small">利用終了にする</button><button class="pill danger small">削除</button></div><div class="u-body"><div class="f wide"><span class="f-l">住所（市区町村以下）</span><textarea class="inp addr" rows="1">大和市下鶴間 2786-4 南林間パーク・ホームズ二番館612</textarea></div><div class="f"><span class="f-l">介護度</span><select class="inp"><option>事業対象者</option><option>要支援1</option><option>要支援2</option><option>要介護1</option><option selected>要介護2</option><option>要介護3</option><option>要介護4</option><option>要介護5</option></select></div><div class="f"><span class="f-l">認定有効期間</span><span class="cert"><input class="inp" value="2026-01-01"><i>〜</i><input class="inp" value="2029-12-31"></span></div><div class="f"><span class="f-l">血圧（日誌の備考）</span><select class="inp"><option>（なし）</option><option>上腕計</option><option selected>実測</option><option>左シャント</option><option>右シャント実測</option></select></div><div class="f"><span class="f-l">電話番号</span><input class="inp" value="010-2345-6789"></div><div class="f"><span class="f-l">連絡メモ</span><input class="inp" value="携帯へ" placeholder="TELなし など"></div><div class="f"><span class="f-l">記号</span><span class="tag-cell"><button class="tag on" data-t="車">車椅子</button><button class="tag" data-t="補">荷物</button><button class="tag on" data-t="玄">玄関</button></span></div><div class="f wide"><span class="f-l">利用曜日</span><span class="day-cell"><button class="day on" data-d="月"><span class="d">月</span><span class="ap">AM</span></button><button class="day" data-d="火"><span class="d">火</span><span class="ap"></span></button><button class="day on" data-d="水"><span class="d">水</span><span class="ap">AM</span></button><button class="day" data-d="木"><span class="d">木</span><span class="ap"></span></button><button class="day on" data-d="金"><span class="d">金</span><span class="ap">AM</span></button><button class="day" data-d="土"><span class="d">土</span><span class="ap"></span></button></span></div></div></div></div></div></div></div>
+<script>
+(function () {
+  var cur = "title";
+  function draw() {
+    document.querySelectorAll(".pick").forEach(function (b) {
+      b.setAttribute("aria-pressed", String(b.dataset.s === cur)); });
+    document.querySelectorAll(".stage").forEach(function (n) {
+      n.hidden = n.dataset.s !== cur; });
+    fitAddr();
+  }
+  document.querySelectorAll(".pick").forEach(function (b) {
+    b.addEventListener("click", function () { cur = b.dataset.s; draw(); }); });
+  function fitAddr() {
+    document.querySelectorAll("textarea.inp").forEach(function (t) {
+      t.style.height = "auto";
+      var frame = t.offsetHeight - t.clientHeight;
+      t.style.height = Math.max(t.scrollHeight + frame, 40) + "px"; });
+  }
+  document.addEventListener("input", function (e) {
+    if (e.target.tagName === "TEXTAREA") fitAddr(); });
+  /* 押した感じを確かめられるように */
+  document.addEventListener("click", function (e) {
+    var t = e.target.closest(".tag, .day, .dbtn, .m-c:not(.off)");
+    if (t) t.classList.toggle("on");
+    var s = e.target.closest(".seg i");
+    if (s) { s.parentElement.querySelectorAll("i").forEach(function (x) {
+      x.classList.remove("on"); }); s.classList.add("on"); }
+    var nav = e.target.closest(".e-item");
+    if (nav) { nav.parentElement.querySelectorAll(".e-item").forEach(function (x) {
+      x.classList.remove("on"); }); nav.classList.add("on"); }
+  });
+  draw();
+})();
+</script>
+</body>
+</html>
