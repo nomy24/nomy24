@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>左メニューの出し方　3案</title>
+<style>
+  :root {
+    --paper: #F5F6F2; --card: #FFFFFF; --sub: #ECEEE8;
+    --ink: #16202A; --ink-2: #4A5765; --ink-3: #8A96A3;
+    --rule: #D9DED6; --rule-2: #C3CABE;
+    --ai: #1B3557; --ai-soft: #E6F0FC;
+    --enji: #63263A; --enji-soft: #FCEAF1;
+    --ok: #3D6F52; --warn: #9C2B2B; --warn-soft: #F6E7E5;
+    --accent: var(--ai); --accent-soft: var(--ai-soft);
+    --gothic: "BIZ UDPGothic","BIZ UDPゴシック","Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic","YuGothic","Meiryo",system-ui,sans-serif;
+    --mincho: "Hiragino Mincho ProN","Yu Mincho","YuMincho","Noto Serif JP",serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      color-scheme: dark;
+      --paper: #11161B; --card: #191F26; --sub: #212932;
+      --ink: #E7EAE5; --ink-2: #A9B4BF; --ink-3: #77828D;
+      --rule: #2C353F; --rule-2: #3C4650;
+      --ai: #8FB2D8; --ai-soft: #1D2937; --enji: #D79AAE; --enji-soft: #2E1C24;
+      --ok: #7FB292; --warn: #E08C86; --warn-soft: #33211F;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: var(--gothic); background: var(--paper); color: var(--ink); }
+
+  /* ── 説明のところ ─────────────────────── */
+  .doc { max-width: 1000px; margin: 0 auto; padding: 28px 20px 4px; }
+  .doc h1 { font-family: var(--mincho); font-size: 24px; letter-spacing: .1em; margin: 0 0 6px; }
+  .doc p { font-size: 14px; line-height: 2; color: var(--ink-2); margin: 0 0 14px; }
+  .doc b { color: var(--ink); }
+
+  .pick { display: flex; gap: 8px; flex-wrap: wrap; margin: 18px 0 10px; }
+  .pick button {
+    font: inherit; font-size: 14px; font-weight: 600; letter-spacing: .04em;
+    padding: 10px 20px; border-radius: 999px; cursor: pointer;
+    border: 1.5px solid var(--rule-2); background: var(--card); color: var(--ink-2);
+  }
+  .pick button[aria-selected="true"] {
+    border-color: var(--accent); background: var(--accent); color: var(--card);
+    box-shadow: 0 4px 12px rgba(16,24,32,.18);
+  }
+
+  .note {
+    background: var(--card); border: 1px solid var(--rule); border-radius: 16px;
+    padding: 16px 20px; margin: 0 0 16px; font-size: 14px; line-height: 2; color: var(--ink-2);
+  }
+  .note h2 { font-size: 16px; letter-spacing: .08em; margin: 0 0 8px; color: var(--ink); }
+  .note .w { font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .good { color: var(--ok); font-weight: 600; }
+  .cmp { width: 100%; border-collapse: collapse; font-size: 13px; margin: 0 0 16px;
+         background: var(--card); border: 1px solid var(--rule); border-radius: 16px; overflow: hidden; }
+  .cmp th, .cmp td { padding: 9px 12px; text-align: left; border-bottom: 1px solid var(--rule); }
+  .cmp th { font-size: 11.5px; letter-spacing: .06em; color: var(--ink-3); font-weight: 600; background: var(--sub); }
+  .cmp tr:last-child td { border-bottom: 0; }
+  .cmp td:first-child { font-weight: 600; color: var(--ink); white-space: nowrap; }
+  .bad { color: var(--warn); font-weight: 600; }
+
+  /* ── 見本の舞台 ───────────────────────── */
+  .stage-wrap { max-width: 1000px; margin: 0 auto 40px; padding: 0 20px; }
+  .stage {
+    position: relative; overflow: hidden;
+    height: 520px; border-radius: 20px; border: 1px solid var(--rule);
+    background: var(--paper); box-shadow: 0 4px 20px rgba(16,24,32,.08);
+  }
+  .stage-lbl { font-size: 12px; color: var(--ink-3); margin: 0 0 6px; }
+
+  /* 中身（送迎編集のまね） */
+  .mock { position: absolute; inset: 0; overflow: auto; padding: 12px; transition: padding-left .22s; }
+  .mk-top {
+    background: var(--card); border: 1px solid var(--rule); border-radius: 16px;
+    padding: 12px 14px; margin-bottom: 10px;
+  }
+  .mk-ttl { font-family: var(--mincho); font-size: 19px; font-weight: 600; letter-spacing: .04em; }
+  .mk-eye { font-size: 10px; letter-spacing: .16em; color: var(--ink-3); margin-bottom: 4px; }
+  .mk-tools { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+  .mk-pill { font-size: 11.5px; padding: 6px 13px; border-radius: 999px; background: var(--sub); color: var(--ink-2); }
+  .mk-pill.on { background: var(--card); color: var(--ink); box-shadow: inset 0 0 0 1.5px var(--ai); }
+  .mk-pill.line { background: var(--card); border: 1px solid var(--rule-2); }
+
+  .mk-body { display: grid; grid-template-columns: 150px minmax(0,1fr); gap: 10px; align-items: start; }
+  .mk-side { background: var(--card); border: 1px solid var(--rule); border-radius: 16px; padding: 12px; }
+  .mk-side b { font-size: 13px; letter-spacing: .06em; }
+  .mk-side p { font-size: 11px; color: var(--ink-3); margin: 8px 0 0; line-height: 1.8; }
+  .mk-fleet { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; }
+  .mk-car {
+    display: grid; grid-template-columns: 74px minmax(0,1fr);
+    background: var(--card); border: 1px solid var(--rule); border-radius: 16px; overflow: hidden;
+    box-shadow: 0 2px 8px rgba(16,24,32,.06);
+  }
+  .mk-id { background: var(--ai-soft); padding: 9px; font-size: 10px; color: var(--ai); line-height: 1.9; }
+  .mk-id .box { display: block; height: 22px; border: 1px solid var(--ai); border-radius: 8px; background: var(--card); margin-bottom: 5px; }
+  .mk-rows { padding: 4px 0; }
+  .mk-row { display: grid; grid-template-columns: 20px 46px minmax(0,1fr) minmax(0,1.15fr) 44px; gap: 6px;
+            align-items: center; padding: 5px 9px; font-size: 12px; border-bottom: 1px solid var(--rule); }
+  .mk-row:last-child { border-bottom: 0; }
+  .mk-row i { font-style: normal; display: grid; place-items: center; width: 18px; height: 18px;
+              border-radius: 999px; background: var(--ai); color: #fff; font-size: 10px; font-weight: 700; }
+  .mk-row .t { font-weight: 700; font-variant-numeric: tabular-nums; }
+  .mk-row .nm { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mk-row .ad { color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mk-row .ad.cut { color: var(--warn); }
+
+  /* ── 袖のもと ─────────────────────────── */
+  .nav {
+    position: absolute; z-index: 20; box-sizing: border-box;
+    background: var(--card); border: 1px solid var(--rule); border-radius: 20px;
+    box-shadow: 0 6px 24px rgba(16,24,32,.14);
+    display: flex; flex-direction: column; padding: 12px 10px;
+    transition: width .22s, transform .22s, opacity .18s;
+  }
+  .nav-logo {
+    display: flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 700;
+    padding: 5px 7px 12px; margin-bottom: 6px; border-bottom: 1px solid var(--rule);
+    white-space: nowrap; overflow: hidden;
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 9px; width: 100%;
+    padding: 9px 12px; border-radius: 999px; border: 0; background: none;
+    font: inherit; font-size: 12.5px; font-weight: 600; color: var(--ink-2);
+    text-align: left; cursor: pointer; white-space: nowrap; overflow: hidden;
+  }
+  .nav-item svg { width: 18px; height: 18px; flex: none; stroke: currentColor; fill: none;
+                  stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+  .nav-item:hover { background: var(--sub); color: var(--ink); }
+  .nav-item.on { background: var(--ai); color: #fff; box-shadow: 0 4px 12px rgba(16,24,32,.2); }
+
+  /* ── 案あ：浮いた丸ボタン＋引き出し ──── */
+  .stage[data-plan="a"] .mock { padding-left: 12px; }
+  /* 表題や車の桝にかぶらないよう、左端の高さ半分のところに浮かせる */
+  .fab {
+    position: absolute; left: 10px; top: 50%; transform: translateY(-50%); z-index: 30;
+    width: 46px; height: 46px; border-radius: 999px; display: grid; place-items: center;
+    border: 1px solid var(--rule); background: var(--card); cursor: pointer;
+    box-shadow: 0 6px 18px rgba(16,24,32,.16); font-size: 20px; line-height: 1;
+    transition: box-shadow .14s, border-color .14s;
+  }
+  .fab:hover { border-color: var(--ai); box-shadow: 0 10px 26px rgba(16,24,32,.22); }
+  .fab::after {
+    content: "メニュー"; position: absolute; left: 54px; white-space: nowrap;
+    font-size: 11px; font-weight: 700; letter-spacing: .06em; color: var(--ink-3);
+    background: var(--card); border: 1px solid var(--rule); border-radius: 999px;
+    padding: 4px 10px; opacity: 0; pointer-events: none; transition: opacity .14s;
+  }
+  .fab:hover::after { opacity: 1; }
+  /* 開いているあいだは引き出しにかぶるので引っ込める */
+  .stage.open .fab { opacity: 0; pointer-events: none; }
+  .drawer { left: 12px; top: 12px; bottom: 12px; width: 210px; transform: translateX(-118%); opacity: 0; }
+  .stage.open .drawer { transform: none; opacity: 1; }
+  .veil {
+    position: absolute; inset: 0; z-index: 15; background: rgba(16,24,32,.28);
+    opacity: 0; pointer-events: none; transition: opacity .18s;
+  }
+  .stage.open .veil { opacity: 1; pointer-events: auto; }
+
+  /* ── 案い：細い袖＋のぞくと広がる ────── */
+  .stage[data-plan="i"] .mock { padding-left: 74px; }
+  .peek { left: 12px; top: 12px; bottom: 12px; width: 56px; overflow: hidden; }
+  .peek .nav-t, .peek .nav-logo span { opacity: 0; transition: opacity .12s; }
+  .peek .nav-item { justify-content: center; padding: 9px 0; }
+  .peek:hover, .peek:focus-within { width: 210px; }
+  .peek:hover .nav-item, .peek:focus-within .nav-item { justify-content: flex-start; padding: 9px 12px; }
+  .peek:hover .nav-t, .peek:focus-within .nav-t,
+  .peek:hover .nav-logo span, .peek:focus-within .nav-logo span { opacity: 1; }
+
+  /* ── 案う：上の札に入れる ─────────────── */
+  .stage[data-plan="u"] .mock { padding-left: 12px; }
+  .topbar { display: flex; gap: 5px; flex-wrap: wrap; align-items: center;
+            padding-bottom: 9px; margin-bottom: 9px; border-bottom: 1px solid var(--rule); }
+  .topbar .nav-item { width: auto; padding: 7px 12px; }
+  .topbar .leaf { font-size: 17px; padding: 0 8px 0 4px; margin-right: 3px;
+                  border-right: 1px solid var(--rule); cursor: pointer; }
+
+  .hide { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="doc">
+  <h1>左メニューの出し方　3案</h1>
+  <p>いまの袖は <b>224px</b> をいつも取るので、そのぶん送迎表が狭くなります。<br>
+     <b>横幅をなるべく食わない出し方</b>を3つ用意しました。舞台のボタンは実際に動きます。
+     まず案を選び、舞台の中の 🌿 やメニューを押してみてください。</p>
+
+  <div class="pick" role="tablist">
+    <button type="button" data-plan="a" aria-selected="true">案あ　浮いた丸ボタン</button>
+    <button type="button" data-plan="i" aria-selected="false">案い　細い袖＋のぞくと広がる</button>
+    <button type="button" data-plan="u" aria-selected="false">案う　上の札に入れる</button>
+    <button type="button" data-plan="now" aria-selected="false">いまの形（比べ用）</button>
+  </div>
+
+  <div class="note" id="note"></div>
+
+  <table class="cmp">
+    <tr><th></th><th>横に取る幅</th><th>縦に取る高さ</th><th>行き先の見え方</th><th>押す手間</th></tr>
+    <tr><td>案あ　浮いた丸ボタン</td><td class="good">0px</td><td class="good">0px</td><td>閉じているあいだは見えない</td><td class="bad">1回押す</td></tr>
+    <tr><td>案い　細い袖</td><td>56px</td><td class="good">0px</td><td class="good">絵はいつも見える</td><td class="good">乗せるだけ</td></tr>
+    <tr><td>案う　上の札</td><td class="good">0px</td><td>46px ほど</td><td class="good">語までいつも見える</td><td class="good">なし</td></tr>
+    <tr><td>いまの形</td><td class="bad">224px</td><td class="good">0px</td><td class="good">語までいつも見える</td><td class="good">なし</td></tr>
+  </table>
+
+  <p style="font-size:13px">組み合わせもできます。たとえば
+     <b>ふだんは案う（上の札）、狭い端末では案あ（丸ボタン）</b>のように、幅で切り替えることもできます。
+     気に入った案、または「ここはこうしたい」を教えてください。</p>
+</div>
+
+<div class="stage-wrap">
+  <p class="stage-lbl">▼ 送迎編集の画面（見本）。舞台の幅は 960px 相当で描いています。</p>
+  <div class="stage" id="stage" data-plan="a">
+    <div class="veil" id="veil"></div>
+
+    <!-- 案あ -->
+    <button type="button" class="fab" id="fab" title="メニューを開く">🌿</button>
+    <nav class="nav drawer" id="drawer"></nav>
+
+    <!-- 案い -->
+    <nav class="nav peek hide" id="peek"></nav>
+
+    <!-- いまの形 -->
+    <nav class="nav rail hide" id="rail"></nav>
+
+    <div class="mock" id="mock">
+      <div class="mk-top">
+        <div class="topbar hide" id="topbar"></div>
+        <p class="mk-eye">通所介護事業所　デイサービス　あさひ</p>
+        <div class="mk-ttl">令和8年8月19日（水曜日）　送迎表</div>
+        <div class="mk-tools">
+          <span class="mk-pill">午前</span><span class="mk-pill on">お迎え</span><span class="mk-pill">お送り</span>
+          <span class="mk-pill">午後</span><span class="mk-pill">お迎え</span><span class="mk-pill">お送り</span>
+          <span class="mk-pill line">出勤人数　5 6 7 8</span>
+          <span class="mk-pill line">自動で配車</span>
+          <span class="mk-pill line">メニュー</span>
+        </div>
+      </div>
+      <div class="mk-body">
+        <div class="mk-side">
+          <b>未割当</b>
+          <p>乗る車が全員決まりました。</p>
+          <b style="display:block;margin-top:12px">振替利用</b>
+          <p>この便の振替はまだありません。</p>
+        </div>
+        <div class="mk-fleet" id="fleet"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const IC = {
+    todo: '<path d="M7.5 5.5h9M7.5 10h9M7.5 14.5h6"/><path d="M3 5.2l1.1 1.1L6.2 4"/><path d="M3 9.7l1.1 1.1L6.2 8.5"/><path d="M3.2 14.5h2"/>',
+    van: '<path d="M3 12.5l1.3-4A1.4 1.4 0 0 1 5.6 7.5h8.8a1.4 1.4 0 0 1 1.3 1l1.3 4"/><rect x="2" y="12.5" width="16" height="3" rx="1.2"/><circle cx="6" cy="17" r="1.3"/><circle cx="14" cy="17" r="1.3"/>',
+    people: '<circle cx="7.5" cy="7" r="3"/><path d="M2.5 17c0-3 2.2-5 5-5s5 2 5 5"/><circle cx="14.5" cy="8" r="2.3"/><path d="M12 12.2c1.7.3 3 1.8 3.5 4.8"/>',
+    cal: '<rect x="3" y="4.5" width="14" height="12" rx="2"/><path d="M3 8.5h14M7 3v3M13 3v3"/><path d="M6.5 11.5h2M11 11.5h2M6.5 14h2"/>',
+    data: '<ellipse cx="10" cy="5.5" rx="6" ry="2.5"/><path d="M4 5.5v9c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5v-9"/><path d="M4 10c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5"/>',
+    print: '<path d="M6 7.5V3.5h8v4"/><rect x="3" y="7.5" width="14" height="6" rx="1.6"/><path d="M6 12.5h8v4H6z"/>'
+  };
+  const ITEMS = [
+    ["todo", "Todo タスク"], ["van", "送迎編集"], ["people", "マスタ管理"],
+    ["cal", "出欠カレンダー"], ["data", "データ管理"], ["print", "印刷レイアウト"]
+  ];
+  const svg = (k) => '<svg viewBox="0 0 20 20">' + IC[k] + '</svg>';
+  const items = (withLogo) => (withLogo ? '<div class="nav-logo">🌿<span>あさひ 送迎支援</span></div>' : '')
+    + ITEMS.map(([k, t]) => '<button type="button" class="nav-item' + (k === "van" ? " on" : "")
+      + '" title="' + t + '">' + svg(k) + '<span class="nav-t">' + t + '</span></button>').join("");
+
+  document.getElementById("drawer").innerHTML = items(true);
+  document.getElementById("peek").innerHTML = items(true);
+  document.getElementById("rail").innerHTML = items(true);
+  document.getElementById("topbar").innerHTML = '<span class="leaf" title="タイトル画面へ">🌿</span>' + items(false);
+
+  /* いまの形（比べ用）の袖 */
+  const rail = document.getElementById("rail");
+  rail.style.left = "12px"; rail.style.top = "12px"; rail.style.bottom = "12px"; rail.style.width = "210px";
+
+  /* 車のカード。住所が切れるかどうかで、狭さの影響が目で分かる */
+  const CARS = [
+    [["08:25", "田中 ハル", "中央町3-14-2"], ["08:40", "高橋 キヨ", "本町5-3-11"]],
+    [["08:25", "渡部 秀夫", "若葉台4-11-8"], ["08:35", "山田 トシ子", "緑町1-4-16"]],
+    [["08:20", "大野 スミ", "桜ヶ丘1-2-7"], ["08:35", "森田 光子", "旭ヶ丘5-1-12"]],
+    [["08:30", "村上 三郎", "東雲2-11-6"], ["08:35", "菅原 テル", "川井町1-22-4"]]
+  ];
+  document.getElementById("fleet").innerHTML = CARS.map((rows) =>
+    '<div class="mk-car"><div class="mk-id"><span class="box"></span>号車<br>5人乗り 定員4名<span class="box" style="margin-top:5px"></span></div>'
+    + '<div class="mk-rows">' + rows.map(([t, n, a], i) =>
+      '<div class="mk-row"><i>' + (i + 1) + '</i><span class="t">' + t + '</span>'
+      + '<span class="nm">' + n + '</span><span class="ad">' + a + '</span>'
+      + '<span class="ad" style="color:var(--ink-3)">備考</span></div>').join("")
+    + '</div></div>').join("");
+
+  const NOTES = {
+    a: {
+      h: "案あ　浮いた丸ボタン（引き出し）",
+      b: "左端の高さ半分のところに <b>🌿の丸ボタンだけ</b>を浮かせます。押すと袖が本文の<b>上に重なって</b>"
+        + "すっと出てきます。行き先を選ぶ／外を押す／Escで閉じます。"
+        + "表題の🌿からも同じように開けるようにできます。<br>"
+        + "<span class='good'>送迎表の幅はまったく減りません（丸ボタンは浮いているだけ）。</span><br>"
+        + "<span class='bad'>行き先を見るのに1回押す手間が要ります。</span>"
+    },
+    i: {
+      h: "案い　細い袖＋のぞくと広がる",
+      b: "いつもは <b>絵だけの56px</b>。マウスを乗せる（触れる）と<b>本文の上に重なって</b>224pxに広がります。"
+        + "広がっても<b>本文は動きません</b>。<br>"
+        + "<span class='good'>行き先の絵がいつも見えていて、押す手間が要りません。</span><br>"
+        + "<span class='bad'>56pxぶんは常に取られます。</span>"
+    },
+    u: {
+      h: "案う　上の札に入れる",
+      b: "左の袖をやめて、<b>日付の札の中</b>に錠剤を横に並べます。<br>"
+        + "<span class='good'>横幅は1pxも取られません。語もいつも見えています。</span><br>"
+        + "<span class='bad'>札の背が1行ぶん高くなり、そのぶん縦が短くなります。</span>"
+    },
+    now: {
+      h: "いまの形（224pxの袖）",
+      b: "袖が<b>いつも224px</b>を取り、そのぶん本文が右に寄ります。<br>"
+        + "<span class='bad'>住所が入りきらず「中央町3-1…」と切れることがあります（赤で示しています）。</span>"
+    }
+  };
+
+  const stage = document.getElementById("stage");
+  const mock = document.getElementById("mock");
+  const note = document.getElementById("note");
+
+  function setPlan(plan) {
+    stage.dataset.plan = plan;
+    stage.classList.remove("open");
+    document.getElementById("fab").classList.toggle("hide", plan !== "a");
+    document.getElementById("drawer").classList.toggle("hide", plan !== "a");
+    document.getElementById("peek").classList.toggle("hide", plan !== "i");
+    document.getElementById("rail").classList.toggle("hide", plan !== "now");
+    document.getElementById("topbar").classList.toggle("hide", plan !== "u");
+    mock.style.paddingLeft = plan === "i" ? "80px" : (plan === "now" ? "234px" : "12px");
+    document.querySelectorAll(".pick button").forEach((b) => {
+      b.setAttribute("aria-selected", String(b.dataset.plan === plan));
+    });
+    const n = NOTES[plan];
+    note.innerHTML = "<h2>" + n.h + "</h2>" + n.b + "<p style='margin:10px 0 0'>送迎表に使える幅　"
+      + "<span class='w' id='w'>—</span></p>";
+    setTimeout(measure, 300);   /* 動きが終わってから測る */
+  }
+
+  function measure() {
+    const w = document.getElementById("w");
+    if (!w) return;
+    const body = document.querySelector(".mk-body");
+    w.textContent = Math.round(body.getBoundingClientRect().width) + "px";
+    /* 住所が切れた欄を赤くする */
+    document.querySelectorAll(".mk-row .ad").forEach((e) => {
+      e.classList.toggle("cut", e.scrollWidth > e.clientWidth + 1);
+    });
+  }
+
+  document.querySelectorAll(".pick button").forEach((b) => {
+    b.addEventListener("click", () => setPlan(b.dataset.plan));
+  });
+  document.getElementById("fab").addEventListener("click", () => stage.classList.toggle("open"));
+  document.getElementById("veil").addEventListener("click", () => stage.classList.remove("open"));
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") stage.classList.remove("open"); });
+  window.addEventListener("resize", measure);
+  document.getElementById("peek").addEventListener("mouseenter", () => setTimeout(measure, 250));
+  document.getElementById("peek").addEventListener("mouseleave", () => setTimeout(measure, 250));
+
+  setPlan("a");
+</script>
+</body>
+</html>
