@@ -4762,13 +4762,30 @@
   .pc-sub { margin-left: 12px; font-size: 13px; font-weight: 400; color: var(--ink-3); }
   .pc-actions { display: flex; gap: 8px; }
 
-  .pc-body { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 16px; }
+  /* 見出しの「送迎編集へ」。ほかの画面の押しものと同じ大きさに */
+  .pc-actions .btn {
+    font: inherit;
+    font-size: 13px;
+    padding: 9px 18px;
+    background: var(--card);
+    color: var(--ink-2);
+    border: 1px solid var(--rule-2);
+    border-radius: 999px;
+    cursor: pointer;
+    transition: border-color .12s, color .12s;
+  }
+  .pc-actions .btn:hover { border-color: var(--accent); color: var(--accent); }
 
-  .pc-cal, .pc-side {
+  /* 左はカレンダーと「今月の新規」を縦に積み、右は午前・午後の名簿。
+     名簿を横並びにするぶん、右へ少し幅を回している */
+  .pc-body { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 16px; }
+  .pc-left { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+
+  .pc-cal, .pc-side, .pc-new {
     background: var(--card); border: 1px solid var(--rule);
     border-radius: 18px; padding: 18px 20px;
   }
-  .pc-cal, .pc-side { align-self: start; }
+  .pc-cal, .pc-side, .pc-new { align-self: start; }
 
   .pc-nav { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
   .pc-nav h2 { margin: 0; font-size: 17px; letter-spacing: .06em; }
@@ -4821,13 +4838,22 @@
   .pc-legend .sw.furi { background: var(--furikae-soft); }
   .pc-hint { margin-left: auto; color: var(--ink-3); }
 
-  /* 右側：その日の出欠 */
+  /* 右側：その日の出欠。午前と午後を横に並べる */
+  .pc-side {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 16px;
+    align-content: start;
+  }
+
+  .pc-day-head, .pc-note, .pc-side > .pc-none { grid-column: 1 / -1; }
+
   .pc-day-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
                  margin-bottom: 12px; }
   .pc-day-head h2 { margin: 0; font-size: 17px; letter-spacing: .04em; }
   .pc-day-head .pc-open { margin-left: auto; font-size: 12px; padding: 6px 13px; border-radius: 999px; }
 
-  .pc-part { margin-bottom: 16px; }
+  .pc-part { margin-bottom: 10px; min-width: 0; }
   .pc-part-head { display: flex; align-items: baseline; gap: 8px; padding: 6px 10px;
                   border-radius: 10px; background: var(--accent-soft); color: var(--accent);
                   margin-bottom: 8px; }
@@ -4840,9 +4866,11 @@
   .pc-row .nm { flex: 1 1 auto; min-width: 0; font-size: 14px; font-weight: 600;
                 overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .pc-row .nm small { margin-left: 6px; font-size: 11px; color: var(--ink-3); font-weight: 400; }
-  .pc-row select { font: inherit; font-size: 13px; padding: 6px 8px; border-radius: 10px;
+  /* 出欠の欄は語が2文字までなので、これ以上広げない。
+     広いと氏名とのあいだが間延びして、どの人の欄か目で追いにくくなる */
+  .pc-row select { font: inherit; font-size: 13px; padding: 6px 8px; border-radius: 999px;
                    border: 1.5px solid var(--rule-2); background: var(--card); color: var(--ink);
-                   min-width: 7.5em; }
+                   flex: 0 0 auto; min-width: 0; width: 5.8em; }
   .pc-row select:focus { outline: none; border-color: var(--accent); }
   .pc-row.is-off .nm { color: var(--warn); text-decoration: line-through; }
   .pc-row.is-off select { border-color: var(--warn); color: var(--warn); }
@@ -4852,17 +4880,60 @@
                 background: var(--furikae-soft); border-radius: 999px; padding: 1px 7px; }
 
   .pc-add { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
-  .pc-add input { flex: 1 1 10em; min-width: 0; font: inherit; font-size: 13px; padding: 7px 10px;
-                  border: 1.5px solid var(--rule-2); border-radius: 10px; background: var(--card); }
-  .pc-add input[type="date"] { flex: 0 1 9.5em; }
+  .pc-add input { flex: 1 1 8em; min-width: 0; font: inherit; font-size: 13px; padding: 7px 10px;
+                  border: 1.5px solid var(--rule-2); border-radius: 999px; background: var(--card); }
+  .pc-add input[type="date"] { flex: 1 1 8.5em; }
   .pc-add input:focus { outline: none; border-color: var(--furikae); }
   .pc-add .btn { font-size: 12.5px; padding: 7px 14px; border-radius: 999px;
                  border-color: var(--furikae); color: var(--furikae); }
   .pc-none { font-size: 13px; color: var(--ink-3); padding: 8px 2px; }
+
+  /* 今月の新規利用者。カレンダーの下に置く */
+  .pc-new h2 {
+    margin: 0 0 4px; font-size: 15px; letter-spacing: .06em;
+    display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
+  }
+  .pc-new h2 small { font-size: 11.5px; font-weight: 400; color: var(--ink-3); letter-spacing: .02em; }
+  .pc-new .n {
+    margin-left: auto; font-size: 12px; font-weight: 700;
+    padding: 2px 10px; border-radius: 999px;
+    background: var(--shinki-soft); color: var(--shinki);
+  }
+
+  .pc-new-list { display: flex; flex-direction: column; gap: 4px; margin-top: 10px; }
+
+  .pc-new-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 7px 12px; border-radius: 12px;
+    background: var(--shinki-soft);
+  }
+  .pc-new-row .d {
+    flex: 0 0 auto; font-size: 12.5px; font-weight: 700; color: var(--shinki);
+    font-variant-numeric: tabular-nums;
+  }
+  .pc-new-row .nm { flex: 1 1 auto; min-width: 0; font-size: 14px; font-weight: 600;
+                    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pc-new-row .nm small { margin-left: 6px; font-size: 11px; color: var(--ink-3); font-weight: 400; }
+  .pc-new-row .p {
+    flex: 0 0 auto; font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 999px;
+    background: var(--card); color: var(--ink-2);
+  }
+  .pc-new-row .p.am { color: var(--ai); }
+  .pc-new-row .p.pm { color: var(--enji); }
+  .pc-new-row .go {
+    flex: none; font: inherit; font-size: 11.5px; padding: 4px 12px; border-radius: 999px;
+    border: 1px solid var(--rule-2); background: var(--card); color: var(--ink-2); cursor: pointer;
+  }
+  .pc-new-row .go:hover { border-color: var(--shinki); color: var(--shinki); }
   .pc-note { font-size: 12px; color: var(--ink-2); line-height: 1.8; margin: 10px 0 0; }
 
   @media screen and (max-width: 1100px) {
     .pc-body { grid-template-columns: minmax(0, 1fr); }
+  }
+
+  /* 列が細くなりすぎたら、午前・午後は縦に戻す */
+  @media screen and (max-width: 700px) {
+    .pc-side { grid-template-columns: minmax(0, 1fr); }
   }
   @media screen and (max-width: 760px) {
     .page-cal { padding: calc(var(--step) * 4) calc(var(--step) * 3) calc(var(--step) * 12); }
@@ -5181,9 +5252,9 @@
   </div>
   <div class="sn-list">
     <button type="button" class="sn-item" data-nav="todo" title="Todo タスク" aria-label="Todo タスク"><svg viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 5.5h9M7.5 10h9M7.5 14.5h6"/><path d="M3 5.2l1.1 1.1L6.2 4"/><path d="M3 9.7l1.1 1.1L6.2 8.5"/><path d="M3.2 14.5h2"/></svg><span class="sn-t">Todo タスク</span><span class="sn-b">別アプリ</span></button>
+    <button type="button" class="sn-item" data-nav="cal" title="出欠カレンダー" aria-label="出欠カレンダー"><svg viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="14" height="12" rx="2"/><path d="M3 8.5h14M7 3v3M13 3v3"/><path d="M6.5 11.5h2M11 11.5h2M6.5 14h2"/></svg><span class="sn-t">出欠カレンダー</span></button>
     <button type="button" class="sn-item" data-nav="van" title="送迎編集" aria-label="送迎編集"><svg viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12.5l1.3-4A1.4 1.4 0 0 1 5.6 7.5h8.8a1.4 1.4 0 0 1 1.3 1l1.3 4"/><rect x="2" y="12.5" width="16" height="3" rx="1.2"/><circle cx="6" cy="17" r="1.3"/><circle cx="14" cy="17" r="1.3"/></svg><span class="sn-t">送迎編集</span></button>
     <button type="button" class="sn-item" data-nav="people" title="マスタ管理" aria-label="マスタ管理"><svg viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="7" r="3"/><path d="M2.5 17c0-3 2.2-5 5-5s5 2 5 5"/><circle cx="14.5" cy="8" r="2.3"/><path d="M12 12.2c1.7.3 3 1.8 3.5 4.8"/></svg><span class="sn-t">マスタ管理</span></button>
-    <button type="button" class="sn-item" data-nav="cal" title="出欠カレンダー" aria-label="出欠カレンダー"><svg viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="14" height="12" rx="2"/><path d="M3 8.5h14M7 3v3M13 3v3"/><path d="M6.5 11.5h2M11 11.5h2M6.5 14h2"/></svg><span class="sn-t">出欠カレンダー</span></button>
     <button type="button" class="sn-item" data-nav="data" title="データ管理" aria-label="データ管理"><svg viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="10" cy="5.5" rx="6" ry="2.5"/><path d="M4 5.5v9c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5v-9"/><path d="M4 10c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5"/></svg><span class="sn-t">データ管理</span></button>
   </div>
 </nav>
@@ -5205,11 +5276,11 @@
     </div>
     <div class="sn-list">
     <button type="button" class="sn-item" data-nav="todo" title="Todo タスク" aria-label="Todo タスク"><svg viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 5.5h9M7.5 10h9M7.5 14.5h6"/><path d="M3 5.2l1.1 1.1L6.2 4"/><path d="M3 9.7l1.1 1.1L6.2 8.5"/><path d="M3.2 14.5h2"/></svg><span class="sn-t">Todo タスク</span><span class="sn-b">別アプリ</span></button>
+    <button type="button" class="sn-item" data-nav="cal" title="出欠カレンダー" aria-label="出欠カレンダー"><svg viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="14" height="12" rx="2"/><path d="M3 8.5h14M7 3v3M13 3v3"/><path d="M6.5 11.5h2M11 11.5h2M6.5 14h2"/></svg><span class="sn-t">出欠カレンダー</span></button>
     <button type="button" class="sn-item" data-nav="van" title="送迎編集" aria-label="送迎編集"><svg viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12.5l1.3-4A1.4 1.4 0 0 1 5.6 7.5h8.8a1.4 1.4 0 0 1 1.3 1l1.3 4"/><rect x="2" y="12.5" width="16" height="3" rx="1.2"/><circle cx="6" cy="17" r="1.3"/><circle cx="14" cy="17" r="1.3"/></svg><span class="sn-t">送迎編集</span></button>
     <button type="button" class="sn-item" data-nav="people" title="マスタ管理" aria-label="マスタ管理"><svg viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="7" r="3"/><path d="M2.5 17c0-3 2.2-5 5-5s5 2 5 5"/><circle cx="14.5" cy="8" r="2.3"/><path d="M12 12.2c1.7.3 3 1.8 3.5 4.8"/></svg><span class="sn-t">マスタ管理</span></button>
-    <button type="button" class="sn-item" data-nav="cal" title="出欠カレンダー" aria-label="出欠カレンダー"><svg viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="14" height="12" rx="2"/><path d="M3 8.5h14M7 3v3M13 3v3"/><path d="M6.5 11.5h2M11 11.5h2M6.5 14h2"/></svg><span class="sn-t">出欠カレンダー</span></button>
     <button type="button" class="sn-item" data-nav="data" title="データ管理" aria-label="データ管理"><svg viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="10" cy="5.5" rx="6" ry="2.5"/><path d="M4 5.5v9c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5v-9"/><path d="M4 10c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5"/></svg><span class="sn-t">データ管理</span></button>
-    </div>
+  </div>
   </nav>
 </div>
 
@@ -5385,7 +5456,7 @@
   <details class="fold" id="fold-legend">
     <summary><span class="fd-title">この画面の使い方</span><span class="fd-note">記号の意味と操作のまとめ</span>
       <!-- 古い控えを開いていないか、ここで見分けられるようにしておく -->
-      <span class="fd-ver">版 2026-08-20k</span></summary>
+      <span class="fd-ver">版 2026-08-20l</span></summary>
     <div class="fold-body">
   <div class="legend">
     <span class="item"><span class="swatch s-wc" data-icon="wc"></span>車椅子（リフト・スロープ使用）</span>
@@ -5535,6 +5606,7 @@
   </header>
 
   <div class="pc-body">
+    <div class="pc-left">
     <section class="pc-cal">
       <div class="pc-nav">
         <button type="button" class="btn" id="cal-prev">‹ 前の月</button>
@@ -5551,6 +5623,10 @@
         <span class="pc-hint">日を押すと、右でその日の出欠を入れられます</span>
       </p>
     </section>
+
+    <!-- 今月のうちに「新規」を付けた方。月の初めに見返せるように -->
+    <section class="pc-new" id="cal-new"></section>
+    </div>
 
     <section class="pc-side" id="cal-side"></section>
   </div>
@@ -10650,16 +10726,78 @@
       + "休みは理由（体調・受診・都合・入院・SS）を選ぶと、紙にもその語が出ます。"));
   }
 
+  /* 今月のうちに「新規」を付けた方をまとめて出す。
+     月の初めに「今月から来る方」を見返せるようにするための枠 */
+  function drawCalNew() {
+    const box = document.getElementById("cal-new");
+    box.innerHTML = "";
+
+    const [y, m] = calMonth.split("-").map(Number);
+    const last = new Date(y, m, 0).getDate();
+    const rows = [];
+
+    for (let d = 1; d <= last; d++) {
+      const date = isoOf(y, m, d);
+      if (!weekdayOf(date)) continue;
+      const data = calDayData(date);
+      ["am", "pm"].forEach((part) => {
+        Object.keys(data.attend[part]).forEach((id) => {
+          if (data.attend[part][id] !== "新規") return;
+          const u = USER_BY_ID.get(id);
+          rows.push({ date: date, d: d, part: part, name: u ? u.name : id, care: u ? u.care : "" });
+        });
+      });
+    }
+    rows.sort((a, b) => (a.date === b.date
+      ? (a.part === b.part ? a.name.localeCompare(b.name, "ja") : (a.part === "am" ? -1 : 1))
+      : (a.date < b.date ? -1 : 1)));
+
+    const h = el("h2", null, "今月の新規利用者");
+    h.append(el("small", null, m + "月に「新規」を付けた方"));
+    if (rows.length) h.append(el("span", "n", rows.length + "名"));
+    box.append(h);
+
+    if (!rows.length) {
+      box.append(el("p", "pc-none",
+        "今月はまだいません。出欠を「新規」にすると、ここに出ます。"));
+      return;
+    }
+
+    const list = el("div", "pc-new-list");
+    rows.forEach((r) => {
+      const row = el("div", "pc-new-row");
+      row.append(el("span", "d", r.d + "日（" + weekdayOf(r.date) + "）"));
+      const nm = el("span", "nm", r.name);
+      if (r.care) nm.append(el("small", null, r.care));
+      row.append(nm);
+      row.append(el("span", "p " + r.part, r.part === "am" ? "午前" : "午後"));
+      const go = el("button", "go", "その日を開く");
+      go.type = "button";
+      go.addEventListener("click", () => { calPick = r.date; drawCal(); window.scrollTo(0, 0); });
+      row.append(go);
+      list.append(row);
+    });
+    box.append(list);
+  }
+
   function drawCal() {
     document.getElementById("pc-sub").textContent =
       "休みの連絡・振替の相談を受けたら、ここに入れてください";
     drawCalGrid();
     drawCalSide();
+    drawCalNew();
   }
 
   function showCal(on) {
+    const was = document.getElementById("page-cal").hidden;
     document.getElementById("page-cal").hidden = !on;
     if (on) {
+      /* 開くたびに、いま送迎表で開いている日に合わせる。
+         （画面を移っているあいだに日付を変えていることがあるため） */
+      if (was) {
+        calPick = currentDate;
+        calMonth = String(calPick).slice(0, 7);
+      }
       document.getElementById("page-home").hidden = true;
       document.querySelector(".sheet").hidden = true;
       document.getElementById("page-master").hidden = true;
@@ -10673,7 +10811,6 @@
   }
 
   function openCalPage() {
-    calMonth = String(calPick).slice(0, 7);
     showCal(true);
   }
 
@@ -10682,12 +10819,14 @@
     const d = new Date(y, m - 2, 1);
     calMonth = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0");
     drawCalGrid();
+    drawCalNew();
   });
   document.getElementById("cal-next").addEventListener("click", () => {
     const [y, m] = calMonth.split("-").map(Number);
     const d = new Date(y, m, 1);
     calMonth = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0");
     drawCalGrid();
+    drawCalNew();
   });
   document.getElementById("cal-today").addEventListener("click", () => {
     calPick = isoToday();
