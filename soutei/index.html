@@ -4182,7 +4182,6 @@
       --furikae-soft: #E7EEDC;
       --shinki: #8E480C;
       --shinki-soft: #F6E7D6;
-      --shinki-soft: #F6E7D6;
     }
 
     /* 曜日の色は紙の上のもの。画面が暗い面でも、刷るときは紙用に取り直す */
@@ -4863,6 +4862,20 @@
   .pc-row { display: flex; align-items: center; gap: 8px; padding: 5px 2px;
             border-bottom: 1px solid var(--rule); }
   .pc-row:last-child { border-bottom: 0; }
+
+  /* 日を選び直したときだけ、上から順に出す。
+     出欠をひとつ替えただけのときは動かさない（毎回動くと目ざわりなので） */
+  @keyframes pc-in {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: none; }
+  }
+
+  .pc-side.is-fresh .pc-part-head,
+  .pc-side.is-fresh .pc-row,
+  .pc-side.is-fresh .pc-add {
+    animation: pc-in .26s cubic-bezier(.2, .85, .3, 1) both;
+    animation-delay: calc(var(--i, 0) * .022s);
+  }
   .pc-row .nm { flex: 1 1 auto; min-width: 0; font-size: 14px; font-weight: 600;
                 overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .pc-row .nm small { margin-left: 6px; font-size: 11px; color: var(--ink-3); font-weight: 400; }
@@ -4888,7 +4901,7 @@
                  border-color: var(--furikae); color: var(--furikae); }
   .pc-none { font-size: 13px; color: var(--ink-3); padding: 8px 2px; }
 
-  /* 今月の新規利用者。カレンダーの下に置く */
+  /* 今月の新規・変更。カレンダーの下に置く */
   .pc-new h2 {
     margin: 0 0 4px; font-size: 15px; letter-spacing: .06em;
     display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
@@ -4897,7 +4910,7 @@
   .pc-new .n {
     margin-left: auto; font-size: 12px; font-weight: 700;
     padding: 2px 10px; border-radius: 999px;
-    background: var(--shinki-soft); color: var(--shinki);
+    background: var(--sub); color: var(--ink-2);
   }
 
   .pc-new-list { display: flex; flex-direction: column; gap: 4px; margin-top: 10px; }
@@ -4905,11 +4918,29 @@
   .pc-new-row {
     display: flex; align-items: center; gap: 10px;
     padding: 7px 12px; border-radius: 12px;
-    background: var(--shinki-soft);
+    background: var(--sub);
   }
   .pc-new-row .d {
-    flex: 0 0 auto; font-size: 12.5px; font-weight: 700; color: var(--shinki);
+    flex: 0 0 auto; font-size: 12.5px; font-weight: 700; color: var(--ink-2);
     font-variant-numeric: tabular-nums;
+  }
+
+  /* 語ごとの色。同じ橙の仲間でまとめず、4つを見分けられるようにする。
+     薄い塗りに濃い字は、送迎表の行や札と同じ組み合わせ */
+  .pc-new .c-新規 { background: var(--shinki-soft); color: var(--shinki); }
+  .pc-new .c-増回 { background: var(--ai-soft); color: var(--ai); }
+  .pc-new .c-再開 { background: var(--furikae-soft); color: var(--furikae); }
+  .pc-new .c-変更 { background: var(--enji-soft); color: var(--enji); }
+
+  .pc-new-row .code {
+    flex: 0 0 auto; font-size: 11px; font-weight: 700; letter-spacing: .04em;
+    padding: 3px 10px; border-radius: 999px;
+  }
+
+  .pc-new-sum { display: flex; gap: 5px; flex-wrap: wrap; margin: 8px 0 0; }
+  .pc-new-sum span {
+    font-size: 11px; font-weight: 700; letter-spacing: .04em;
+    padding: 3px 10px; border-radius: 999px;
   }
   .pc-new-row .nm { flex: 1 1 auto; min-width: 0; font-size: 14px; font-weight: 600;
                     overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -5456,7 +5487,7 @@
   <details class="fold" id="fold-legend">
     <summary><span class="fd-title">この画面の使い方</span><span class="fd-note">記号の意味と操作のまとめ</span>
       <!-- 古い控えを開いていないか、ここで見分けられるようにしておく -->
-      <span class="fd-ver">版 2026-08-20l</span></summary>
+      <span class="fd-ver">版 2026-08-20m</span></summary>
     <div class="fold-body">
   <div class="legend">
     <span class="item"><span class="swatch s-wc" data-icon="wc"></span>車椅子（リフト・スロープ使用）</span>
@@ -10602,11 +10633,20 @@
   }
 
   /* 右側。その日の名簿と、休み・振替の入れ口 */
+  let calShown = "";      /* 前に描いた日。同じ日なら動かさない */
+
   function drawCalSide() {
     const box = document.getElementById("cal-side");
     box.innerHTML = "";
     const date = calPick;
     const wd = weekdayOf(date);
+
+    /* 日を選び直したときだけ、上から順に出す */
+    const fresh = (calShown !== date);
+    calShown = date;
+    box.classList.toggle("is-fresh", fresh);
+    let step = 0;
+    const order = (elm) => { elm.style.setProperty("--i", step++); return elm; };
 
     const head = el("div", "pc-day-head");
     head.append(el("h2", null, titleDate(date)));
@@ -10629,6 +10669,7 @@
     const data = calDayData(date);
 
     [["am", "午前", "ai"], ["pm", "午後", "enji"]].forEach(([part, label, accent]) => {
+      step = 0;   /* 午前と午後は横に並ぶので、それぞれ上から数える */
       const sec = el("section", "pc-part");
       sec.style.setProperty("--accent", "var(--" + accent + ")");
       sec.style.setProperty("--accent-soft", "var(--" + accent + "-soft)");
@@ -10644,7 +10685,7 @@
       h.append(el("b", null, label));
       h.append(el("span", "n", (roster.length - off) + "名"
         + (off ? "（休み " + off + "）" : "")));
-      sec.append(h);
+      sec.append(order(h));
 
       if (!roster.length) {
         sec.append(el("p", "pc-none", "この便に来る予定の方はいません。"));
@@ -10680,7 +10721,7 @@
           notify(u.name + " さんの" + label + "を「" + (v || "出席") + "」にしました。");
         });
         row.append(pick);
-        sec.append(row);
+        sec.append(order(row));
       });
 
       /* 振替で来る方をここで足す。いつもは来ない曜日の方を入れられる */
@@ -10716,7 +10757,7 @@
         notify(u.name + " さんを " + titleDate(date) + " の" + label + "に振替で足しました。");
       });
       add.append(who, from, go);
-      sec.append(add);
+      sec.append(order(add));
 
       box.append(sec);
     });
@@ -10728,6 +10769,9 @@
 
   /* 今月のうちに「新規」を付けた方をまとめて出す。
      月の初めに「今月から来る方」を見返せるようにするための枠 */
+  /* この枠に出す語。どれも「その日から変わった」ことを示すもの */
+  const NEW_CODES = ["新規", "増回", "再開", "変更"];
+
   function drawCalNew() {
     const box = document.getElementById("cal-new");
     box.innerHTML = "";
@@ -10742,25 +10786,41 @@
       const data = calDayData(date);
       ["am", "pm"].forEach((part) => {
         Object.keys(data.attend[part]).forEach((id) => {
-          if (data.attend[part][id] !== "新規") return;
+          const code = data.attend[part][id];
+          if (NEW_CODES.indexOf(code) < 0) return;
           const u = USER_BY_ID.get(id);
-          rows.push({ date: date, d: d, part: part, name: u ? u.name : id, care: u ? u.care : "" });
+          rows.push({ date: date, d: d, part: part, code: code, u: u,
+                      name: u ? u.name : id, care: u ? u.care : "" });
         });
       });
     }
-    rows.sort((a, b) => (a.date === b.date
-      ? (a.part === b.part ? a.name.localeCompare(b.name, "ja") : (a.part === "am" ? -1 : 1))
-      : (a.date < b.date ? -1 : 1)));
+    /* 日付 → 午前午後 → ふりがなの五十音。ほかの名簿と同じ並び */
+    rows.sort((a, b) => {
+      if (a.date !== b.date) return a.date < b.date ? -1 : 1;
+      if (a.part !== b.part) return a.part === "am" ? -1 : 1;
+      if (a.u && b.u) return byKana(a.u, b.u);
+      return a.name.localeCompare(b.name, "ja");
+    });
 
-    const h = el("h2", null, "今月の新規利用者");
-    h.append(el("small", null, m + "月に「新規」を付けた方"));
-    if (rows.length) h.append(el("span", "n", rows.length + "名"));
+    const h = el("h2", null, "今月の新規・変更");
+    h.append(el("small", null, m + "月に「新規・増回・再開・変更」を付けた方"));
+    if (rows.length) h.append(el("span", "n", rows.length + "件"));
     box.append(h);
 
     if (!rows.length) {
       box.append(el("p", "pc-none",
-        "今月はまだいません。出欠を「新規」にすると、ここに出ます。"));
+        "今月はまだありません。出欠を「新規・増回・再開・変更」にすると、ここに出ます。"));
       return;
+    }
+
+    /* 語ごとの内訳。多いときに、何が何件かをひと目で分かるように */
+    if (rows.length > 1) {
+      const sum = el("p", "pc-new-sum");
+      NEW_CODES.forEach((c) => {
+        const n = rows.filter((r) => r.code === c).length;
+        if (n) sum.append(el("span", "c-" + c, c + " " + n));
+      });
+      box.append(sum);
     }
 
     const list = el("div", "pc-new-list");
@@ -10770,6 +10830,7 @@
       const nm = el("span", "nm", r.name);
       if (r.care) nm.append(el("small", null, r.care));
       row.append(nm);
+      row.append(el("span", "code c-" + r.code, r.code));
       row.append(el("span", "p " + r.part, r.part === "am" ? "午前" : "午後"));
       const go = el("button", "go", "その日を開く");
       go.type = "button";
@@ -10797,6 +10858,7 @@
       if (was) {
         calPick = currentDate;
         calMonth = String(calPick).slice(0, 7);
+        calShown = "";
       }
       document.getElementById("page-home").hidden = true;
       document.querySelector(".sheet").hidden = true;
