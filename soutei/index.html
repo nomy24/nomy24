@@ -215,6 +215,12 @@
       border-radius: 16px;
       padding: calc(var(--step) * 4) calc(var(--step) * 3) calc(var(--step) * 3);
     }
+    /* 錠剤形は左右に余白を食うので、携帯では詰めて横にはみ出さないようにする */
+    .tools, .crew { flex-wrap: wrap; }
+    .crew-pick { padding: 3px 4px 3px 9px; }
+    .tools button { padding: 7px 13px; }
+    .tools #btn-dispatch { padding: 5px 13px 5px 10px; }
+    .tools .menu-btn { padding: 6px 13px 6px 10px; }
   }
 
   .sticky-top::after {
@@ -4143,8 +4149,10 @@
        紙の上では通常のブロックに戻して便ごとの改ページを確実にする */
     .sheet { display: block; max-width: none; padding: 0; gap: 0; }
 
-    .controls, .modal, .saved-note, .date-step, .toast, .fold,
+    .controls, .modal, .saved-note, .date-step, .toast, .fold, .sidenav,
     .page-master, .page-print, .page-attend, .side { display: none !important; }
+
+    body.has-nav { padding-left: 0; }
 
     .work { display: block; }
 
@@ -4410,6 +4418,203 @@
   }
 
 
+
+  /* ── 左の常設メニュー ──────────────────────
+     タイトル画面まで戻らなくても、どの画面からも行き先を選べるようにする。
+     幅・錠剤形・選んでいる項目の塗りは、いただいた案サンプルに合わせた（224px の袖）。
+     タイトル画面のときだけ出さない（あの画面そのものがメニューなので） */
+  .sidenav[hidden] { display: none; }
+
+  .sidenav {
+    position: fixed;
+    left: calc(var(--step) * 3);
+    top: calc(var(--step) * 3);
+    bottom: calc(var(--step) * 3);
+    z-index: 40;
+    /* 枠と余白を含めてこの幅にする（本文を押しのける量と合わせるため） */
+    box-sizing: border-box;
+    width: 224px;
+    display: flex;
+    flex-direction: column;
+    padding: calc(var(--step) * 4) calc(var(--step) * 3);
+    overflow-y: auto;
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-radius: 22px;
+    box-shadow: 0 4px 18px rgba(16, 24, 32, .07);
+  }
+
+  body.has-nav { padding-left: 248px; }
+
+  /* 袖に🌿があるので、各画面の表題のほうの🌿は引っ込める */
+  body.has-nav .to-home { display: none; }
+
+  .sn-logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    color: var(--ink);
+    text-align: left;
+    padding: calc(var(--step) * 2) calc(var(--step) * 2) calc(var(--step) * 4);
+    margin-bottom: calc(var(--step) * 2);
+    border: 0;
+    border-bottom: 1px solid var(--rule);
+    background: none;
+    cursor: pointer;
+    border-radius: 0;
+  }
+
+  .sn-leaf { font-size: 19px; line-height: 1; }
+  .sn-logo:hover .sn-brand { color: var(--accent); }
+
+  .sn-top {
+    display: flex;
+    align-items: center;
+    padding-bottom: calc(var(--step) * 4);
+    margin-bottom: calc(var(--step) * 2);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .sn-top .sn-logo {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: calc(var(--step) * 2);
+    margin: 0;
+    border-bottom: 0;
+  }
+
+  /* 画面の横幅がほしいときは、袖を絵だけの細さに畳める */
+  .sn-slim {
+    flex: none;
+    width: 28px;
+    height: 28px;
+    display: grid;
+    place-items: center;
+    font: inherit;
+    font-size: 15px;
+    line-height: 1;
+    padding: 0;
+    color: var(--ink-3);
+    background: none;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    cursor: pointer;
+  }
+
+  .sn-slim:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+
+  body.has-nav.nav-slim { padding-left: 96px; }
+  .sidenav.slim { width: 72px; }
+  .sidenav.slim .sn-brand,
+  .sidenav.slim .sn-t,
+  .sidenav.slim .sn-b,
+  .sidenav.slim .sn-foot { display: none; }
+  .sidenav.slim .sn-top { flex-direction: column; gap: 4px; }
+  .sidenav.slim .sn-top .sn-logo { flex: none; justify-content: center; }
+  .sidenav.slim .sn-item { justify-content: center; padding: 11px 0; }
+
+  .sn-list { display: flex; flex-direction: column; gap: 5px; }
+
+  .sn-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 11px 14px;
+    font: inherit;
+    font-size: 13.5px;
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-align: left;
+    color: var(--ink-2);
+    background: none;
+    border: 0;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background-color .14s, color .14s;
+  }
+
+  .sn-item svg { width: 20px; height: 20px; flex: none; stroke: currentColor; }
+  .sn-item .sn-t { flex: 1 1 auto; min-width: 0; }
+
+  .sn-item:hover { background: var(--sub); color: var(--ink); }
+
+  /* いま開いている画面。押した先が変わったことが目で追えるように塗る */
+  .sn-item.on {
+    background: var(--accent);
+    color: var(--card);
+    box-shadow: 0 4px 12px rgba(16, 24, 32, .18);
+  }
+
+  .sn-b {
+    flex: none;
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: var(--sub);
+    color: var(--ink-3);
+  }
+
+  .sn-item.on .sn-b { background: rgba(255, 255, 255, .22); color: #fff; }
+
+  .sn-foot {
+    margin: auto 0 0;
+    padding-top: calc(var(--step) * 4);
+    font-size: 10.5px;
+    color: var(--ink-3);
+    letter-spacing: .04em;
+  }
+
+  /* 幅が足りないときは、上に横並びの帯にする。
+     画面の作業面を袖に取られないようにする */
+  @media screen and (max-width: 1240px) {
+    body.has-nav { padding-left: 0; }
+    .sidenav {
+      position: sticky;
+      left: auto; top: 0; bottom: auto;
+      width: auto;
+      flex-direction: row;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 10px;
+      margin-bottom: calc(var(--step) * 2);
+      border-width: 0 0 1px;
+      border-radius: 0;
+      flex-wrap: wrap;
+      box-shadow: 0 2px 10px rgba(16, 24, 32, .06);
+    }
+    .sn-logo {
+      flex: none;
+      padding: 6px 10px 6px 6px;
+      margin: 0 4px 0 0;
+      border-bottom: 0;
+      border-right: 1px solid var(--rule);
+      border-radius: 0;
+    }
+    .sn-brand, .sn-slim { display: none; }
+    .sn-top { display: contents; }
+    /* 帯のときは、袖の並びの箱を外して 🌿 と項目を同じ列に流す
+       （箱のままだと 🌿 だけが1行目に取り残される） */
+    .sn-list { display: contents; }
+    .sn-item { margin-right: 4px; }
+    .sn-item { width: auto; flex: none; padding: 8px 13px; white-space: nowrap; }
+    .sn-foot { display: none; }
+  }
+
+  /* 幅がここまで狭いと6つ分の語は並ばない。
+     いま開いている画面の語だけ残し、ほかは絵にする（押す先は title で読める） */
+  @media screen and (max-width: 620px) {
+    .sn-item .sn-t { display: none; }
+    .sn-item.on .sn-t { display: block; }
+    .sn-item { padding: 8px 11px; }
+    .sn-b { display: none; }
+  }
 
   /* ── 出欠カレンダー ────────────────────────
      休みの連絡・振替の相談を受けたその場で入れる画面。
@@ -4761,6 +4966,26 @@
   }
 </style>
 
+<!-- 左の常設メニュー。タイトル画面と同じ行き先を、どの画面からも1押しで開ける -->
+<nav class="sidenav" id="sidenav" hidden aria-label="メニュー">
+  <div class="sn-top">
+    <button type="button" class="sn-logo" id="sn-home" title="タイトル画面へ戻る">
+      <span class="sn-leaf">🌿</span><span class="sn-brand">あさひ 送迎支援</span>
+    </button>
+    <button type="button" class="sn-slim" id="sn-slim" title="袖を細くする"
+            aria-label="袖を細くする">‹</button>
+  </div>
+  <div class="sn-list">
+    <button type="button" class="sn-item" data-nav="todo" title="Todo タスク" aria-label="Todo タスク"><svg viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 5.5h9M7.5 10h9M7.5 14.5h6"/><path d="M3 5.2l1.1 1.1L6.2 4"/><path d="M3 9.7l1.1 1.1L6.2 8.5"/><path d="M3.2 14.5h2"/></svg><span class="sn-t">Todo タスク</span><span class="sn-b">別アプリ</span></button>
+    <button type="button" class="sn-item" data-nav="van" title="送迎編集" aria-label="送迎編集"><svg viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12.5l1.3-4A1.4 1.4 0 0 1 5.6 7.5h8.8a1.4 1.4 0 0 1 1.3 1l1.3 4"/><rect x="2" y="12.5" width="16" height="3" rx="1.2"/><circle cx="6" cy="17" r="1.3"/><circle cx="14" cy="17" r="1.3"/></svg><span class="sn-t">送迎編集</span></button>
+    <button type="button" class="sn-item" data-nav="people" title="マスタ管理" aria-label="マスタ管理"><svg viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="7" r="3"/><path d="M2.5 17c0-3 2.2-5 5-5s5 2 5 5"/><circle cx="14.5" cy="8" r="2.3"/><path d="M12 12.2c1.7.3 3 1.8 3.5 4.8"/></svg><span class="sn-t">マスタ管理</span></button>
+    <button type="button" class="sn-item" data-nav="cal" title="出欠カレンダー" aria-label="出欠カレンダー"><svg viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="14" height="12" rx="2"/><path d="M3 8.5h14M7 3v3M13 3v3"/><path d="M6.5 11.5h2M11 11.5h2M6.5 14h2"/></svg><span class="sn-t">出欠カレンダー</span></button>
+    <button type="button" class="sn-item" data-nav="data" title="データ管理" aria-label="データ管理"><svg viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="10" cy="5.5" rx="6" ry="2.5"/><path d="M4 5.5v9c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5v-9"/><path d="M4 10c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5"/></svg><span class="sn-t">データ管理</span></button>
+    <button type="button" class="sn-item" data-nav="print" title="印刷レイアウト" aria-label="印刷レイアウト"><svg viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7.5V3.5h8v4"/><rect x="3" y="7.5" width="14" height="6" rx="1.6"/><path d="M6 12.5h8v4H6z"/></svg><span class="sn-t">印刷レイアウト</span></button>
+  </div>
+  <p class="sn-foot">タイトル画面へは上の🌿から</p>
+</nav>
+
 <div class="sheet">
   <div class="sticky-top" id="sticky-top">
   <header class="masthead">
@@ -4933,7 +5158,7 @@
   <details class="fold" id="fold-legend">
     <summary><span class="fd-title">この画面の使い方</span><span class="fd-note">記号の意味と操作のまとめ</span>
       <!-- 古い控えを開いていないか、ここで見分けられるようにしておく -->
-      <span class="fd-ver">版 2026-08-19e</span></summary>
+      <span class="fd-ver">版 2026-08-20a</span></summary>
     <div class="fold-body">
   <div class="legend">
     <span class="item"><span class="swatch s-wc" data-icon="wc"></span>車椅子（リフト・スロープ使用）</span>
@@ -5033,7 +5258,6 @@
       <span class="hm-ic"><svg viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:26px;height:26px"><rect x="3" y="4.5" width="14" height="12" rx="2"/><path d="M3 8.5h14M7 3v3M13 3v3"/><path d="M6.5 11.5h2M11 11.5h2M6.5 14h2"/></svg></span>
       <span class="hm-t">出欠カレンダー</span>
       <span class="hm-d">1か月ぶんの出欠をまとめて入れる</span>
-      <span class="hm-b">準備中</span>
     </button>
     <button type="button" class="hm-tile" data-go="data">
       <span class="hm-ic"><svg viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:26px;height:26px"><ellipse cx="10" cy="5.5" rx="6" ry="2.5"/><path d="M4 5.5v9c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5v-9"/><path d="M4 10c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5"/></svg></span>
@@ -9787,6 +10011,7 @@
     document.getElementById("page-attend").hidden = true;
     document.querySelector(".sheet").hidden = false;
     if (location.hash !== "#soutei") location.hash = "soutei";
+    syncNav();
     window.scrollTo(0, 0);
   }
 
@@ -9800,6 +10025,7 @@
       document.getElementById("page-attend").hidden = true;
       drawHome();
       if (location.hash !== "#home") location.hash = "home";
+      syncNav();
       window.scrollTo(0, 0);
     }
   }
@@ -9841,21 +10067,76 @@
     if (b) b.addEventListener("click", () => showHome(true));
   });
 
+  /* タイトル画面のタイルと、左の袖のメニューは同じ行き先を指す */
+  function goTo(go) {
+    if (go === "todo") { window.open(TODO_URL, "_blank", "noopener"); return; }
+    showHome(false);
+    if (go === "van") { toSheet(); return; }
+    if (go === "people") { openMaster(); return; }
+    if (go === "data") { openMaster(); document.getElementById("pmtab-io").click(); return; }
+    if (go === "print") { openPrintPage("soutei"); return; }
+    if (go === "cal") { openCalPage(); return; }
+  }
+
   document.querySelectorAll(".hm-tile").forEach((tile) => {
-    tile.addEventListener("click", () => {
-      const go = tile.dataset.go;
-      if (go === "todo") { window.open(TODO_URL, "_blank", "noopener"); return; }
-      showHome(false);
-      if (go === "van") {
-        toSheet();
-        return;
-      }
-      if (go === "people") { openMaster(); return; }
-      if (go === "data") { openMaster(); document.getElementById("pmtab-io").click(); return; }
-      if (go === "print") { openPrintPage("soutei"); return; }
-      if (go === "cal") { openCalPage(); return; }
-    });
+    tile.addEventListener("click", () => goTo(tile.dataset.go));
   });
+
+  /* ── 左の常設メニュー ──────────────────────
+     どの画面からでも行き先を選べるように、脇に出しっぱなしにする。
+     タイトル画面のときだけ引っ込める（あの画面そのものがメニューなので） */
+  /* 袖を細くしているかどうかは覚えておく。画面の横幅がほしい端末があるので */
+  let navSlim = STORE.getJSON("nav.slim") === true;
+
+  function drawNavSlim() {
+    const nav = document.getElementById("sidenav");
+    const btn = document.getElementById("sn-slim");
+    nav.classList.toggle("slim", navSlim);
+    document.body.classList.toggle("nav-slim", navSlim);
+    btn.textContent = navSlim ? "\u203A" : "\u2039";
+    btn.title = navSlim ? "袖を広げる" : "袖を細くする";
+    btn.setAttribute("aria-label", btn.title);
+  }
+
+  function setNav(key) {
+    const nav = document.getElementById("sidenav");
+    if (!nav) return;
+    nav.hidden = !key;
+    document.body.classList.toggle("has-nav", !!key);
+    document.body.classList.toggle("nav-slim", !!key && navSlim);
+    nav.querySelectorAll(".sn-item").forEach((b) => {
+      b.classList.toggle("on", b.dataset.nav === key);
+      if (b.dataset.nav === key) b.setAttribute("aria-current", "page");
+      else b.removeAttribute("aria-current");
+    });
+  }
+
+  /* いま出ている画面から、袖のどれを塗るかを決める。
+     行き先の関数がいくつもあるので、判断は1か所に寄せる */
+  function syncNav() {
+    const vis = (id) => !document.getElementById(id).hidden;
+    let key = "van";
+    if (vis("page-home")) key = "";
+    else if (vis("page-master")) {
+      const io = document.getElementById("pmtab-io");
+      key = (io && io.getAttribute("aria-selected") === "true") ? "data" : "people";
+    } else if (vis("page-cal")) key = "cal";
+    else if (vis("page-print")) key = "print";
+    else if (vis("page-attend")) key = "attend";   /* 出欠は袖に項目が無いので、どれも塗らない */
+    setNav(key);
+  }
+
+  document.querySelectorAll(".sn-item").forEach((b) => {
+    b.addEventListener("click", () => goTo(b.dataset.nav));
+  });
+  document.getElementById("sn-home").addEventListener("click", () => showHome(true));
+  document.getElementById("sn-slim").addEventListener("click", () => {
+    navSlim = !navSlim;
+    STORE.setJSON("nav.slim", navSlim);
+    drawNavSlim();
+    syncStickyHeight();
+  });
+  drawNavSlim();
 
 
   /* ── 出欠カレンダー ────────────────────────
@@ -10131,6 +10412,7 @@
       if (location.hash !== "#cal") location.hash = "cal";
       window.scrollTo(0, 0);
     }
+    syncNav();
   }
 
   function openCalPage() {
@@ -10170,6 +10452,7 @@
     document.getElementById("page-master").hidden = !on;
     if (on && location.hash !== "#master") location.hash = "master";
     if (!on && location.hash === "#master") location.hash = "soutei";
+    syncNav();
     window.scrollTo(0, 0);
   }
 
@@ -10178,8 +10461,11 @@
   document.getElementById("btn-master").addEventListener("click", openMaster);
   document.getElementById("master-cancel").addEventListener("click", closeMaster);
 
-  /* 戻る・進むでも画面とハッシュが食い違わないように、行き先は1か所で決める */
-  window.addEventListener("hashchange", () => {
+  /* 戻る・進むでも画面とハッシュが食い違わないように、行き先は1か所で決める。
+     途中で return する道が多いので、袖の塗り直しは外側でまとめて行う */
+  window.addEventListener("hashchange", () => { routeHash(); syncNav(); });
+
+  function routeHash() {
     const where = location.hash.replace("#", "");
     const onMaster = !document.getElementById("page-master").hidden;
     const onPrint = !document.getElementById("page-print").hidden;
@@ -10219,7 +10505,7 @@
       if (onMaster) closeMaster();
       if (onPrint) showPrintPage(false);
     }
-  });
+  }
 
   /* マスタ編集ページの中のタブ */
   ["users", "kin", "drivers", "dispatch", "office", "io"].forEach((key) => {
@@ -10229,6 +10515,7 @@
         document.getElementById("pmtab-" + k).setAttribute("aria-selected", String(on));
         document.getElementById("pm-" + k).hidden = !on;
       });
+      syncNav();
     });
   });
 
@@ -10927,6 +11214,7 @@
     document.getElementById("page-attend").hidden = !on;
     if (on && location.hash !== "#attend") location.hash = "attend";
     if (!on && location.hash === "#attend") location.hash = "soutei";
+    syncNav();
     window.scrollTo(0, 0);
   }
 
@@ -11551,6 +11839,7 @@
     if (!on && Object.values(DOCS).some((d) => location.hash === "#" + d.hash)) {
       location.hash = "soutei";
     }
+    syncNav();
     window.scrollTo(0, 0);
   }
 
@@ -12313,6 +12602,7 @@
   else if (location.hash === "#soutei") {
     /* 送迎編集の画面。タイトルは通らない */
     document.getElementById("page-home").hidden = true;
+    syncNav();
   }
   else {
     const boot = Object.values(DOCS).find((d) => "#" + d.hash === location.hash);
