@@ -4540,56 +4540,71 @@
 
   /* ── 帯が隠れたときの浮きボタン ──────────────
      下へ送って帯が見えなくなったら、左上に小さな口を浮かべる。
-     乗せる（触れる・タブで入る・押す）と、帯と同じ並びが横に開く。
+     乗せる（触れる・タブで入る・押す）と、
+     ページの頭の帯とまったく同じ形・同じ幅・同じ位置で開く。
      浮いているだけなので、送迎表の幅は取らない */
   .navfab[hidden] { display: none; }
 
+  /* 入れ物は帯とまったく同じ幅・同じ位置に置き、その中で口と帯を重ねる。
+     こうしておくと、口に乗せて口が消えたあとも、同じ場所に帯があるので
+     「乗っている」状態が途切れない（途切れるとちらつく）。
+     高さ0なので、入れ物そのものは下にあるものを覆わない */
   .navfab {
     position: fixed;
-    left: calc(var(--step) * 3);
-    top: calc(var(--step) * 3);
+    left: 0;
+    right: 0;
+    top: calc(var(--step) * 4);
+    max-width: 1440px;
+    margin: 0 auto;
+    height: 0;
     z-index: 45;
-    box-sizing: border-box;
-    display: flex;
-    align-items: center;
-    gap: 3px;
-    padding: 4px;
-    max-width: 46px;
-    overflow: hidden;
-    background: var(--card);
-    border: 1px solid var(--rule);
-    border-radius: 999px;
-    box-shadow: 0 6px 18px rgba(16, 24, 32, .16);
-    transition: max-width .26s cubic-bezier(.2, .8, .3, 1), box-shadow .2s, opacity .2s;
-  }
-
-  .navfab:is(:hover, :focus-within, .is-open) {
-    max-width: calc(100vw - var(--step) * 6);
-    box-shadow: 0 12px 32px rgba(16, 24, 32, .22);
   }
 
   .nf-btn {
-    flex: none;
-    width: 36px;
-    height: 36px;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 46px;
+    height: 46px;
     display: grid;
     place-items: center;
     padding: 0;
     font: inherit;
     color: var(--ink-2);
-    background: none;
-    border: 0;
+    background: var(--card);
+    border: 1px solid var(--rule);
     border-radius: 999px;
+    box-shadow: 0 6px 18px rgba(16, 24, 32, .16);
     cursor: pointer;
+    transition: opacity .16s, color .14s, border-color .14s;
   }
 
   .nf-btn svg { width: 20px; height: 20px; }
-  .nf-btn:hover { background: var(--sub); color: var(--ink); }
-  .navfab:is(:hover, :focus-within, .is-open) .nf-btn { color: var(--accent); }
+  .nf-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .navfab:is(:focus-within, .is-open) .nf-btn { opacity: 0; pointer-events: none; }
 
-  .nf-list { display: flex; align-items: center; gap: 3px; padding-right: 4px; }
-  .nf-leaf { font-size: 16px; line-height: 1; }
-  .navfab .sn-item { padding: 7px 12px; font-size: 12.5px; margin-right: 0; }
+  /* 中身は帯（.sidenav）の見た目をそのまま借りる。
+     置き方と、開くときの動きだけをここで足す */
+  .nf-bar {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    margin: 0 auto;
+    opacity: 0;
+    /* 閉じているあいだは触れないだけにしておく。
+       visibility で消すと、開く一瞬だけ当たり判定が抜けて点滅する */
+    pointer-events: none;
+    transform: translateY(-6px);
+    box-shadow: 0 12px 32px rgba(16, 24, 32, .20);
+    transition: opacity .18s, transform .2s cubic-bezier(.2, .8, .3, 1);
+  }
+
+  .navfab:is(:focus-within, .is-open) .nf-bar {
+    opacity: 1;
+    pointer-events: auto;
+    transform: none;
+  }
 
   /* 帯そのものが出ていない画面（タイトル）では浮きボタンも出さない */
   body:not(.has-nav) .navfab { display: none; }
@@ -4597,16 +4612,10 @@
   /* 浮きボタンが出ているあいだは、脇の札を下へ寄せて重ならないようにする */
   body.nav-float .side { --side-top: calc(var(--step) * 3 + 54px); }
 
-  /* 狭い画面では一列に収まらないので、折り返して2段にする */
+  /* 狭い画面では帯が端から端までになるので、浮かせるほうも同じにする */
   @media screen and (max-width: 1240px) {
-    .navfab:is(:hover, :focus-within, .is-open) { flex-wrap: wrap; border-radius: 24px; }
-    .navfab .nf-list { flex-wrap: wrap; }
-  }
-
-  @media screen and (max-width: 620px) {
-    .navfab .sn-item .sn-t { display: none; }
-    .navfab .sn-item.on .sn-t { display: block; }
-    .navfab #nf-home .sn-t { display: none; }
+    .navfab { top: 0; max-width: none; }
+    .nf-btn { top: calc(var(--step) * 3); left: calc(var(--step) * 3); }
   }
 
   /* ── 出欠カレンダー ────────────────────────
@@ -4984,15 +4993,22 @@
     <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"
          stroke-linecap="round"><path d="M3.5 6h13M3.5 10h13M3.5 14h13"/></svg>
   </button>
-  <div class="nf-list">
-    <button type="button" class="sn-item" id="nf-home" title="タイトル画面へ戻る" aria-label="タイトル画面へ戻る"><span class="nf-leaf">🌿</span><span class="sn-t">タイトル</span></button>
+  <!-- 開いたときは、ページの頭の帯とまったく同じ形・同じ位置に出す -->
+  <nav class="sidenav nf-bar" id="nf-bar" aria-label="メニュー">
+    <div class="sn-top">
+      <button type="button" class="sn-logo" id="nf-home" title="タイトル画面へ戻る">
+        <span class="sn-leaf">🌿</span><span class="sn-brand">あさひ 送迎支援</span>
+      </button>
+    </div>
+    <div class="sn-list">
     <button type="button" class="sn-item" data-nav="todo" title="Todo タスク" aria-label="Todo タスク"><svg viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 5.5h9M7.5 10h9M7.5 14.5h6"/><path d="M3 5.2l1.1 1.1L6.2 4"/><path d="M3 9.7l1.1 1.1L6.2 8.5"/><path d="M3.2 14.5h2"/></svg><span class="sn-t">Todo タスク</span><span class="sn-b">別アプリ</span></button>
     <button type="button" class="sn-item" data-nav="van" title="送迎編集" aria-label="送迎編集"><svg viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12.5l1.3-4A1.4 1.4 0 0 1 5.6 7.5h8.8a1.4 1.4 0 0 1 1.3 1l1.3 4"/><rect x="2" y="12.5" width="16" height="3" rx="1.2"/><circle cx="6" cy="17" r="1.3"/><circle cx="14" cy="17" r="1.3"/></svg><span class="sn-t">送迎編集</span></button>
     <button type="button" class="sn-item" data-nav="people" title="マスタ管理" aria-label="マスタ管理"><svg viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="7" r="3"/><path d="M2.5 17c0-3 2.2-5 5-5s5 2 5 5"/><circle cx="14.5" cy="8" r="2.3"/><path d="M12 12.2c1.7.3 3 1.8 3.5 4.8"/></svg><span class="sn-t">マスタ管理</span></button>
     <button type="button" class="sn-item" data-nav="cal" title="出欠カレンダー" aria-label="出欠カレンダー"><svg viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="14" height="12" rx="2"/><path d="M3 8.5h14M7 3v3M13 3v3"/><path d="M6.5 11.5h2M11 11.5h2M6.5 14h2"/></svg><span class="sn-t">出欠カレンダー</span></button>
     <button type="button" class="sn-item" data-nav="data" title="データ管理" aria-label="データ管理"><svg viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="10" cy="5.5" rx="6" ry="2.5"/><path d="M4 5.5v9c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5v-9"/><path d="M4 10c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5"/></svg><span class="sn-t">データ管理</span></button>
     <button type="button" class="sn-item" data-nav="print" title="印刷レイアウト" aria-label="印刷レイアウト"><svg viewBox="0 0 20 20" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7.5V3.5h8v4"/><rect x="3" y="7.5" width="14" height="6" rx="1.6"/><path d="M6 12.5h8v4H6z"/></svg><span class="sn-t">印刷レイアウト</span></button>
-  </div>
+    </div>
+  </nav>
 </div>
 
 <div class="sheet">
@@ -5167,7 +5183,7 @@
   <details class="fold" id="fold-legend">
     <summary><span class="fd-title">この画面の使い方</span><span class="fd-note">記号の意味と操作のまとめ</span>
       <!-- 古い控えを開いていないか、ここで見分けられるようにしておく -->
-      <span class="fd-ver">版 2026-08-20d</span></summary>
+      <span class="fd-ver">版 2026-08-20e</span></summary>
     <div class="fold-body">
   <div class="legend">
     <span class="item"><span class="swatch s-wc" data-icon="wc"></span>車椅子（リフト・スロープ使用）</span>
@@ -10161,23 +10177,43 @@
       }, { passive: true });
     }
 
-    /* 指で触る端末は「乗せる」ができないので、押して開けるようにする */
-    btn.addEventListener("click", () => {
-      const on = fab.classList.toggle("is-open");
-      btn.setAttribute("aria-expanded", String(on));
-    });
-    document.addEventListener("click", (e) => {
-      if (!fab.contains(e.target)) {
-        fab.classList.remove("is-open");
-        btn.setAttribute("aria-expanded", "false");
-      }
-    });
+    /* 開け閉ては手で持つ。CSS の :hover に任せると、
+       乗せた口が消えた瞬間に「乗っていない」に戻って点滅するため */
+    const bar = document.getElementById("nf-bar");
+    let shut = null;
+
+    let opened = 0;
+    const openNav = () => {
+      clearTimeout(shut);
+      if (!fab.classList.contains("is-open")) opened = Date.now();
+      fab.classList.add("is-open");
+      btn.setAttribute("aria-expanded", "true");
+    };
+
+    /* 口を押して開いた直後は、同じ場所に帯の🌿が来る。
+       そのまま押したことにならないよう、開いた直後の一撃だけは受け流す */
+    bar.addEventListener("click", (e) => {
+      if (Date.now() - opened < 320) { e.preventDefault(); e.stopPropagation(); }
+    }, true);
+    const closeNav = () => {
+      clearTimeout(shut);
+      fab.classList.remove("is-open");
+      btn.setAttribute("aria-expanded", "false");
+    };
+    /* 口から帯へ移るあいだに一瞬どちらでもなくなるので、少し待ってから閉じる */
+    const closeSoon = () => { clearTimeout(shut); shut = setTimeout(closeNav, 240); };
+
+    btn.addEventListener("mouseenter", openNav);
+    btn.addEventListener("mouseleave", closeSoon);
+    bar.addEventListener("mouseenter", openNav);
+    bar.addEventListener("mouseleave", closeSoon);
+
+    /* 指で触る端末は「乗せる」ができないので、押しても開く */
+    btn.addEventListener("click", openNav);
+    document.addEventListener("click", (e) => { if (!fab.contains(e.target)) closeNav(); });
+
     fab.querySelectorAll(".sn-item").forEach((b) => {
-      b.addEventListener("click", () => {
-        fab.classList.remove("is-open");
-        btn.setAttribute("aria-expanded", "false");
-        window.scrollTo(0, 0);
-      });
+      b.addEventListener("click", () => { closeNav(); window.scrollTo(0, 0); });
     });
   })();
 
