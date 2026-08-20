@@ -4152,7 +4152,7 @@
     .controls, .modal, .saved-note, .date-step, .toast, .fold, .sidenav,
     .page-master, .page-print, .page-attend, .side { display: none !important; }
 
-    body.has-nav { padding-left: 0; }
+    body.has-nav, body.has-nav.nav-wide { padding-left: 0; }
 
     .work { display: block; }
 
@@ -4419,9 +4419,12 @@
 
 
 
-  /* ── 左の常設メニュー ──────────────────────
+  /* ── 左の常設メニュー（案い：細い袖＋のぞくと広がる）───
      タイトル画面まで戻らなくても、どの画面からも行き先を選べるようにする。
-     幅・錠剤形・選んでいる項目の塗りは、いただいた案サンプルに合わせた（224px の袖）。
+     送迎編集の画面を狭くしないことを第一に、ふだんは絵だけの 56px。
+     マウスを乗せる（触れる・タブで入る）と 224px に広がるが、
+     広がるぶんは本文の上に重なるだけで、本文はいっさい動かない。
+     「開いたままにする」を押せば、いつも広い袖にもできる（覚える）。
      タイトル画面のときだけ出さない（あの画面そのものがメニューなので） */
   .sidenav[hidden] { display: none; }
 
@@ -4429,22 +4432,35 @@
     position: fixed;
     left: calc(var(--step) * 3);
     top: calc(var(--step) * 3);
-    bottom: calc(var(--step) * 3);
+    /* 高さは中身ぶんだけ。細いときに白い柱が伸びないようにする */
+    max-height: calc(100vh - var(--step) * 6);
     z-index: 40;
     /* 枠と余白を含めてこの幅にする（本文を押しのける量と合わせるため） */
     box-sizing: border-box;
-    width: 224px;
+    width: 56px;
     display: flex;
     flex-direction: column;
-    padding: calc(var(--step) * 4) calc(var(--step) * 3);
-    overflow-y: auto;
+    padding: calc(var(--step) * 3) calc(var(--step) * 2);
+    overflow: hidden;
     background: var(--card);
     border: 1px solid var(--rule);
     border-radius: 22px;
     box-shadow: 0 4px 18px rgba(16, 24, 32, .07);
+    transition: width .2s cubic-bezier(.2, .8, .3, 1), box-shadow .2s;
   }
 
-  body.has-nav { padding-left: 248px; }
+  /* のぞくと広がる。広がったぶんは本文に重なるだけで、本文は動かない */
+  .sidenav:is(:hover, :focus-within, .wide) {
+    width: 224px;
+    padding: calc(var(--step) * 4) calc(var(--step) * 3);
+    box-shadow: 0 10px 34px rgba(16, 24, 32, .18);
+  }
+
+  body.has-nav { padding-left: 80px; }
+
+  /* 「開いたままにする」を選んだときだけ、本文も右へ寄せる */
+  body.has-nav.nav-wide { padding-left: 248px; }
+  .sidenav.wide { box-shadow: 0 4px 18px rgba(16, 24, 32, .07); }
 
   /* 袖に🌿があるので、各画面の表題のほうの🌿は引っ込める */
   body.has-nav .to-home { display: none; }
@@ -4487,7 +4503,7 @@
     border-bottom: 0;
   }
 
-  /* 画面の横幅がほしいときは、袖を絵だけの細さに畳める */
+  /* 「開いたままにする」の錠。細い袖のときは 🌿 の下に縦に並ぶ */
   .sn-slim {
     flex: none;
     width: 28px;
@@ -4507,24 +4523,43 @@
 
   .sn-slim:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
 
-  body.has-nav.nav-slim { padding-left: 96px; }
-  .sidenav.slim { width: 72px; }
-  .sidenav.slim .sn-brand,
-  .sidenav.slim .sn-t,
-  .sidenav.slim .sn-b,
-  .sidenav.slim .sn-foot { display: none; }
-  .sidenav.slim .sn-top { flex-direction: column; gap: 4px; }
-  .sidenav.slim .sn-top .sn-logo { flex: none; justify-content: center; }
-  .sidenav.slim .sn-item { justify-content: center; padding: 11px 0; }
+  /* 細いあいだは語を伏せ、絵だけを真ん中に置く。
+     幅ごと畳むので、絵が横に押し出されない。字はすっと現れる */
+  .sn-brand, .sn-t, .sn-b {
+    opacity: 0;
+    max-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    transition: opacity .12s, max-width .2s cubic-bezier(.2, .8, .3, 1);
+  }
+  .sn-foot { display: none; }
+
+  .sidenav:is(:hover, :focus-within, .wide) :is(.sn-brand, .sn-t) { opacity: 1; max-width: 11em; }
+  .sidenav:is(:hover, :focus-within, .wide) .sn-b { opacity: 1; max-width: 6em; }
+  .sidenav:is(:hover, :focus-within, .wide) .sn-foot { display: block; }
+
+  /* 細いあいだ、🌿 と錠は縦に並べる。広がると横に戻る */
+  .sn-top { flex-direction: column; gap: 4px; padding-bottom: calc(var(--step) * 3); }
+  .sn-top .sn-logo { flex: none; justify-content: center; gap: 0; padding: calc(var(--step) * 1); }
+  .sn-slim { opacity: .5; }
+
+  .sidenav:is(:hover, :focus-within, .wide) .sn-top {
+    flex-direction: row; gap: 0; padding-bottom: calc(var(--step) * 4);
+  }
+  .sidenav:is(:hover, :focus-within, .wide) .sn-top .sn-logo {
+    flex: 1 1 auto; justify-content: flex-start; gap: 8px; padding: calc(var(--step) * 2);
+  }
+  .sidenav:is(:hover, :focus-within, .wide) .sn-slim { opacity: 1; }
 
   .sn-list { display: flex; flex-direction: column; gap: 5px; }
 
   .sn-item {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 0;
     width: 100%;
-    padding: 11px 14px;
+    padding: 11px 0;
+    justify-content: center;
     font: inherit;
     font-size: 13.5px;
     font-weight: 600;
@@ -4539,7 +4574,11 @@
   }
 
   .sn-item svg { width: 20px; height: 20px; flex: none; stroke: currentColor; }
-  .sn-item .sn-t { flex: 1 1 auto; min-width: 0; }
+  .sn-item .sn-t { flex: 1 1 auto; min-width: 0; white-space: nowrap; }
+
+  .sidenav:is(:hover, :focus-within, .wide) .sn-item {
+    padding: 11px 14px; justify-content: flex-start; gap: 10px;
+  }
 
   .sn-item:hover { background: var(--sub); color: var(--ink); }
 
@@ -4574,7 +4613,7 @@
   /* 幅が足りないときは、上に横並びの帯にする。
      画面の作業面を袖に取られないようにする */
   @media screen and (max-width: 1240px) {
-    body.has-nav { padding-left: 0; }
+    body.has-nav, body.has-nav.nav-wide { padding-left: 0; }
     .sidenav {
       position: sticky;
       left: auto; top: 0; bottom: auto;
@@ -4599,6 +4638,19 @@
     }
     .sn-brand, .sn-slim { display: none; }
     .sn-top { display: contents; }
+    /* 帯のときは伏せない。広げる仕掛けも要らない */
+    .sn-t, .sn-b { opacity: 1; max-width: none; }
+    .sidenav, .sidenav:is(:hover, :focus-within, .wide) {
+      width: auto; padding: 7px 10px; box-shadow: 0 2px 10px rgba(16, 24, 32, .06);
+    }
+    .sn-item, .sidenav:is(:hover, :focus-within, .wide) .sn-item {
+      justify-content: flex-start; padding: 8px 13px; gap: 10px;
+    }
+    .sn-top, .sidenav:is(:hover, :focus-within, .wide) .sn-top { padding-bottom: 0; }
+    .sn-top .sn-logo,
+    .sidenav:is(:hover, :focus-within, .wide) .sn-top .sn-logo {
+      padding: 6px 10px 6px 6px; gap: 0;
+    }
     /* 帯のときは、袖の並びの箱を外して 🌿 と項目を同じ列に流す
        （箱のままだと 🌿 だけが1行目に取り残される） */
     .sn-list { display: contents; }
@@ -4609,6 +4661,11 @@
 
   /* 幅がここまで狭いと6つ分の語は並ばない。
      いま開いている画面の語だけ残し、ほかは絵にする（押す先は title で読める） */
+  /* 指で触る端末は「乗せる」ができないので、開いたままにする錠を押しやすくする */
+  @media (hover: none) and (min-width: 1241px) {
+    .sn-slim { width: 34px; height: 34px; opacity: .8; }
+  }
+
   @media screen and (max-width: 620px) {
     .sn-item .sn-t { display: none; }
     .sn-item.on .sn-t { display: block; }
@@ -5158,7 +5215,7 @@
   <details class="fold" id="fold-legend">
     <summary><span class="fd-title">この画面の使い方</span><span class="fd-note">記号の意味と操作のまとめ</span>
       <!-- 古い控えを開いていないか、ここで見分けられるようにしておく -->
-      <span class="fd-ver">版 2026-08-20a</span></summary>
+      <span class="fd-ver">版 2026-08-20b</span></summary>
     <div class="fold-body">
   <div class="legend">
     <span class="item"><span class="swatch s-wc" data-icon="wc"></span>車椅子（リフト・スロープ使用）</span>
@@ -10085,17 +10142,19 @@
   /* ── 左の常設メニュー ──────────────────────
      どの画面からでも行き先を選べるように、脇に出しっぱなしにする。
      タイトル画面のときだけ引っ込める（あの画面そのものがメニューなので） */
-  /* 袖を細くしているかどうかは覚えておく。画面の横幅がほしい端末があるので */
-  let navSlim = STORE.getJSON("nav.slim") === true;
+  /* ふだんは絵だけの細い袖。のぞくと広がる。
+     いつも広いほうがよい方のために「開いたままにする」も用意し、選びは覚えておく */
+  let navWide = STORE.getJSON("nav.wide") === true;
 
-  function drawNavSlim() {
+  function drawNavWide() {
     const nav = document.getElementById("sidenav");
     const btn = document.getElementById("sn-slim");
-    nav.classList.toggle("slim", navSlim);
-    document.body.classList.toggle("nav-slim", navSlim);
-    btn.textContent = navSlim ? "\u203A" : "\u2039";
-    btn.title = navSlim ? "袖を広げる" : "袖を細くする";
+    nav.classList.toggle("wide", navWide);
+    document.body.classList.toggle("nav-wide", navWide);
+    btn.textContent = navWide ? "\u2039" : "\u203A";
+    btn.title = navWide ? "袖を細くする（のぞくと広がる形に戻す）" : "袖を開いたままにする";
     btn.setAttribute("aria-label", btn.title);
+    btn.setAttribute("aria-pressed", String(navWide));
   }
 
   function setNav(key) {
@@ -10103,7 +10162,7 @@
     if (!nav) return;
     nav.hidden = !key;
     document.body.classList.toggle("has-nav", !!key);
-    document.body.classList.toggle("nav-slim", !!key && navSlim);
+    document.body.classList.toggle("nav-wide", !!key && navWide);
     nav.querySelectorAll(".sn-item").forEach((b) => {
       b.classList.toggle("on", b.dataset.nav === key);
       if (b.dataset.nav === key) b.setAttribute("aria-current", "page");
@@ -10131,12 +10190,12 @@
   });
   document.getElementById("sn-home").addEventListener("click", () => showHome(true));
   document.getElementById("sn-slim").addEventListener("click", () => {
-    navSlim = !navSlim;
-    STORE.setJSON("nav.slim", navSlim);
-    drawNavSlim();
+    navWide = !navWide;
+    STORE.setJSON("nav.wide", navWide);
+    drawNavWide();
     syncStickyHeight();
   });
-  drawNavSlim();
+  drawNavWide();
 
 
   /* ── 出欠カレンダー ────────────────────────
