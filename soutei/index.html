@@ -3079,7 +3079,7 @@
     justify-content: space-between;
     gap: calc(var(--step) * 4);
     padding-bottom: calc(var(--step) * 3);
-    border-bottom: 2px solid var(--ink);
+    border-bottom: 1px solid var(--rule);
   }
 
   .pm-head h1 {
@@ -3131,27 +3131,33 @@
 
   .pm-tabs {
     display: flex;
-    gap: 2px;
+    gap: 3px;
     background: var(--sub);
-    padding: 3px;
+    padding: 4px;
+    border-radius: 999px;
     align-self: flex-start;
+    flex-wrap: wrap;
   }
 
   .pm-tabs button {
     font: inherit;
     font-size: 14px;
-    padding: 7px 22px;
+    padding: 8px 22px;
     border: 0;
+    border-radius: 999px;
     background: transparent;
     color: var(--ink-2);
     cursor: pointer;
     letter-spacing: .08em;
+    transition: background-color .14s, color .14s;
   }
+
+  .pm-tabs button:hover { color: var(--ink); }
 
   .pm-tabs button[aria-selected="true"] {
     background: var(--card);
     color: var(--ink);
-    box-shadow: inset 0 -2px 0 var(--ai);
+    box-shadow: inset 0 0 0 1.5px var(--ai), 0 2px 6px rgba(16, 24, 32, .10);
   }
 
   .pm-pane[hidden] { display: none; }
@@ -3177,9 +3183,9 @@
     align-items: center;
     gap: calc(var(--step) * 2) calc(var(--step) * 4);
     margin-bottom: calc(var(--step) * 3);
-    padding: calc(var(--step) * 2) calc(var(--step) * 3);
+    padding: calc(var(--step) * 3) calc(var(--step) * 4);
     background: var(--sub);
-    border-radius: 9px;
+    border-radius: 999px;
   }
 
   .pf-find { display: flex; align-items: center; gap: calc(var(--step) * 2); }
@@ -3227,10 +3233,11 @@
 
   /* ── 取り込み・保存 ─────────────────────── */
   .io-card {
-    padding: calc(var(--step) * 4);
+    padding: calc(var(--step) * 5);
     background: var(--card);
     border: 1px solid var(--rule);
-    border-radius: 10px;
+    border-radius: 18px;
+    box-shadow: 0 2px 10px rgba(16, 24, 32, .05);
     margin-bottom: calc(var(--step) * 6);
   }
 
@@ -3265,7 +3272,7 @@
     gap: calc(var(--step) * 2);
     padding: calc(var(--step) * 2) calc(var(--step) * 3);
     background: var(--sub);
-    border-radius: 8px;
+    border-radius: 999px;
   }
 
   .io-name {
@@ -3451,8 +3458,6 @@
     margin-right: calc(var(--step) * 2);
   }
 
-  .page-master tr.plan-row td { background: var(--sub); }
-
   .plan-box {
     display: flex;
     flex-direction: column;
@@ -3478,9 +3483,10 @@
   .plan-tabs {
     display: flex;
     flex-wrap: wrap;
-    gap: 2px;
+    gap: 3px;
     background: var(--paper);
-    padding: 3px;
+    padding: 4px;
+    border-radius: 999px;
     align-self: flex-start;
   }
 
@@ -3488,8 +3494,9 @@
 
   .plan-tab {
     font: inherit;
-    font-size: 12px;
-    padding: 5px 14px;
+    font-size: 12.5px;
+    padding: 7px 16px;
+    border-radius: 999px;
     border: 1px solid transparent;
     background: transparent;
     color: var(--ink-2);
@@ -3550,8 +3557,9 @@
     display: inline-flex;
     align-items: center;
     gap: 2px;
-    padding: 1px 3px 1px 8px;
-    font-size: 12px;
+    padding: 3px 5px 3px 11px;
+    font-size: 12.5px;
+    border-radius: 999px;
     background: var(--card);
     border: 1px solid var(--rule-2);
   }
@@ -3575,11 +3583,12 @@
 
   .plan-src {
     font: inherit;
-    font-size: 12px;
-    padding: 4px 6px;
+    font-size: 12.5px;
+    max-width: 24em;
+    padding: 7px 12px;
     background: var(--card);
     border: 1px solid var(--rule-2);
-    border-radius: 0;
+    border-radius: 999px;
     cursor: pointer;
   }
 
@@ -3587,11 +3596,11 @@
 
   .plan-add {
     font: inherit;
-    font-size: 12px;
-    padding: 3px 4px;
+    font-size: 12.5px;
+    padding: 6px 10px;
     background: var(--card);
     border: 1px solid var(--rule-2);
-    border-radius: 0;
+    border-radius: 999px;
     cursor: pointer;
   }
 
@@ -3674,13 +3683,13 @@
   .page-master .btn {
     font: inherit;
     font-size: 13.5px;
-    padding: 8px 14px;
+    padding: 8px 17px;
     background: var(--card);
     color: var(--ink-2);
     border: 1px solid var(--rule-2);
-    border-radius: 7px;
+    border-radius: 999px;
     cursor: pointer;
-    transition: border-color .12s, color .12s;
+    transition: border-color .12s, color .12s, background-color .12s;
   }
 
   .modal .btn:hover,
@@ -3853,9 +3862,19 @@
     font-size: 11px;
     padding: 2px 7px;
     border: 1px solid var(--rule-2);
+    border-radius: 999px;
     background: transparent;
     color: var(--ink-3);
     cursor: pointer;
+  }
+
+  /* 配車の札の中だけは、指でも押せる大きさにする */
+  .p-card .car-pick { gap: 6px; }
+  .p-card .car-pick button {
+    font-size: 12.5px;
+    font-weight: 600;
+    padding: 8px 15px;
+    background: var(--card);
   }
 
   .modal .car-pick button[aria-pressed="true"],
@@ -4905,6 +4924,53 @@
     .u-f.wide { grid-column: span 1; }
   }
 
+
+  /* ── 緊急連絡先・運転手・配車・事業所も同じ札に ────
+     利用者の札（.u-card）の作りをそのまま借りて、
+     マスタのどのタブを開いても同じ見え方になるようにした */
+
+  /* ぶち抜きの欄（出勤日・使う車両など） */
+  .u-f.full { grid-column: 1 / -1; }
+
+  /* 緊急連絡先。頭に利用者コードと氏名を置く */
+  .k-card .kin-who { font-size: 17px; font-weight: 700; letter-spacing: .02em; }
+  .k-card .kin-kana { font-size: 12.5px; color: var(--ink-3); }
+
+  /* 運転手。10人ほどなので、広い画面では2枚ずつ並べる */
+  .d-list {
+    display: grid;
+    /* 携帯では 400px が画面より広いので、はみ出さないよう min() で抑える */
+    grid-template-columns: repeat(auto-fill, minmax(min(400px, 100%), 1fr));
+    gap: 14px;
+    align-items: start;
+  }
+  .d-list .pm-none { grid-column: 1 / -1; padding: 26px 0; text-align: center;
+                     color: var(--ink-3); font-size: 14px; }
+  .page-master .d-card .u-head input.u-name { width: auto; flex: 1 1 8em; min-width: 0; }
+  .d-card .u-body { gap: 0; }
+
+  /* 割り当ての欄は、この札のなかで独自の見た目を持つので、
+     札の中の欄（.u-card select）の決めごとは効かせない */
+  .page-master .p-card .plan-box select {
+    border: 1px solid var(--rule-2);
+    border-radius: 999px;
+    padding: 7px 12px;
+  }
+
+  /* 配車。人数版ごとに1枚。割り当ての欄はこの札の中に開く */
+  .p-card .p-size { font-size: 17px; font-weight: 700; letter-spacing: .06em; }
+  .p-card .plan-count { font-size: 12.5px; color: var(--ink-3); }
+  .p-card .u-body { gap: 0; }
+  .p-card .plan-box {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--rule);
+  }
+
+  /* 事業所。3つの欄を1枚の札に収める */
+  .page-master .office-form { display: flex; flex-direction: column; gap: 16px; }
+  .page-master .office-form .of-row { margin: 0; }
+
   /* ── タイトル画面 ──────────────────────────
      お預かりしたデザイン仕様書（フローティング・ピル型）の数値どおり。
      浮いたカードの中に、錠剤形のボタンとタイルを置く。
@@ -5252,7 +5318,7 @@
   <details class="fold" id="fold-legend">
     <summary><span class="fd-title">この画面の使い方</span><span class="fd-note">記号の意味と操作のまとめ</span>
       <!-- 古い控えを開いていないか、ここで見分けられるようにしておく -->
-      <span class="fd-ver">版 2026-08-20h</span></summary>
+      <span class="fd-ver">版 2026-08-20i</span></summary>
     <div class="fold-body">
   <div class="legend">
     <span class="item"><span class="swatch s-wc" data-icon="wc"></span>車椅子（リフト・スロープ使用）</span>
@@ -5529,45 +5595,20 @@
         </label>
         <span class="pf-hit" id="kin-hit"></span>
       </div>
-      <div class="pm-scroll">
-        <table>
-          <thead>
-            <tr>
-              <th style="width:13%">利用者</th>
-              <th style="width:13%">ご本人の電話</th>
-              <th style="width:13%">連絡メモ</th>
-              <th style="width:8%">続柄</th>
-              <th style="width:15%">連絡先の氏名</th>
-              <th style="width:14%">ふりがな</th>
-              <th style="width:12%">電話1</th>
-              <th style="width:12%">電話2</th>
-            </tr>
-          </thead>
-          <tbody id="kin-rows"></tbody>
-        </table>
-      </div>
+      <div class="u-list" id="kin-rows"></div>
       <p class="pm-note">利用中の方だけを出します。ご本人の電話と連絡メモは「利用者」の表と同じ中身で、
         どちらから直しても構いません。</p>
     </section>
 
     <section class="pm-pane" id="pm-drivers" hidden>
-      <h3>運転手<button type="button" class="btn" id="add-driver">＋ 運転手を追加</button></h3>
-      <div class="pm-scroll">
-        <table>
-          <thead><tr><th style="width:22%">氏名</th><th style="width:22%">出勤日</th><th></th></tr></thead>
-          <tbody id="driver-rows"></tbody>
-        </table>
-      </div>
+      <h3>運転手<span class="h3-note">出勤日は押すたびに なし → AM → PM → 終日 と変わります</span>
+        <button type="button" class="btn" id="add-driver">＋ 運転手を追加</button></h3>
+      <div class="d-list" id="driver-rows"></div>
     </section>
 
     <section class="pm-pane" id="pm-dispatch" hidden>
       <h3>配車<span class="h3-note">出勤人数ごとに、動かす車両を選ぶ</span></h3>
-      <div class="pm-scroll">
-        <table>
-          <thead><tr><th style="width:10%">人数版</th><th>使う車両</th><th style="width:22%">割り当て</th></tr></thead>
-          <tbody id="dispatch-rows"></tbody>
-        </table>
-      </div>
+      <div class="u-list" id="dispatch-rows"></div>
     </section>
 
     <section class="pm-pane" id="pm-io" hidden>
@@ -5619,7 +5660,7 @@
 
     <section class="pm-pane" id="pm-office" hidden>
       <h3>事業所<span class="h3-note">表題と、地図でルートを開くときに使う</span></h3>
-      <div class="office-form">
+      <div class="u-card office-form">
         <label class="of-row">
           <span class="of-label">事業所名</span>
           <input type="text" id="office-name" placeholder="通所介護事業所　デイサービス　あさひ">
@@ -9797,16 +9838,21 @@
     const db = document.getElementById("driver-rows");
     db.innerHTML = "";
     draftDrivers.forEach((d, i) => {
-      const tr = document.createElement("tr");
+      /* 1人＝1枚の札。氏名を頭に、出勤日をその下に置く */
+      const card = el("div", "u-card d-card");
+      const head = el("div", "u-head");
 
-      const td1 = document.createElement("td");
       const inp = document.createElement("input");
       inp.type = "text"; inp.value = d.name;
+      inp.className = "u-name";
+      inp.placeholder = "氏名";
       inp.addEventListener("input", () => { draftDrivers[i].name = inp.value; });
-      td1.append(inp);
+      head.append(inp, el("span", "u-sp"));
 
       /* 出勤日：なし → AM → PM → 終日 */
-      const td2 = document.createElement("td");
+      const body = el("div", "u-body");
+      const fld = el("div", "u-f full");
+      fld.append(el("span", "u-l", "出勤日"));
       const dayWrap = el("span", "day-cell");
       const CYCLE = ["", "AM", "PM", "終日"];
       WEEKDAYS.forEach((w) => {
@@ -9830,29 +9876,35 @@
         });
         dayWrap.append(b);
       });
-      td2.append(dayWrap);
+      fld.append(dayWrap);
+      body.append(fld);
 
-      const td3 = document.createElement("td");
       const del = el("button", "btn danger", "削除");
       del.type = "button";
+      del.title = (d.name || "この運転手") + " を名簿から外す";
       del.addEventListener("click", () => { draftDrivers.splice(i, 1); drawMasterTables(); });
-      td3.append(del);
+      head.append(del);
 
-      tr.append(td1, td2, td3);
-      db.append(tr);
+      card.append(head, body);
+      db.append(card);
     });
+
+    if (!draftDrivers.length) {
+      db.append(el("p", "pm-none", "運転手がまだ入っていません。「＋ 運転手を追加」から入れてください。"));
+    }
 
     /* 配車マスタ：人数版ごとに使う車両を選ぶ */
     const pb = document.getElementById("dispatch-rows");
     pb.innerHTML = "";
     CREW_SIZES.forEach((size) => {
       const cfg = draftDispatch[size];
-      const tr = document.createElement("tr");
+      const card = el("div", "u-card p-card");
+      const head = el("div", "u-head");
+      head.append(el("b", "p-size", size + "人版"));
 
-      const td1 = document.createElement("td");
-      td1.textContent = size + "人版";
-
-      const td2 = document.createElement("td");
+      const body = el("div", "u-body");
+      const fld = el("div", "u-f full");
+      fld.append(el("span", "u-l", "使う車両"));
       const wrap = el("span", "car-pick");
       FLEET.forEach((car, i) => {
         const b = el("button", null, car.name || (i + 1) + "号車枠");
@@ -9868,34 +9920,29 @@
         });
         wrap.append(b);
       });
-      td2.append(wrap);
+      fld.append(wrap);
+      body.append(fld);
 
-      const td3 = document.createElement("td");
       const planned = planCount(cfg);
-      td3.append(el("span", "plan-count", planned ? "割り当て 延べ" + planned + "名" : "割り当てなし"));
-      const edit = el("button", "btn", openPlan === size ? "閉じる" : "編集");
+      head.append(el("span", "plan-count", planned ? "割り当て 延べ" + planned + "名" : "割り当てなし"));
+      head.append(el("span", "u-sp"));
+      const edit = el("button", "btn", openPlan === size ? "閉じる" : "割り当てを編集");
       edit.type = "button";
       edit.addEventListener("click", () => {
         if (openPlan === size) { openPlan = null; }
         else { openPlan = size; openPlanDay = weekdayOf(currentDate) || WEEKDAYS[0]; openPlanLeg = LEGS[0].key; }
         drawMasterTables();
       });
-      td3.append(edit);
+      head.append(edit);
 
-      tr.append(td1, td2, td3);
-      pb.append(tr);
-
-      if (openPlan === size) pb.append(drawPlanRow(size, cfg));
+      card.append(head, body);
+      if (openPlan === size) card.append(drawPlanRow(size, cfg));
+      pb.append(card);
     });
   }
 
   /* 人数版ごとの割り当てを手作業で組む欄。曜日 × 4便で持つ */
   function drawPlanRow(size, cfg) {
-    const tr = document.createElement("tr");
-    tr.className = "plan-row";
-    const td = document.createElement("td");
-    td.colSpan = 3;
-
     const today = weekdayOf(currentDate);
     if (!openPlanDay) openPlanDay = today || WEEKDAYS[0];
     if (!openPlanLeg) openPlanLeg = LEGS[0].key;
@@ -10047,9 +10094,7 @@
       box.append(row);
     });
 
-    td.append(box);
-    tr.append(td);
-    return tr;
+    return box;
   }
 
   function openMaster() {
@@ -10694,48 +10739,54 @@
       if (!hit(u)) return;
       shown++;
 
-      const tr = document.createElement("tr");
-      const cell = (child) => { const td = document.createElement("td"); td.append(child); tr.append(td); };
+      /* 1人＝1枚の札。利用者の札と同じ作りに揃える */
+      const card = el("div", "u-card k-card");
+      const head = el("div", "u-head");
+      const code = el("span", "u-code", u.id || "—");
+      code.title = "利用者コード（CSV の id・PDF の利用者ｺｰﾄﾞと同じ）";
+      head.append(code, el("b", "kin-who", u.name));
+      if (u.kana) head.append(el("span", "kin-kana", u.kana));
 
-      cell(el("span", "kin-who", u.name));
+      const body = el("div", "u-body");
 
-      /* 「利用者」の表と同じ中身をここでも直せるようにする */
-      const bound = (get, set, ph, type, list) => {
+      /* 「利用者」の札と同じ中身をここでも直せるようにする */
+      const field = (label, get, set, ph, type, list, wide) => {
+        const box = el("div", "u-f" + (wide ? " wide" : ""));
+        box.append(el("span", "u-l", label));
         const inp = document.createElement("input");
         inp.type = type || "text";
         inp.value = get() || "";
         inp.placeholder = ph || "";
         if (list) inp.setAttribute("list", list);
         inp.addEventListener("input", () => set(inp.value));
-        cell(inp);
+        box.append(inp);
+        body.append(box);
       };
-
-      bound(() => draftUsers[i].tel, (v) => { draftUsers[i].tel = v; }, "046-000-0000", "tel");
-      bound(() => draftUsers[i].note, (v) => { draftUsers[i].note = v; }, "TELなし など", "text", "tel-notes");
 
       const kinSet = (k, v) => {
         draftUsers[i].kin = Object.assign(emptyKin(), draftUsers[i].kin, { [k]: v });
       };
-      bound(() => (u.kin || {}).rel, (v) => kinSet("rel", v), "長女 など");
-      bound(() => (u.kin || {}).name, (v) => kinSet("name", v), "山田 花子");
-      bound(() => (u.kin || {}).kana, (v) => kinSet("kana", v), "やまだ はなこ");
-      bound(() => (u.kin || {}).tel1, (v) => kinSet("tel1", v), "090-0000-0000", "tel");
-      bound(() => (u.kin || {}).tel2, (v) => kinSet("tel2", v), "", "tel");
 
-      tb.append(tr);
+      field("ご本人の電話", () => draftUsers[i].tel, (v) => { draftUsers[i].tel = v; },
+            "046-000-0000", "tel");
+      field("連絡メモ", () => draftUsers[i].note, (v) => { draftUsers[i].note = v; },
+            "TELなし など", "text", "tel-notes", true);
+      field("続柄", () => (u.kin || {}).rel, (v) => kinSet("rel", v), "長女 など");
+      field("連絡先の氏名", () => (u.kin || {}).name, (v) => kinSet("name", v), "山田 花子");
+      field("ふりがな", () => (u.kin || {}).kana, (v) => kinSet("kana", v), "やまだ はなこ");
+      field("電話1", () => (u.kin || {}).tel1, (v) => kinSet("tel1", v), "090-0000-0000", "tel");
+      field("電話2", () => (u.kin || {}).tel2, (v) => kinSet("tel2", v), "", "tel");
+
+      card.append(head, body);
+      tb.append(card);
     });
 
     document.getElementById("kin-hit").textContent =
       needle ? shown + " / " + active + "名" : active + "名";
 
-    if (needle && shown === 0) {
-      const tr = document.createElement("tr");
-      const td = document.createElement("td");
-      td.colSpan = 8;
-      td.className = "pm-none";
-      td.textContent = "あてはまる方はいません。";
-      tr.append(td);
-      tb.append(tr);
+    tb.classList.toggle("is-empty", shown === 0);
+    if (shown === 0) {
+      tb.append(el("p", "pm-none", needle ? "あてはまる方はいません。" : "利用中の方がいません。"));
     }
   }
 
