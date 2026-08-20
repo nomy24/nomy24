@@ -4576,12 +4576,18 @@
     border-radius: 999px;
     box-shadow: 0 6px 18px rgba(16, 24, 32, .16);
     cursor: pointer;
-    transition: opacity .16s, color .14s, border-color .14s;
+    transition: opacity .16s, transform .22s cubic-bezier(.2, .8, .3, 1),
+                color .14s, border-color .14s;
   }
 
   .nf-btn svg { width: 20px; height: 20px; }
   .nf-btn:hover { color: var(--accent); border-color: var(--accent); }
-  .navfab:is(:focus-within, .is-open) .nf-btn { opacity: 0; pointer-events: none; }
+  /* 帯が出てくるのに合わせて、口はすっと小さくなって消える */
+  .navfab:is(:focus-within, .is-open) .nf-btn {
+    opacity: 0;
+    transform: scale(.72);
+    pointer-events: none;
+  }
 
   /* 中身は帯（.sidenav）の見た目をそのまま借りる。
      置き方と、開くときの動きだけをここで足す */
@@ -4591,20 +4597,56 @@
     right: 0;
     top: 0;
     margin: 0 auto;
+    /* 口のまるが、そのまま横へ伸びて帯になる。
+       閉じているときの窓は「口と同じ46×46のまる」、開くと帯いっぱい。
+       右の削りを 100%-46px → 0 で動かすので、
+       画面の広さにかかわらず同じ速さで伸びる */
+    --nf-ox: 0px;
+    --nf-oy: 0px;
+    --nf-r: 999px;
     opacity: 0;
     /* 閉じているあいだは触れないだけにしておく。
        visibility で消すと、開く一瞬だけ当たり判定が抜けて点滅する */
     pointer-events: none;
-    transform: translateY(-6px);
+    clip-path: inset(var(--nf-oy)
+                     calc(100% - 46px - var(--nf-ox))
+                     calc(100% - 46px - var(--nf-oy))
+                     var(--nf-ox) round 999px);
     box-shadow: 0 12px 32px rgba(16, 24, 32, .20);
-    transition: opacity .18s, transform .2s cubic-bezier(.2, .8, .3, 1);
+    transition: opacity .14s ease-out,
+                clip-path .4s cubic-bezier(.25, .8, .3, 1);
   }
 
   .navfab:is(:focus-within, .is-open) .nf-bar {
     opacity: 1;
     pointer-events: auto;
+    clip-path: inset(0 0 0 0 round var(--nf-r));
+  }
+
+  /* 閉じるときは、開くときより気持ち速く畳む */
+  .nf-bar { transition-duration: .12s, .28s; }
+  .navfab:is(:focus-within, .is-open) .nf-bar { transition-duration: .14s, .4s; }
+
+  /* 中身は少しずつ遅れて出てくる。左から順に並んでいく見え方にする */
+  .nf-bar .sn-logo,
+  .nf-bar .sn-item {
+    opacity: 0;
+    transform: translateX(-8px);
+    transition: opacity .18s ease-out, transform .3s cubic-bezier(.2, .85, .3, 1);
+  }
+
+  .navfab:is(:focus-within, .is-open) .nf-bar :is(.sn-logo, .sn-item) {
+    opacity: 1;
     transform: none;
   }
+
+  .navfab:is(:focus-within, .is-open) .nf-bar .sn-logo { transition-delay: .03s; }
+  .navfab:is(:focus-within, .is-open) .nf-bar .sn-item:nth-of-type(1) { transition-delay: .07s; }
+  .navfab:is(:focus-within, .is-open) .nf-bar .sn-item:nth-of-type(2) { transition-delay: .10s; }
+  .navfab:is(:focus-within, .is-open) .nf-bar .sn-item:nth-of-type(3) { transition-delay: .13s; }
+  .navfab:is(:focus-within, .is-open) .nf-bar .sn-item:nth-of-type(4) { transition-delay: .16s; }
+  .navfab:is(:focus-within, .is-open) .nf-bar .sn-item:nth-of-type(5) { transition-delay: .19s; }
+  .navfab:is(:focus-within, .is-open) .nf-bar .sn-item:nth-of-type(6) { transition-delay: .22s; }
 
   /* 帯そのものが出ていない画面（タイトル）では浮きボタンも出さない */
   body:not(.has-nav) .navfab { display: none; }
@@ -4616,6 +4658,8 @@
   @media screen and (max-width: 1240px) {
     .navfab { top: 0; max-width: none; }
     .nf-btn { top: calc(var(--step) * 3); left: calc(var(--step) * 3); }
+    /* 口の位置と帯の角丸が変わるので、開きはじめの窓も合わせる */
+    .nf-bar { --nf-ox: 12px; --nf-oy: 12px; --nf-r: 0px; }
   }
 
   /* ── 出欠カレンダー ────────────────────────
@@ -5183,7 +5227,7 @@
   <details class="fold" id="fold-legend">
     <summary><span class="fd-title">この画面の使い方</span><span class="fd-note">記号の意味と操作のまとめ</span>
       <!-- 古い控えを開いていないか、ここで見分けられるようにしておく -->
-      <span class="fd-ver">版 2026-08-20e</span></summary>
+      <span class="fd-ver">版 2026-08-20f</span></summary>
     <div class="fold-body">
   <div class="legend">
     <span class="item"><span class="swatch s-wc" data-icon="wc"></span>車椅子（リフト・スロープ使用）</span>
