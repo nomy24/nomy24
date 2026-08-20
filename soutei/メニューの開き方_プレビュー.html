@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>メニューの開き方くらべ</title>
+<style>
+  :root {
+    --paper: #F5F6F2; --card: #FFFFFF; --sub: #ECEEE8;
+    --ink: #16202A; --ink-2: #4A5765; --ink-3: #8A96A3;
+    --rule: #D9DED6; --rule-2: #C3CABE;
+    --ai: #1B3557; --ai-soft: #E6F0FC;
+    --ok: #3D6F52; --warn: #9C2B2B;
+    --accent: var(--ai); --accent-soft: var(--ai-soft);
+    --gothic: "BIZ UDPGothic","BIZ UDPゴシック","Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic","YuGothic","Meiryo",system-ui,sans-serif;
+    --mincho: "Hiragino Mincho ProN","Yu Mincho","YuMincho","Noto Serif JP",serif;
+    --dur: .55s;      /* 開くのにかける時間 */
+    --step: .05s;     /* 中身が出る間隔 */
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      color-scheme: dark;
+      --paper: #11161B; --card: #191F26; --sub: #212932;
+      --ink: #E7EAE5; --ink-2: #A9B4BF; --ink-3: #77828D;
+      --rule: #2C353F; --rule-2: #3C4650;
+      --ai: #8FB2D8; --ai-soft: #1D2937; --ok: #7FB292; --warn: #E08C86;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: var(--gothic); background: var(--paper); color: var(--ink); }
+
+  .doc { max-width: 1020px; margin: 0 auto; padding: 28px 20px 0; }
+  .doc h1 { font-family: var(--mincho); font-size: 24px; letter-spacing: .1em; margin: 0 0 8px; }
+  .doc p { font-size: 14px; line-height: 2; color: var(--ink-2); margin: 0 0 14px; }
+  .doc b { color: var(--ink); }
+
+  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 0 0 12px; }
+  .row .lbl { font-size: 12px; letter-spacing: .1em; color: var(--ink-3); margin-right: 4px; }
+  .row button {
+    font: inherit; font-size: 13.5px; font-weight: 600; letter-spacing: .04em;
+    padding: 9px 17px; border-radius: 999px; cursor: pointer;
+    border: 1.5px solid var(--rule-2); background: var(--card); color: var(--ink-2);
+    transition: background-color .12s, color .12s, border-color .12s;
+  }
+  .row button:hover { border-color: var(--accent); color: var(--accent); }
+  .row button[aria-selected="true"] {
+    border-color: var(--accent); background: var(--accent); color: var(--card);
+    box-shadow: 0 4px 12px rgba(16,24,32,.18);
+  }
+  .row .go { border-color: var(--ok); color: var(--ok); }
+  .row .go:hover { background: var(--ok); color: #fff; border-color: var(--ok); }
+
+  .note {
+    background: var(--card); border: 1px solid var(--rule); border-radius: 16px;
+    padding: 14px 20px; margin: 0 0 16px; font-size: 14px; line-height: 2; color: var(--ink-2);
+  }
+  .note h2 { font-size: 15.5px; letter-spacing: .08em; margin: 0 0 4px; color: var(--ink); }
+
+  /* ── 舞台 ─────────────────────────────── */
+  .wrap { max-width: 1020px; margin: 0 auto 44px; padding: 0 20px; }
+  .stage {
+    position: relative; overflow: hidden; height: 300px;
+    border-radius: 20px; border: 1px solid var(--rule); background: var(--paper);
+    box-shadow: 0 4px 20px rgba(16,24,32,.08);
+  }
+  .bg { position: absolute; inset: 0; padding: 74px 14px 0; opacity: .5; }
+  .bg .car {
+    display: grid; grid-template-columns: 70px minmax(0,1fr); gap: 0;
+    background: var(--card); border: 1px solid var(--rule); border-radius: 14px;
+    overflow: hidden; margin-bottom: 8px; font-size: 12px;
+  }
+  .bg .sl { background: var(--ai-soft); color: var(--ai); padding: 8px; line-height: 1.8; }
+  .bg .rw { padding: 8px 10px; color: var(--ink-2); }
+
+  /* 浮きボタンと帯（本体と同じ作り） */
+  .fab { position: absolute; left: 0; right: 0; top: 12px; height: 0; z-index: 20; }
+  .nf-btn {
+    position: absolute; left: 12px; top: 0; width: 46px; height: 46px;
+    display: grid; place-items: center; padding: 0; color: var(--ink-2);
+    background: var(--card); border: 1px solid var(--rule); border-radius: 999px;
+    box-shadow: 0 6px 18px rgba(16,24,32,.16); cursor: pointer;
+  }
+  .nf-btn svg { width: 20px; height: 20px; }
+  .bar {
+    position: absolute; left: 12px; right: 12px; top: 0;
+    display: flex; align-items: center; flex-wrap: wrap; gap: 5px;
+    padding: 8px 12px; background: var(--card); border: 1px solid var(--rule);
+    border-radius: 999px; box-shadow: 0 12px 32px rgba(16,24,32,.20);
+  }
+  .logo {
+    display: flex; align-items: center; gap: 7px; flex: none;
+    font: inherit; font-size: 13.5px; font-weight: 700; letter-spacing: .04em; color: var(--ink);
+    padding: 7px 11px 7px 7px; margin-right: 4px;
+    border: 0; border-right: 1px solid var(--rule); background: none; cursor: pointer;
+  }
+  .logo .leaf { font-size: 18px; line-height: 1; }
+  .it {
+    display: flex; align-items: center; gap: 9px; flex: none;
+    padding: 8px 14px; margin-right: 3px; font: inherit; font-size: 13px; font-weight: 600;
+    letter-spacing: .04em; white-space: nowrap; color: var(--ink-2);
+    background: none; border: 0; border-radius: 999px; cursor: pointer;
+  }
+  .it svg { width: 19px; height: 19px; flex: none; stroke: currentColor; fill: none;
+            stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+  .it.on { background: var(--ai); color: var(--card); box-shadow: 0 4px 12px rgba(16,24,32,.18); }
+  .it .b { font-size: 9.5px; font-weight: 700; padding: 2px 7px; border-radius: 999px;
+           background: var(--sub); color: var(--ink-3); }
+
+  /* ── 閉じているとき（共通） ───────────── */
+  .stage .bar { opacity: 0; pointer-events: none; }
+  .stage.open .bar { opacity: 1; pointer-events: auto; }
+  .stage .nf-btn { opacity: 1; }
+  .stage.open .nf-btn { opacity: 0; }
+  .stage .nf-btn { transition: opacity calc(var(--dur) * .4); }
+  .stage.open .nf-btn { transition: opacity calc(var(--dur) * .4) calc(var(--dur) * .2); }
+
+  /* ── あ：ゆっくり浮かび上がる（フェードのみ） ── */
+  .stage[data-k="a"] .bar { transition: opacity var(--dur) ease-in-out; }
+
+  /* ── い：上からすべり降りる ─────────── */
+  .stage[data-k="i"] .bar {
+    transform: translateY(-26px);
+    transition: opacity calc(var(--dur) * .8) ease-out,
+                transform var(--dur) cubic-bezier(.2,.85,.3,1);
+  }
+  .stage[data-k="i"].open .bar { transform: none; }
+
+  /* ── う：ふわっと大きくなる ─────────── */
+  .stage[data-k="u"] .bar {
+    transform: scale(.9); transform-origin: 34px center;
+    transition: opacity calc(var(--dur) * .7) ease-out,
+                transform var(--dur) cubic-bezier(.2,.85,.3,1);
+  }
+  .stage[data-k="u"].open .bar { transform: none; }
+
+  /* ── え：横へ伸びる（いまの形） ──────── */
+  .stage[data-k="e"] .bar {
+    opacity: 1;
+    clip-path: inset(0 calc(100% - 46px) calc(100% - 46px) 0 round 999px);
+    transition: clip-path var(--dur) cubic-bezier(.4,0,.2,1);
+  }
+  .stage[data-k="e"].open .bar { clip-path: inset(0 0 0 0 round 999px); }
+  .stage[data-k="e"] .bar { pointer-events: none; }
+  .stage[data-k="e"].open .bar { pointer-events: auto; }
+
+  /* ── お：一つずつ並ぶ（枠は先に、中身をゆっくり） ── */
+  .stage[data-k="o"] .bar { transition: opacity calc(var(--dur) * .35) ease-out; }
+
+  /* 中身の出かた。あ・い・う・え は控えめ、お はしっかり見せる */
+  .bar .logo, .bar .it { opacity: 0; }
+  .stage.open .bar .logo, .stage.open .bar .it { opacity: 1; }
+  .stage .bar .logo, .stage .bar .it {
+    transform: translateX(-10px);
+    transition: opacity calc(var(--dur) * .45) ease-out,
+                transform calc(var(--dur) * .6) cubic-bezier(.2,.85,.3,1);
+  }
+  .stage.open .bar .logo, .stage.open .bar .it { transform: none; }
+
+  .stage.open .bar .logo { transition-delay: calc(var(--step) * 1); }
+  .stage.open .bar .it:nth-child(2) { transition-delay: calc(var(--step) * 2); }
+  .stage.open .bar .it:nth-child(3) { transition-delay: calc(var(--step) * 3); }
+  .stage.open .bar .it:nth-child(4) { transition-delay: calc(var(--step) * 4); }
+  .stage.open .bar .it:nth-child(5) { transition-delay: calc(var(--step) * 5); }
+  .stage.open .bar .it:nth-child(6) { transition-delay: calc(var(--step) * 6); }
+  .stage.open .bar .it:nth-child(7) { transition-delay: calc(var(--step) * 7); }
+
+  /* お は一つずつがはっきり分かるよう、間隔も動きも大きく */
+  .stage[data-k="o"] .bar .logo, .stage[data-k="o"] .bar .it {
+    transform: translateX(-22px) scale(.92);
+    transition: opacity calc(var(--dur) * .5) ease-out,
+                transform calc(var(--dur) * .7) cubic-bezier(.2,.9,.3,1);
+  }
+  .stage[data-k="o"].open .bar .logo { transition-delay: calc(var(--step) * 1.6); }
+  .stage[data-k="o"].open .bar .it:nth-child(2) { transition-delay: calc(var(--step) * 3.2); }
+  .stage[data-k="o"].open .bar .it:nth-child(3) { transition-delay: calc(var(--step) * 4.8); }
+  .stage[data-k="o"].open .bar .it:nth-child(4) { transition-delay: calc(var(--step) * 6.4); }
+  .stage[data-k="o"].open .bar .it:nth-child(5) { transition-delay: calc(var(--step) * 8); }
+  .stage[data-k="o"].open .bar .it:nth-child(6) { transition-delay: calc(var(--step) * 9.6); }
+  .stage[data-k="o"].open .bar .it:nth-child(7) { transition-delay: calc(var(--step) * 11.2); }
+
+  .hint { font-size: 12px; color: var(--ink-3); margin: 8px 0 0; }
+
+  /* 「もう一度」で最初から見せるとき、いったん動きを止めて閉じた形に戻す */
+  .stage.reset .bar, .stage.reset .nf-btn,
+  .stage.reset .bar .logo, .stage.reset .bar .it { transition: none !important; }
+</style>
+</head>
+<body>
+
+<div class="doc">
+  <h1>メニューの開き方くらべ</h1>
+  <p>浮きボタンから帯が出てくるときの見え方を5通り用意しました。<br>
+     <b>開き方</b>と<b>速さ</b>を選んで、舞台の <b>🌿の口に乗せる</b>か、<b>「もう一度」</b>を押してください。</p>
+
+  <div class="row" role="tablist" id="kinds">
+    <span class="lbl">開き方</span>
+    <button type="button" data-k="a" aria-selected="true">あ　浮かび上がる</button>
+    <button type="button" data-k="i" aria-selected="false">い　上からすべる</button>
+    <button type="button" data-k="u" aria-selected="false">う　ふわっと大きく</button>
+    <button type="button" data-k="e" aria-selected="false">え　横へ伸びる（いま）</button>
+    <button type="button" data-k="o" aria-selected="false">お　一つずつ並ぶ</button>
+  </div>
+
+  <div class="row" id="speeds">
+    <span class="lbl">速さ</span>
+    <button type="button" data-d=".4" aria-selected="false">0.4秒</button>
+    <button type="button" data-d=".7" aria-selected="true">0.7秒</button>
+    <button type="button" data-d="1" aria-selected="false">1.0秒</button>
+    <button type="button" data-d="1.5" aria-selected="false">1.5秒</button>
+    <button type="button" data-d="2.5" aria-selected="false">2.5秒（確認用）</button>
+    <button type="button" class="go" id="replay">もう一度 ▶</button>
+  </div>
+
+  <div class="note" id="note"></div>
+</div>
+
+<div class="wrap">
+  <div class="stage" id="stage" data-k="a">
+    <div class="bg">
+      <div class="car"><div class="sl">号車<br>5人乗り</div><div class="rw">① 08:25　田中 ハル　中央町3-14-2</div></div>
+      <div class="car"><div class="sl">号車<br>5人乗り</div><div class="rw">① 08:20　大野 スミ　桜ヶ丘1-2-7</div></div>
+      <div class="car"><div class="sl">号車<br>7人乗り</div><div class="rw">① 08:00　石田 正治　上野原3-12-1</div></div>
+    </div>
+
+    <div class="fab">
+      <button type="button" class="nf-btn" id="btn" title="メニューを出す">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"
+             stroke-linecap="round"><path d="M3.5 6h13M3.5 10h13M3.5 14h13"/></svg>
+      </button>
+      <nav class="bar" id="bar"></nav>
+    </div>
+  </div>
+  <p class="hint">※ 実際の画面では、下へ送って帯が見えなくなったときにこの口が出ます。</p>
+</div>
+
+<script>
+  const IC = {
+    todo: '<path d="M7.5 5.5h9M7.5 10h9M7.5 14.5h6"/><path d="M3 5.2l1.1 1.1L6.2 4"/><path d="M3 9.7l1.1 1.1L6.2 8.5"/><path d="M3.2 14.5h2"/>',
+    van: '<path d="M3 12.5l1.3-4A1.4 1.4 0 0 1 5.6 7.5h8.8a1.4 1.4 0 0 1 1.3 1l1.3 4"/><rect x="2" y="12.5" width="16" height="3" rx="1.2"/><circle cx="6" cy="17" r="1.3"/><circle cx="14" cy="17" r="1.3"/>',
+    people: '<circle cx="7.5" cy="7" r="3"/><path d="M2.5 17c0-3 2.2-5 5-5s5 2 5 5"/><circle cx="14.5" cy="8" r="2.3"/><path d="M12 12.2c1.7.3 3 1.8 3.5 4.8"/>',
+    cal: '<rect x="3" y="4.5" width="14" height="12" rx="2"/><path d="M3 8.5h14M7 3v3M13 3v3"/><path d="M6.5 11.5h2M11 11.5h2M6.5 14h2"/>',
+    data: '<ellipse cx="10" cy="5.5" rx="6" ry="2.5"/><path d="M4 5.5v9c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5v-9"/><path d="M4 10c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5"/>',
+    print: '<path d="M6 7.5V3.5h8v4"/><rect x="3" y="7.5" width="14" height="6" rx="1.6"/><path d="M6 12.5h8v4H6z"/>'
+  };
+  const ITEMS = [["todo", "Todo タスク", "別アプリ"], ["van", "送迎編集", ""], ["people", "マスタ管理", ""],
+                 ["cal", "出欠カレンダー", ""], ["data", "データ管理", ""], ["print", "印刷レイアウト", ""]];
+
+  document.getElementById("bar").innerHTML =
+    '<button type="button" class="logo"><span class="leaf">🌿</span>あさひ 送迎支援</button>'
+    + ITEMS.map(([k, t, b]) =>
+        '<button type="button" class="it' + (k === "van" ? " on" : "") + '">'
+        + '<svg viewBox="0 0 20 20">' + IC[k] + '</svg>' + t
+        + (b ? '<span class="b">' + b + '</span>' : '') + '</button>').join("");
+
+  const NOTES = {
+    a: ["あ　ゆっくり浮かび上がる（フェード）",
+        "帯ぜんぶが、うすい状態から少しずつ濃くなって現れます。動きがないぶん<b>いちばん落ち着いた</b>見え方で、遅くしても目が疲れません。"],
+    i: ["い　上からすべり降りる",
+        "画面の上から26pxぶん下りてきながら濃くなります。<b>「上から出てきた」</b>と分かりやすく、メニューらしい見え方です。"],
+    u: ["う　ふわっと大きくなる",
+        "口のあたりを中心に、90%の大きさから元の大きさへ広がりながら濃くなります。<b>口から生まれた</b>感じが出ます。"],
+    e: ["え　横へ伸びる（いま入っている形）",
+        "口のまるが右へ伸びて帯になります。形の変わり方は面白いのですが、<b>左端を見ていないと気づきにくい</b>のが難点です。"],
+    o: ["お　一つずつ並ぶ",
+        "帯の枠はすっと出て、<b>中身が🌿から順に一つずつ</b>滑り込みます。並んでいくのが目で追えるので、<b>いちばん動きが分かりやすい</b>見え方です。"]
+  };
+
+  const stage = document.getElementById("stage");
+  const note = document.getElementById("note");
+  let hold = null;
+
+  function play() {
+    clearTimeout(hold);
+    /* いったん動きを止めて閉じた形に戻し、そこから開き直す。
+       止めずに外すと「閉じる動き」の途中から開くことになり、
+       濃さがほとんど変わらないまま終わってしまう */
+    stage.classList.add("reset");
+    stage.classList.remove("open");
+    void stage.offsetWidth;
+    stage.classList.remove("reset");
+    void stage.offsetWidth;
+    stage.classList.add("open");
+  }
+
+  function setKind(k) {
+    stage.dataset.k = k;
+    document.querySelectorAll("#kinds button").forEach((b) =>
+      b.setAttribute("aria-selected", String(b.dataset.k === k)));
+    note.innerHTML = "<h2>" + NOTES[k][0] + "</h2>" + NOTES[k][1];
+    play();
+  }
+
+  function setSpeed(d) {
+    document.documentElement.style.setProperty("--dur", d + "s");
+    document.documentElement.style.setProperty("--step", (d * 0.09).toFixed(3) + "s");
+    document.querySelectorAll("#speeds button[data-d]").forEach((b) =>
+      b.setAttribute("aria-selected", String(b.dataset.d === d)));
+    play();
+  }
+
+  document.querySelectorAll("#kinds button").forEach((b) =>
+    b.addEventListener("click", () => setKind(b.dataset.k)));
+  document.querySelectorAll("#speeds button[data-d]").forEach((b) =>
+    b.addEventListener("click", () => setSpeed(b.dataset.d)));
+  document.getElementById("replay").addEventListener("click", play);
+
+  const btn = document.getElementById("btn");
+  const bar = document.getElementById("bar");
+  btn.addEventListener("mouseenter", () => stage.classList.add("open"));
+  btn.addEventListener("click", () => stage.classList.add("open"));
+  bar.addEventListener("mouseenter", () => { clearTimeout(hold); stage.classList.add("open"); });
+  bar.addEventListener("mouseleave", () => { hold = setTimeout(() => stage.classList.remove("open"), 300); });
+  btn.addEventListener("mouseleave", () => { hold = setTimeout(() => stage.classList.remove("open"), 300); });
+
+  setSpeed(".7");
+  setKind("a");
+</script>
+</body>
+</html>
