@@ -3166,15 +3166,25 @@
   .diff-arrow { text-decoration: none; color: var(--ink-3); }
   .diff-to { font-weight: 700; }
 
+  /* タブの帯。「取り込み・保存」だけは別の錠剤に離し、
+     名簿を直に入れ替える道具だと目で分かるように色を変える */
+  .pm-tabrow {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--step) * 5);
+    flex-wrap: wrap;
+    align-self: flex-start;
+  }
+
   .pm-tabs {
     display: flex;
     gap: 3px;
     background: var(--sub);
     padding: 4px;
     border-radius: 999px;
-    align-self: flex-start;
     flex-wrap: wrap;
   }
+
 
   .pm-tabs button {
     font: inherit;
@@ -3195,6 +3205,16 @@
     background: var(--card);
     color: var(--ink);
     box-shadow: inset 0 0 0 1.5px var(--ai), 0 2px 6px rgba(16, 24, 32, .10);
+  }
+
+  /* 「取り込み・保存」だけは橙に。名簿を直に入れ替える道具だと目で分かるように */
+  .pm-tabs-io { background: var(--shinki-soft); box-shadow: inset 0 0 0 1px var(--shinki); }
+  .pm-tabs.pm-tabs-io button { color: var(--shinki); font-weight: 700; }
+  .pm-tabs.pm-tabs-io button:hover { color: var(--shinki); }
+  .pm-tabs.pm-tabs-io button[aria-selected="true"] {
+    background: var(--shinki);
+    color: #fff;
+    box-shadow: 0 2px 6px rgba(16, 24, 32, .12);
   }
 
   .pm-pane[hidden] { display: none; }
@@ -3264,9 +3284,41 @@
     font-weight: 600;
   }
 
+  /* 午前・午後の絞り。曜日の並びとは別の組なので、少し離して置く */
+  .pf-aps { margin-left: calc(var(--step) * 2); }
+  .pf-aps button { width: auto; padding: 6px 12px; }
+  .pf-aps button[data-ap="AM"][aria-pressed="true"] { border-color: var(--ai); background: var(--ai); }
+  .pf-aps button[data-ap="PM"][aria-pressed="true"] { border-color: var(--enji); background: var(--enji); }
+
   .pf-clear { font-size: 12px; padding: 5px 12px; }
   .pf-hit { font-size: 12px; color: var(--ink-3); margin-left: auto; }
   .pm-none { padding: calc(var(--step) * 5); font-size: 13px; color: var(--ink-3); }
+
+  /* まとめて終了・削除するときの帯 */
+  .pm-pick {
+    display: flex; align-items: center; gap: calc(var(--step) * 2); flex-wrap: wrap;
+    margin: 0 0 calc(var(--step) * 3);
+    padding: calc(var(--step) * 2) calc(var(--step) * 4);
+    border-radius: 999px;
+    background: var(--warn-soft);
+    border: 1px solid var(--warn);
+  }
+  .pm-pick[hidden] { display: none; }
+  .pm-pick .pp-n { font-size: 13px; font-weight: 700; color: var(--warn); }
+  .page-master .pm-pick .btn { border-radius: 999px; font-size: 12px; padding: 7px 15px; }
+  .page-master .pm-pick .btn:disabled { opacity: .45; cursor: default; }
+  .page-master .pm-pick .btn:disabled:hover { border-color: var(--rule-2); color: var(--ink-2); }
+  #user-multi[aria-pressed="true"] { border-color: var(--warn); color: var(--warn); }
+
+  /* まとめて掛けるときに、誰に掛かるのかを出す */
+  .uf-who {
+    margin: 0 0 calc(var(--step) * 3);
+    padding: calc(var(--step) * 3);
+    border-radius: 12px;
+    background: var(--sub);
+    font-size: 13px;
+    line-height: 1.7;
+  }
 
   /* ── 取り込み・保存 ─────────────────────── */
   .io-card {
@@ -3358,6 +3410,13 @@
   }
 
   .uf-label { font-size: 12px; color: var(--ink-2); letter-spacing: .04em; }
+  .uf-row.is-need .uf-label { font-weight: 700; color: var(--ink); }
+  .uf-need {
+    display: inline-block; margin-left: 5px; padding: 1px 6px;
+    border-radius: 999px; background: var(--warn-soft); color: var(--warn);
+    font-size: 9.5px; font-weight: 700; font-style: normal; letter-spacing: .06em;
+    vertical-align: 1px;
+  }
 
   .uf-help {
     grid-column: 2;
@@ -4113,7 +4172,19 @@
     .pf-find input { width: 100%; }
     .pf-days { flex: 1 1 auto; }
     .pf-days button { flex: 1 1 0; min-height: 40px; }
+    .pf-aps { margin-left: 0; flex: 1 1 100%; }
     .pf-hit { margin-left: 0; }
+
+    /* 畳んだ札。狭い画面では、頭を2段に折って詰める。
+       1段目に氏名、2段目に利用曜日と終了・削除 */
+    .u-fold .u-head { gap: 8px; row-gap: 10px; }
+    .u-fold .u-id { flex: 1 1 11em; gap: 8px; flex-wrap: nowrap; min-width: 0; }
+    .page-master .u-fold .u-id input.u-name { flex: 2 1 0; width: auto; min-width: 0; }
+    .page-master .u-fold .u-id input.u-kana { flex: 1.4 1 0; width: auto; min-width: 0; }
+    .page-master .u-card input.u-code { width: 4.6em; padding: 9px 6px; }
+    .u-head .day-cell { flex: 1 1 auto; }
+    .page-master .u-head .day { flex: 1 1 0; width: auto; min-width: 30px; }
+    .u-fold .u-sp { display: none; }
 
     .io-grid { grid-template-columns: minmax(0, 1fr); }
     .io-acts .btn, .io-row .btn { min-height: 44px; }
@@ -4825,6 +4896,7 @@
   .pc-flag { font-size: 9.5px; font-weight: 700; border-radius: 999px; padding: 1px 7px; }
   .pc-flag.off { background: var(--warn-soft); color: var(--warn); }
   .pc-flag.furi { background: var(--furikae-soft); color: var(--furikae); }
+  .pc-flag.shinki { background: var(--shinki-soft); color: var(--shinki); }
   .pc-rest { font-size: 11px; color: var(--ink-3); }
 
   .pc-legend { display: flex; gap: 16px; flex-wrap: wrap; align-items: center;
@@ -4835,6 +4907,7 @@
   .pc-legend .sw.pm { background: var(--enji-soft); }
   .pc-legend .sw.off { background: var(--warn-soft); }
   .pc-legend .sw.furi { background: var(--furikae-soft); }
+  .pc-legend .sw.shinki { background: var(--shinki-soft); }
   .pc-hint { margin-left: auto; color: var(--ink-3); }
 
   /* 右側：その日の出欠。午前と午後を横に並べる */
@@ -4889,6 +4962,9 @@
   .pc-row.is-off select { border-color: var(--warn); color: var(--warn); }
   .pc-row.is-furi .nm { color: var(--furikae); }
   .pc-row.is-furi select { border-color: var(--furikae); color: var(--furikae); }
+  /* 新規・増回・再開・変更。送迎表の行と同じ橙で、名前も欄も揃える */
+  .pc-row.is-shinki .nm { color: var(--shinki); }
+  .pc-row.is-shinki select { border-color: var(--shinki); color: var(--shinki); }
   .pc-row .fu { font-size: 10.5px; font-weight: 700; color: var(--furikae);
                 background: var(--furikae-soft); border-radius: 999px; padding: 1px 7px; }
 
@@ -4925,12 +5001,11 @@
     font-variant-numeric: tabular-nums;
   }
 
-  /* 語ごとの色。同じ橙の仲間でまとめず、4つを見分けられるようにする。
+  /* 4つとも送迎表では同じ「新規・増回」の仲間なので、色も橙で揃える。
      薄い塗りに濃い字は、送迎表の行や札と同じ組み合わせ */
-  .pc-new .c-新規 { background: var(--shinki-soft); color: var(--shinki); }
-  .pc-new .c-増回 { background: var(--ai-soft); color: var(--ai); }
-  .pc-new .c-再開 { background: var(--furikae-soft); color: var(--furikae); }
-  .pc-new .c-変更 { background: var(--enji-soft); color: var(--enji); }
+  .pc-new .c-新規, .pc-new .c-増回, .pc-new .c-再開, .pc-new .c-変更 {
+    background: var(--shinki-soft); color: var(--shinki);
+  }
 
   .pc-new-row .code {
     flex: 0 0 auto; font-size: 11px; font-weight: 700; letter-spacing: .04em;
@@ -4994,20 +5069,52 @@
   .u-head { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
   .u-sp { flex: 1 1 auto; }
 
+  /* 畳んだ札。氏名・利用曜日・終了・削除だけの1行にして、
+     残りの欄は押したときだけ出す。62名を縦に並べても見渡せるように */
+  .u-fold .u-head { margin-bottom: 0; cursor: pointer; }
+  .u-fold .u-body { display: none; }
+  .u-fold.is-open .u-head { margin-bottom: 14px; }
+  .u-fold.is-open .u-body { display: grid; }
+  .u-fold .u-head input, .u-fold .u-head button { cursor: auto; }
+  .u-fold .u-head button { cursor: pointer; }
+
+  .u-more {
+    flex-shrink: 0; width: 34px; height: 34px; border-radius: 999px;
+    border: 1.5px solid var(--rule); background: var(--card); color: var(--ink-2);
+    display: grid; place-items: center; font-size: 12px; line-height: 1;
+    transition: transform .18s, border-color .16s, color .16s;
+  }
+  .u-more:hover { border-color: var(--accent); color: var(--accent); }
+  .u-fold.is-open .u-more { transform: rotate(180deg); }
+
+  /* まとめて選ぶときの印 */
+  .page-master .u-pick {
+    flex-shrink: 0; width: 22px; height: 22px; accent-color: var(--warn);
+    padding: 0; border-radius: 6px; background: var(--card);
+  }
+  .u-card.is-picked { box-shadow: inset 0 0 0 2px var(--warn); }
+
   /* 札の頭に置く利用者コード。取り込みのときの合わせ先なので、
-     読み違えないよう数字は等幅で並べる */
-  .u-code {
+     読み違えないよう数字は等幅で並べる。
+     介護ソフトの番号に合わせられるよう、書き換えられる欄にしてある */
+  .page-master .u-card input.u-code {
     flex-shrink: 0;
+    width: 5.4em;
     border-radius: 12px;
     background: linear-gradient(135deg, #e8b98a, #c97a3a);
+    border-color: transparent;
     color: #fff;
-    padding: 9px 13px;
+    padding: 9px 11px;
     font-size: 13px;
     font-weight: 800;
     letter-spacing: .04em;
     font-variant-numeric: tabular-nums;
-    white-space: nowrap;
-    user-select: all;
+    text-align: center;
+  }
+  .page-master .u-card input.u-code::selection { background: rgba(0, 0, 0, .3); }
+  .page-master .u-card input.u-code:hover { border-color: rgba(255, 255, 255, .7); }
+  .page-master .u-card input.u-code:focus {
+    border-color: #fff; box-shadow: 0 0 0 3px rgba(232, 185, 138, .45);
   }
 
   .u-id { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
@@ -5051,6 +5158,11 @@
   .u-card .tag { width: 38px; height: 40px; border-radius: 10px; }
   .u-card .tag svg { width: 20px; height: 20px; }
   .page-master .u-card .day { width: 40px; height: 42px; border-radius: 10px; }
+  /* 頭に並べる利用曜日は少し小ぶりに。1行に収めるため */
+  .u-head .day-cell { flex-wrap: nowrap; gap: 4px; }
+  .page-master .u-head .day { width: 33px; height: 36px; border-radius: 9px; }
+  .page-master .u-head .day .d { font-size: 12.5px; }
+  .page-master .u-head .day .ap { font-size: 8.5px; }
 
   .u-list.is-empty { gap: 0; }
   .u-list .pm-none { padding: 26px 0; text-align: center; color: var(--ink-3); font-size: 14px; }
@@ -5487,7 +5599,7 @@
   <details class="fold" id="fold-legend">
     <summary><span class="fd-title">この画面の使い方</span><span class="fd-note">記号の意味と操作のまとめ</span>
       <!-- 古い控えを開いていないか、ここで見分けられるようにしておく -->
-      <span class="fd-ver">版 2026-08-20m</span></summary>
+      <span class="fd-ver">版 2026-08-20n</span></summary>
     <div class="fold-body">
   <div class="legend">
     <span class="item"><span class="swatch s-wc" data-icon="wc"></span>車椅子（リフト・スロープ使用）</span>
@@ -5651,6 +5763,7 @@
         <span><i class="sw pm"></i>午後の人数</span>
         <span><i class="sw off"></i>休みあり</span>
         <span><i class="sw furi"></i>振替あり</span>
+        <span><i class="sw shinki"></i>新規・増回・再開・変更あり</span>
         <span class="pc-hint">日を押すと、右でその日の出欠を入れられます</span>
       </p>
     </section>
@@ -5709,18 +5822,25 @@
     </div>
   </header>
 
-  <nav class="pm-tabs" role="tablist">
-    <button type="button" role="tab" id="pmtab-users" aria-selected="true">利用者</button>
-    <button type="button" role="tab" id="pmtab-kin" aria-selected="false">緊急連絡先</button>
-    <button type="button" role="tab" id="pmtab-drivers" aria-selected="false">運転手</button>
-    <button type="button" role="tab" id="pmtab-dispatch" aria-selected="false">配車</button>
-    <button type="button" role="tab" id="pmtab-office" aria-selected="false">事業所</button>
-    <button type="button" role="tab" id="pmtab-io" aria-selected="false">取り込み・保存</button>
+  <!-- 「取り込み・保存」だけは、名簿を直に入れ替える道具なので離して置く -->
+  <nav class="pm-tabrow" role="tablist">
+    <span class="pm-tabs" role="presentation">
+      <button type="button" role="tab" id="pmtab-users" aria-selected="true">利用者</button>
+      <button type="button" role="tab" id="pmtab-kin" aria-selected="false">緊急連絡先</button>
+      <button type="button" role="tab" id="pmtab-drivers" aria-selected="false">運転手</button>
+      <button type="button" role="tab" id="pmtab-dispatch" aria-selected="false">配車</button>
+      <button type="button" role="tab" id="pmtab-office" aria-selected="false">事業所</button>
+    </span>
+    <span class="pm-tabs pm-tabs-io" role="presentation">
+      <button type="button" role="tab" id="pmtab-io" aria-selected="false"
+        title="CSV やバックアップで、名簿をまとめて入れ替える">取り込み・保存</button>
+    </span>
   </nav>
 
   <div class="pm-body">
     <section class="pm-pane" id="pm-users">
       <h3>利用中<span class="h3-note" id="active-count"></span>
+        <button type="button" class="btn" id="user-multi">まとめて選ぶ</button>
         <button type="button" class="btn" id="add-user">＋ 利用者を追加</button>
       </h3>
       <div class="pm-filter">
@@ -5729,8 +5849,18 @@
           <input type="search" id="user-find" placeholder="氏名・ふりがな・住所" autocomplete="off">
         </label>
         <div class="pf-days" id="user-days" role="group" aria-label="利用曜日で絞る"></div>
+        <div class="pf-days pf-aps" id="user-aps" role="group" aria-label="午前・午後で絞る"></div>
         <button type="button" class="btn pf-clear" id="user-filter-clear" hidden>絞りを外す</button>
         <span class="pf-hit" id="user-hit"></span>
+      </div>
+      <!-- まとめて終了・削除するときだけ出す帯 -->
+      <div class="pm-pick" id="user-pick-bar" hidden>
+        <span class="pp-n" id="user-pick-n">0名を選び中</span>
+        <button type="button" class="btn" id="user-pick-all">見えている全員を選ぶ</button>
+        <button type="button" class="btn" id="user-pick-none">選びを外す</button>
+        <span class="u-sp"></span>
+        <button type="button" class="btn end" id="user-pick-end">まとめて利用終了に</button>
+        <button type="button" class="btn danger" id="user-pick-del">まとめて削除</button>
       </div>
       <div class="u-list" id="user-rows"></div>
 
@@ -8608,7 +8738,8 @@
     muOk = submit;
 
     muBox.hidden = false;
-    const first = body.querySelector("input, select");
+    /* data-focus を付けた欄があればそこへ。なければ先頭の欄へ */
+    const first = body.querySelector("[data-focus]") || body.querySelector("input, select");
     if (first) first.focus();
   }
 
@@ -8657,10 +8788,12 @@
     });
   }
 
-  /* ダイアログの中の1行 */
-  function formRow(parent, label, node, help) {
-    const row = el("label", "uf-row");
-    row.append(el("span", "uf-label", label));
+  /* ダイアログの中の1行。need を立てると見出しに「必須」の印が付く */
+  function formRow(parent, label, node, help, need) {
+    const row = el("label", "uf-row" + (need ? " is-need" : ""));
+    const lb = el("span", "uf-label", label);
+    if (need) lb.append(el("i", "uf-need", "必須"));
+    row.append(lb);
     row.append(node);
     if (help) row.append(el("span", "uf-help", help));
     parent.append(row);
@@ -8708,14 +8841,35 @@
     return wrap;
   }
 
+  /* 次の利用者コード。いまある「u数字」のいちばん大きいものの次を、
+     同じ桁数で返す。介護ソフト側の番号に合わせて、あとから書き換えられる */
+  function nextUserId() {
+    let max = 0;
+    let width = 2;
+    draftUsers.forEach((u) => {
+      const m = /^u(\d+)$/.exec(String(u.id || ""));
+      if (!m) return;
+      width = Math.max(width, m[1].length);
+      max = Math.max(max, Number(m[1]));
+    });
+    const n = max + 1;
+    return "u" + String(n).padStart(String(n).length > width ? String(n).length : width, "0");
+  }
+
   function openAddDialog() {
     const draft = { name: "", kana: "", addr: "", care: "", tags: [], days: {} };
     openUserDialog({
       title: "利用者を追加",
-      lead: "氏名と住所だけでも登録できます。あとから表で直せます。",
+      lead: "氏名と介護度は必ず入れてください。ほかはあとから札で直せます。",
       ok: "追加する",
       build(body) {
-        const name = formRow(body, "氏名", Object.assign(document.createElement("input"), { type: "text", placeholder: "山田 太郎" }));
+        /* 介護ソフトと番号をそろえられるよう、追加のときから書き換えられる。
+           空のままなら、いまの番号の次を自動で入れる */
+        const uid = formRow(body, "利用者コード", Object.assign(document.createElement("input"),
+          { type: "text", value: nextUserId(), placeholder: nextUserId() }),
+          "CSV の id・PDF の「利用者ｺｰﾄﾞ」と同じもの。介護ソフトの番号に合わせるときは、ここを書き換えてください。");
+        const name = formRow(body, "氏名", Object.assign(document.createElement("input"), { type: "text", placeholder: "山田 太郎" }), "", true);
+        name.dataset.focus = "1";   /* コードより先に、氏名から打てるように */
         const kana = formRow(body, "ふりがな", Object.assign(document.createElement("input"), { type: "text", placeholder: "やまだ たろう" }),
           "氏名を打つと、変換する前の かな が自動で入ります。違っていればここを直してください。");
         linkKana(name, kana);
@@ -8747,7 +8901,8 @@
           addr.focus();
           addr.setSelectionRange(addr.value.length, addr.value.length);
         });
-        const care = formRow(body, "介護度", careSelect(""));
+        const care = formRow(body, "介護度", careSelect(""),
+          "送迎表・業務日誌の人数の数えかたが変わるので、必ず選んでください。", true);
         const bp = formRow(body, "血圧", bpSelect(""), "業務日誌の備考欄に出ます。シャントの方は赤字になります。");
         const tel = Object.assign(document.createElement("input"), { type: "tel", placeholder: "046-000-0000" });
         const note = Object.assign(document.createElement("input"), { type: "text", placeholder: "TELなし など" });
@@ -8757,14 +8912,23 @@
         formRow(body, "記号", tagPicker(draft.tags), "車椅子・荷物・玄関先まで");
         formRow(body, "利用曜日", dayPicker(draft.days), "押すたびに 空 → AM → PM と変わります");
         body.dataset.ready = "1";
-        draft.el = { name, kana, addr, care, bp, tel, note };
+        draft.el = { uid, name, kana, addr, care, bp, tel, note };
       },
       submit() {
         const name = draft.el.name.value.trim();
         if (!name) { notify("氏名を入れてください。", "warn"); draft.el.name.focus(); return; }
+        if (!draft.el.care.value) {
+          notify("介護度を選んでください。", "warn"); draft.el.care.focus(); return;
+        }
+        const id = draft.el.uid.value.trim() || nextUserId();
+        if (draftUsers.some((x) => x.id === id)) {
+          notify("「" + id + "」はほかの方が使っています。別の番号にしてください。", "warn");
+          draft.el.uid.focus();
+          return;
+        }
         const addr = draft.el.addr.value.trim();
         draftUsers.push({
-          id: "u" + Date.now().toString(36),
+          id: id,
           name,
           kana: draft.el.kana.value.trim(),
           addr,
@@ -8832,6 +8996,65 @@
         closeUserDialog();
         drawMasterTables();
         notify(u.name + " さんを削除しました。保存前なら「やめる」で戻せます。", "warn");
+      }
+    });
+  }
+
+  /* 何人かをまとめて終了にする。終了日と理由は全員に同じものを入れる */
+  function openEndManyDialog(list) {
+    let dateEl = null;
+    let reasonEl = null;
+    const names = list.map((i) => draftUsers[i].name);
+    openUserDialog({
+      title: names.length + "名を利用終了にする",
+      lead: "記録は残ります。送迎表の候補・既定の割り当て・未割当から外れます。",
+      ok: names.length + "名を利用終了にする",
+      build(body) {
+        body.append(el("p", "uf-who", names.join("　")));
+        dateEl = formRow(body, "終了日", Object.assign(document.createElement("input"),
+          { type: "date", value: isoToday() }), "選んだ方すべてに同じ日が入ります。");
+        reasonEl = Object.assign(document.createElement("input"),
+          { type: "text", placeholder: "入院・施設入所など" });
+        reasonEl.setAttribute("list", "end-reasons");
+        formRow(body, "終了理由", reasonEl, "空欄でも構いません。あとから一人ずつ直せます。");
+      },
+      submit() {
+        const d = dateEl.value || isoToday();
+        const r = reasonEl.value.trim();
+        list.forEach((i) => { draftUsers[i].end = { d: d, r: r }; });
+        uPicked.clear();
+        closeUserDialog();
+        drawMasterTables();
+        notify(names.length + "名を利用終了にしました。「利用中に戻す」で戻せます。");
+      }
+    });
+  }
+
+  function openDeleteManyDialog(list) {
+    const names = list.map((i) => draftUsers[i].name);
+    openUserDialog({
+      title: names.length + "名を削除しますか",
+      lead: "この方たちの記録をマスタから消します。",
+      ok: names.length + "名を削除する",
+      danger: true,
+      build(body) {
+        body.append(el("p", "uf-who", names.join("　")));
+        const warn = el("p", "uf-warn");
+        warn.append(
+          el("b", null, "元に戻せません。"),
+          document.createTextNode(
+            "過去の送迎表に名前が残っている場合、その行の利用者は空欄になります。"
+            + "履歴を残したいときは「削除」ではなく「終了」を使ってください。")
+        );
+        body.append(warn);
+      },
+      submit() {
+        /* うしろから消す。前から消すと、残りの番号がずれる */
+        list.slice().sort((a, b) => b - a).forEach((i) => draftUsers.splice(i, 1));
+        uPicked.clear();
+        closeUserDialog();
+        drawMasterTables();
+        notify(names.length + "名を削除しました。保存前なら「変更を破棄して戻る」で戻せます。", "warn");
       }
     });
   }
@@ -9728,7 +9951,8 @@
   /* 1人ぶんを1枚の札にする。桝を横に11も並べると、どれも小さくなって
      読めなくなるため。欄には見出しを付け、横に流さずに済むようにした */
   function drawUserRow(u, i) {
-    const card = el("div", "u-card");
+    const open = uOpen.has(u.id);
+    const card = el("div", "u-card u-fold" + (open ? " is-open" : ""));
     const head = el("div", "u-head");
     const body = el("div", "u-body");
     card.append(head, body);
@@ -9743,10 +9967,49 @@
       return child;
     };
 
+    /* まとめて終了・削除するときの選び印。ふだんは出さない */
+    if (uPickMode) {
+      const box = document.createElement("input");
+      box.type = "checkbox";
+      box.className = "u-pick";
+      box.checked = uPicked.has(u.id);
+      box.title = u.name + " さんを選ぶ";
+      box.addEventListener("change", () => {
+        if (box.checked) uPicked.add(u.id); else uPicked.delete(u.id);
+        card.classList.toggle("is-picked", box.checked);
+        drawPickBar();
+      });
+      head.append(box);
+      if (box.checked) card.classList.add("is-picked");
+    }
+
     /* 札の頭は利用者コード。CSV の id、PDF の「利用者ｺｰﾄﾞ」と同じもので、
-       取り込みのときはこの番号で名簿と照らす。書き換えると結び付きが切れるので読むだけ */
-    const ava = el("span", "u-code", u.id || "—");
-    ava.title = "利用者コード（CSV の id・PDF の利用者ｺｰﾄﾞと同じ）";
+       取り込みのときはこの番号で名簿と照らす。
+       介護ソフト側の番号に合わせられるよう、書き換えられるようにしてある */
+    const ava = document.createElement("input");
+    ava.type = "text";
+    ava.className = "u-code";
+    ava.value = u.id || "";
+    ava.size = 6;
+    ava.title = "利用者コード（CSV の id・PDF の利用者ｺｰﾄﾞと同じ）。"
+      + "介護ソフトの番号に合わせて書き換えられます";
+    ava.addEventListener("change", () => {
+      const v = ava.value.trim();
+      const old = draftUsers[i].id;
+      if (v === old) return;
+      if (!v) { ava.value = old; notify("利用者コードは空にできません。", "warn"); return; }
+      if (draftUsers.some((x, n) => n !== i && x.id === v)) {
+        ava.value = old;
+        notify("「" + v + "」はほかの方が使っています。別の番号にしてください。", "warn");
+        return;
+      }
+      draftUsers[i].id = v;
+      renameUserId(old, v);
+      uOpen.delete(old); uOpen.add(v);
+      if (uPicked.delete(old)) uPicked.add(v);
+      notify("利用者コードを " + old + " から " + v + " に替えました。");
+      drawMasterTables();
+    });
     const nameI = document.createElement("input");
     nameI.type = "text"; nameI.value = u.name; nameI.className = "u-name";
     nameI.title = "氏名";
@@ -9760,7 +10023,7 @@
 
     const idBox = el("span", "u-id");
     idBox.append(nameI, kanaI);
-    head.append(ava, idBox, el("span", "u-sp"));
+    head.append(ava, idBox);
 
     /* 住所は建物名まで入ると1行に収まらない（介護ソフトから住所1と住所2を
        つないで入れるため）。欄の中で折り返し、中身の量に合わせて背を伸ばす */
@@ -9870,7 +10133,8 @@
       });
       dayWrap.append(b);
     });
-    field("利用曜日", dayWrap, true);
+    /* 利用曜日は氏名の右隣。畳んだままでも、いつ来る方かが分かるように */
+    head.append(dayWrap, el("span", "u-sp"));
 
     const endBtn = el("button", "btn end", "利用終了にする");
     endBtn.type = "button";
@@ -9881,6 +10145,29 @@
     del.title = "記録ごと消す（履歴を残すなら「終了」）";
     del.addEventListener("click", () => openDeleteDialog(i));
     head.append(endBtn, del);
+
+    /* 残りの欄は畳んでおく。62名を縦に並べても見渡せるように */
+    const more = el("button", "u-more");
+    more.type = "button";
+    more.setAttribute("aria-expanded", String(open));
+    more.title = open ? "この方の欄を畳む" : "住所・介護度・電話などを開く";
+    more.append(el("span", "u-chev", "▾"));
+    const fold = () => {
+      const now = !card.classList.contains("is-open");
+      card.classList.toggle("is-open", now);
+      more.setAttribute("aria-expanded", String(now));
+      more.title = now ? "この方の欄を畳む" : "住所・介護度・電話などを開く";
+      if (now) { uOpen.add(u.id); body.querySelectorAll(".addr-cell").forEach(fitAddr); }
+      else uOpen.delete(u.id);
+    };
+    more.addEventListener("click", fold);
+    head.append(more);
+
+    /* 頭の何もないところを押しても開く。欄や札を押したときは、そちらの用が先 */
+    head.addEventListener("click", (e) => {
+      if (e.target.closest("input, select, textarea, button")) return;
+      fold();
+    });
 
     return card;
   }
@@ -9944,9 +10231,94 @@
     return tr;
   }
 
-  /* 表の絞り込み。名前で引くのと、その曜日に来る方だけにするのと */
+  /* 表の絞り込み。名前で引くのと、その曜日に来る方だけにするのと、
+     午前・午後だけにするのと */
   let userFind = "";
   let userDay = "";
+  let userAp = "";
+
+  /* 札は1行に畳んでおく。広げたものだけ覚えておき、描き直しても開いたまま */
+  const uOpen = new Set();
+  /* まとめて終了・削除するときの選び印 */
+  let uPickMode = false;
+  const uPicked = new Set();
+
+  /* 利用者コードを書き換えたときの控え。
+     保存を押すまでは確定しないので、日ごとの記録もそのときにまとめて直す */
+  let idRenames = [];
+
+  function renameUserId(from, to) {
+    /* 既定の割り当ては下書きの中にあるので、その場で直す */
+    Object.keys(draftDispatch || {}).forEach((size) => {
+      const plan = draftDispatch[size] && draftDispatch[size].plan;
+      if (!plan) return;
+      Object.keys(plan).forEach((w) => {
+        Object.keys(plan[w] || {}).forEach((leg) => {
+          Object.keys(plan[w][leg] || {}).forEach((car) => {
+            plan[w][leg][car] = plan[w][leg][car].map((x) => (x === from ? to : x));
+          });
+        });
+      });
+    });
+    /* 同じ番号を2度替えたときは、たどれるように付け替える */
+    const back = idRenames.find((r) => r.to === from);
+    if (back) back.to = to;
+    else idRenames.push({ from: from, to: to });
+  }
+
+  /* 保存のときに、日ごとの記録の利用者コードを付け替える */
+  function applyIdRenames() {
+    if (!idRenames.length) return;
+    const map = {};
+    idRenames.forEach((r) => { if (r.from !== r.to) map[r.from] = r.to; });
+    idRenames = [];
+    const keys = Object.keys(map);
+    if (!keys.length) return;
+    const swapId = (id) => (Object.prototype.hasOwnProperty.call(map, id) ? map[id] : id);
+    STORE.days().forEach((d) => {
+      const one = STORE.getJSON("day." + d);
+      if (!one) return;
+      Object.keys(one.legs || {}).forEach((leg) => {
+        (one.legs[leg] || []).forEach((car) => {
+          (car.stops || []).forEach((s) => { s.u = swapId(s.u); });
+        });
+      });
+      ["am", "pm"].forEach((part) => {
+        const at = (one.attend || {})[part];
+        if (at) {
+          keys.forEach((from) => {
+            if (Object.prototype.hasOwnProperty.call(at, from)) {
+              at[map[from]] = at[from];
+              delete at[from];
+            }
+          });
+        }
+        const sw = (one.swap || {})[part];
+        if (Array.isArray(sw)) sw.forEach((x) => { x.id = swapId(x.id); });
+      });
+      STORE.setJSON("day." + d, one);
+    });
+
+    /* いま画面に出ている送迎表も付け替える。
+       このあと openDay がこの画面を写し取ってから描き直すので、
+       ここを直しておかないと古い番号が書き戻ってしまう */
+    document.querySelectorAll(".sheet .stop:not(.head) .who").forEach((sel) => {
+      const cur = sel.value;
+      if (!Object.prototype.hasOwnProperty.call(map, cur)) return;
+      const opt = [...sel.options].find((o) => o.value === cur);
+      if (opt) opt.value = map[cur];
+      sel.value = map[cur];
+    });
+    ["am", "pm"].forEach((part) => {
+      keys.forEach((from) => {
+        if (Object.prototype.hasOwnProperty.call(ATTEND[part], from)) {
+          ATTEND[part][map[from]] = ATTEND[part][from];
+          delete ATTEND[part][from];
+        }
+      });
+      SWAP[part].forEach((x) => { x.id = swapId(x.id); });
+    });
+  }
 
   /* 「たなか」「タナカ」「田中」のどれで打っても引けるようにそろえる */
   const kanaKey = (v) => String(v || "")
@@ -9956,6 +10328,12 @@
 
   function userMatches(u) {
     if (userDay && !u.days[userDay]) return false;
+    /* 曜日といっしょに選んだときは「その曜日の午前」。
+       午前だけ選んだときは「どこかの曜日に午前がある方」 */
+    if (userAp) {
+      if (userDay) { if (u.days[userDay] !== userAp) return false; }
+      else if (!WEEKDAYS.some((w) => u.days[w] === userAp)) return false;
+    }
     if (!userFind) return true;
     const q = kanaKey(userFind);
     return [u.name, u.kana, u.addr, u.town].some((v) => kanaKey(v).indexOf(q) >= 0);
@@ -9972,6 +10350,28 @@
     const frame = el.offsetHeight - el.clientHeight;
     el.style.height = Math.max(el.scrollHeight + frame, ADDR_MIN) + "px";
   }
+
+  /* まとめて選ぶときの帯。選んだ人数と、まとめて掛ける操作を出す */
+  function drawPickBar() {
+    const bar = document.getElementById("user-pick-bar");
+    if (!bar) return;
+    bar.hidden = !uPickMode;
+    const btn = document.getElementById("user-multi");
+    btn.textContent = uPickMode ? "選ぶのをやめる" : "まとめて選ぶ";
+    btn.setAttribute("aria-pressed", String(uPickMode));
+    if (!uPickMode) return;
+    const n = uPicked.size;
+    document.getElementById("user-pick-n").textContent =
+      n ? n + "名を選び中" : "終了・削除したい方に印を付けてください";
+    document.getElementById("user-pick-end").disabled = !n;
+    document.getElementById("user-pick-del").disabled = !n;
+    document.getElementById("user-pick-none").disabled = !n;
+  }
+
+  /* 印の付いた方を、名簿の並び順で取り出す */
+  const pickedIdx = () => draftUsers
+    .map((u, i) => (!u.end && uPicked.has(u.id) ? i : -1))
+    .filter((i) => i >= 0);
 
   function drawMasterTables() {
     const ub = document.getElementById("user-rows");
@@ -9991,7 +10391,7 @@
     });
     ub.classList.toggle("is-empty", shown === 0);
 
-    const filtered = !!(userFind || userDay);
+    const filtered = !!(userFind || userDay || userAp);
     document.getElementById("user-filter-clear").hidden = !filtered;
     document.getElementById("user-hit").textContent = filtered ? shown + " / " + active + "名" : "";
     if (filtered && shown === 0) {
@@ -10000,6 +10400,7 @@
 
     document.getElementById("active-count").textContent = active + "名";
     document.getElementById("ended-count").textContent = ended + "名";
+    drawPickBar();
 
     drawKinTable();
     /* 表に入れてからでないと背丈が測れない */
@@ -10294,9 +10695,15 @@
     });
     userFind = "";
     userDay = "";
+    userAp = "";
+    uOpen.clear();
+    uPicked.clear();
+    uPickMode = false;
+    idRenames = [];
     const find = document.getElementById("user-find");
     if (find) find.value = "";
-    document.querySelectorAll("#user-days button").forEach((x) => x.setAttribute("aria-pressed", "false"));
+    document.querySelectorAll("#user-days button, #user-aps button")
+      .forEach((x) => x.setAttribute("aria-pressed", "false"));
     openPlan = null;
     openPlanDay = weekdayOf(currentDate) || WEEKDAYS[0];
     openPlanLeg = LEGS[0].key;
@@ -10562,12 +10969,15 @@
       .sort(byKana);
   }
 
-  /* カレンダーの桝に出す数。人数・休み・振替 */
+  /* 桝の札と下の枠に出す語。どれも「その日から来かたが変わった」ことを示すもの */
+  const NEW_CODES = ["新規", "増回", "再開", "変更"];
+
+  /* カレンダーの桝に出す数。人数・休み・振替・新規 */
   function calCount(date) {
     const wd = weekdayOf(date);
     if (!wd) return null;
     const data = calDayData(date);
-    const out = { am: 0, pm: 0, off: 0, furi: 0 };
+    const out = { am: 0, pm: 0, off: 0, furi: 0, shinki: 0 };
     ["am", "pm"].forEach((part) => {
       const swapSet = new Set(data.swap[part].map((x) => x.id));
       calRoster(date, part, data).forEach((u) => {
@@ -10575,6 +10985,7 @@
         if (codeState(code) === "absent") { out.off += 1; return; }
         out[part] += 1;
         if (code === "振替" || swapSet.has(u.id)) out.furi += 1;
+        if (NEW_CODES.indexOf(code) >= 0) out.shinki += 1;
       });
     });
     return out;
@@ -10618,10 +11029,11 @@
         };
         cnt.append(one("am", "午前 ", c.am), one("pm", "午後 ", c.pm));
         cell.append(cnt);
-        if (c.off || c.furi) {
+        if (c.off || c.furi || c.shinki) {
           const flags = el("span", "pc-flags");
           if (c.off) flags.append(el("span", "pc-flag off", "休" + c.off));
           if (c.furi) flags.append(el("span", "pc-flag furi", "振" + c.furi));
+          if (c.shinki) flags.append(el("span", "pc-flag shinki", "新" + c.shinki));
           cell.append(flags);
         }
         if (date === calPick) cell.classList.add("is-pick");
@@ -10695,7 +11107,8 @@
         const code = data.attend[part][u.id] || "";
         const st = codeState(code);
         const row = el("div", "pc-row" + (st === "absent" ? " is-off" : "")
-          + (st === "furikae" ? " is-furi" : ""));
+          + (st === "furikae" ? " is-furi" : "")
+          + (st === "shinki" ? " is-shinki" : ""));
 
         const nm = el("span", "nm", u.name);
         if (swapSet.has(u.id)) {
@@ -10769,8 +11182,6 @@
 
   /* 今月のうちに「新規」を付けた方をまとめて出す。
      月の初めに「今月から来る方」を見返せるようにするための枠 */
-  /* この枠に出す語。どれも「その日から変わった」ことを示すもの */
-  const NEW_CODES = ["新規", "増回", "再開", "変更"];
 
   function drawCalNew() {
     const box = document.getElementById("cal-new");
@@ -10978,6 +11389,29 @@
   });
 
   document.getElementById("add-user").addEventListener("click", openAddDialog);
+
+  document.getElementById("user-multi").addEventListener("click", () => {
+    uPickMode = !uPickMode;
+    if (!uPickMode) uPicked.clear();
+    drawMasterTables();
+  });
+  document.getElementById("user-pick-all").addEventListener("click", () => {
+    /* 絞り込みで見えている方だけを選ぶ。見えていない方を巻き込まないため */
+    draftUsers.forEach((u) => { if (!u.end && userMatches(u)) uPicked.add(u.id); });
+    drawMasterTables();
+  });
+  document.getElementById("user-pick-none").addEventListener("click", () => {
+    uPicked.clear();
+    drawMasterTables();
+  });
+  document.getElementById("user-pick-end").addEventListener("click", () => {
+    const list = pickedIdx();
+    if (list.length) openEndManyDialog(list);
+  });
+  document.getElementById("user-pick-del").addEventListener("click", () => {
+    const list = pickedIdx();
+    if (list.length) openDeleteManyDialog(list);
+  });
 
   /* 緊急連絡先の表。利用中の方だけを出す。
      ご本人の電話と連絡メモは「利用者」の表と同じ中身を、こちらからも直せるようにする */
@@ -11283,11 +11717,30 @@
     document.getElementById("user-days").append(b);
   });
 
+  /* 午前・午後で絞る。曜日といっしょに押せば「その曜日の午前」になる */
+  [["AM", "午前"], ["PM", "午後"]].forEach(([ap, label]) => {
+    const b = el("button", null, label);
+    b.type = "button";
+    b.dataset.ap = ap;
+    b.setAttribute("aria-pressed", "false");
+    b.title = label + "に来る方だけにする（曜日といっしょに押すと、その曜日の" + label + "）";
+    b.addEventListener("click", () => {
+      userAp = userAp === ap ? "" : ap;
+      document.querySelectorAll("#user-aps button").forEach((x) => {
+        x.setAttribute("aria-pressed", String(x.dataset.ap === userAp));
+      });
+      drawMasterTables();
+    });
+    document.getElementById("user-aps").append(b);
+  });
+
   document.getElementById("user-filter-clear").addEventListener("click", () => {
     userFind = "";
     userDay = "";
+    userAp = "";
     document.getElementById("user-find").value = "";
-    document.querySelectorAll("#user-days button").forEach((x) => x.setAttribute("aria-pressed", "false"));
+    document.querySelectorAll("#user-days button, #user-aps button")
+      .forEach((x) => x.setAttribute("aria-pressed", "false"));
     drawMasterTables();
   });
 
@@ -11321,6 +11774,8 @@
     STORE.setJSON("drivers", DRIVERS);
     STORE.setJSON("dispatch", DISPATCH);
     STORE.setJSON("office", OFFICE);
+    /* 利用者コードを替えていたら、過去の日の記録も同じ番号に付け替える */
+    applyIdRenames();
     applyOffice();
     closeMaster();
     openDay(currentDate);
