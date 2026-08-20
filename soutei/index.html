@@ -2090,7 +2090,7 @@
     justify-content: space-between;
     gap: calc(var(--step) * 4);
     padding-bottom: calc(var(--step) * 3);
-    border-bottom: 2px solid var(--ink);
+    border-bottom: 1px solid var(--rule);
   }
 
   .pa-head h1 {
@@ -2118,7 +2118,18 @@
   }
 
   .pa-lead b { color: var(--ink-2); }
-  .pa-actions .btn { font-size: 13px; padding: 8px 16px; }
+
+  .pa-actions .btn {
+    font: inherit;
+    font-size: 13px;
+    padding: 9px 18px;
+    background: var(--card);
+    color: var(--ink-2);
+    border: 1px solid var(--rule-2);
+    border-radius: 999px;
+    cursor: pointer;
+    transition: border-color .12s, color .12s;
+  }
   .pa-actions .btn:hover { border-color: var(--ai); color: var(--ai); }
 
   .pa-parts {
@@ -2135,7 +2146,8 @@
   .pa-part {
     background: var(--card);
     border: 1px solid var(--rule);
-    border-radius: 12px;
+    border-radius: 18px;
+    box-shadow: 0 2px 10px rgba(16, 24, 32, .05);
     overflow: hidden;
   }
 
@@ -2167,10 +2179,15 @@
   .pa-counts b { font-size: 15px; color: var(--ink); margin: 0 2px; }
 
   .pa-group {
-    padding: calc(var(--step) * 2) calc(var(--step) * 3) 0;
+    margin: calc(var(--step) * 3) calc(var(--step) * 4) calc(var(--step) * 1);
+    padding: 5px 12px;
+    border-radius: 999px;
+    background: var(--sub);
     font-size: 11px;
+    font-weight: 700;
     letter-spacing: .12em;
     color: var(--ink-3);
+    display: inline-block;
   }
 
   .pa-row {
@@ -2178,9 +2195,11 @@
     grid-template-columns: 2.1rem minmax(0, 1fr) 7.5rem;
     align-items: center;
     gap: calc(var(--step) * 2);
-    padding: 4px calc(var(--step) * 4) 4px calc(var(--step) * 3);
+    padding: 6px calc(var(--step) * 4) 6px calc(var(--step) * 3);
     border-bottom: 1px solid var(--rule);
   }
+
+  .pa-row:last-child { border-bottom: 0; }
 
   .pa-no {
     font-size: 11px;
@@ -2189,19 +2208,24 @@
     text-align: right;
   }
 
-  .pa-name { font-size: 14px; font-weight: 600; }
+  .pa-name { font-size: 14.5px; font-weight: 600; }
   .pa-name small { font-weight: 400; font-size: 11px; color: var(--ink-3); margin-left: 6px; }
 
   .pa-pick {
     font: inherit;
     font-size: 13px;
     width: 100%;
-    padding: 3px 4px;
+    padding: 7px 12px;
     color: var(--ink);
     background: var(--card);
-    border: 1px solid var(--rule-2);
-    border-radius: 6px;
+    border: 1.5px solid var(--rule-2);
+    border-radius: 999px;
+    cursor: pointer;
+    transition: border-color .12s, color .12s;
   }
+  .pa-pick:hover { border-color: var(--accent); }
+  .pa-pick:focus { outline: none; border-color: var(--accent);
+                   box-shadow: 0 0 0 3px var(--accent-soft); }
 
   /* 日誌と同じく、状態が付いた行は赤字で目立たせる */
   .pa-row[data-state="absent"] { background: var(--warn-soft); }
@@ -2233,7 +2257,7 @@
     gap: calc(var(--step) * 4);
     padding: calc(var(--step) * 5) calc(var(--step) * 5) calc(var(--step) * 3);
     background: var(--paper);
-    border-bottom: 2px solid var(--ink);
+    border-bottom: 1px solid var(--rule);
   }
 
   .pp-head h1 {
@@ -2268,10 +2292,12 @@
   /* 刷るものの切替。送迎表と業務日誌を同じ場所から出す */
   .pp-docs {
     display: flex;
-    gap: 2px;
-    padding: 3px;
+    gap: 3px;
+    padding: 4px;
     background: var(--sub);
+    border-radius: 999px;
     align-self: flex-end;
+    flex-wrap: wrap;
   }
 
   .pp-docs button {
@@ -2279,13 +2305,17 @@
     display: flex;
     flex-direction: column;
     gap: 1px;
-    padding: 6px 18px;
+    padding: 7px 20px;
     border: 0;
+    border-radius: 999px;
     background: transparent;
     color: var(--ink-2);
     cursor: pointer;
     text-align: left;
+    transition: background-color .14s, color .14s;
   }
+
+  .pp-docs button:hover { color: var(--ink); }
 
   .pp-docs .pd-name { font-size: 14px; letter-spacing: .08em; }
   .pp-docs .pd-sub { font-size: 10px; color: var(--ink-3); }
@@ -2293,7 +2323,7 @@
   .pp-docs button[aria-selected="true"] {
     background: var(--card);
     color: var(--ink);
-    box-shadow: inset 0 -2px 0 var(--ai);
+    box-shadow: inset 0 0 0 1.5px var(--ai), 0 2px 6px rgba(16, 24, 32, .10);
   }
 
   .pp-docs button[aria-selected="true"] .pd-name { font-weight: 600; }
@@ -2301,11 +2331,13 @@
   .pp-actions .btn {
     font: inherit;
     font-size: 13px;
-    padding: 8px 16px;
+    padding: 9px 18px;
     background: var(--card);
     color: var(--ink-2);
     border: 1px solid var(--rule-2);
+    border-radius: 999px;
     cursor: pointer;
+    transition: border-color .12s, color .12s, box-shadow .12s;
   }
 
   .pp-actions .btn:hover { border-color: var(--ai); color: var(--ai); }
@@ -2313,16 +2345,22 @@
   /* Esc でも戻れることを、ボタンの脇に小さく添える */
   .btn-key {
     margin-left: 7px;
-    padding: 1px 5px 2px;
+    padding: 1px 7px 2px;
     font-size: 10px;
     letter-spacing: .06em;
     color: var(--ink-3);
     border: 1px solid var(--rule-2);
-    border-radius: 4px;
+    border-radius: 999px;
   }
 
   @media (hover: none) { .btn-key { display: none; } }
-  .pp-actions .btn.primary { border-color: var(--ai); color: var(--ai); font-weight: 600; }
+  .pp-actions .btn.primary {
+    border-color: var(--ai);
+    color: var(--ai);
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(16, 24, 32, .10);
+  }
+  .pp-actions .btn.primary:hover { box-shadow: 0 6px 16px rgba(16, 24, 32, .16); }
 
   /* 担当表はここで直に書き換える。書けばすぐ下のプレビューに出る */
   .pp-roles {
@@ -5347,7 +5385,7 @@
   <details class="fold" id="fold-legend">
     <summary><span class="fd-title">この画面の使い方</span><span class="fd-note">記号の意味と操作のまとめ</span>
       <!-- 古い控えを開いていないか、ここで見分けられるようにしておく -->
-      <span class="fd-ver">版 2026-08-20j</span></summary>
+      <span class="fd-ver">版 2026-08-20k</span></summary>
     <div class="fold-body">
   <div class="legend">
     <span class="item"><span class="swatch s-wc" data-icon="wc"></span>車椅子（リフト・スロープ使用）</span>
