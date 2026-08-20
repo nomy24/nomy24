@@ -4616,8 +4616,8 @@
     /* 伸びるところが目で追えるよう、ゆっくり・速さを均した曲線にする。
        前のめりの曲線だと、はじめの一瞬でほとんど開ききってしまい、
        動いたことに気づけなかった */
-    transition: opacity .22s ease-out,
-                clip-path .55s cubic-bezier(.4, 0, .2, 1);
+    transition: opacity .18s ease-out,
+                clip-path .4s cubic-bezier(.4, 0, .2, 1);
   }
 
   .navfab:is(:focus-within, .is-open) .nf-bar {
@@ -4627,8 +4627,8 @@
   }
 
   /* 閉じるときは、開くときより速く畳む */
-  .nf-bar { transition-duration: .14s, .3s; }
-  .navfab:is(:focus-within, .is-open) .nf-bar { transition-duration: .22s, .55s; }
+  .nf-bar { transition-duration: .12s, .24s; }
+  .navfab:is(:focus-within, .is-open) .nf-bar { transition-duration: .18s, .4s; }
 
   /* 中身は少しずつ遅れて出てくる。左から順に並んでいく見え方にする */
   .nf-bar .sn-logo,
@@ -4643,19 +4643,41 @@
     transform: none;
   }
 
-  .navfab:is(:focus-within, .is-open) .nf-bar .sn-logo { transition-delay: .07s; }
-  .navfab:is(:focus-within, .is-open) .nf-bar .sn-item:nth-of-type(1) { transition-delay: .12s; }
-  .navfab:is(:focus-within, .is-open) .nf-bar .sn-item:nth-of-type(2) { transition-delay: .17s; }
-  .navfab:is(:focus-within, .is-open) .nf-bar .sn-item:nth-of-type(3) { transition-delay: .22s; }
-  .navfab:is(:focus-within, .is-open) .nf-bar .sn-item:nth-of-type(4) { transition-delay: .27s; }
-  .navfab:is(:focus-within, .is-open) .nf-bar .sn-item:nth-of-type(5) { transition-delay: .32s; }
-  .navfab:is(:focus-within, .is-open) .nf-bar .sn-item:nth-of-type(6) { transition-delay: .37s; }
+  .navfab:is(:focus-within, .is-open) .nf-bar .sn-logo { transition-delay: .05s; }
+  .navfab:is(:focus-within, .is-open) .nf-bar .sn-item:nth-of-type(1) { transition-delay: .09s; }
+  .navfab:is(:focus-within, .is-open) .nf-bar .sn-item:nth-of-type(2) { transition-delay: .12s; }
+  .navfab:is(:focus-within, .is-open) .nf-bar .sn-item:nth-of-type(3) { transition-delay: .16s; }
+  .navfab:is(:focus-within, .is-open) .nf-bar .sn-item:nth-of-type(4) { transition-delay: .20s; }
+  .navfab:is(:focus-within, .is-open) .nf-bar .sn-item:nth-of-type(5) { transition-delay: .23s; }
+  .navfab:is(:focus-within, .is-open) .nf-bar .sn-item:nth-of-type(6) { transition-delay: .27s; }
 
   /* 帯そのものが出ていない画面（タイトル）では浮きボタンも出さない */
   body:not(.has-nav) .navfab { display: none; }
 
   /* 浮きボタンが出ているあいだは、脇の札を下へ寄せて重ならないようにする */
   body.nav-float .side { --side-top: calc(var(--step) * 3 + 54px); }
+
+  /* 端末側で「動きを抑える」設定にしてあると、画面ぜんぶの動きを止める
+     取り決め（* { transition: none }）に当たって、帯がぱっと出るだけになる。
+     ここは「出てきたことが分からない」と困る場所なので、
+     位置や形は動かさないまま、濃さの移り変わりだけは残す。
+     （濃さの変化は目まいのもとにならないので、抑える設定でも差し支えない） */
+  @media (prefers-reduced-motion: reduce) {
+    .navfab .nf-bar {
+      transition: opacity .3s ease !important;
+      clip-path: none !important;
+    }
+    .navfab .nf-btn {
+      transition: opacity .22s ease !important;
+      transform: none !important;
+    }
+    .nf-bar .sn-logo,
+    .nf-bar .sn-item {
+      transition: opacity .28s ease !important;
+      transform: none !important;
+      transition-delay: 0s !important;
+    }
+  }
 
   /* 狭い画面では帯が端から端までになるので、浮かせるほうも同じにする */
   @media screen and (max-width: 1240px) {
@@ -5230,7 +5252,7 @@
   <details class="fold" id="fold-legend">
     <summary><span class="fd-title">この画面の使い方</span><span class="fd-note">記号の意味と操作のまとめ</span>
       <!-- 古い控えを開いていないか、ここで見分けられるようにしておく -->
-      <span class="fd-ver">版 2026-08-20g</span></summary>
+      <span class="fd-ver">版 2026-08-20h</span></summary>
     <div class="fold-body">
   <div class="legend">
     <span class="item"><span class="swatch s-wc" data-icon="wc"></span>車椅子（リフト・スロープ使用）</span>
