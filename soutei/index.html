@@ -2379,14 +2379,6 @@
     margin-bottom: calc(var(--step) * 2);
   }
 
-  .ppr-title {
-    font-family: var(--mincho);
-    font-size: 16px;
-    font-weight: 600;
-    letter-spacing: .14em;
-    color: var(--enji);
-  }
-
   .ppr-day { font-size: 13px; letter-spacing: .08em; color: var(--ink-2); }
   .ppr-note { font-size: 11px; color: var(--ink-3); }
 
@@ -3997,9 +3989,6 @@
   .page-master .tag-cell .tag { width: 32px; height: 36px; border-radius: 5px; }
   .page-master .tag-cell .tag svg { width: 19px; height: 19px; }
 
-  /* 終了・削除。横に並ばなければ段に折り返す */
-  .ops-cell { display: flex; flex-wrap: wrap; gap: 4px; }
-
   .modal .day,
   .page-master .day {
     width: 32px;
@@ -4078,7 +4067,6 @@
       white-space: nowrap;
     }
 
-    .tools .btn-final { flex: 1 1 100%; min-height: 52px; }
     .crew, .undo { flex: 1 1 auto; }
     .crew select { flex: 0 1 7rem; }
     .undo button { flex: 1 1 0; }
@@ -4965,8 +4953,6 @@
   /* 新規・増回・再開・変更。送迎表の行と同じ橙で、名前も欄も揃える */
   .pc-row.is-shinki .nm { color: var(--shinki); }
   .pc-row.is-shinki select { border-color: var(--shinki); color: var(--shinki); }
-  .pc-row .fu { font-size: 10.5px; font-weight: 700; color: var(--furikae);
-                background: var(--furikae-soft); border-radius: 999px; padding: 1px 7px; }
 
   .pc-add { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
   .pc-add input { flex: 1 1 8em; min-width: 0; font: inherit; font-size: 13px; padding: 7px 10px;
@@ -9957,9 +9943,7 @@
     const body = el("div", "u-body");
     card.append(head, body);
 
-    /* 見出しの欄には印を付けない。氏名とふりがなは札の頭に置く */
-    const cell = (child) => { body.append(child); return child; };
-    /* 見出し付きの欄をひとつ作る */
+    /* 見出し付きの欄をひとつ作る。氏名とふりがなは札の頭なので、これは使わない */
     const field = (label, child, wide) => {
       const box = el("div", "u-f" + (wide ? " wide" : ""));
       box.append(el("span", "u-l", label), child);
