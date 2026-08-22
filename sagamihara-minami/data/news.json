@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-08-21T22:25:39.507Z",
+  "generatedAt": "2026-08-22T22:22:32.745Z",
   "source": "相模原市公式ホームページ",
   "sourceUrl": "https://www.city.sagamihara.kanagawa.jp",
   "counts": {
     "total": 400,
     "minami": 18,
     "citywide": 382,
-    "addedThisRun": 3
+    "addedThisRun": 0
   },
   "categories": [
     {
@@ -55,6 +55,20 @@
     }
   ],
   "items": [
+    {
+      "id": "5fc95f5c9bcb",
+      "title": "譲渡面接会（市の譲渡面接会に参加する市民から猫を譲り受ける場合の情報）",
+      "url": "https://www.city.sagamihara.kanagawa.jp/kosodate/kenko/1026628/pet/1019993.html",
+      "summary": "",
+      "category": "kosodate",
+      "categoryLabel": "子育て・教育",
+      "scope": "citywide",
+      "areaHits": [],
+      "important": false,
+      "source": "相模原市 更新情報",
+      "publishedAt": "2026-08-22T15:05:03.000Z",
+      "firstSeenAt": "2026-08-04T04:16:43.500Z"
+    },
     {
       "id": "37b00255d9b1",
       "title": "お子さんの発達を理解して関わるための講座や講演会のご案内",
@@ -448,20 +462,6 @@
       "source": "相模原市 更新情報",
       "publishedAt": "2026-08-20T15:05:03.000Z",
       "firstSeenAt": "2026-08-20T22:28:03.719Z"
-    },
-    {
-      "id": "5fc95f5c9bcb",
-      "title": "譲渡面接会（市の譲渡面接会に参加する市民から猫を譲り受ける場合の情報）",
-      "url": "https://www.city.sagamihara.kanagawa.jp/kosodate/kenko/1026628/pet/1019993.html",
-      "summary": "",
-      "category": "kosodate",
-      "categoryLabel": "子育て・教育",
-      "scope": "citywide",
-      "areaHits": [],
-      "important": false,
-      "source": "相模原市 更新情報",
-      "publishedAt": "2026-08-20T15:05:03.000Z",
-      "firstSeenAt": "2026-08-04T04:16:43.500Z"
     },
     {
       "id": "611356408389",
@@ -5694,5 +5694,5 @@
       "firstSeenAt": "2026-08-04T04:16:43.500Z"
     }
   ],
-  "revision": "b1a526ef8620"
+  "revision": "a2904a197e8f"
 }
