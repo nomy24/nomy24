@@ -18,6 +18,7 @@ const http = require("http");
 const fs = require("fs");
 const path = require("path");
 const os = require("os");
+const crypto = require("crypto");
 
 const PORT = Number(process.env.PORT || process.argv[2] || 8080);
 const HERE = __dirname;
@@ -77,6 +78,113 @@ function listDocs() {
   return out;
 }
 
+/* ── 合言葉 ───────────────────────────────
+   同じネットワークに入れる人なら誰でも読めてしまう状態を避ける。
+   初回に1つ作ってファイルに置き、端末ごとに1度だけ入れてもらう。
+   紛らわしい字（0 O 1 I l）は外して、読み上げても間違えないようにする。 */
+
+const KEYFILE = path.join(DATA, "合言葉.txt");
+const ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+
+function makePass() {
+  const pick = () => ALPHABET[crypto.randomInt(ALPHABET.length)];
+  const group = () => Array.from({ length: 4 }, pick).join("");
+  return group() + "-" + group() + "-" + group();
+}
+
+function loadPass() {
+  try {
+    const v = fs.readFileSync(KEYFILE, "utf8").trim();
+    if (v) return { pass: v, fresh: false };
+  } catch (e) { /* まだ無い */ }
+  /* 合言葉は起動のいちばん初めに要るので、置き場所もここで作る */
+  try { fs.mkdirSync(DATA, { recursive: true }); }
+  catch (e) {
+    console.error("data フォルダを作れませんでした:", e.message);
+    process.exit(1);
+  }
+  const pass = makePass();
+  /* 中身は本人だけが読めるようにする（Windows では効かないので、
+     フォルダごと人目に付かない場所に置いてください） */
+  fs.writeFileSync(KEYFILE, pass + "\n", { encoding: "utf8", mode: 0o600 });
+  return { pass: pass, fresh: true };
+}
+
+const AUTH = loadPass();
+
+/* 長さの違いや前半一致から絞り込まれないよう、
+   一定時間で比べる（ハッシュにしてから突き合わせる） */
+const digest = (s) => crypto.createHash("sha256").update(String(s), "utf8").digest();
+const PASS_HASH = digest(AUTH.pass);
+
+function passOK(given) {
+  if (!given) return false;
+  return crypto.timingSafeEqual(digest(given), PASS_HASH);
+}
+
+/* 総当たりを鈍らせる。合言葉は 31^12 通りあるので、
+   1秒に1回まで落とせば現実的な時間では当たらない */
+const misses = new Map();
+
+function tooManyMisses(ip) {
+  const m = misses.get(ip);
+  if (!m) return false;
+  if (Date.now() - m.at > 60 * 1000) { misses.delete(ip); return false; }
+  return m.n >= 10;
+}
+
+function noteMiss(ip) {
+  const m = misses.get(ip);
+  if (m && Date.now() - m.at <= 60 * 1000) { m.n += 1; m.at = Date.now(); }
+  else misses.set(ip, { n: 1, at: Date.now() });
+}
+
+/* ── 受ける相手を絞る ──────────────────────
+   1. 同じ建物の中（私設アドレス）からだけ受ける。
+   2. Host が知らない名前なら断る。
+      これを見ないと、職員が外の悪意あるサイトを開いたときに、
+      そのサイトの名前をこのサーバーの住所に差し替えられて
+      「同じサイト」扱いで中身を読み出されてしまう（DNS リバインディング）。 */
+
+const OPEN = process.env.SOUTEI_OPEN === "1";   /* 特殊な網でどうしても必要なとき */
+
+function isPrivateAddr(ip) {
+  if (!ip) return false;
+  const v = ip.replace(/^::ffff:/, "");
+  if (v === "::1" || v === "127.0.0.1") return true;
+  if (/^127\./.test(v)) return true;
+  if (/^10\./.test(v)) return true;
+  if (/^192\.168\./.test(v)) return true;
+  if (/^169\.254\./.test(v)) return true;
+  if (/^172\.(1[6-9]|2\d|3[01])\./.test(v)) return true;
+  if (/^f[cd]/i.test(v)) return true;           /* IPv6 の私設 */
+  if (/^fe80:/i.test(v)) return true;           /* IPv6 のリンクローカル */
+  return false;
+}
+
+function ownNames() {
+  const out = new Set(["localhost", "127.0.0.1", "[::1]", "::1"]);
+  const ifs = os.networkInterfaces();
+  Object.keys(ifs).forEach((n) => {
+    (ifs[n] || []).forEach((a) => { if (a.address) out.add(a.address); });
+  });
+  (process.env.SOUTEI_HOSTS || "").split(",").forEach((h) => {
+    const t = h.trim();
+    if (t) out.add(t);
+  });
+  return out;
+}
+
+const OWN = ownNames();
+
+function hostOK(req) {
+  const raw = req.headers.host || "";
+  if (!raw) return false;
+  /* 末尾の :ポート を落とす。[::1]:8080 の形もある */
+  const name = raw.replace(/:\d+$/, "").replace(/^\[|\]$/g, "");
+  return OWN.has(name) || OWN.has("[" + name + "]");
+}
+
 /* ── HTTP ─────────────────────────────────── */
 
 function sendJSON(res, code, body) {
@@ -121,11 +229,41 @@ const server = http.createServer(async (req, res) => {
   catch (e) { res.writeHead(400); res.end("bad request"); return; }
 
   const route = url.pathname;
+  const ip = req.socket.remoteAddress || "";
 
-  /* 送迎表が生きているかの確認 */
-  if (route === "/api/ping") {
-    sendJSON(res, 200, { ok: true, name: "soutei", time: new Date().toISOString() });
+  /* 建物の外からは受けない */
+  if (!OPEN && !isPrivateAddr(ip)) {
+    res.writeHead(403, { "content-type": "text/plain; charset=utf-8" });
+    res.end("この送迎表は事業所の中からだけ使えます。");
     return;
+  }
+
+  /* 知らない名前で呼ばれたら断る（DNS リバインディング除け） */
+  if (!hostOK(req)) {
+    res.writeHead(403, { "content-type": "text/plain; charset=utf-8" });
+    res.end("この住所では使えません。起動時に出たアドレスで開いてください。");
+    return;
+  }
+
+  /* 送迎表が生きているかの確認。合言葉はまだ要らない
+     （つながっているかを先に知らせて、そのうえで合言葉を尋ねる） */
+  if (route === "/api/ping") {
+    sendJSON(res, 200, { ok: true, name: "soutei", auth: true, time: new Date().toISOString() });
+    return;
+  }
+
+  /* ここから先は合言葉が要る */
+  if (route.startsWith("/api/")) {
+    if (tooManyMisses(ip)) {
+      sendJSON(res, 429, { ok: false, error: "合言葉の間違いが続いています。1分ほど待ってからお試しください。" });
+      return;
+    }
+    if (!passOK(req.headers["x-soutei-key"])) {
+      noteMiss(ip);
+      sendJSON(res, 401, { ok: false, error: "合言葉が要ります" });
+      return;
+    }
+    misses.delete(ip);
   }
 
   /* 保存されているものの一覧と、それぞれの版番号 */
@@ -229,6 +367,17 @@ server.listen(PORT, "0.0.0.0", () => {
   console.log("");
   console.log(" データの置き場所      : " + DATA);
   console.log(" 保存済みの日          : " + (list.days.length ? list.days.length + " 日ぶん" : "まだありません"));
+  console.log("");
+  console.log("-------------------------------------------");
+  console.log(" 合言葉 : " + AUTH.pass);
+  console.log("-------------------------------------------");
+  if (AUTH.fresh) {
+    console.log(" 初めての起動なので、合言葉を新しく作りました。");
+  }
+  console.log(" 送迎表を開くと一度だけ聞かれます。端末ごとに1回入れれば、");
+  console.log(" 次からは聞かれません。");
+  console.log(" 控え : " + KEYFILE);
+  console.log(" ※ この合言葉を知らない人は、名簿を見ることも書き換えることもできません。");
   console.log("");
   console.log(" 終わるときは、この画面で Ctrl + C を押してください。");
   console.log(" この画面を閉じるとサーバーも止まります。");

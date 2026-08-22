@@ -5585,7 +5585,7 @@
   <details class="fold" id="fold-legend">
     <summary><span class="fd-title">この画面の使い方</span><span class="fd-note">記号の意味と操作のまとめ</span>
       <!-- 古い控えを開いていないか、ここで見分けられるようにしておく -->
-      <span class="fd-ver">版 2026-08-20n</span></summary>
+      <span class="fd-ver">版 2026-08-20p</span></summary>
     <div class="fold-body">
   <div class="legend">
     <span class="item"><span class="swatch s-wc" data-icon="wc"></span>車椅子（リフト・スロープ使用）</span>
@@ -9055,8 +9055,15 @@
      Excel は目印が無いと日本語を Shift_JIS だと思い込む */
   const BOM = "\uFEFF";
 
+  /* Excel は = + - @ で始まる桝を「数式」と見なして実行してしまう。
+     氏名や連絡メモにそういう字が入っていると、開いただけで動く。
+     頭に ' を足しておくと「これは文字」の指図になり、画面には出ない。
+     取り込むときは csvNorm が外すので、往復しても増えない */
+  const FORMULA_HEAD = /^[=+\-@\t\r]/;
+
   const csvCell = (v) => {
-    const t = String(v == null ? "" : v);
+    let t = String(v == null ? "" : v);
+    if (FORMULA_HEAD.test(t)) t = "'" + t;
     return /[",\r\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t;
   };
 
@@ -9092,7 +9099,13 @@
      介護ソフトから出した CSV は、見出しにも中身にも半角カナ・全角数字・
      全角空白が混ざる。NFKC でそろえると、そのぶんがまとめて片づく。
      （ﾔﾏﾀﾞ→ヤマダ、要介護２→要介護2、山田　太郎→山田 太郎） */
-  const csvNorm = (v) => String(v == null ? "" : v).normalize("NFKC").trim();
+  /* 書き出しで数式よけに付けた ' を外す。往復しても増えないようにするため。
+     外すのは ' のすぐ後ろが = + - @ のときだけなので、
+     ふつうの「'」で始まる文字はそのまま残る */
+  const csvNorm = (v) => String(v == null ? "" : v)
+    .normalize("NFKC")
+    .replace(/^'(?=[=+\-@])/, "")
+    .trim();
 
   /* 並び順は五十音で取るので、ふりがなはひらがなにそろえる */
   const kanaToHira = (s) =>
@@ -13039,9 +13052,66 @@
     let pushTimer = null;
     let busy = false;
     let lastError = "";
+    let watching = false;     /* 定期の見張りを仕掛けたか */
 
     const api = (p) => new URL(p, location.href).toString();
     const isDay = (k) => k.indexOf("day.") === 0;
+
+    /* 合言葉。サーバーの黒い画面に出ているものを、端末ごとに1度だけ入れる。
+       この端末の中だけに置き、サーバーへは送らない（同期の対象から外してある） */
+    let pass = STORE.getJSON("__key") || "";
+    let asking = false;
+
+    /* 合言葉を添えて呼ぶ。ここを通さない呼び出しは作らない */
+    function call(p, opt) {
+      const o = Object.assign({ cache: "no-store" }, opt || {});
+      o.headers = Object.assign({}, o.headers, pass ? { "x-soutei-key": pass } : {});
+      return fetch(api(p), o);
+    }
+
+    /* 合言葉を尋ねる。間違いは何度でもやり直せる */
+    function askPass(again) {
+      if (asking) return;
+      asking = true;
+      let box = null;
+      openUserDialog({
+        title: "合言葉を入れてください",
+        lead: again
+          ? "合言葉が違うようです。サーバーの画面に出ているものを、もう一度お確かめください。"
+          : "この端末では初めてなので、1度だけ必要です。次からは聞かれません。",
+        ok: "つなぐ",
+        cancel: "手元だけで使う",
+        build(body) {
+          box = formRow(body, "合言葉", Object.assign(document.createElement("input"),
+            { type: "text", placeholder: "ABCD-2345-EFGH", autocapitalize: "characters", spellcheck: false }),
+            "送迎表サーバーを動かしている PC の黒い画面に出ています。大文字小文字はそのままお願いします。");
+          box.dataset.focus = "1";
+          body.append(el("p", "uf-help",
+            "入れないままでも送迎表は使えます。そのときは、この端末の中にだけ保存されます。"));
+        },
+        submit() {
+          const v = box.value.trim();
+          if (!v) { notify("合言葉を入れてください。", "warn"); box.focus(); return; }
+          pass = v;
+          STORE.setQuiet("__key", v);
+          closeUserDialog();
+          asking = false;
+          start(true);
+        }
+      });
+      /* 「手元だけで使う」を押したときは、この起動では もう尋ねない */
+      const cancel = document.getElementById("mu-cancel");
+      const off = () => { asking = false; cancel.removeEventListener("click", off); };
+      cancel.addEventListener("click", off);
+    }
+
+    /* 合言葉が合わなくなったら、つなぐのをやめて聞き直す */
+    function lostAuth(again) {
+      live = false;
+      SYNC_LIVE = false;
+      status("手元に保存しています（合言葉が要ります）", true);
+      askPass(again);
+    }
     const saveRevs = () => STORE.setQuiet("__revs", revs);
     const saveDirty = () => STORE.setQuiet("__dirty", [...dirty]);
 
@@ -13134,7 +13204,8 @@
     }
 
     async function pull() {
-      const res = await fetch(api("api/index"), { cache: "no-store" });
+      const res = await call("api/index");
+      if (res.status === 401 || res.status === 429) throw authError(res.status);
       if (!res.ok) throw new Error("index " + res.status);
       const body = await res.json();
       STORE.mergeDays(body.days);
@@ -13143,7 +13214,8 @@
       for (const key of keys) {
         if (revs[key] === body.docs[key]) continue;      /* 変わっていない */
         if (dirty.has(key)) continue;                     /* こちらの送信待ちが先 */
-        const one = await fetch(api("api/doc?key=" + encodeURIComponent(key)), { cache: "no-store" });
+        const one = await call("api/doc?key=" + encodeURIComponent(key));
+        if (one.status === 401 || one.status === 429) throw authError(one.status);
         if (!one.ok) continue;
         const doc = await one.json();
 
@@ -13164,11 +13236,12 @@
     async function pushOne(key) {
       const data = STORE.getJSON(key);
       if (data === null) { dirty.delete(key); saveDirty(); return; }
-      const res = await fetch(api("api/doc?key=" + encodeURIComponent(key)), {
+      const res = await call("api/doc?key=" + encodeURIComponent(key), {
         method: "PUT",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ baseRev: revs[key] || 0, data })
       });
+      if (res.status === 401 || res.status === 429) throw authError(res.status);
 
       if (res.status === 409) {
         /* 他の端末が先に直していた。黙って上書きも、黙って取り下げもしない */
@@ -13204,6 +13277,13 @@
       saveDirty();
     }
 
+    /* 合言葉が要る・弾かれたことを、ほかの不通と区別して運ぶ */
+    function authError(code) {
+      const e = new Error("auth " + code);
+      e.auth = code;
+      return e;
+    }
+
     async function cycle() {
       if (busy || !live) return;
       busy = true;
@@ -13212,6 +13292,7 @@
         await pull();
         lastError = "";
       } catch (e) {
+        if (e && e.auth) { busy = false; lostAuth(e.auth === 401); return; }
         lastError = "つながりません（手元に保存しています）";
       } finally {
         busy = false;
@@ -13230,16 +13311,19 @@
     }
 
     /* サーバーがいるか確かめる。ファイルを直接開いた場合はここで終わり */
-    async function start() {
-      if (tried) return;
+    async function start(again) {
+      if (tried && !again) return;
       tried = true;
       if (location.protocol !== "http:" && location.protocol !== "https:") return;
       try {
-        const res = await fetch(api("api/ping"), { cache: "no-store" });
+        const res = await call("api/ping");
         if (!res.ok) return;
         const body = await res.json();
         if (!body || body.name !== "soutei") return;
       } catch (e) { return; }
+
+      /* サーバーはいる。合言葉をまだ持っていなければ、ここで尋ねる */
+      if (!pass) { lostAuth(false); return; }
 
       live = true;
       SYNC_LIVE = true;
@@ -13248,7 +13332,10 @@
       /* まずサーバーの内容を取り込んで版番号を揃える。
          送信待ち（圏外で書いたぶん）は pull が飛ばすので消えない */
       try { await pull(); lastError = ""; }
-      catch (e) { lastError = "つながりません（手元に保存しています）"; }
+      catch (e) {
+        if (e && e.auth) { lostAuth(e.auth === 401); return; }
+        lastError = "つながりません（手元に保存しています）";
+      }
 
       /* サーバーにまだ無いものは、こちらから送る（初回の持ち込み） */
       const mine = SYNCED.concat(STORE.days().map((d) => "day." + d));
@@ -13258,8 +13345,12 @@
       STORE.onWrite = touch;
       showState();
       await cycle();
-      setInterval(cycle, POLL_MS);
-      window.addEventListener("online", cycle);
+      /* 合言葉を入れ直して来ることがあるので、見張りは1度しか仕掛けない */
+      if (!watching) {
+        watching = true;
+        setInterval(cycle, POLL_MS);
+        window.addEventListener("online", cycle);
+      }
     }
 
     return { start, get live() { return live; } };
