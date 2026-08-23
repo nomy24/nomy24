@@ -26,8 +26,13 @@ sagamihara-minami/    南区インフォ
   scripts/            新着情報を取り込むスクリプト
   data/news.json      取り込んだお知らせ（自動更新）
 staff-todo/           職員Todo
+  firestore.rules     Firestore の権限設定（コンソールに貼るか firebase deploy で反映）
+drill/                実装力カルテ（staff-todo を教材にした自習用。アプリではない）
 .github/workflows/    自動実行の設定（リポジトリ全体で共有）
 ```
+
+`drill/` は入口ページのアプリ一覧には載せていません。自習用なので、
+`https://nomy24.github.io/nomy24/drill/` を直接開いて使います。
 
 ## 自動更新
 
