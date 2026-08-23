@@ -175,26 +175,19 @@ function syncMeFromAuth() {
 function groupById(id) { return state.groups.find((g) => g.id === id) || null; }
 
 // ---------------- 職員削除の権限（共有モードのみ） ----------------
-// ログイン用メールアドレスが紐付いている職員は、本人か管理者しか削除できない
+// ログイン用メールアドレスが紐付いている職員は、本人しか削除できない
 // （なりすまし等で他人のアカウントを勝手に消せてしまわないようにするため）。
 // 未リンクの職員（お試し登録段階）は今まで通り誰でも削除できる。
-function hasAnyAdmin() {
-  return state.staff.some((s) => s.isAdmin);
-}
+//
+// これは firestore.rules の delete 条件とそろえてある。以前はここだけ
+// 「管理者なら他人も消せる」と判定していたが、ルール側は本人のみを許すため、
+// 管理者には押せる削除ボタンが出るのに必ず失敗する、という状態になっていた。
+// 退職者の削除は Firebase コンソールから行う。
 function canDeleteStaff(target) {
   if (!firebaseConfigured) return true;
   if (!target?.email) return true;
   const me = meStaff();
-  return !!me && (me.id === target.id || !!me.isAdmin);
-}
-// 管理者チェックボックスを操作してよいか。既に管理者ならOK。
-// まだ誰も管理者になっていない場合は、初回セットアップとして自分自身にだけ付けられる。
-function canManageAdminFlag(target) {
-  if (!firebaseConfigured || !target) return false;
-  const me = meStaff();
-  if (!me) return false;
-  if (me.isAdmin) return true;
-  return !hasAnyAdmin() && target.id === me.id;
+  return !!me && me.id === target.id;
 }
 
 // ---------------- トースト ----------------
@@ -1698,8 +1691,11 @@ document.getElementById("addStaffBtn").addEventListener("click", () => openStaff
 function openStaffSheet(existing) {
   const color = existing?.color || AVATAR_COLORS[state.staff.length % AVATAR_COLORS.length];
   const groupId = existing?.groupId || "";
-  const showAdminField = existing && canManageAdminFlag(existing);
   const deletable = !existing || canDeleteStaff(existing);
+  // ログイン用メールが紐付いたあとは、その職員のメールは変更できない
+  // （他人の doc のメールを書き換えてなりすます経路を塞ぐため、firestore.rules
+  //   の update 条件でも拒否される）。入れ替えが必要なら Firebase コンソールから。
+  const emailLocked = firebaseConfigured && !!existing?.email;
   const html = `
     <div class="field">
       <label for="s-name">名前</label>
@@ -1708,8 +1704,10 @@ function openStaffSheet(existing) {
     ${firebaseConfigured ? `
     <div class="field">
       <label for="s-email">ログイン用メールアドレス（任意）</label>
-      <input id="s-email" name="email" type="email" maxlength="100" value="${escapeHtml(existing?.email || "")}" placeholder="例：asuka_yamada@example.com">
-      <p class="field__hint">Firebaseで発行したこの職員のログイン用アカウントと同じメールアドレスを入力すると、その職員がログインしたときに自動的に「あなた」として認識されます。</p>
+      <input id="s-email" name="email" type="email" maxlength="100" value="${escapeHtml(existing?.email || "")}" placeholder="例：asuka_yamada@example.com" ${emailLocked ? "readonly" : ""}>
+      <p class="field__hint">${emailLocked
+        ? "この職員はすでにログイン用アカウントと紐付いているため、メールアドレスは変更できません。変更が必要なときは Firebase コンソールから行ってください。"
+        : "Firebaseで発行したこの職員のログイン用アカウントと同じメールアドレスを入力すると、その職員がログインしたときに自動的に「あなた」として認識されます。"}</p>
     </div>` : ""}
     <div class="field">
       <label>色</label>
@@ -1726,22 +1724,14 @@ function openStaffSheet(existing) {
         ${state.groups.map((g) => `<button type="button" class="pill-option ${g.id === groupId ? "is-active" : ""}" data-value="${g.id}">${escapeHtml(g.name)}</button>`).join("")}
       </div>
     </div>
-    ${showAdminField ? `
-    <div class="field">
-      <label class="row" style="padding:0;">
-        <span class="row__label">システム管理者にする</span>
-        <input type="checkbox" class="switch" name="isAdmin" ${existing?.isAdmin ? "checked" : ""}>
-      </label>
-      <p class="field__hint">システム管理者は、ログイン済みの職員を本人以外でも削除できます。</p>
-    </div>` : ""}
-    ${existing && existing.email && !deletable ? `<p class="note note--warn">この職員はログイン済みのため、本人かシステム管理者のみ削除できます。</p>` : ""}
+    ${existing && existing.email && !deletable ? `<p class="note note--warn">この職員はログイン済みのため、本人しか削除できません。退職などで消す必要があるときは Firebase コンソールから行ってください。</p>` : ""}
   `;
   openSheet(existing ? "職員を編集" : "職員を追加", html, {
     onSubmit: async (data) => {
       const payload = { name: data.name.trim(), color: data.color, groupId: data.groupId || null };
       if (!payload.name) return;
-      if (firebaseConfigured) payload.email = (data.email || "").trim().toLowerCase() || null;
-      if (showAdminField) payload.isAdmin = data.isAdmin === "on";
+      // 紐付け済みのメールは送らない（ルール側でも変更は拒否される）
+      if (firebaseConfigured && !emailLocked) payload.email = (data.email || "").trim().toLowerCase() || null;
       if (existing) await staffStore.update(existing.id, payload);
       else {
         const id = await staffStore.add({ ...payload, order: Date.now() });
