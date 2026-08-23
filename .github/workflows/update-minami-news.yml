@@ -8,8 +8,8 @@ on:
   push:
     branches: [main]
     paths:
-      - 'config/sources.json'
-      - 'scripts/**'
+      - 'sagamihara-minami/config/sources.json'
+      - 'sagamihara-minami/scripts/**'
       - '.github/workflows/update-minami-news.yml'
 
 permissions:
@@ -30,17 +30,17 @@ jobs:
           node-version: '20'
 
       - name: 相模原市の新着情報を取得する
-        run: node scripts/fetch-news.mjs
+        run: node sagamihara-minami/scripts/fetch-news.mjs
 
       - name: 変更があればコミットする
         run: |
-          if git diff --quiet -- sagamihara-minami/data/news.json config/sources.json; then
+          if git diff --quiet -- sagamihara-minami/data/news.json sagamihara-minami/config/sources.json; then
             echo "更新はありませんでした。"
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add sagamihara-minami/data/news.json config/sources.json
+          git add sagamihara-minami/data/news.json sagamihara-minami/config/sources.json
           count=$(node -e "console.log(require('./sagamihara-minami/data/news.json').counts.total)")
           git commit -m "chore: 南区の新着情報を更新（${count}件）"
           for attempt in 1 2 3 4; do

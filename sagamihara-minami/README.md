@@ -28,16 +28,16 @@ GitHub Pages を有効にすると、そのまま公開できます。
 
 ### 自動更新
 
-`.github/workflows/update-minami-news.yml` が定期的に `scripts/fetch-news.mjs` を実行し、
+`.github/workflows/update-minami-news.yml` が定期的に `sagamihara-minami/scripts/fetch-news.mjs` を実行し、
 `sagamihara-minami/data/news.json` に変更があるときだけコミットします。
 すぐに更新したいときは **Actions › Update Sagamihara Minami news › Run workflow** から手動で実行できます。
 
 ### 手動で実行する
 
 ```sh
-node scripts/fetch-news.mjs            # 取得して news.json を更新
-node scripts/fetch-news.mjs --dry-run  # 書き込まずに結果だけ確認
-node scripts/fetch-news.mjs --offline  # 通信せず既存データから作り直す
+node sagamihara-minami/scripts/fetch-news.mjs            # 取得して news.json を更新
+node sagamihara-minami/scripts/fetch-news.mjs --dry-run  # 書き込まずに結果だけ確認
+node sagamihara-minami/scripts/fetch-news.mjs --offline  # 通信せず既存データから作り直す
 ```
 
 Node.js 20 以上が必要です。外部パッケージは使っていません。
@@ -48,15 +48,15 @@ Node.js 20 以上が必要です。外部パッケージは使っていません
 （市の [RSS配信ページ](https://www.city.sagamihara.kanagawa.jp/about/rss.html) で案内されている唯一のフィードで、
 市全体の更新情報が約250件入っています）。
 
-1. `config/sources.json` の `feeds` を読みに行く
+1. `sagamihara-minami/config/sources.json` の `feeds` を読みに行く
 2. `feeds` が空、または全部失敗したら、市サイトを走査して RSS を自動的に探し、
-   見つかった URL を `config/sources.json` に書き戻す（次回からはそれを使う）
+   見つかった URL を `sagamihara-minami/config/sources.json` に書き戻す（次回からはそれを使う）
 3. RSS がまったく取れないときは、更新情報ページの HTML から「日付＋リンク」を拾う
 4. 前回の `news.json` と突き合わせ、初回に見つけた時刻（`firstSeenAt`）を保ったまま出力する
 
 このフィードは `description` が空で、判断材料がタイトルと URL しかありません。
 そのため記事の URL のパス（`/minamiku/`、`/kosodate/`、`/kurashi/1026529/bousai/` など）も
-地域・カテゴリの手がかりとして使っています（`config/sources.json` の `pathRules`）。
+地域・カテゴリの手がかりとして使っています（`sagamihara-minami/config/sources.json` の `pathRules`）。
 
 一時的にサイトへつながらなくても、既存のデータは消えません。
 すべて失敗した実行は、ファイルを書き換えずに終了コード 1 で終わります。
@@ -67,7 +67,7 @@ Node.js 20 以上が必要です。外部パッケージは使っていません
 そのため初期表示は「すべて」（市全体をふくむ）にしてあります。
 南区に直接関わるものだけを見たいときは「南区の話題」に切り替えてください。
 
-`config/sources.json` の `areas`（地名キーワード）と `pathRules.areas`（URLのパス）で判定します。
+`sagamihara-minami/config/sources.json` の `areas`（地名キーワード）と `pathRules.areas`（URLのパス）で判定します。
 
 - 南区の地名を含む、または URL が `/minamiku/` 以下 → `scope: "minami"`（「南区の話題」に出る）
 - どの区にも当てはまらない全市向けの記事 → `scope: "citywide"`（「すべて」に出る）
@@ -77,7 +77,7 @@ Node.js 20 以上が必要です。外部パッケージは使っていません
 
 実際の内訳（2026年8月時点）は、取得255件のうち 南区9件・全市229件・他区のみ17件（除外）でした。
 
-地名やカテゴリを増やしたいときは `config/sources.json` を編集してください。次回の実行から反映されます。
+地名やカテゴリを増やしたいときは `sagamihara-minami/config/sources.json` を編集してください。次回の実行から反映されます。
 
 ## 通知について
 
@@ -98,9 +98,9 @@ sagamihara-minami/
   sw.js                 オフライン表示とバックグラウンド確認
   manifest.webmanifest  ホーム画面に追加するための設定
   data/news.json        取得したお知らせ（自動更新）
-config/sources.json     取得元・地名・カテゴリの設定
-scripts/fetch-news.mjs  更新スクリプト
-scripts/lib/            XML・HTTP・分類の処理
+  config/sources.json   取得元・地名・カテゴリの設定
+  scripts/fetch-news.mjs  更新スクリプト
+  scripts/lib/          XML・HTTP・分類の処理
 ```
 
 ## 注意
