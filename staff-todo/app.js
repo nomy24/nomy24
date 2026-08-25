@@ -2158,7 +2158,14 @@ async function main() {
     updateMemoTabBadge();
   });
 
-  renderScreen(state.screen);
+  // URLの#以降で画面を指定できるようにする（例: .../staff-todo/#phoneMemo）。
+  // ログイン（あるいはお試しモードの合言葉）を通った後、main()が呼ばれた時点で反映される。
+  const linkedScreen = location.hash.slice(1);
+  if (["todo", "calendar", "routine", "photos", "phoneMemo", "settings"].includes(linkedScreen)) {
+    setScreen(linkedScreen);
+  } else {
+    renderScreen(state.screen);
+  }
 
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("sw.js").catch(() => {});
