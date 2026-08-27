@@ -9,8 +9,9 @@ GitHub Pages で公開していて、入口は <https://nomy24.github.io/nomy24/
 | --- | --- | --- |
 | [南区インフォ](sagamihara-minami/) | `sagamihara-minami/` | 相模原市の新着情報をまとめて読むアプリ。だれでも見られます |
 | [職員Todo](staff-todo/) | `staff-todo/` | Todo・カレンダー・定型タスク・資料・電話メモを職員で共有するアプリ。ログインが必要です |
+| [提供票チェック](teikyo/) | `teikyo/` | 提供票をスキャンして通所介護の利用日を読み取り、登録した曜日とのちがいを知らせるアプリ。端末の中だけで動きます |
 
-どちらもスマートフォン向けの PWA で、ホーム画面に追加するとアプリとして起動します。
+いずれもスマートフォン向けの PWA で、ホーム画面に追加するとアプリとして起動します。
 ビルドは不要で、HTML・CSS・JavaScript をそのまま置いています。
 使い方や設定は、それぞれのフォルダの README を見てください。
 
@@ -27,6 +28,9 @@ sagamihara-minami/    南区インフォ
   data/news.json      取り込んだお知らせ（自動更新）
 staff-todo/           職員Todo
   firestore.rules     Firestore の権限設定（コンソールに貼るか firebase deploy で反映）
+teikyo/               提供票チェック
+  scan.js             画像からマスを切り出してマークを読む
+  schedule.js         曜日パターンから利用日をつくり、読み取り結果と照らす
 drill/                実装力カルテ（staff-todo を教材にした自習用。アプリではない）
 .github/workflows/    自動実行の設定（リポジトリ全体で共有）
 ```

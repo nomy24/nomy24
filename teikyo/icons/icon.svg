@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="提供票チェック">
+  <defs>
+    <linearGradient id="kaki" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#d4763f"/>
+      <stop offset="1" stop-color="#b04e2a"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#kaki)"/>
+  <!-- 提供票の表。横罫が2本（予定・実績）、縦罫が日付の列。 -->
+  <rect x="96" y="120" width="320" height="216" rx="20" fill="#ffffff" fill-opacity="0.16" stroke="#ffffff" stroke-opacity="0.6" stroke-width="16"/>
+  <g stroke="#ffffff" stroke-opacity="0.6" stroke-width="12" stroke-linecap="round">
+    <path d="M96 192h320"/>
+    <path d="M96 264h320"/>
+    <path d="M168 192v144"/>
+    <path d="M240 192v144"/>
+    <path d="M312 192v144"/>
+  </g>
+  <!-- 読み取れたマーク -->
+  <g fill="#ffffff">
+    <circle cx="204" cy="228" r="19"/>
+    <circle cx="276" cy="300" r="19"/>
+  </g>
+  <!-- ずれの合図 -->
+  <circle cx="356" cy="356" r="88" fill="#fdf3e7"/>
+  <g fill="#b0392a">
+    <rect x="342" y="300" width="28" height="76" rx="14"/>
+    <circle cx="356" cy="400" r="17"/>
+  </g>
+</svg>

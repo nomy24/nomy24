@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>提供票チェック｜利用日とマークのつき合わせ</title>
+<meta name="description" content="提供票をスキャンして通所介護の利用日を読み取り、登録した曜日（午前・午後）とちがうところを知らせるアプリ。">
+<meta name="theme-color" content="#faf5f0" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1b1512" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="提供票チェック">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<a class="skip-link" href="#main">本文へ移動</a>
+
+<header class="appbar">
+  <div class="appbar__inner">
+    <h1 class="appbar__name">提供票チェック</h1>
+    <button id="openSettings" class="iconbtn" type="button" aria-label="設定">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <circle cx="12" cy="12" r="3.2"/>
+        <path d="M12 3.5v2M12 18.5v2M20.5 12h-2M5.5 12h-2M18 6l-1.4 1.4M7.4 16.6 6 18M18 18l-1.4-1.4M7.4 7.4 6 6"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<main id="main" class="screens">
+
+  <!-- ============ 読み取り ============ -->
+  <section class="screen is-active" id="screen-read" aria-labelledby="readHeading">
+    <h2 class="visually-hidden" id="readHeading">提供票を読み取る</h2>
+
+    <ol class="steps" id="steps">
+      <li class="steps__item is-current" data-step="1"><span>1</span>準備</li>
+      <li class="steps__item" data-step="2"><span>2</span>枠合わせ</li>
+      <li class="steps__item" data-step="3"><span>3</span>確認</li>
+      <li class="steps__item" data-step="4"><span>4</span>結果</li>
+    </ol>
+
+    <!-- 手順1 準備 -->
+    <div class="step is-active" id="step-1">
+      <div class="card">
+        <label class="field">
+          <span class="field__label">利用者</span>
+          <select id="userSelect" class="input"></select>
+        </label>
+        <p class="field__note" id="patternSummary">利用者を登録すると、登録した曜日と照らし合わせます。</p>
+
+        <label class="field">
+          <span class="field__label">対象の月</span>
+          <input type="month" id="monthInput" class="input">
+        </label>
+      </div>
+
+      <div class="card">
+        <h3 class="card__title">提供票を取り込む</h3>
+        <p class="card__text">スキャンした画像（JPEG・PNG）か、その場で撮った写真を使います。画像はこの端末の中だけで処理し、どこにも送りません。</p>
+        <div class="buttons">
+          <button class="btn btn--primary" id="pickFileBtn" type="button">画像を選ぶ</button>
+          <button class="btn" id="takePhotoBtn" type="button">写真を撮る</button>
+        </div>
+        <input type="file" id="fileInput" accept="image/*" hidden>
+        <input type="file" id="cameraInput" accept="image/*" capture="environment" hidden>
+      </div>
+
+      <p class="hint">提供票そのものは保存しません。残るのは「何日にマークがあったか」だけです。</p>
+    </div>
+
+    <!-- 手順2 枠合わせ -->
+    <div class="step" id="step-2">
+      <p class="lead">表の四隅に印を合わせます。<strong>読みたい行だけ</strong>を囲んでください（通所介護の予定・実績の行）。左右は<strong>1日の左端</strong>と<strong>31日の右端</strong>です。</p>
+
+      <div class="stage" id="stage">
+        <canvas id="preview" class="stage__image"></canvas>
+        <canvas id="overlay" class="stage__overlay"></canvas>
+        <button class="handle" data-corner="0" type="button" aria-label="左上の角"></button>
+        <button class="handle" data-corner="1" type="button" aria-label="右上の角"></button>
+        <button class="handle" data-corner="2" type="button" aria-label="右下の角"></button>
+        <button class="handle" data-corner="3" type="button" aria-label="左下の角"></button>
+        <canvas id="loupe" class="loupe" width="120" height="120" hidden></canvas>
+      </div>
+
+      <div class="buttons buttons--wrap">
+        <button class="btn btn--small" id="rotateBtn" type="button">画像を回す</button>
+        <button class="btn btn--small" id="resetCornersBtn" type="button">枠を戻す</button>
+        <button class="btn btn--small" id="changeImageBtn" type="button">画像を選び直す</button>
+      </div>
+
+      <div class="card">
+        <label class="field">
+          <span class="field__label">日付の列</span>
+          <select id="columnMode" class="input">
+            <option value="31">31列（用紙どおり）</option>
+            <option value="month">その月の日数だけ</option>
+          </select>
+        </label>
+
+        <div class="field">
+          <span class="field__label">囲んだ行（上から順に）</span>
+          <div id="rowConfig" class="rows"></div>
+          <div class="buttons buttons--wrap">
+            <button class="btn btn--small" id="addRowBtn" type="button">行を足す</button>
+            <button class="btn btn--small" id="removeRowBtn" type="button">行を減らす</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="buttons">
+        <button class="btn btn--primary" id="readBtn" type="button">読み取る</button>
+        <button class="btn btn--quiet" data-goto-step="1" type="button">戻る</button>
+      </div>
+    </div>
+
+    <!-- 手順3 確認 -->
+    <div class="step" id="step-3">
+      <p class="lead">読み取った結果です。ちがうところは<strong>マスを押すと直せます</strong>。点線は「どちらとも言いにくい」ところです。</p>
+
+      <div class="card card--tight">
+        <label class="field field--inline">
+          <span class="field__label">感度</span>
+          <input type="range" id="sensitivity" class="range" min="0.6" max="1.6" step="0.05" value="1">
+        </label>
+        <p class="field__note">うすいマークが拾えないときは右へ、汚れまで拾うときは左へ動かします。</p>
+      </div>
+
+      <div class="review" id="reviewGrid"></div>
+
+      <div class="buttons">
+        <button class="btn btn--primary" id="compareBtn" type="button">利用日と照らす</button>
+        <button class="btn btn--quiet" data-goto-step="2" type="button">枠合わせに戻る</button>
+      </div>
+    </div>
+
+    <!-- 手順4 結果 -->
+    <div class="step" id="step-4">
+      <div id="resultSummary"></div>
+      <div id="alertList"></div>
+      <div class="buttons">
+        <button class="btn btn--primary" id="saveResultBtn" type="button">結果を保存する</button>
+        <button class="btn btn--quiet" id="restartBtn" type="button">はじめから</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 利用者 ============ -->
+  <section class="screen" id="screen-users" aria-labelledby="usersHeading">
+    <div class="screen__head">
+      <h2 class="screen__title" id="usersHeading">利用者</h2>
+      <button class="btn btn--small btn--primary" id="addUserBtn" type="button">追加</button>
+    </div>
+    <p class="lead">通所の曜日を、午前・午後まで登録します。ここに登録した内容が「正しいはずの利用日」になります。</p>
+    <div id="userList" class="list"></div>
+  </section>
+
+  <!-- ============ 履歴 ============ -->
+  <section class="screen" id="screen-history" aria-labelledby="historyHeading">
+    <div class="screen__head">
+      <h2 class="screen__title" id="historyHeading">履歴</h2>
+    </div>
+    <p class="lead">読み取った結果は、利用者と月ごとに1件だけ残ります。読み直すと上書きされます。</p>
+    <div id="historyList" class="list"></div>
+  </section>
+
+</main>
+
+<nav class="tabbar" aria-label="画面の切り替え">
+  <button class="tab is-active" type="button" data-screen="read" aria-current="page">
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <rect x="3.5" y="5" width="17" height="14" rx="2.4"/><path d="M3.5 10h17M9 10v9M15 10v9"/>
+    </svg>
+    読み取り
+  </button>
+  <button class="tab" type="button" data-screen="users">
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <circle cx="12" cy="8.5" r="3.6"/><path d="M4.8 19.5a7.2 7.2 0 0 1 14.4 0"/>
+    </svg>
+    利用者
+  </button>
+  <button class="tab" type="button" data-screen="history">
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <circle cx="12" cy="12" r="8"/><path d="M12 7.5V12l3 2"/>
+    </svg>
+    履歴
+  </button>
+</nav>
+
+<!-- 利用者の編集 -->
+<dialog class="sheet" id="userEditor" aria-labelledby="userEditorTitle">
+  <form method="dialog" class="sheet__inner" id="userForm">
+    <div class="sheet__head">
+      <h2 class="sheet__title" id="userEditorTitle">利用者の登録</h2>
+      <button class="iconbtn" type="button" id="closeUserEditor" aria-label="閉じる">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m6 6 12 12M18 6 6 18"/></svg>
+      </button>
+    </div>
+
+    <label class="field">
+      <span class="field__label">名前</span>
+      <input type="text" id="userName" class="input" required maxlength="40" autocomplete="off">
+    </label>
+    <label class="field">
+      <span class="field__label">メモ（事業所・担当ケアマネなど）</span>
+      <input type="text" id="userNote" class="input" maxlength="60" autocomplete="off">
+    </label>
+
+    <div class="field">
+      <span class="field__label">通所の曜日</span>
+      <div class="week" id="weekEditor"></div>
+    </div>
+
+    <div class="sheet__actions">
+      <button class="btn btn--primary" type="submit">保存する</button>
+      <button class="btn btn--danger btn--quiet" type="button" id="deleteUserBtn">削除する</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- 履歴の中身 -->
+<dialog class="sheet" id="historyDetail" aria-labelledby="historyDetailTitle">
+  <div class="sheet__inner">
+    <div class="sheet__head">
+      <h2 class="sheet__title" id="historyDetailTitle">読み取りの結果</h2>
+      <button class="iconbtn" type="button" id="closeHistoryDetail" aria-label="閉じる">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m6 6 12 12M18 6 6 18"/></svg>
+      </button>
+    </div>
+    <div id="historyDetailBody"></div>
+    <div class="sheet__actions">
+      <button class="btn btn--danger btn--quiet" type="button" id="deleteHistoryBtn">この結果を消す</button>
+    </div>
+  </div>
+</dialog>
+
+<!-- 設定 -->
+<dialog class="sheet" id="settingsSheet" aria-labelledby="settingsTitle">
+  <div class="sheet__inner">
+    <div class="sheet__head">
+      <h2 class="sheet__title" id="settingsTitle">設定</h2>
+      <button class="iconbtn" type="button" id="closeSettings" aria-label="閉じる">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m6 6 12 12M18 6 6 18"/></svg>
+      </button>
+    </div>
+
+    <div class="card card--tight">
+      <h3 class="card__title">このアプリについて</h3>
+      <p class="card__text">提供票をスキャンして、通所介護のマークがある日を読み取ります。登録した曜日（午前・午後）とちがう日、登録した日なのにマークがない日を知らせます。</p>
+      <p class="card__text">読み取りは目安です。最後は必ず提供票そのものでご確認ください。</p>
+    </div>
+
+    <div class="card card--tight">
+      <h3 class="card__title">データ</h3>
+      <p class="card__text">利用者と履歴は、この端末の中だけに保存しています。ほかの端末とは共有されません。</p>
+      <button class="btn btn--danger btn--quiet" type="button" id="clearDataBtn">保存したデータを全部消す</button>
+    </div>
+  </div>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
