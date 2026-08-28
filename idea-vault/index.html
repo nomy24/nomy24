@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>アイデア貯蔵庫｜思いつきをためて、3案に育てる</title>
+<meta name="description" content="思いついたことを音声とキーボードでためて、たまったメモからアプリ案・デザイン案を3通り提案するアプリ。">
+<meta name="theme-color" content="#f7f5fb" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16131f" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="アイデア貯蔵庫">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<a class="skip-link" href="#main">本文へ移動</a>
+
+<header class="appbar">
+  <div class="appbar__inner">
+    <div class="appbar__title">
+      <span class="appbar__eyebrow">ひとりの発想を、形にするまで</span>
+      <h1 class="appbar__name">アイデア貯蔵庫</h1>
+    </div>
+    <p class="appbar__count"><span id="headerCount">0</span><span class="appbar__unit">件</span></p>
+  </div>
+</header>
+
+<main id="main" class="screens">
+
+  <!-- ============ ためる ============ -->
+  <section class="screen is-active" id="screen-add" aria-label="ためる">
+
+    <div class="compose">
+      <label class="compose__label" for="composeText">思いついたことを書く</label>
+      <textarea id="composeText" class="compose__text" rows="2" placeholder="例：会議のメモを音声でためて、あとで要点だけ抜き出したい" enterkeyhint="enter"></textarea>
+      <div class="compose__row">
+        <input id="composeTags" class="compose__tags" type="text" placeholder="タグ（スペース区切り・任意）" autocomplete="off" enterkeyhint="done">
+        <button id="composeAdd" class="btn btn--primary" type="button">ためる</button>
+      </div>
+      <p class="compose__hint" id="composeHint">Ctrl+Enter でも追加できます。マイクは右下のボタンから。タグは続けて使えるように残ります。</p>
+    </div>
+
+    <div class="listhead">
+      <div class="search">
+        <svg class="search__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.4-4.4"/></svg>
+        <input id="searchInput" class="search__input" type="search" placeholder="ためたものを探す" autocomplete="off" enterkeyhint="search">
+      </div>
+      <button id="selectToggle" class="btn btn--ghost btn--small" type="button" aria-pressed="false">選ぶ</button>
+    </div>
+
+    <div id="tagFilters" class="tagfilters" role="group" aria-label="タグでしぼりこむ"></div>
+
+    <p class="listmeta"><span id="ideaCount">0件</span><span id="filterNote" class="listmeta__note" hidden></span></p>
+
+    <ul id="ideaList" class="ideas"></ul>
+
+    <div id="ideaEmpty" class="empty">
+      <p class="empty__title">まだ何もありません</p>
+      <p class="empty__body">思いついた瞬間に、右下のマイクか上の入力欄からためてください。整える必要はありません。断片のままで十分です。</p>
+    </div>
+
+    <div class="screen__pad"></div>
+  </section>
+
+  <!-- ============ 3案をつくる ============ -->
+  <section class="screen" id="screen-plan" aria-label="3案をつくる">
+
+    <div class="panel">
+      <h2 class="panel__title">どれをもとに考える？</h2>
+      <div class="scope" role="group" aria-label="もとにするアイデア">
+        <button class="scope__btn is-on" type="button" data-scope="recent" aria-pressed="true">直近20件</button>
+        <button class="scope__btn" type="button" data-scope="all" aria-pressed="false">すべて</button>
+        <button class="scope__btn" type="button" data-scope="selected" aria-pressed="false">選んだもの<span id="scopeSelectedCount" class="scope__num">0</span></button>
+        <button class="scope__btn" type="button" data-scope="tag" aria-pressed="false">タグ</button>
+      </div>
+      <label class="field" id="planTagField" hidden>
+        <span class="field__label">タグを選ぶ</span>
+        <select id="planTagSelect" class="field__select"></select>
+      </label>
+
+      <label class="switch">
+        <input id="planHarsh" type="checkbox" checked>
+        <span class="switch__box" aria-hidden="true"></span>
+        <span class="switch__text"><b>容赦なしモード</b>欠点・撤退ライン・やめる理由まで書きます</span>
+      </label>
+
+      <button id="planGenerate" class="btn btn--primary btn--wide" type="button">3案をつくる</button>
+      <p id="planSourceNote" class="panel__note">対象 0件</p>
+    </div>
+
+    <div id="planLoading" class="loading" hidden><span class="loading__dot"></span><span class="loading__dot"></span><span class="loading__dot"></span><span class="loading__text">考えています</span></div>
+
+    <div id="planResults" class="plans"></div>
+
+    <div id="planEmpty" class="empty">
+      <p class="empty__title">まだ提案はありません</p>
+      <p class="empty__body">ためたメモから、方向性の違うアプリ案・デザイン案を3通り組み立てます。よいところだけでなく、弱点と「やめどき」も一緒に出します。</p>
+    </div>
+
+    <section id="planHistoryWrap" class="panel panel--muted" hidden>
+      <h2 class="panel__title">前につくった提案</h2>
+      <ul id="planHistory" class="history"></ul>
+    </section>
+
+    <div class="screen__pad"></div>
+  </section>
+
+  <!-- ============ 設定 ============ -->
+  <section class="screen" id="screen-settings" aria-label="設定">
+
+    <section class="panel">
+      <h2 class="panel__title">音声</h2>
+      <label class="switch">
+        <input id="setContinuous" type="checkbox" checked>
+        <span class="switch__box" aria-hidden="true"></span>
+        <span class="switch__text"><b>ひと区切りごとに保存</b>話して間をあけるたび、その場で1件ずつたまります</span>
+      </label>
+      <label class="switch">
+        <input id="setKeepMic" type="checkbox" checked>
+        <span class="switch__box" aria-hidden="true"></span>
+        <span class="switch__text"><b>止まっても聞き直す</b>端末が勝手に切っても、自動でマイクをつなぎ直します</span>
+      </label>
+      <label class="field">
+        <span class="field__label">認識する言語</span>
+        <select id="setLang" class="field__select">
+          <option value="ja-JP">日本語</option>
+          <option value="en-US">English</option>
+        </select>
+      </label>
+      <p class="panel__note" id="speechSupportNote"></p>
+    </section>
+
+    <section class="panel">
+      <h2 class="panel__title">提案のつくり方</h2>
+      <p class="panel__note">ふだんは端末の中だけで提案を組み立てます（通信なし・無料）。もっと踏み込んだ提案が欲しいときだけ、AIに考えさせることもできます。</p>
+      <label class="switch">
+        <input id="setAiEnabled" type="checkbox">
+        <span class="switch__box" aria-hidden="true"></span>
+        <span class="switch__text"><b>AIに考えさせる</b>Anthropic の API キーが必要です</span>
+      </label>
+      <div id="aiFields" hidden>
+        <label class="field">
+          <span class="field__label">API キー</span>
+          <input id="setAiKey" class="field__input" type="password" placeholder="sk-ant-..." autocomplete="off" spellcheck="false">
+        </label>
+        <label class="field">
+          <span class="field__label">モデル</span>
+          <select id="setAiModel" class="field__select">
+            <option value="claude-opus-5">Claude Opus 5（いちばん考える）</option>
+            <option value="claude-sonnet-5">Claude Sonnet 5（速い）</option>
+          </select>
+        </label>
+        <p class="warn">キーはこの端末の中だけに保存され、送り先は api.anthropic.com だけです。共用の端末では使わないでください。キーは使い終わったら消せます。</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2 class="panel__title">データ</h2>
+      <p class="panel__note" id="storageInfo">この端末の中だけに保存しています。</p>
+      <div class="btnrow">
+        <button id="exportJson" class="btn btn--ghost" type="button">書き出す（JSON）</button>
+        <button id="exportMd" class="btn btn--ghost" type="button">書き出す（テキスト）</button>
+      </div>
+      <div class="btnrow">
+        <button id="importBtn" class="btn btn--ghost" type="button">読み込む（JSON）</button>
+        <input id="importFile" type="file" accept="application/json,.json" hidden>
+      </div>
+      <button id="clearAll" class="btn btn--danger" type="button">すべて消す</button>
+    </section>
+
+    <p class="colophon">アイデア貯蔵庫 — 端末の中で完結するメモです。機種変更のときは書き出しておいてください。</p>
+    <div class="screen__pad"></div>
+  </section>
+
+</main>
+
+<!-- 音声のライブ表示 -->
+<div id="voicePanel" class="voice" hidden>
+  <div class="voice__bar">
+    <span class="voice__pulse" aria-hidden="true"></span>
+    <p class="voice__status" id="voiceStatus">聞いています</p>
+    <button id="voiceDone" class="voice__done" type="button">とめる</button>
+  </div>
+  <p class="voice__text" id="voiceInterim" aria-live="polite"></p>
+  <p class="voice__saved" id="voiceSaved" hidden></p>
+</div>
+
+<button id="micButton" class="mic" type="button" aria-pressed="false" aria-label="音声で追加する">
+  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+    <rect x="9" y="3" width="6" height="11" rx="3"/>
+    <path d="M5.5 11.5a6.5 6.5 0 0 0 13 0"/>
+    <path d="M12 18v3"/>
+  </svg>
+</button>
+
+<nav class="tabbar" aria-label="画面">
+  <button class="tab is-on" type="button" data-screen="add" aria-current="page">
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 6.5h14M5 12h14M5 17.5h9"/></svg>
+    <span>ためる</span>
+  </button>
+  <button class="tab" type="button" data-screen="plan">
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3a6 6 0 0 0-3.4 10.9c.5.4.8 1 .8 1.6v.5h5.2v-.5c0-.6.3-1.2.8-1.6A6 6 0 0 0 12 3Z"/><path d="M10 19h4"/></svg>
+    <span>3案</span>
+  </button>
+  <button class="tab" type="button" data-screen="settings">
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="3"/><path d="M12 3.5v2M12 18.5v2M20.5 12h-2M5.5 12h-2M18 6l-1.4 1.4M7.4 16.6 6 18M18 18l-1.4-1.4M7.4 7.4 6 6"/></svg>
+    <span>設定</span>
+  </button>
+</nav>
+
+<!-- 選択モードの操作バー -->
+<div id="selectBar" class="selectbar" hidden>
+  <p class="selectbar__count"><span id="selectCount">0</span>件を選択中</p>
+  <button id="selectPlan" class="btn btn--primary btn--small" type="button">これで3案</button>
+  <button id="selectDelete" class="btn btn--ghost btn--small" type="button">消す</button>
+  <button id="selectClear" class="btn btn--ghost btn--small" type="button">やめる</button>
+</div>
+
+<div id="toast" class="toast" role="status" hidden>
+  <span id="toastText" class="toast__text"></span>
+  <button id="toastAction" class="toast__action" type="button" hidden>元に戻す</button>
+</div>
+
+<dialog id="editDialog" class="dialog">
+  <form method="dialog" class="dialog__form">
+    <h2 class="dialog__title">書きなおす</h2>
+    <label class="field">
+      <span class="field__label">内容</span>
+      <textarea id="editText" class="field__textarea" rows="5"></textarea>
+    </label>
+    <label class="field">
+      <span class="field__label">タグ（スペース区切り）</span>
+      <input id="editTags" class="field__input" type="text" autocomplete="off">
+    </label>
+    <div class="dialog__actions">
+      <button class="btn btn--ghost" value="cancel" type="submit">やめる</button>
+      <button class="btn btn--primary" value="save" type="submit">保存</button>
+    </div>
+  </form>
+</dialog>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>

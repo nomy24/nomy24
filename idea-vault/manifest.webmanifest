@@ -1,0 +1,19 @@
+{
+  "name": "アイデア貯蔵庫｜思いつきをためて3案に育てる",
+  "short_name": "アイデア貯蔵庫",
+  "description": "声とキーボードで思いつきをためて、たまった内容からアプリ案・デザイン案を3通り提案するアプリ",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f7f5fb",
+  "theme_color": "#6d4ad0",
+  "lang": "ja",
+  "icons": [
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

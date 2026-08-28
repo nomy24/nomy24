@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" role="img" aria-label="アイデア貯蔵庫">
+  <rect x="3.8" y="3.8" width="184.4" height="184.4" rx="42.2" fill="#6d4ad0"/>
+  <circle cx="96" cy="84.5" r="40.3" fill="#f2c14e"/>
+  <rect x="78.5" y="119.4" width="35" height="9.4" rx="4" fill="#ffffff"/>
+  <rect x="75.8" y="131.5" width="40.3" height="20.2" rx="6.7" fill="#ffffff"/>
+  <g stroke="#f2c14e" stroke-width="9.4" stroke-linecap="round">
+    <path d="M96 30.7V14.6"/>
+    <path d="M59.4 45.1 48.4 33.4"/>
+    <path d="M132.6 45.1 143.6 33.4"/>
+  </g>
+</svg>
