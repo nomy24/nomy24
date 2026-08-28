@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-08-27T20:10:27.971Z",
+  "generatedAt": "2026-08-28T21:07:31.713Z",
   "source": "相模原市公式ホームページ",
   "sourceUrl": "https://www.city.sagamihara.kanagawa.jp",
   "counts": {
     "total": 400,
-    "minami": 22,
-    "citywide": 378,
-    "addedThisRun": 28
+    "minami": 23,
+    "citywide": 377,
+    "addedThisRun": 3
   },
   "categories": [
     {
@@ -55,6 +55,135 @@
     }
   ],
   "items": [
+    {
+      "id": "93cd4c028597",
+      "title": "相模原麻溝公園競技場等の指定管理者の募集について",
+      "url": "https://www.city.sagamihara.kanagawa.jp/shisei/1026766/seido/1026770/shiteikanri/1035526.html",
+      "summary": "",
+      "category": "shisei",
+      "categoryLabel": "市政・お知らせ",
+      "scope": "minami",
+      "areaHits": [
+        "麻溝",
+        "相模原麻溝公園"
+      ],
+      "important": false,
+      "source": "相模原市 更新情報",
+      "publishedAt": "2026-08-28T15:05:03.000Z",
+      "firstSeenAt": "2026-08-28T21:07:31.713Z"
+    },
+    {
+      "id": "0b2b1787942e",
+      "title": "令和8年（2026年）熊本地震に関する本市の対応等について",
+      "url": "https://www.city.sagamihara.kanagawa.jp/kurashi/1026529/bousai/1008665/1035936/index.html",
+      "summary": "",
+      "category": "bousai",
+      "categoryLabel": "防災・防犯",
+      "scope": "citywide",
+      "areaHits": [],
+      "important": false,
+      "source": "相模原市 更新情報",
+      "publishedAt": "2026-08-28T06:04:54.000Z",
+      "firstSeenAt": "2026-08-28T21:07:31.713Z"
+    },
+    {
+      "id": "2dcfec10bbd9",
+      "title": "令和8年熊本地震災害に対する見舞金について",
+      "url": "https://www.city.sagamihara.kanagawa.jp/kurashi/1026529/bousai/1008665/1035936/1036104.html",
+      "summary": "",
+      "category": "bousai",
+      "categoryLabel": "防災・防犯",
+      "scope": "citywide",
+      "areaHits": [],
+      "important": true,
+      "source": "相模原市 更新情報",
+      "publishedAt": "2026-08-28T06:04:25.000Z",
+      "firstSeenAt": "2026-08-28T21:07:31.713Z"
+    },
+    {
+      "id": "bac5f298cef6",
+      "title": "発表資料 令和8年8月分",
+      "url": "https://www.city.sagamihara.kanagawa.jp/shisei/1026875/koho/1026878/houdo/1035920.html",
+      "summary": "",
+      "category": "shisei",
+      "categoryLabel": "市政・お知らせ",
+      "scope": "citywide",
+      "areaHits": [],
+      "important": false,
+      "source": "相模原市 更新情報",
+      "publishedAt": "2026-08-28T05:00:01.000Z",
+      "firstSeenAt": "2026-08-04T04:16:43.500Z"
+    },
+    {
+      "id": "287fce27a7f5",
+      "title": "相模原市 健活！チャレンジ",
+      "url": "https://www.city.sagamihara.kanagawa.jp/kosodate/kenko/1026627/1014549/1016764.html",
+      "summary": "",
+      "category": "kosodate",
+      "categoryLabel": "子育て・教育",
+      "scope": "citywide",
+      "areaHits": [],
+      "important": false,
+      "source": "相模原市 更新情報",
+      "publishedAt": "2026-08-28T03:57:17.000Z",
+      "firstSeenAt": "2026-08-27T20:10:27.971Z"
+    },
+    {
+      "id": "c0fda6494f4e",
+      "title": "「共にささえあい 生きる社会」をめざして",
+      "url": "https://www.city.sagamihara.kanagawa.jp/kosodate/fukushi/1026641/1012901.html",
+      "summary": "",
+      "category": "kosodate",
+      "categoryLabel": "子育て・教育",
+      "scope": "citywide",
+      "areaHits": [],
+      "important": false,
+      "source": "相模原市 更新情報",
+      "publishedAt": "2026-08-28T02:39:57.000Z",
+      "firstSeenAt": "2026-08-16T22:21:03.195Z"
+    },
+    {
+      "id": "3b8e747cf22c",
+      "title": "社会的な課題をテーマとした講座「できることからはじめる終活入門」",
+      "url": "https://www.city.sagamihara.kanagawa.jp/kosodate/1026602/kyouiku/1026616/1031624/1036114.html",
+      "summary": "",
+      "category": "kosodate",
+      "categoryLabel": "子育て・教育",
+      "scope": "citywide",
+      "areaHits": [],
+      "important": false,
+      "source": "相模原市 更新情報",
+      "publishedAt": "2026-08-28T01:35:52.000Z",
+      "firstSeenAt": "2026-08-27T20:10:27.971Z"
+    },
+    {
+      "id": "6a297011525b",
+      "title": "新斎場の整備について",
+      "url": "https://www.city.sagamihara.kanagawa.jp/kurashi/1026489/1008624/1026524/1030388.html",
+      "summary": "",
+      "category": "kurashi",
+      "categoryLabel": "くらし・手続き",
+      "scope": "citywide",
+      "areaHits": [],
+      "important": false,
+      "source": "相模原市 更新情報",
+      "publishedAt": "2026-08-28T00:58:54.000Z",
+      "firstSeenAt": "2026-08-09T22:32:02.194Z"
+    },
+    {
+      "id": "5b3a82dfd34b",
+      "title": "市長の1日（令和8年7月1日～）",
+      "url": "https://www.city.sagamihara.kanagawa.jp/shisei/1026709/mayor/day/1022448.html",
+      "summary": "",
+      "category": "shisei",
+      "categoryLabel": "市政・お知らせ",
+      "scope": "citywide",
+      "areaHits": [],
+      "important": false,
+      "source": "相模原市 更新情報",
+      "publishedAt": "2026-08-27T23:03:33.000Z",
+      "firstSeenAt": "2026-08-04T04:16:43.500Z"
+    },
     {
       "id": "01e8bc0e920d",
       "title": "市民大学",
@@ -210,20 +339,6 @@
       "firstSeenAt": "2026-08-27T20:10:27.971Z"
     },
     {
-      "id": "3b8e747cf22c",
-      "title": "社会的な課題をテーマとした講座「できることからはじめる終活入門」",
-      "url": "https://www.city.sagamihara.kanagawa.jp/kosodate/1026602/kyouiku/1026616/1031624/1036114.html",
-      "summary": "",
-      "category": "kosodate",
-      "categoryLabel": "子育て・教育",
-      "scope": "citywide",
-      "areaHits": [],
-      "important": false,
-      "source": "相模原市 更新情報",
-      "publishedAt": "2026-08-27T15:05:03.000Z",
-      "firstSeenAt": "2026-08-27T20:10:27.971Z"
-    },
-    {
       "id": "4d14f88104c2",
       "title": "令和8年度 指導監査等実施計画・指導監査基準等",
       "url": "https://www.city.sagamihara.kanagawa.jp/shisei/1026896/shido_kansa/1026925/1025309.html",
@@ -264,20 +379,6 @@
       "source": "相模原市 更新情報",
       "publishedAt": "2026-08-27T15:05:03.000Z",
       "firstSeenAt": "2026-08-27T20:10:27.971Z"
-    },
-    {
-      "id": "6a297011525b",
-      "title": "新斎場の整備について",
-      "url": "https://www.city.sagamihara.kanagawa.jp/kurashi/1026489/1008624/1026524/1030388.html",
-      "summary": "",
-      "category": "kurashi",
-      "categoryLabel": "くらし・手続き",
-      "scope": "citywide",
-      "areaHits": [],
-      "important": false,
-      "source": "相模原市 更新情報",
-      "publishedAt": "2026-08-27T15:05:03.000Z",
-      "firstSeenAt": "2026-08-09T22:32:02.194Z"
     },
     {
       "id": "7c2eabb5238a",
@@ -582,34 +683,6 @@
       "firstSeenAt": "2026-08-04T04:16:43.500Z"
     },
     {
-      "id": "287fce27a7f5",
-      "title": "相模原市 健活！チャレンジ",
-      "url": "https://www.city.sagamihara.kanagawa.jp/kosodate/kenko/1026627/1014549/1016764.html",
-      "summary": "",
-      "category": "kosodate",
-      "categoryLabel": "子育て・教育",
-      "scope": "citywide",
-      "areaHits": [],
-      "important": false,
-      "source": "相模原市 更新情報",
-      "publishedAt": "2026-08-27T05:48:23.000Z",
-      "firstSeenAt": "2026-08-27T20:10:27.971Z"
-    },
-    {
-      "id": "bac5f298cef6",
-      "title": "発表資料 令和8年8月分",
-      "url": "https://www.city.sagamihara.kanagawa.jp/shisei/1026875/koho/1026878/houdo/1035920.html",
-      "summary": "",
-      "category": "shisei",
-      "categoryLabel": "市政・お知らせ",
-      "scope": "citywide",
-      "areaHits": [],
-      "important": false,
-      "source": "相模原市 更新情報",
-      "publishedAt": "2026-08-27T05:00:01.000Z",
-      "firstSeenAt": "2026-08-04T04:16:43.500Z"
-    },
-    {
       "id": "be2105a9879c",
       "title": "2026フォトシティさがみはら 受賞作",
       "url": "https://www.city.sagamihara.kanagawa.jp/kankou/bunka/1022291/photocity/1012454/1036093.html",
@@ -622,20 +695,6 @@
       "source": "相模原市 更新情報",
       "publishedAt": "2026-08-27T01:33:32.000Z",
       "firstSeenAt": "2026-08-25T22:27:51.283Z"
-    },
-    {
-      "id": "5b3a82dfd34b",
-      "title": "市長の1日（令和8年7月1日～）",
-      "url": "https://www.city.sagamihara.kanagawa.jp/shisei/1026709/mayor/day/1022448.html",
-      "summary": "",
-      "category": "shisei",
-      "categoryLabel": "市政・お知らせ",
-      "scope": "citywide",
-      "areaHits": [],
-      "important": false,
-      "source": "相模原市 更新情報",
-      "publishedAt": "2026-08-26T23:02:15.000Z",
-      "firstSeenAt": "2026-08-04T04:16:43.500Z"
     },
     {
       "id": "149a93e63af0",
@@ -4270,20 +4329,6 @@
       "firstSeenAt": "2026-08-04T04:16:43.500Z"
     },
     {
-      "id": "c0fda6494f4e",
-      "title": "「共にささえあい 生きる社会」をめざして",
-      "url": "https://www.city.sagamihara.kanagawa.jp/kosodate/fukushi/1026641/1012901.html",
-      "summary": "",
-      "category": "kosodate",
-      "categoryLabel": "子育て・教育",
-      "scope": "citywide",
-      "areaHits": [],
-      "important": false,
-      "source": "相模原市 更新情報",
-      "publishedAt": "2026-08-16T15:05:04.000Z",
-      "firstSeenAt": "2026-08-16T22:21:03.195Z"
-    },
-    {
       "id": "c2f86eccde40",
       "title": "次期相模原市総合計画（令和10年度～）",
       "url": "https://www.city.sagamihara.kanagawa.jp/shisei/1026766/seisaku/1035048.html",
@@ -5660,49 +5705,7 @@
       "source": "相模原市 更新情報",
       "publishedAt": "2026-08-07T04:09:33.000Z",
       "firstSeenAt": "2026-08-07T22:36:08.181Z"
-    },
-    {
-      "id": "840a872c2ad1",
-      "title": "相模原市デジタル募金箱（二次元コードによる寄附）",
-      "url": "https://www.city.sagamihara.kanagawa.jp/kosodate/fukushi/1033891/1033897/index.html",
-      "summary": "",
-      "category": "kosodate",
-      "categoryLabel": "子育て・教育",
-      "scope": "citywide",
-      "areaHits": [],
-      "important": false,
-      "source": "相模原市 更新情報",
-      "publishedAt": "2026-08-07T03:00:01.000Z",
-      "firstSeenAt": "2026-08-07T22:36:08.181Z"
-    },
-    {
-      "id": "aabf4be49d89",
-      "title": "相模原市の健康経営に向けた取組について～健康経営で築く 働き続けられる職場づくりを目指して～",
-      "url": "https://www.city.sagamihara.kanagawa.jp/shisei/1026766/seido/1026774/1035953.html",
-      "summary": "",
-      "category": "shisei",
-      "categoryLabel": "市政・お知らせ",
-      "scope": "citywide",
-      "areaHits": [],
-      "important": false,
-      "source": "相模原市 更新情報",
-      "publishedAt": "2026-08-07T00:55:31.000Z",
-      "firstSeenAt": "2026-08-07T01:30:06.605Z"
-    },
-    {
-      "id": "34f1aabb1915",
-      "title": "ホームタウンチーム・ホームタウンアスリート",
-      "url": "https://www.city.sagamihara.kanagawa.jp/kankou/sports/hometown/index.html",
-      "summary": "",
-      "category": "event",
-      "categoryLabel": "イベント",
-      "scope": "citywide",
-      "areaHits": [],
-      "important": false,
-      "source": "相模原市 更新情報",
-      "publishedAt": "2026-08-06T15:05:04.000Z",
-      "firstSeenAt": "2026-08-07T01:30:06.605Z"
     }
   ],
-  "revision": "bcfde32e5819"
+  "revision": "d93868abe09b"
 }
