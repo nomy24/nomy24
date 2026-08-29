@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-08-28T21:07:31.713Z",
+  "generatedAt": "2026-08-29T23:55:50.587Z",
   "source": "相模原市公式ホームページ",
   "sourceUrl": "https://www.city.sagamihara.kanagawa.jp",
   "counts": {
     "total": 400,
     "minami": 23,
     "citywide": 377,
-    "addedThisRun": 3
+    "addedThisRun": 2
   },
   "categories": [
     {
@@ -55,6 +55,34 @@
     }
   ],
   "items": [
+    {
+      "id": "3833d5cca5d6",
+      "title": "四ツ谷児童館",
+      "url": "https://www.city.sagamihara.kanagawa.jp/kurashi/shisetsu/child/jidou/1002898.html",
+      "summary": "",
+      "category": "kurashi",
+      "categoryLabel": "くらし・手続き",
+      "scope": "citywide",
+      "areaHits": [],
+      "important": false,
+      "source": "相模原市 更新情報",
+      "publishedAt": "2026-08-29T15:05:04.000Z",
+      "firstSeenAt": "2026-08-29T23:55:50.587Z"
+    },
+    {
+      "id": "88f04e01807c",
+      "title": "就職説明会等、イベント・セミナー",
+      "url": "https://www.city.sagamihara.kanagawa.jp/kosodate/1026602/kosodate/1026604/1019153/1024572.html",
+      "summary": "",
+      "category": "kosodate",
+      "categoryLabel": "子育て・教育",
+      "scope": "citywide",
+      "areaHits": [],
+      "important": false,
+      "source": "相模原市 更新情報",
+      "publishedAt": "2026-08-29T15:05:04.000Z",
+      "firstSeenAt": "2026-08-29T23:55:50.587Z"
+    },
     {
       "id": "93cd4c028597",
       "title": "相模原麻溝公園競技場等の指定管理者の募集について",
@@ -5677,35 +5705,7 @@
       "source": "相模原市 更新情報",
       "publishedAt": "2026-08-09T15:05:03.000Z",
       "firstSeenAt": "2026-08-04T04:16:43.500Z"
-    },
-    {
-      "id": "2298eb2714c8",
-      "title": "助成団体による文化財の支援情報",
-      "url": "https://www.city.sagamihara.kanagawa.jp/kankou/bunka/1022295/bunkazai/1035951.html",
-      "summary": "",
-      "category": "event",
-      "categoryLabel": "イベント",
-      "scope": "citywide",
-      "areaHits": [],
-      "important": false,
-      "source": "相模原市 更新情報",
-      "publishedAt": "2026-08-07T04:14:43.000Z",
-      "firstSeenAt": "2026-08-07T01:30:06.605Z"
-    },
-    {
-      "id": "4af63cdfc08d",
-      "title": "ワンストップ特例制度",
-      "url": "https://www.city.sagamihara.kanagawa.jp/shisei/1026803/kifu/1004003.html",
-      "summary": "",
-      "category": "shisei",
-      "categoryLabel": "市政・お知らせ",
-      "scope": "citywide",
-      "areaHits": [],
-      "important": false,
-      "source": "相模原市 更新情報",
-      "publishedAt": "2026-08-07T04:09:33.000Z",
-      "firstSeenAt": "2026-08-07T22:36:08.181Z"
     }
   ],
-  "revision": "d93868abe09b"
+  "revision": "e568622cb581"
 }
