@@ -470,7 +470,7 @@ document.getElementById("fab").addEventListener("click", () => {
 // Todo
 // ================================================================
 
-const TODO_FILTER_ORDER = ["open", "today", "mine", "all"];
+const TODO_FILTER_ORDER = ["open", "today", "mine", "done", "all"];
 let todoFilterAnimating = false;
 
 function switchTodoFilter(newFilter) {
@@ -536,6 +536,7 @@ function filteredTodos() {
   if (state.todoFilter === "open") list = list.filter((x) => !x.done);
   else if (state.todoFilter === "today") list = list.filter((x) => !x.done && x.dueDate && x.dueDate <= t);
   else if (state.todoFilter === "mine") list = state.meId ? list.filter((x) => todoAssigneeIds(x).includes(state.meId)) : [];
+  else if (state.todoFilter === "done") list = list.filter((x) => x.done);
   list.sort((a, b) => {
     if (!!a.done !== !!b.done) return a.done ? 1 : -1;
     const ad = a.dueDate || "9999-99-99", bd = b.dueDate || "9999-99-99";
@@ -571,7 +572,11 @@ function renderTodoList() {
     empty.textContent = "設定画面で「あなたの名前」を選ぶと、自分の担当タスクを表示できます。";
     return;
   }
-  empty.textContent = searching ? `「${state.todoSearch.trim()}」に一致するタスクが見つかりません。` : "Todoはまだありません。右下の＋から追加できます。";
+  empty.textContent = searching
+    ? `「${state.todoSearch.trim()}」に一致するタスクが見つかりません。`
+    : state.todoFilter === "done"
+      ? "完了済みのタスクはまだありません。"
+      : "Todoはまだありません。右下の＋から追加できます。";
   empty.hidden = list.length > 0;
 
   let lastGroup = null;
@@ -593,6 +598,7 @@ function renderTodoList() {
     if (t.dueDate) badges.push(`<span class="badge ${!t.done && t.dueDate < todayKey() ? "badge--danger" : t.dueDate === todayKey() ? "badge--warning" : ""}">${escapeHtml(dueLabel(t.dueDate))}</span>`);
     if (t.priority === "high") badges.push(`<span class="badge badge--danger">重要</span>`);
     assignees.forEach((a) => badges.push(`<span class="badge">${escapeHtml(a.name)}</span>`));
+    if (t.responder) badges.push(`<span class="badge">対応: ${escapeHtml(t.responder)}</span>`);
     parts.push(`
       <div class="card ${isMine ? "card--mine" : ""}" data-id="${t.id}"${mineStyle}>
         <button type="button" class="check ${t.done ? "is-done" : ""}" data-action="toggle" aria-label="完了にする">
@@ -657,6 +663,9 @@ function assigneeChipsHtml(selectedIds) {
 function openTodoSheet(existing) {
   const priority = existing?.priority || "normal";
   const selectedAssigneeIds = new Set(todoAssigneeIds(existing));
+  const currentResponderName = existing?.responder ?? "";
+  const extraResponderOption = currentResponderName && !state.staff.some((s) => s.name === currentResponderName)
+    ? `<option value="${escapeHtml(currentResponderName)}" selected>${escapeHtml(currentResponderName)}（一覧になし）</option>` : "";
   const html = `
     <div class="field">
       <label for="f-title">タイトル</label>
@@ -673,6 +682,14 @@ function openTodoSheet(existing) {
         ${state.groups.map((g) => `<button type="button" class="chip chip--group" data-group-id="${g.id}">${escapeHtml(g.name)}</button>`).join("")}
       </div>` : ""}
       <div class="chip-group" id="assigneeGroup">${assigneeChipsHtml([...selectedAssigneeIds])}</div>
+    </div>
+    <div class="field">
+      <label for="f-responder">対応者（任意）</label>
+      <select id="f-responder" name="responder">
+        <option value="">選択してください</option>
+        ${extraResponderOption}
+        ${state.staff.map((s) => `<option value="${escapeHtml(s.name)}" ${currentResponderName === s.name ? "selected" : ""}>${escapeHtml(s.name)}</option>`).join("")}
+      </select>
     </div>
     <div class="field">
       <label for="f-due">期限（任意）</label>
@@ -694,6 +711,7 @@ function openTodoSheet(existing) {
         memo: data.memo?.trim() || "",
         assigneeIds: [...selectedAssigneeIds],
         assigneeId: null,
+        responder: data.responder.trim(),
         dueDate: data.dueDate || null,
         priority: data.priority || "normal",
       };
