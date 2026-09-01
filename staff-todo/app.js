@@ -2092,7 +2092,10 @@ function newTagHtml(isNew) {
 // 「月初」「月末」の定型タスクに期間（開始日〜終了日）が設定されていて、
 // 今日がその範囲に入っていれば、対応するTodoを自動でひとつ用意する。
 // 同じ月に二重生成しないよう、定型タスクID×月をキーにしたマーカーをTodo側に持たせて判定する。
+// state.todosはFirestoreへの書き込みが反映されるまでの一瞬の間ずれることがあるため、
+// それだけでは間に合わず、書き込み前に確保する専用のSetでも二重生成を防ぐ。
 let syncingRoutineTodos = false;
+const claimedRoutinePeriods = new Set();
 function syncRoutineTodos() {
   if (syncingRoutineTodos) return;
   syncingRoutineTodos = true;
@@ -2106,8 +2109,10 @@ function syncRoutineTodos() {
       if (!task.periodStartDay || !task.periodEndDay) return;
       if (day < task.periodStartDay || day > task.periodEndDay) return;
       const periodKey = `${task.id}__${monthKey}`;
+      if (claimedRoutinePeriods.has(periodKey)) return;
       const already = state.todos.some((t) => t.sourceRoutinePeriodKey === periodKey);
-      if (already) return;
+      if (already) { claimedRoutinePeriods.add(periodKey); return; }
+      claimedRoutinePeriods.add(periodKey);
       const dueDay = Math.min(task.periodEndDay, daysInThisMonth);
       todoStore.add({
         title: task.title,
