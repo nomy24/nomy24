@@ -56,6 +56,7 @@ service cloud.firestore {
     match /groups/{id}       { allow read, write: if signedIn(); }
     match /photos/{id}       { allow read, write: if signedIn(); }
     match /phoneMemos/{id}   { allow read, write: if signedIn(); }
+    match /minutes/{id}      { allow read, write: if signedIn(); }
 
     // 合言葉などのアプリ設定。
     // 起動時に全端末が読むので read は全員に許す。

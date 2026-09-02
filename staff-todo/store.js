@@ -17,6 +17,7 @@ const COLLECTIONS = {
   groups: "groups",
   photos: "photos",
   phoneMemos: "phoneMemos",
+  minutes: "minutes",
   appConfig: "appConfig",
 };
 
@@ -179,4 +180,5 @@ export const routineLogStore = makeCrud(COLLECTIONS.routineLogs);
 export const groupStore = makeCrud(COLLECTIONS.groups, "order");
 export const photoStore = makeCrud(COLLECTIONS.photos);
 export const phoneMemoStore = makeCrud(COLLECTIONS.phoneMemos);
+export const minutesStore = makeCrud(COLLECTIONS.minutes);
 export const configStore = makeCrud(COLLECTIONS.appConfig);

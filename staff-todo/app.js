@@ -1,4 +1,4 @@
-import { mode as storeModeRef, ready as storeReady, staffStore, todoStore, eventStore, routineTaskStore, routineLogStore, groupStore, photoStore, phoneMemoStore, configStore } from "./store.js";
+import { mode as storeModeRef, ready as storeReady, staffStore, todoStore, eventStore, routineTaskStore, routineLogStore, groupStore, photoStore, phoneMemoStore, minutesStore, configStore } from "./store.js";
 import { isConfigured as firebaseConfigured, signIn, signOutUser, onAuthChange } from "./firebase-init.js";
 
 // ---------------- 共通ユーティリティ ----------------
@@ -148,6 +148,7 @@ const state = {
   groups: [],
   photos: [],
   phoneMemos: [],
+  minutes: [],
   // 共有モードでは、ログイン中のメールアドレスから自動的に決まる（端末側で自由に選べない）
   meId: firebaseConfigured ? null : (localStorage.getItem(ME_KEY) || null),
   screen: "todo",
@@ -156,6 +157,7 @@ const state = {
   memoFilter: "all",
   memoSearch: "",
   routineCat: "daily",
+  photosSub: "files",
   calMonth: (() => { const d = new Date(); d.setDate(1); return d; })(),
   calSelected: todayKey(),
 };
@@ -450,7 +452,7 @@ function renderScreen(name) {
   if (name === "todo") renderTodoList();
   else if (name === "calendar") renderCalendar();
   else if (name === "routine") renderRoutineList();
-  else if (name === "photos") renderPhotoTimeline();
+  else if (name === "photos") { if (state.photosSub === "minutes") renderMinutesList(); else renderPhotoTimeline(); }
   else if (name === "phoneMemo") renderMemoList();
   else if (name === "settings") renderSettings();
 }
@@ -461,9 +463,30 @@ document.getElementById("fab").addEventListener("click", () => {
   if (state.screen === "todo") openTodoSheet();
   else if (state.screen === "calendar") openEventSheet(state.calSelected);
   else if (state.screen === "routine") openRoutineTaskSheet(state.routineCat);
-  else if (state.screen === "photos") document.getElementById("photoFileInput").click();
+  else if (state.screen === "photos") {
+    if (state.photosSub === "minutes") openMinutesSheet();
+    else document.getElementById("photoFileInput").click();
+  }
   else if (state.screen === "phoneMemo") openMemoSheet();
   else if (state.screen === "settings") openStaffSheet();
+});
+
+// 資料画面のサブ切り替え（写真・ファイル / 議事録）
+document.querySelectorAll("[data-photos-sub]").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    state.photosSub = btn.dataset.photosSub;
+    document.querySelectorAll("[data-photos-sub]").forEach((b) => {
+      const active = b.dataset.photosSub === state.photosSub;
+      b.classList.toggle("is-active", active);
+      b.setAttribute("aria-selected", String(active));
+    });
+    document.getElementById("photosFilesView").hidden = state.photosSub !== "files";
+    document.getElementById("photosMinutesView").hidden = state.photosSub !== "minutes";
+    document.getElementById("photosSubNote").textContent = state.photosSub === "minutes"
+      ? "右下の＋から会議の議事録を追加できます。日付・月ごとにまとまります。"
+      : "右下の＋から写真やPDF・文書ファイルを追加できます。日付・月ごとにまとまります。";
+    renderScreen("photos");
+  });
 });
 
 // ================================================================
@@ -1474,6 +1497,103 @@ function openAttachmentSheet(item) {
 }
 
 // ================================================================
+// 議事録
+// ================================================================
+
+function minutesSortKey(m) {
+  return `${m.meetingDate || "0000-00-00"} ${m.meetingTime || "00:00"}`;
+}
+
+function renderMinutesList() {
+  const el = document.getElementById("minutesList");
+  const empty = document.getElementById("minutesEmpty");
+  const items = [...state.minutes].sort((a, b) => (minutesSortKey(b) > minutesSortKey(a) ? 1 : -1));
+  empty.hidden = items.length > 0;
+  const seenAt = getSeenAt("minutes");
+
+  const dateGroups = [];
+  let lastMonth = null;
+  let lastDate = null;
+  items.forEach((m) => {
+    const dateKey = m.meetingDate || todayKey();
+    const monthKey = dateKey.slice(0, 7);
+    if (dateKey !== lastDate) {
+      dateGroups.push({ monthKey, dateKey, showMonthHeader: monthKey !== lastMonth, items: [] });
+      lastDate = dateKey;
+      lastMonth = monthKey;
+    }
+    dateGroups[dateGroups.length - 1].items.push(m);
+  });
+
+  el.innerHTML = dateGroups.map((group) => {
+    const dateLabel = group.dateKey === todayKey() ? "今日" : `${Number(group.dateKey.slice(5, 7))}月${Number(group.dateKey.slice(8, 10))}日(${dateKeyWeekday(group.dateKey)})`;
+    const monthHeaderHtml = group.showMonthHeader ? `<h3 class="agenda__title photo-month-header">${escapeHtml(monthLabelJa(group.monthKey))}</h3>` : "";
+    const cardsHtml = group.items.map((m) => `
+      <div class="card" data-id="${m.id}" data-action="edit">
+        <div class="card__body">
+          <div class="card__title">${newTagHtml(isNewItem(m, seenAt))}${escapeHtml(m.title || "(会議名未入力)")}</div>
+          ${m.agenda ? `<div class="card__memo">${escapeHtml(m.agenda)}</div>` : ""}
+          ${m.decisions ? `
+          <div class="memo-progress">
+            <span class="memo-progress__label">決定事項</span>
+            <span class="memo-progress__text">${escapeHtml(m.decisions)}</span>
+          </div>` : ""}
+          <div class="card__meta">${m.meetingTime ? `<span class="badge badge--info">${escapeHtml(m.meetingTime)}</span>` : ""}</div>
+        </div>
+      </div>`).join("");
+    return `${monthHeaderHtml}<div class="list-group-header">${escapeHtml(dateLabel)}</div>${cardsHtml}`;
+  }).join("");
+  markSeen("minutes");
+
+  el.querySelectorAll('[data-action="edit"]').forEach((card) => {
+    card.addEventListener("click", () => openMinutesSheet(state.minutes.find((x) => x.id === card.dataset.id)));
+  });
+}
+
+function openMinutesSheet(existing) {
+  const html = `
+    <div class="field">
+      <label for="mt-title">会議名</label>
+      <input id="mt-title" name="title" type="text" required maxlength="80" value="${escapeHtml(existing?.title || "")}" placeholder="例：職員会議">
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label for="mt-date">日付</label>
+        <input id="mt-date" name="meetingDate" type="date" required value="${existing?.meetingDate || todayKey()}">
+      </div>
+      <div class="field">
+        <label for="mt-time">開始時刻（任意）</label>
+        <input id="mt-time" name="meetingTime" type="time" value="${existing?.meetingTime || ""}">
+      </div>
+    </div>
+    <div class="field">
+      <label for="mt-agenda">議題・内容（任意）</label>
+      <textarea id="mt-agenda" name="agenda" maxlength="2000" placeholder="話し合った内容など">${escapeHtml(existing?.agenda || "")}</textarea>
+    </div>
+    <div class="field">
+      <label for="mt-decisions">決定事項（任意）</label>
+      <textarea id="mt-decisions" name="decisions" maxlength="2000" placeholder="決まったこと・次回までの宿題など">${escapeHtml(existing?.decisions || "")}</textarea>
+    </div>
+  `;
+  openSheet(existing ? "議事録を編集" : "議事録を追加", html, {
+    onSubmit: async (data) => {
+      const payload = {
+        title: data.title.trim(),
+        meetingDate: data.meetingDate || todayKey(),
+        meetingTime: data.meetingTime || "",
+        agenda: data.agenda?.trim() || "",
+        decisions: data.decisions?.trim() || "",
+      };
+      if (!payload.title) return;
+      if (existing) await minutesStore.update(existing.id, payload);
+      else await minutesStore.add({ ...payload, createdBy: meStaff()?.name || null });
+      toast(existing ? "保存しました" : "議事録を追加しました");
+    },
+    onDelete: existing ? async () => { await minutesStore.remove(existing.id); toast("削除しました"); } : null,
+  });
+}
+
+// ================================================================
 // 電話メモ
 // ================================================================
 
@@ -2173,7 +2293,11 @@ async function main() {
   });
   photoStore.subscribe((list) => {
     state.photos = list;
-    if (state.screen === "photos") renderPhotoTimeline();
+    if (state.screen === "photos" && state.photosSub === "files") renderPhotoTimeline();
+  });
+  minutesStore.subscribe((list) => {
+    state.minutes = list;
+    if (state.screen === "photos" && state.photosSub === "minutes") renderMinutesList();
   });
   phoneMemoStore.subscribe((list) => {
     state.phoneMemos = list;
