@@ -471,23 +471,37 @@ document.getElementById("fab").addEventListener("click", () => {
   else if (state.screen === "settings") openStaffSheet();
 });
 
-// 資料画面のサブ切り替え（写真・ファイル / 議事録）
-document.querySelectorAll("[data-photos-sub]").forEach((btn) => {
-  btn.addEventListener("click", () => {
-    state.photosSub = btn.dataset.photosSub;
+// 資料画面のサブ切り替え（写真・ファイル / 議事録）。タップだけでなく左右フリックでも切り替えられる。
+const PHOTOS_SUB_ORDER = ["files", "minutes"];
+let photosSubAnimating = false;
+
+function switchPhotosSub(newSub) {
+  if (!PHOTOS_SUB_ORDER.includes(newSub) || newSub === state.photosSub || photosSubAnimating) return;
+  const oldIndex = PHOTOS_SUB_ORDER.indexOf(state.photosSub);
+  const newIndex = PHOTOS_SUB_ORDER.indexOf(newSub);
+  const delta = newIndex > oldIndex ? 1 : -1;
+  photosSubAnimating = true;
+  slideSwapContent(document.getElementById("photosSubContent"), delta, () => {
+    state.photosSub = newSub;
     document.querySelectorAll("[data-photos-sub]").forEach((b) => {
-      const active = b.dataset.photosSub === state.photosSub;
+      const active = b.dataset.photosSub === newSub;
       b.classList.toggle("is-active", active);
       b.setAttribute("aria-selected", String(active));
     });
-    document.getElementById("photosFilesView").hidden = state.photosSub !== "files";
-    document.getElementById("photosMinutesView").hidden = state.photosSub !== "minutes";
-    document.getElementById("photosSubNote").textContent = state.photosSub === "minutes"
+    document.getElementById("photosFilesView").hidden = newSub !== "files";
+    document.getElementById("photosMinutesView").hidden = newSub !== "minutes";
+    document.getElementById("photosSubNote").textContent = newSub === "minutes"
       ? "右下の＋から会議の議事録を追加できます。日付・月ごとにまとまります。"
       : "右下の＋から写真やPDF・文書ファイルを追加できます。日付・月ごとにまとまります。";
     renderScreen("photos");
-  });
+  }, () => { photosSubAnimating = false; });
+}
+
+document.querySelectorAll("[data-photos-sub]").forEach((btn) => {
+  btn.addEventListener("click", () => switchPhotosSub(btn.dataset.photosSub));
 });
+
+setupSwipeNav(document.getElementById("screen-photos"), () => state.photosSub, PHOTOS_SUB_ORDER, switchPhotosSub);
 
 // ================================================================
 // Todo
