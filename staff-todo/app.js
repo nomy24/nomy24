@@ -157,7 +157,7 @@ const state = {
   memoFilter: "all",
   memoSearch: "",
   routineCat: "daily",
-  photosSub: "files",
+  photosSub: "minutes",
   calMonth: (() => { const d = new Date(); d.setDate(1); return d; })(),
   calSelected: todayKey(),
 };
@@ -472,7 +472,7 @@ document.getElementById("fab").addEventListener("click", () => {
 });
 
 // 資料画面のサブ切り替え（写真・ファイル / 議事録）。タップだけでなく左右フリックでも切り替えられる。
-const PHOTOS_SUB_ORDER = ["files", "minutes"];
+const PHOTOS_SUB_ORDER = ["minutes", "files"];
 let photosSubAnimating = false;
 
 function switchPhotosSub(newSub) {

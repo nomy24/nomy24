@@ -127,25 +127,25 @@
   <section class="screen" id="screen-photos" aria-labelledby="photosHeading" hidden>
     <div class="pagehead">
       <h2 id="photosHeading" class="pagehead__title">資料</h2>
-      <p class="pagehead__note" id="photosSubNote">右下の＋から写真やPDF・文書ファイルを追加できます。日付・月ごとにまとまります。</p>
+      <p class="pagehead__note" id="photosSubNote">右下の＋から会議の議事録を追加できます。日付・月ごとにまとまります。</p>
     </div>
 
     <div class="segmented segmented--2col" role="tablist" aria-label="資料の種類">
-      <button class="segmented__btn is-active" type="button" role="tab" data-photos-sub="files" aria-selected="true">写真・ファイル</button>
-      <button class="segmented__btn" type="button" role="tab" data-photos-sub="minutes" aria-selected="false">議事録</button>
+      <button class="segmented__btn is-active" type="button" role="tab" data-photos-sub="minutes" aria-selected="true">議事録</button>
+      <button class="segmented__btn" type="button" role="tab" data-photos-sub="files" aria-selected="false">写真・ファイル</button>
     </div>
 
     <input type="file" id="photoFileInput" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt" hidden>
 
     <div id="photosSubContent" class="swipe-panel">
-    <div id="photosFilesView">
-      <div id="photoTimeline"></div>
-      <p class="empty" id="photoEmpty" hidden>まだ資料はありません。右下の＋から追加できます。</p>
-    </div>
-
-    <div id="photosMinutesView" hidden>
+    <div id="photosMinutesView">
       <div id="minutesList" class="list"></div>
       <p class="empty" id="minutesEmpty" hidden>まだ議事録はありません。右下の＋から追加できます。</p>
+    </div>
+
+    <div id="photosFilesView" hidden>
+      <div id="photoTimeline"></div>
+      <p class="empty" id="photoEmpty" hidden>まだ資料はありません。右下の＋から追加できます。</p>
     </div>
     </div>
   </section>
