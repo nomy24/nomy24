@@ -893,7 +893,7 @@ function openDayEventsSheet(dateKey) {
   const list = eventsOn(dateKey).sort((a, b) => (a.startTime || "") < (b.startTime || "") ? -1 : 1);
   const label = `${Number(dateKey.slice(5, 7))}月${Number(dateKey.slice(8, 10))}日(${dateKeyWeekday(dateKey)})の予定${dateKey === todayKey() ? "（今日）" : ""}`;
   const seenAt = getSeenAt("calendar");
-  const html = list.length
+  const listHtml = list.length
     ? `<div class="list">${list.map((e) => {
         const time = e.allDay ? "終日" : [e.startTime, e.endTime].filter(Boolean).join(" - ");
         return `
@@ -905,9 +905,14 @@ function openDayEventsSheet(dateKey) {
             </div>
           </div>`;
       }).join("")}</div>`
-    : `<p class="empty">この日の予定はまだありません。閉じてから右下の＋で追加できます。</p>`;
+    : `<p class="empty">この日の予定はまだありません。下の「＋追加」から追加できます。</p>`;
+  const html = `
+    <button type="button" class="ghost-btn" id="dayAddEventBtn" style="margin-bottom:14px;">＋ 予定を追加</button>
+    ${listHtml}
+  `;
   markSeen("calendar");
   openSheet(label, html, { onSubmit: async () => {}, submitLabel: "閉じる" });
+  sheetForm.querySelector("#dayAddEventBtn").addEventListener("click", () => openEventSheet(dateKey));
   sheetForm.querySelectorAll('[data-action="edit-event"]').forEach((card) => {
     card.addEventListener("click", () => {
       openEventSheet(dateKey, state.events.find((x) => x.id === card.dataset.id));
