@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-09-03T23:49:08.672Z",
+  "generatedAt": "2026-09-04T23:46:45.759Z",
   "source": "相模原市公式ホームページ",
   "sourceUrl": "https://www.city.sagamihara.kanagawa.jp",
   "counts": {
     "total": 400,
     "minami": 26,
     "citywide": 374,
-    "addedThisRun": 21
+    "addedThisRun": 3
   },
   "categories": [
     {
@@ -55,6 +55,118 @@
     }
   ],
   "items": [
+    {
+      "id": "67162c15fd69",
+      "title": "国際・平和",
+      "url": "https://www.city.sagamihara.kanagawa.jp/shisei/1026709/kokusai_kouryu/index.html",
+      "summary": "",
+      "category": "shisei",
+      "categoryLabel": "市政・お知らせ",
+      "scope": "citywide",
+      "areaHits": [],
+      "important": false,
+      "source": "相模原市 更新情報",
+      "publishedAt": "2026-09-04T15:05:03.000Z",
+      "firstSeenAt": "2026-09-04T23:46:45.759Z"
+    },
+    {
+      "id": "be2105a9879c",
+      "title": "2026フォトシティさがみはら 受賞作",
+      "url": "https://www.city.sagamihara.kanagawa.jp/kankou/bunka/1022291/photocity/1012454/1036093.html",
+      "summary": "",
+      "category": "event",
+      "categoryLabel": "イベント",
+      "scope": "citywide",
+      "areaHits": [],
+      "important": false,
+      "source": "相模原市 更新情報",
+      "publishedAt": "2026-09-04T06:32:13.000Z",
+      "firstSeenAt": "2026-08-25T22:27:51.283Z"
+    },
+    {
+      "id": "ceed0f8e788b",
+      "title": "令和8年度 8月定例記者会見",
+      "url": "https://www.city.sagamihara.kanagawa.jp/shisei/1026709/mayor/1009760/1035149/1036060.html",
+      "summary": "",
+      "category": "shisei",
+      "categoryLabel": "市政・お知らせ",
+      "scope": "citywide",
+      "areaHits": [],
+      "important": false,
+      "source": "相模原市 更新情報",
+      "publishedAt": "2026-09-04T06:30:01.000Z",
+      "firstSeenAt": "2026-09-04T23:46:45.759Z"
+    },
+    {
+      "id": "8d9db254ae20",
+      "title": "令和8年度 相模原市職員採用試験（大学卒業程度）【大学等推薦枠】",
+      "url": "https://www.city.sagamihara.kanagawa.jp/shisei/1026815/shokuin_annai/1035989.html",
+      "summary": "",
+      "category": "shisei",
+      "categoryLabel": "市政・お知らせ",
+      "scope": "citywide",
+      "areaHits": [],
+      "important": false,
+      "source": "相模原市 更新情報",
+      "publishedAt": "2026-09-04T06:06:36.000Z",
+      "firstSeenAt": "2026-08-16T22:21:03.195Z"
+    },
+    {
+      "id": "542b804a3036",
+      "title": "発表資料 令和8年9月分",
+      "url": "https://www.city.sagamihara.kanagawa.jp/shisei/1026875/koho/1026878/houdo/1036144.html",
+      "summary": "",
+      "category": "shisei",
+      "categoryLabel": "市政・お知らせ",
+      "scope": "citywide",
+      "areaHits": [],
+      "important": false,
+      "source": "相模原市 更新情報",
+      "publishedAt": "2026-09-04T04:04:57.000Z",
+      "firstSeenAt": "2026-09-01T23:50:32.987Z"
+    },
+    {
+      "id": "56ddb116cf30",
+      "title": "相模原市 新春特番「市長と語る2026年のさがみはら」",
+      "url": "https://www.city.sagamihara.kanagawa.jp/shisei/1026875/koho/1026880/channel/1012225/1036179.html",
+      "summary": "",
+      "category": "shisei",
+      "categoryLabel": "市政・お知らせ",
+      "scope": "citywide",
+      "areaHits": [],
+      "important": false,
+      "source": "相模原市 更新情報",
+      "publishedAt": "2026-09-04T00:42:47.000Z",
+      "firstSeenAt": "2026-09-04T23:46:45.759Z"
+    },
+    {
+      "id": "ae568c76d7ec",
+      "title": "国民健康保険税の試算",
+      "url": "https://www.city.sagamihara.kanagawa.jp/kurashi/1026448/kokuho/1026464/noufu/1018722.html",
+      "summary": "",
+      "category": "kurashi",
+      "categoryLabel": "くらし・手続き",
+      "scope": "citywide",
+      "areaHits": [],
+      "important": false,
+      "source": "相模原市 更新情報",
+      "publishedAt": "2026-09-03T23:56:25.000Z",
+      "firstSeenAt": "2026-08-31T17:25:11.024Z"
+    },
+    {
+      "id": "5b3a82dfd34b",
+      "title": "市長の1日（令和8年7月1日～）",
+      "url": "https://www.city.sagamihara.kanagawa.jp/shisei/1026709/mayor/day/1022448.html",
+      "summary": "",
+      "category": "shisei",
+      "categoryLabel": "市政・お知らせ",
+      "scope": "citywide",
+      "areaHits": [],
+      "important": false,
+      "source": "相模原市 更新情報",
+      "publishedAt": "2026-09-03T23:04:13.000Z",
+      "firstSeenAt": "2026-08-04T04:16:43.500Z"
+    },
     {
       "id": "03a58e924a9b",
       "title": "新磯地区まちづくり会議",
@@ -545,20 +657,6 @@
       "firstSeenAt": "2026-09-03T23:49:08.672Z"
     },
     {
-      "id": "542b804a3036",
-      "title": "発表資料 令和8年9月分",
-      "url": "https://www.city.sagamihara.kanagawa.jp/shisei/1026875/koho/1026878/houdo/1036144.html",
-      "summary": "",
-      "category": "shisei",
-      "categoryLabel": "市政・お知らせ",
-      "scope": "citywide",
-      "areaHits": [],
-      "important": false,
-      "source": "相模原市 更新情報",
-      "publishedAt": "2026-09-03T07:49:07.000Z",
-      "firstSeenAt": "2026-09-01T23:50:32.987Z"
-    },
-    {
       "id": "4653b1b19aa1",
       "title": "広報紙アプリ「マチイロ」",
       "url": "https://www.city.sagamihara.kanagawa.jp/shisei/1026875/koho/1026879/1035980.html",
@@ -641,20 +739,6 @@
       "source": "相模原市 更新情報",
       "publishedAt": "2026-09-02T23:27:37.000Z",
       "firstSeenAt": "2026-09-03T23:49:08.672Z"
-    },
-    {
-      "id": "5b3a82dfd34b",
-      "title": "市長の1日（令和8年7月1日～）",
-      "url": "https://www.city.sagamihara.kanagawa.jp/shisei/1026709/mayor/day/1022448.html",
-      "summary": "",
-      "category": "shisei",
-      "categoryLabel": "市政・お知らせ",
-      "scope": "citywide",
-      "areaHits": [],
-      "important": false,
-      "source": "相模原市 更新情報",
-      "publishedAt": "2026-09-02T23:13:17.000Z",
-      "firstSeenAt": "2026-08-04T04:16:43.500Z"
     },
     {
       "id": "1b341d6e2fff",
@@ -1023,20 +1107,6 @@
       "source": "相模原市 更新情報",
       "publishedAt": "2026-09-02T15:05:04.000Z",
       "firstSeenAt": "2026-09-02T23:53:04.077Z"
-    },
-    {
-      "id": "be2105a9879c",
-      "title": "2026フォトシティさがみはら 受賞作",
-      "url": "https://www.city.sagamihara.kanagawa.jp/kankou/bunka/1022291/photocity/1012454/1036093.html",
-      "summary": "",
-      "category": "event",
-      "categoryLabel": "イベント",
-      "scope": "citywide",
-      "areaHits": [],
-      "important": false,
-      "source": "相模原市 更新情報",
-      "publishedAt": "2026-09-02T07:55:27.000Z",
-      "firstSeenAt": "2026-08-25T22:27:51.283Z"
     },
     {
       "id": "bd28a0b83827",
@@ -2282,20 +2352,6 @@
       "firstSeenAt": "2026-08-31T17:25:11.024Z"
     },
     {
-      "id": "8d9db254ae20",
-      "title": "令和8年度 相模原市職員採用試験（大学卒業程度）【大学等推薦枠】",
-      "url": "https://www.city.sagamihara.kanagawa.jp/shisei/1026815/shokuin_annai/1035989.html",
-      "summary": "",
-      "category": "shisei",
-      "categoryLabel": "市政・お知らせ",
-      "scope": "citywide",
-      "areaHits": [],
-      "important": false,
-      "source": "相模原市 更新情報",
-      "publishedAt": "2026-08-31T15:05:04.000Z",
-      "firstSeenAt": "2026-08-16T22:21:03.195Z"
-    },
-    {
       "id": "919f4af3514f",
       "title": "難病講演会・交流会等",
       "url": "https://www.city.sagamihara.kanagawa.jp/kosodate/kenko/1026625/nanbyo/1007312.html",
@@ -2910,20 +2966,6 @@
       "source": "相模原市 更新情報",
       "publishedAt": "2026-08-31T04:24:24.000Z",
       "firstSeenAt": "2026-08-31T00:14:24.737Z"
-    },
-    {
-      "id": "ae568c76d7ec",
-      "title": "国民健康保険税の試算",
-      "url": "https://www.city.sagamihara.kanagawa.jp/kurashi/1026448/kokuho/1026464/noufu/1018722.html",
-      "summary": "",
-      "category": "kurashi",
-      "categoryLabel": "くらし・手続き",
-      "scope": "citywide",
-      "areaHits": [],
-      "important": false,
-      "source": "相模原市 更新情報",
-      "publishedAt": "2026-08-31T00:53:26.000Z",
-      "firstSeenAt": "2026-08-31T17:25:11.024Z"
     },
     {
       "id": "069d18546452",
@@ -5671,49 +5713,7 @@
       "source": "相模原市 更新情報",
       "publishedAt": "2026-08-20T15:05:03.000Z",
       "firstSeenAt": "2026-08-20T22:28:03.719Z"
-    },
-    {
-      "id": "853aa33787f0",
-      "title": "救急救命VTuber「げんきでいてね！」",
-      "url": "https://www.city.sagamihara.kanagawa.jp/kurashi/1026529/shobo/kyukyujoho/1034559/index.html",
-      "summary": "",
-      "category": "bousai",
-      "categoryLabel": "防災・防犯",
-      "scope": "citywide",
-      "areaHits": [],
-      "important": false,
-      "source": "相模原市 更新情報",
-      "publishedAt": "2026-08-20T15:05:03.000Z",
-      "firstSeenAt": "2026-08-20T22:28:03.719Z"
-    },
-    {
-      "id": "893f8c52be6b",
-      "title": "産業連関表",
-      "url": "https://www.city.sagamihara.kanagawa.jp/shisei/toukei/1023641.html",
-      "summary": "",
-      "category": "shisei",
-      "categoryLabel": "市政・お知らせ",
-      "scope": "citywide",
-      "areaHits": [],
-      "important": false,
-      "source": "相模原市 更新情報",
-      "publishedAt": "2026-08-20T15:05:03.000Z",
-      "firstSeenAt": "2026-08-04T04:16:43.500Z"
-    },
-    {
-      "id": "9d8a7c0de875",
-      "title": "燃料電池自動車購入奨励金",
-      "url": "https://www.city.sagamihara.kanagawa.jp/kurashi/1026489/kankyo/hojyo/1008087.html",
-      "summary": "",
-      "category": "gomi",
-      "categoryLabel": "ごみ・環境",
-      "scope": "citywide",
-      "areaHits": [],
-      "important": false,
-      "source": "相模原市 更新情報",
-      "publishedAt": "2026-08-20T15:05:03.000Z",
-      "firstSeenAt": "2026-08-20T22:28:03.719Z"
     }
   ],
-  "revision": "0dd1dbb1295f"
+  "revision": "d3a128070a79"
 }
