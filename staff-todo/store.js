@@ -83,6 +83,17 @@ function localAdd(name, data, id = uid()) {
   return id;
 }
 
+// idを指定してのadd。すでに同じidのドキュメントがあれば何もしない（上書きしない）。
+// 自動同期処理など、同じ意味の書き込みを何度呼んでも安全にしたい場面で使う。
+function localAddIfMissing(name, id, data) {
+  const list = localGetAll(name);
+  if (list.some((d) => d.id === id)) return id;
+  const now = Date.now();
+  list.push({ id, ...data, createdAt: data.createdAt ?? now, updatedAt: now });
+  localSetAll(name, list);
+  return id;
+}
+
 function localUpdate(name, id, data) {
   const list = localGetAll(name);
   const idx = list.findIndex((d) => d.id === id);
@@ -134,6 +145,22 @@ async function fsAdd(name, data, id = uid()) {
   return id;
 }
 
+// idを指定してのadd。ローカルにキャッシュされた一覧（state.todosなど）は
+// 書き込み直後のFirestoreの状態とずれることがあるため、そちらでの
+// 「すでにあるか」判定に頼らず、サーバーへ直接問い合わせて確実に判定する。
+async function fsAddIfMissing(name, id, data) {
+  const { db, firestore } = firebase;
+  const ref = firestore.doc(db, name, id);
+  const snap = await firestore.getDoc(ref);
+  if (snap.exists()) return id;
+  await firestore.setDoc(ref, {
+    ...data,
+    createdAt: data.createdAt ?? Date.now(),
+    updatedAt: Date.now(),
+  });
+  return id;
+}
+
 async function fsUpdate(name, id, data) {
   const { db, firestore } = firebase;
   await firestore.updateDoc(firestore.doc(db, name, id), { ...data, updatedAt: Date.now() });
@@ -159,6 +186,9 @@ function makeCrud(name, orderField) {
     },
     add(data, id) {
       return mode === "shared" ? fsAdd(name, data, id) : Promise.resolve(localAdd(name, data, id));
+    },
+    addIfMissing(id, data) {
+      return mode === "shared" ? fsAddIfMissing(name, id, data) : Promise.resolve(localAddIfMissing(name, id, data));
     },
     update(id, data) {
       return mode === "shared" ? fsUpdate(name, id, data) : Promise.resolve(localUpdate(name, id, data));

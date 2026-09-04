@@ -2230,12 +2230,16 @@ function newTagHtml(isNew) {
 
 // 「月初」「月末」の定型タスクに期間（開始日〜終了日）が設定されていて、
 // 今日がその範囲に入っていれば、対応するTodoを自動でひとつ用意する。
-// 同じ月に二重生成しないよう、定型タスクID×月をキーにしたマーカーをTodo側に持たせて判定する。
-// state.todosはFirestoreへの書き込みが反映されるまでの一瞬の間ずれることがあるため、
-// それだけでは間に合わず、書き込み前に確保する専用のSetでも二重生成を防ぐ。
+//
+// 二重生成防止は「同じidのドキュメントがすでにあれば作らない」という、Firestore側の
+// 確実な判定（addIfMissing）に任せている。以前はローカルにキャッシュされたstate.todos
+// を見て「もうあるか」を判定していたが、これは端末を開き直した直後やFirestoreの
+// ローカルキャッシュがまだ最新でないタイミングでは実際より古い状態を見てしまうことがあり、
+// 同じタスクのTodoが日をまたぐたびに複数作られてしまう不具合につながっていた。
+// idを「定型タスクID×月」から決まる固定値にすることで、何度呼んでも安全（冪等）になる。
 let syncingRoutineTodos = false;
-const claimedRoutinePeriods = new Set();
-function syncRoutineTodos() {
+const claimedRoutinePeriods = new Set(); // 同じセッション内での無駄な問い合わせを避けるための一次チェック
+async function syncRoutineTodos() {
   if (syncingRoutineTodos) return;
   syncingRoutineTodos = true;
   try {
@@ -2243,28 +2247,31 @@ function syncRoutineTodos() {
     const day = now.getDate();
     const monthKey = currentMonthKey();
     const daysInThisMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-    state.routineTasks.forEach((task) => {
-      if (!routineHasPeriod(task.category)) return;
-      if (!task.periodStartDay || !task.periodEndDay) return;
-      if (day < task.periodStartDay || day > task.periodEndDay) return;
+    for (const task of state.routineTasks) {
+      if (!routineHasPeriod(task.category)) continue;
+      if (!task.periodStartDay || !task.periodEndDay) continue;
+      if (day < task.periodStartDay || day > task.periodEndDay) continue;
       const periodKey = `${task.id}__${monthKey}`;
-      if (claimedRoutinePeriods.has(periodKey)) return;
-      const already = state.todos.some((t) => t.sourceRoutinePeriodKey === periodKey);
-      if (already) { claimedRoutinePeriods.add(periodKey); return; }
+      if (claimedRoutinePeriods.has(periodKey)) continue;
       claimedRoutinePeriods.add(periodKey);
       const dueDay = Math.min(task.periodEndDay, daysInThisMonth);
-      todoStore.add({
-        title: task.title,
-        memo: task.memo || "",
-        assigneeIds: task.assigneeIds || [],
-        dueDate: `${monthKey}-${pad2(dueDay)}`,
-        priority: "normal",
-        done: false,
-        createdBy: null,
-        sourceRoutineTaskId: task.id,
-        sourceRoutinePeriodKey: periodKey,
-      });
-    });
+      try {
+        await todoStore.addIfMissing(`routine__${periodKey}`, {
+          title: task.title,
+          memo: task.memo || "",
+          assigneeIds: task.assigneeIds || [],
+          dueDate: `${monthKey}-${pad2(dueDay)}`,
+          priority: "normal",
+          done: false,
+          createdBy: null,
+          sourceRoutineTaskId: task.id,
+          sourceRoutinePeriodKey: periodKey,
+        });
+      } catch (e) {
+        console.error("定型タスクからのTodo自動追加に失敗しました", e);
+        claimedRoutinePeriods.delete(periodKey);
+      }
+    }
   } finally {
     syncingRoutineTodos = false;
   }
