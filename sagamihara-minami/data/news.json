@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-09-04T23:46:45.759Z",
+  "generatedAt": "2026-09-05T23:35:57.217Z",
   "source": "相模原市公式ホームページ",
   "sourceUrl": "https://www.city.sagamihara.kanagawa.jp",
   "counts": {
     "total": 400,
     "minami": 26,
     "citywide": 374,
-    "addedThisRun": 3
+    "addedThisRun": 0
   },
   "categories": [
     {
@@ -55,6 +55,20 @@
     }
   ],
   "items": [
+    {
+      "id": "88f04e01807c",
+      "title": "就職説明会等、イベント・セミナー",
+      "url": "https://www.city.sagamihara.kanagawa.jp/kosodate/1026602/kosodate/1026604/1019153/1024572.html",
+      "summary": "",
+      "category": "kosodate",
+      "categoryLabel": "子育て・教育",
+      "scope": "citywide",
+      "areaHits": [],
+      "important": false,
+      "source": "相模原市 更新情報",
+      "publishedAt": "2026-09-05T15:05:03.000Z",
+      "firstSeenAt": "2026-08-29T23:55:50.587Z"
+    },
     {
       "id": "67162c15fd69",
       "title": "国際・平和",
@@ -3308,20 +3322,6 @@
       "firstSeenAt": "2026-08-29T23:55:50.587Z"
     },
     {
-      "id": "88f04e01807c",
-      "title": "就職説明会等、イベント・セミナー",
-      "url": "https://www.city.sagamihara.kanagawa.jp/kosodate/1026602/kosodate/1026604/1019153/1024572.html",
-      "summary": "",
-      "category": "kosodate",
-      "categoryLabel": "子育て・教育",
-      "scope": "citywide",
-      "areaHits": [],
-      "important": false,
-      "source": "相模原市 更新情報",
-      "publishedAt": "2026-08-29T15:05:04.000Z",
-      "firstSeenAt": "2026-08-29T23:55:50.587Z"
-    },
-    {
       "id": "0b2b1787942e",
       "title": "令和8年（2026年）熊本地震に関する本市の対応等について",
       "url": "https://www.city.sagamihara.kanagawa.jp/kurashi/1026529/bousai/1008665/1035936/index.html",
@@ -5715,5 +5715,5 @@
       "firstSeenAt": "2026-08-20T22:28:03.719Z"
     }
   ],
-  "revision": "d3a128070a79"
+  "revision": "4eb9b7ddae06"
 }
