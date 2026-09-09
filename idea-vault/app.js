@@ -242,7 +242,10 @@ function createRecognition() {
     if (event.error === "no-speech" || event.error === "aborted") return; // 黙っていただけ
     if (event.error === "not-allowed" || event.error === "service-not-allowed") {
       stopVoice({ save: true });
-      toast("マイクが使えません。ブラウザの設定で許可してください");
+      // ファイルを直接開いたときはブラウザ側がマイクを渡さない。原因ごとに言い方を変える。
+      toast(window.isSecureContext
+        ? "マイクが使えません。ブラウザの設定で、このページのマイクを許可してください"
+        : "この開き方ではマイクが使えません。https か localhost で開いてください");
       return;
     }
     if (event.error === "network") {
