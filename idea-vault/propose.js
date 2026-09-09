@@ -582,6 +582,14 @@ function buildPlan(axis, ctx, harsh) {
    5. 入口
    -------------------------------------------------------------------------- */
 
+/** 画面の見本に載せる短い抜き出し（長いメモはそのままだと枠に入らない） */
+function mockSamples(ideas) {
+  return ideas.slice(0, 4).map((idea) => ({
+    text: idea.text.replace(/\s+/g, " ").slice(0, 26),
+    tag: idea.tags[0] ?? "",
+  }));
+}
+
 export function analyze(ideas) {
   const keywords = countKeywords(ideas);
   const themes = detectThemes(ideas);
@@ -603,9 +611,11 @@ export function proposeLocally(ideas, { harsh = true } = {}) {
     sourceCount: ideas.length,
     sourceIds: ideas.map((idea) => idea.id),
     quotes: ideas.slice(0, 3).map((idea) => idea.text.slice(0, 48)),
+    samples: mockSamples(ideas),
     summary: {
       headline: ctx.summary.headline,
       note: ctx.summary.note,
+      topic: ctx.topic,
       keywords: ctx.summary.keywords,
       themes: ctx.summary.themes,
     },
@@ -686,9 +696,12 @@ export function normalizePlanSet(raw, { ideas, harsh }) {
     sourceCount: ideas.length,
     sourceIds: ideas.map((idea) => idea.id),
     quotes: ideas.slice(0, 3).map((idea) => idea.text.slice(0, 48)),
+    samples: mockSamples(ideas),
     summary: {
       headline: asText(raw?.summary?.headline) || `${ideas.length}件のメモから`,
       note: asText(raw?.summary?.note),
+      // 見本の言葉づかいに使うので、AI に書かせたときも端末側で主題を出しておく
+      topic: analyze(ideas).topic,
       keywords: asList(raw?.summary?.keywords, 8),
       themes: asList(raw?.summary?.themes, 5),
     },

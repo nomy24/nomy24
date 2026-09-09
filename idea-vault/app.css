@@ -581,6 +581,150 @@ svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width:
 .dialog__actions { display: flex; gap: .5rem; margin-top: 1rem; }
 .dialog__actions .btn { flex: 1 1 0; }
 
+/* --- 書きなおしの画面で声を使う --------------------------------------- */
+
+.dictate { margin-top: .75rem; }
+
+.dictate__btn {
+  display: inline-flex; align-items: center; gap: .375rem;
+  min-height: 40px; padding: .25rem .875rem;
+  font: inherit; font-size: .8125rem; font-weight: 600;
+  background: transparent; color: var(--color-text-muted);
+  border: 1px solid var(--color-border-strong); border-radius: var(--radius-pill);
+  cursor: pointer;
+}
+.dictate__btn[hidden] { display: none; }
+.dictate__btn svg { width: 16px; height: 16px; flex: none; }
+.dictate__btn[aria-pressed="true"] {
+  background: var(--color-accent); color: #fff; border-color: transparent;
+  animation: micpulse 1.6s infinite ease-out;
+}
+
+.dictate__live {
+  margin-top: .5rem; padding: .5rem .625rem;
+  background: var(--color-accent-soft); border-radius: var(--radius-sm);
+}
+.dictate__live[hidden] { display: none; }
+.dictate__status { margin: 0; font-size: .6875rem; font-weight: 600; color: var(--color-accent); }
+.dictate__text { margin: .25rem 0 0; font-size: .8125rem; line-height: 1.6; min-height: 1.3em; overflow-wrap: anywhere; }
+.dictate__text:empty::before { content: "話しかけてください"; color: var(--color-placeholder); }
+
+/* --- 案の画面見本 ------------------------------------------------------ */
+/* 中の色は案ごとの配色（--m-*）で塗る。まわりのアプリの明暗には合わせない。 */
+
+.sec--mock .sec__mark { background: var(--color-accent-soft); color: var(--color-accent); }
+
+.mock { display: block; }
+
+.mock__phone {
+  width: 244px; margin: 0 auto;
+  border: 6px solid #23202c;
+  border-radius: 26px;
+  background: var(--m-bg);
+  overflow: hidden;
+  box-shadow: 0 10px 26px -14px rgba(0, 0, 0, .6);
+}
+
+.mock__bar-top {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: .5rem .625rem;
+  background: var(--m-surface); border-bottom: 1px solid var(--m-line);
+}
+.mock__name { font-size: .75rem; font-weight: 700; color: var(--m-ink); letter-spacing: .02em; }
+.mock__mic { width: 14px; height: 14px; border-radius: 50%; background: var(--m-accent); flex: none; }
+
+.mock__screens { height: 296px; padding: .5rem; background: var(--m-bg); overflow: hidden; }
+
+.mock__screen { display: block; animation: fade .18s ease; }
+.mock__screen[hidden] { display: none; }
+
+.mock__label { margin: .5rem 0 .3125rem; font-size: .625rem; letter-spacing: .06em; color: var(--m-muted); }
+.mock__label:first-child { margin-top: 0; }
+.mock__note { margin: .5rem 0 0; font-size: .625rem; color: var(--m-muted); }
+
+.mock__field {
+  display: flex; align-items: center; gap: .375rem;
+  padding: .375rem .375rem .375rem .5rem;
+  background: var(--m-surface); border: 1px solid var(--m-line); border-radius: 10px;
+}
+.mock__field--search { padding: .4375rem .5rem; }
+.mock__placeholder { flex: 1 1 auto; font-size: .6875rem; color: var(--m-muted); }
+
+.mock__btn {
+  flex: none; padding: .25rem .625rem;
+  font: inherit; font-size: .625rem; font-weight: 700;
+  background: var(--m-accent); color: var(--m-on-accent);
+  border: none; border-radius: var(--radius-pill); cursor: pointer;
+}
+.mock__btn--quiet { background: transparent; color: var(--m-muted); border: 1px solid var(--m-line); }
+
+.mock__list { list-style: none; margin: .5rem 0 0; padding: 0; display: grid; gap: .375rem; }
+
+.mock__card {
+  padding: .4375rem .5rem;
+  background: var(--m-surface); border: 1px solid var(--m-line); border-radius: 10px;
+}
+.mock__card.is-new { animation: pop .3s ease; }
+.mock__card.is-done .mock__text { text-decoration: line-through; opacity: .55; }
+
+.mock__text {
+  margin: 0; font-size: .6875rem; line-height: 1.5; color: var(--m-ink);
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
+}
+.mock__meta {
+  margin: .25rem 0 0; display: flex; flex-wrap: wrap; align-items: center; gap: .3125rem;
+  font-size: .5625rem; color: var(--m-muted);
+}
+
+.mock__tag {
+  padding: 0 .375rem; border-radius: var(--radius-pill);
+  font-size: .5625rem; color: var(--m-accent);
+  background: color-mix(in srgb, var(--m-accent) 16%, var(--m-surface));
+}
+
+.mock__chip {
+  margin-left: auto; padding: .0625rem .4375rem;
+  font: inherit; font-size: .5625rem;
+  background: transparent; color: var(--m-muted);
+  border: 1px solid var(--m-line); border-radius: var(--radius-pill); cursor: pointer;
+}
+/* 配色の役割どおりに割り当てる（2案目なら 緑=処理済み・橙=要対応） */
+.mock__chip.is-doing { background: var(--m-second); color: var(--m-on-second); border-color: transparent; }
+.mock__chip.is-done { background: var(--m-accent); color: var(--m-on-accent); border-color: transparent; }
+
+.mock__draft {
+  padding: .5rem;
+  border: 1px dashed var(--m-accent); border-radius: 10px;
+  background: color-mix(in srgb, var(--m-accent) 10%, var(--m-surface));
+  transition: opacity .18s ease, transform .18s ease;
+}
+.mock__draft.is-gone { opacity: 0; transform: translateX(-12px); }
+.mock__acts { display: flex; gap: .25rem; margin-top: .4375rem; }
+
+.mock__empty {
+  padding: .5rem; text-align: center;
+  font-size: .625rem; color: var(--m-muted);
+  border: 1px dashed var(--m-line); border-radius: 10px;
+}
+
+.mock__bars { display: grid; gap: .375rem; }
+.mock__bar { display: flex; align-items: center; gap: .375rem; font-size: .5625rem; color: var(--m-muted); }
+.mock__bar span { width: 2.5rem; flex: none; }
+.mock__bar i { display: block; height: 8px; border-radius: 4px; background: var(--m-accent); }
+
+.mock__tabs { display: flex; background: var(--m-surface); border-top: 1px solid var(--m-line); }
+.mock__tab {
+  flex: 1 1 0; padding: .5rem 0;
+  font: inherit; font-size: .625rem;
+  background: none; border: none; color: var(--m-muted); cursor: pointer;
+}
+.mock__tab.is-on { color: var(--m-accent); font-weight: 700; }
+
+.mock__hint {
+  margin: .625rem auto 0; max-width: 22rem;
+  font-size: .6875rem; line-height: 1.7; text-align: center; color: var(--color-text-muted);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
 }

@@ -10,6 +10,7 @@ const SHELL_ASSETS = [
   "app.js",
   "store.js",
   "propose.js",
+  "mockup.js",
   "ai.js",
   "manifest.webmanifest",
   "icons/icon.svg",

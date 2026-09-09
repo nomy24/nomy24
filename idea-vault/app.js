@@ -3,6 +3,7 @@
 
 import { store, normalizeTags } from "./store.js";
 import { proposeLocally } from "./propose.js";
+import { renderMockup, handleMockAction } from "./mockup.js";
 
 const $ = (id) => document.getElementById(id);
 const esc = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]));
@@ -182,6 +183,8 @@ const SpeechRecognitionClass = window.SpeechRecognition || window.webkitSpeechRe
 const voice = {
   recognition: null,
   listening: false,   // 利用者が「聞いてほしい」と思っている状態
+  mode: "capture",    // capture = 1件ずつためる / dictate = 書きなおしの欄に書き足す
+  target: null,       // dictate のときの書き込み先
   buffer: [],         // ひと区切りごとに保存しない設定のとき、ためておく場所
   restarts: 0,
   lastRestart: 0,
@@ -192,7 +195,20 @@ function voiceSupported() {
 }
 
 function setVoiceStatus(text) {
-  $("voiceStatus").textContent = text;
+  $(voice.mode === "dictate" ? "editVoiceStatus" : "voiceStatus").textContent = text;
+}
+
+function setVoiceInterim(text) {
+  $(voice.mode === "dictate" ? "editVoiceText" : "voiceInterim").textContent = text;
+}
+
+/** 聞き取れた分を、書きなおしの欄の続きに足す（元の文は消さない） */
+function appendDictation(text) {
+  const target = voice.target;
+  if (!target) return;
+  const current = target.value.replace(/\s+$/, "");
+  target.value = current ? `${current}\n${text}` : text;
+  target.scrollTop = target.scrollHeight;
 }
 
 function showSaved(text) {
@@ -211,6 +227,10 @@ function createRecognition() {
 
   recognition.onstart = () => {
     voice.restarts = 0;
+    if (voice.mode === "dictate") {
+      setVoiceStatus("聞いています。話した分が下の欄に足されます");
+      return;
+    }
     setVoiceStatus(store.settings.continuous ? "聞いています（区切るたびに保存）" : "聞いています（とめたときに保存）");
   };
 
@@ -221,21 +241,27 @@ function createRecognition() {
       const text = result[0]?.transcript ?? "";
       if (result.isFinal) {
         const clean = text.trim();
-        if (clean.length >= 2) {
-          if (store.settings.continuous) {
-            addIdea(clean, "voice");
-            showSaved(clean);
-            if (navigator.vibrate) navigator.vibrate(12);
-          } else {
-            voice.buffer.push(clean);
-          }
+        if (clean.length < 2) continue;
+        if (voice.mode === "dictate") {
+          appendDictation(clean);
+          if (navigator.vibrate) navigator.vibrate(12);
+        } else if (store.settings.continuous) {
+          addIdea(clean, "voice");
+          showSaved(clean);
+          if (navigator.vibrate) navigator.vibrate(12);
+        } else {
+          voice.buffer.push(clean);
         }
       } else {
         interim += text;
       }
     }
+    if (voice.mode === "dictate") {
+      setVoiceInterim(interim.trim());
+      return;
+    }
     const pending = voice.buffer.join("。");
-    $("voiceInterim").textContent = [pending, interim].filter(Boolean).join(" ").trim();
+    setVoiceInterim([pending, interim].filter(Boolean).join(" ").trim());
   };
 
   recognition.onerror = (event) => {
@@ -273,16 +299,27 @@ function createRecognition() {
   return recognition;
 }
 
-function startVoice() {
+function startVoice({ mode = "capture", target = null } = {}) {
   if (!voiceSupported()) {
     toast("この端末では音声入力が使えません。文字で入力してください");
     return;
   }
-  showScreen("add");
+  if (voice.listening) stopVoice({ save: true });
+
+  voice.mode = mode;
+  voice.target = target;
   voice.buffer = [];
-  $("voiceInterim").textContent = "";
-  $("voicePanel").hidden = false;
-  $("micButton").setAttribute("aria-pressed", "true");
+
+  if (mode === "dictate") {
+    $("editVoice").hidden = false;
+    $("editMic").setAttribute("aria-pressed", "true");
+    $("editMicLabel").textContent = "とめる";
+  } else {
+    showScreen("add");
+    $("voicePanel").hidden = false;
+    $("micButton").setAttribute("aria-pressed", "true");
+  }
+  setVoiceInterim("");
   voice.listening = true;
   setVoiceStatus("マイクの準備をしています");
 
@@ -297,23 +334,38 @@ function startVoice() {
 }
 
 function stopVoice({ save = true } = {}) {
+  const wasDictating = voice.mode === "dictate";
   voice.listening = false;
   $("micButton").setAttribute("aria-pressed", "false");
   $("voicePanel").hidden = true;
+  $("editMic").setAttribute("aria-pressed", "false");
+  $("editMicLabel").textContent = "声で書き足す";
+  $("editVoice").hidden = true;
   try { voice.recognition?.stop(); } catch { /* すでに止まっている */ }
 
-  if (save && voice.buffer.length > 0) {
+  // 書き足しは欄にそのまま入っているので、ここで保存するのはためる側だけ
+  if (!wasDictating && save && voice.buffer.length > 0) {
     const text = voice.buffer.join("。");
     addIdea(text, "voice");
     toast("ためました");
   }
   voice.buffer = [];
+  voice.target = null;
+  setVoiceInterim("");
+  voice.mode = "capture";
   $("voiceInterim").textContent = "";
+  $("editVoiceText").textContent = "";
 }
 
 function toggleVoice() {
-  if (voice.listening) stopVoice({ save: true });
-  else startVoice();
+  if (voice.listening && voice.mode === "capture") stopVoice({ save: true });
+  else startVoice({ mode: "capture" });
+}
+
+/** 書きなおしの画面から使う口述モード */
+function toggleDictate() {
+  if (voice.listening && voice.mode === "dictate") stopVoice({ save: false });
+  else startVoice({ mode: "dictate", target: $("editText") });
 }
 
 /* --------------------------------------------------------------------------
@@ -351,7 +403,7 @@ function list(items, className = "pts") {
   return `<ul class="${className}">${items.map((item) => `<li>${esc(item)}</li>`).join("")}</ul>`;
 }
 
-function planCard(plan, index) {
+function planCard(plan, index, planSet) {
   const design = plan.design ?? {};
   const long = plan.longTerm ?? {};
   const swatches = (design.palette ?? []).map((color) => `<span class="swatch" style="background:${esc(color.hex)}" title="${esc(color.role)}"></span>`).join("");
@@ -370,6 +422,11 @@ function planCard(plan, index) {
     <div class="verdict ${plan.verdict?.tone === "ok" ? "verdict--ok" : ""}">
       <b>${plan.verdict?.tone === "ok" ? "率直に言うと" : "率直に言うと（おすすめしない）"}</b>${esc(plan.verdict?.text ?? "")}
     </div>
+
+    <details class="sec sec--mock" open>
+      <summary class="sec__sum"><span class="sec__mark">見</span>画面の見本（さわれます）</summary>
+      <div class="sec__body">${renderMockup(plan, planSet?.samples, planSet?.summary?.topic)}</div>
+    </details>
 
     <details class="sec sec--build">
       <summary class="sec__sum"><span class="sec__mark">機</span>この案でつくるもの</summary>
@@ -456,7 +513,7 @@ function renderPlanSet(planSet) {
        <div class="btnrow"><button class="btn btn--ghost btn--small" type="button" data-act="copy-all">3案ぜんぶをコピー</button></div></div>`
     : "";
 
-  $("planResults").innerHTML = head + planSet.plans.map((plan, index) => planCard(plan, index)).join("") + tail;
+  $("planResults").innerHTML = head + planSet.plans.map((plan, index) => planCard(plan, index, planSet)).join("") + tail;
   $("planResults").scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
@@ -653,6 +710,7 @@ function applySettingsToForm() {
     ? "この端末では音声入力が使えます。マイクの許可を聞かれたら「許可」を選んでください。"
     : "この端末（ブラウザ）は音声入力に対応していません。Chrome か Safari でお試しください。文字入力はそのまま使えます。";
   $("micButton").disabled = !voiceSupported();
+  $("editMic").hidden = !voiceSupported();
 
   updateStorageInfo();
 }
@@ -802,6 +860,7 @@ function bindEvents() {
 
   // 書きなおす
   $("editDialog").addEventListener("close", () => {
+    if (voice.listening && voice.mode === "dictate") stopVoice({ save: false });
     if ($("editDialog").returnValue === "save" && state.editingId) {
       store.update(state.editingId, { text: $("editText").value, tags: $("editTags").value });
       renderIdeas();
@@ -815,6 +874,7 @@ function bindEvents() {
   // 音声
   $("micButton").addEventListener("click", toggleVoice);
   $("voiceDone").addEventListener("click", () => stopVoice({ save: true }));
+  $("editMic").addEventListener("click", toggleDictate);
 
   // 3案
   for (const button of document.querySelectorAll(".scope__btn")) {
@@ -828,6 +888,9 @@ function bindEvents() {
   $("planGenerate").addEventListener("click", generatePlans);
 
   $("planResults").addEventListener("click", (event) => {
+    const mock = event.target.closest("[data-mock]");
+    if (mock) { handleMockAction(mock); return; }
+
     const button = event.target.closest("[data-act]");
     if (!button || !state.planSet) return;
     if (button.dataset.act === "copy-plan") {

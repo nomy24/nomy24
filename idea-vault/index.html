@@ -231,6 +231,17 @@
       <span class="field__label">内容</span>
       <textarea id="editText" class="field__textarea" rows="5"></textarea>
     </label>
+
+    <div class="dictate">
+      <button id="editMic" class="dictate__btn" type="button" aria-pressed="false">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0"/><path d="M12 18v3"/></svg>
+        <span id="editMicLabel">声で書き足す</span>
+      </button>
+      <div id="editVoice" class="dictate__live" hidden>
+        <p id="editVoiceStatus" class="dictate__status" aria-live="polite"></p>
+        <p id="editVoiceText" class="dictate__text" aria-live="polite"></p>
+      </div>
+    </div>
     <label class="field">
       <span class="field__label">タグ（スペース区切り）</span>
       <input id="editTags" class="field__input" type="text" autocomplete="off">
