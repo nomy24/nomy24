@@ -5,6 +5,7 @@ import { store, normalizeTags } from "./store.js";
 import { proposeLocally } from "./propose.js";
 import { renderMockup, handleMockAction } from "./mockup.js";
 import { toCode, fromCode, codeAdvice, canShareFile, shareBackupFile } from "./migrate.js";
+import { proposeWithAi } from "./ai.js";
 
 const $ = (id) => document.getElementById(id);
 const esc = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]));
@@ -22,6 +23,7 @@ const state = {
   planSet: null,
   generating: false,
   pendingImport: null,
+  seenAxes: [],   // 一度出した切り口。「別の切り口で」を押したときに避ける
 };
 
 const RECENT_LIMIT = 20;
@@ -392,7 +394,7 @@ function updatePlanNote() {
   renderSelectBar();
 }
 
-const SCORE_LABEL = { build: "作りやすさ", keep: "続けやすさ", effect: "効き目" };
+const SCORE_LABEL = { build: "作りやすさ", keep: "続けやすさ", effect: "メモとの合い方" };
 
 function scoreBar(scores) {
   return Object.entries(SCORE_LABEL)
@@ -497,6 +499,7 @@ function renderPlanSet(planSet) {
   if (!planSet) {
     $("planResults").innerHTML = "";
     $("planEmpty").hidden = false;
+    $("planAnother").hidden = true;
     return;
   }
   $("planEmpty").hidden = true;
@@ -516,6 +519,7 @@ function renderPlanSet(planSet) {
     : "";
 
   $("planResults").innerHTML = head + planSet.plans.map((plan, index) => planCard(plan, index, planSet)).join("") + tail;
+  $("planAnother").hidden = false;
   $("planResults").scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
@@ -536,35 +540,41 @@ function renderHistory() {
     .join("");
 }
 
-async function generatePlans() {
+async function generatePlans({ another = false } = {}) {
   if (state.generating) return;
   const ideas = scopeIdeas();
   if (ideas.length === 0) { toast("もとにするメモがありません"); return; }
 
   state.generating = true;
   $("planGenerate").disabled = true;
+  $("planAnother").disabled = true;
   $("planLoading").hidden = false;
   const harsh = $("planHarsh").checked;
+  // 「別の切り口で」のときは、これまでに出した切り口を避ける
+  const exclude = another ? state.seenAxes : [];
 
   try {
     let planSet;
     if (store.settings.aiEnabled && store.settings.aiKey) {
       try {
-        const { proposeWithAi } = await import("./ai.js");
         planSet = await proposeWithAi(ideas, { apiKey: store.settings.aiKey, model: store.settings.aiModel, harsh });
       } catch (error) {
         toast(`AIは使えませんでした（${error.message}）。端末の中でつくります`);
-        planSet = proposeLocally(ideas, { harsh });
+        planSet = proposeLocally(ideas, { harsh, exclude });
       }
     } else {
-      planSet = proposeLocally(ideas, { harsh });
+      planSet = proposeLocally(ideas, { harsh, exclude });
     }
+    state.seenAxes = another
+      ? [...new Set([...state.seenAxes, ...(planSet.picked ?? [])])]
+      : [...(planSet.picked ?? [])];
     store.addPlanSet(planSet);
     renderPlanSet(planSet);
     renderHistory();
   } finally {
     state.generating = false;
     $("planLoading").hidden = true;
+    $("planAnother").disabled = false;
     updatePlanNote();
   }
 }
@@ -949,7 +959,8 @@ function bindEvents() {
     store.settings.harsh = event.target.checked;
     store.saveSettings();
   });
-  $("planGenerate").addEventListener("click", generatePlans);
+  $("planGenerate").addEventListener("click", () => generatePlans());
+  $("planAnother").addEventListener("click", () => generatePlans({ another: true }));
 
   $("planResults").addEventListener("click", (event) => {
     const mock = event.target.closest("[data-mock]");

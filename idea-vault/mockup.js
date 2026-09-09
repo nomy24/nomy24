@@ -45,7 +45,8 @@ function paletteOf(plan) {
   const base = colors[0] ?? "#1c1b22";
   const accent = colors[1] ?? "#6d4ad0";
   const second = colors[2] ?? accent;
-  const dark = plan.axis === "c" && luminance(base) < 0.45;
+  // 暗い画面にするかどうかは、案そのものが決める（配色の1色目が背景か文字かは案による）
+  const dark = plan.design?.dark === true && luminance(base) < 0.5;
 
   if (dark) {
     return {
@@ -80,88 +81,75 @@ const card = (text, meta = "") => `
 const tab = (label, target, on) =>
   `<button class="mock__tab${on ? " is-on" : ""}" type="button" data-mock="tab" data-target="${target}">${escapeHtml(label)}</button>`;
 
+const tabs = (labels) => labels.map((label, index) => tab(label, String(index + 1), index === 0)).join("");
+
+const screen = (index, inner) =>
+  `<div class="mock__screen${index === 1 ? " is-on" : ""}" data-mock-screen="${index}"${index === 1 ? "" : " hidden"}>${inner}</div>`;
+
 const sampleAt = (samples, index) => samples[index % samples.length] ?? FALLBACK_SAMPLES[0];
 
-/* --- 案1：いちばん小さく ------------------------------------------------- */
+/* --- 見本のかたち --------------------------------------------------------
+   切り口ごとに、画面の作りが変わる。動くのはタップ1回ぶんだけ。
+   -------------------------------------------------------------------------- */
 
-function screensMinimum(plan, samples, topic) {
-  const cards = [0, 1, 2].map((i) => {
-    const item = sampleAt(samples, i);
-    return card(item.text, `<span>${i === 0 ? "たった今" : `${i + 1}日前`}</span>${item.tag ? `<span class="mock__tag">${escapeHtml(item.tag)}</span>` : ""}`);
-  }).join("");
+const LAYOUTS = {
+  /* ためて一覧で見る */
+  list(samples, topic) {
+    const cards = [0, 1, 2].map((i) => {
+      const item = sampleAt(samples, i);
+      return card(item.text, `<span>${i === 0 ? "たった今" : `${i + 1}日前`}</span>${item.tag ? `<span class="mock__tag">${escapeHtml(item.tag)}</span>` : ""}`);
+    }).join("");
 
-  return {
-    body: `
-      <div class="mock__screen is-on" data-mock-screen="1">
+    return {
+      body: screen(1, `
         <div class="mock__field">
           <span class="mock__placeholder">${escapeHtml(topic)}のことを書く</span>
           <button class="mock__btn" type="button" data-mock="add">ためる</button>
         </div>
-        <ul class="mock__list" data-mock-list>${cards}</ul>
-      </div>
-      <div class="mock__screen" data-mock-screen="2" hidden>
+        <ul class="mock__list" data-mock-list>${cards}</ul>`)
+        + screen(2, `
         <div class="mock__field mock__field--search"><span class="mock__placeholder">${escapeHtml(topic)}</span></div>
         <p class="mock__label">1件</p>
-        <ul class="mock__list">${card(sampleAt(samples, 0).text, "<span>見つかった1件</span>")}</ul>
-      </div>`,
-    tabs: tab("ためる", "1", true) + tab("さがす", "2", false),
-  };
-}
+        <ul class="mock__list">${card(sampleAt(samples, 0).text, "<span>見つかった1件</span>")}</ul>`),
+      tabs: tabs(["ためる", "さがす"]),
+    };
+  },
 
-/* --- 案2：仕事に組み込む ------------------------------------------------- */
+  /* 担当と状態で回す */
+  board(samples) {
+    const row = (text, owner, due, state) => {
+      const cls = state === "完了" ? " is-done" : state === "対応中" ? " is-doing" : "";
+      return `
+      <li class="mock__card">
+        <p class="mock__text">${escapeHtml(text)}</p>
+        <p class="mock__meta">
+          <span>${escapeHtml(owner)}</span><span>${escapeHtml(due)}</span>
+          <button class="mock__chip${cls}" type="button" data-mock="state">${escapeHtml(state)}</button>
+        </p>
+      </li>`;
+    };
+    return {
+      body: screen(1, `<p class="mock__label">自分の分・2件</p><ul class="mock__list">
+          ${row(sampleAt(samples, 0).text, "自分", "今日", "未着手")}
+          ${row(sampleAt(samples, 1).text, "自分", "明日", "対応中")}</ul>`)
+        + screen(2, `<p class="mock__label">みんなの分・2件</p><ul class="mock__list">
+          ${row(sampleAt(samples, 2).text, "Aさん", "今週", "未着手")}
+          ${row(sampleAt(samples, 3).text, "Bさん", "来週", "未着手")}</ul>`)
+        + screen(3, `<p class="mock__label">終わったもの</p><ul class="mock__list">
+          ${row(sampleAt(samples, 0).text, "自分", "昨日", "完了")}</ul>`),
+      tabs: tabs(["自分", "みんな", "完了"]),
+    };
+  },
 
-function stateCard(text, owner, due, state) {
-  const cls = state === "完了" ? " is-done" : state === "対応中" ? " is-doing" : "";
-  return `
-  <li class="mock__card">
-    <p class="mock__text">${escapeHtml(text)}</p>
-    <p class="mock__meta">
-      <span>${escapeHtml(owner)}</span><span>${escapeHtml(due)}</span>
-      <button class="mock__chip${cls}" type="button" data-mock="state">${escapeHtml(state)}</button>
-    </p>
-  </li>`;
-}
-
-function screensWorkflow(plan, samples) {
-  return {
-    body: `
-      <div class="mock__screen is-on" data-mock-screen="1">
-        <p class="mock__label">自分の分・2件</p>
-        <ul class="mock__list">
-          ${stateCard(sampleAt(samples, 0).text, "自分", "今日", "未着手")}
-          ${stateCard(sampleAt(samples, 1).text, "自分", "明日", "対応中")}
-        </ul>
-      </div>
-      <div class="mock__screen" data-mock-screen="2" hidden>
-        <p class="mock__label">みんなの分・2件</p>
-        <ul class="mock__list">
-          ${stateCard(sampleAt(samples, 2).text, "Aさん", "今週", "未着手")}
-          ${stateCard(sampleAt(samples, 3).text, "Bさん", "来週", "未着手")}
-        </ul>
-      </div>
-      <div class="mock__screen" data-mock-screen="3" hidden>
-        <p class="mock__label">終わったもの</p>
-        <ul class="mock__list">${stateCard(sampleAt(samples, 0).text, "自分", "昨日", "完了")}</ul>
-      </div>`,
-    tabs: tab("自分", "1", true) + tab("みんな", "2", false) + tab("完了", "3", false),
-  };
-}
-
-/* --- 案3：機械にやらせる ------------------------------------------------- */
-
-function screensLeverage(plan, samples, topic) {
-  const first = sampleAt(samples, 0).text;
-  const second = sampleAt(samples, 1).text;
-  const bars = [["今週", 72], ["先週", 45], ["先々週", 28]]
-    .map(([label, width]) => `<div class="mock__bar"><span>${label}</span><i style="width:${width}%"></i></div>`)
-    .join("");
-
-  return {
-    body: `
-      <div class="mock__screen is-on" data-mock-screen="1">
+  /* 機械の下書きを、人が採用する */
+  queue(samples, topic) {
+    const bars = [["今週", 72], ["先週", 45], ["先々週", 28]]
+      .map(([label, width]) => `<div class="mock__bar"><span>${label}</span><i style="width:${width}%"></i></div>`).join("");
+    return {
+      body: screen(1, `
         <p class="mock__label">機械の下書き</p>
         <div class="mock__draft" data-mock-draft>
-          <p class="mock__text">「${escapeHtml(first)}」と「${escapeHtml(second)}」は同じ話。${escapeHtml(topic)}のまとめとして1件にできます。</p>
+          <p class="mock__text">「${escapeHtml(sampleAt(samples, 0).text)}」と「${escapeHtml(sampleAt(samples, 1).text)}」は同じ話。${escapeHtml(topic)}のまとめとして1件にできます。</p>
           <p class="mock__meta"><span class="mock__tag">タグ案：${escapeHtml(topic)}</span></p>
           <div class="mock__acts">
             <button class="mock__btn" type="button" data-mock="adopt">採用</button>
@@ -170,16 +158,184 @@ function screensLeverage(plan, samples, topic) {
           </div>
         </div>
         <p class="mock__label">採用したもの</p>
-        <ul class="mock__list" data-mock-adopted><li class="mock__empty">まだありません</li></ul>
-      </div>
-      <div class="mock__screen" data-mock-screen="2" hidden>
-        <p class="mock__label">ためた数</p>
+        <ul class="mock__list" data-mock-adopted><li class="mock__empty">まだありません</li></ul>`)
+        + screen(2, `<p class="mock__label">ためた数</p><div class="mock__bars">${bars}</div>
+          <p class="mock__note">今月の生成 12回・目安 30円</p>`),
+      tabs: tabs(["下書き", "ふりかえり"]),
+    };
+  },
+
+  /* 引いて、開いて読む */
+  detail(samples, topic) {
+    const item = (text, count, index) => `
+      <li class="mock__card mock__card--open" data-mock-open-item>
+        <p class="mock__text">${escapeHtml(text)}</p>
+        <p class="mock__meta"><span>${count}回きかれた</span>
+          <button class="mock__chip" type="button" data-mock="open" data-target="ans${index}">答えを見る</button></p>
+        <p class="mock__answer" id="ans${index}" hidden>ここに答えが入ります。窓口で読み上げられる長さで区切って書きます。</p>
+      </li>`;
+    return {
+      body: screen(1, `
+        <div class="mock__field mock__field--search"><span class="mock__placeholder">${escapeHtml(topic)}をさがす</span></div>
+        <p class="mock__label">よくきかれる順</p>
+        <ul class="mock__list">${item(sampleAt(samples, 0).text, 12, 1)}${item(sampleAt(samples, 1).text, 7, 2)}</ul>`)
+        + screen(2, `
+        <p class="mock__label">足す</p>
+        <div class="mock__field"><span class="mock__placeholder">きかれたこと</span></div>
+        <div class="mock__field"><span class="mock__placeholder">答えたこと</span></div>
+        <button class="mock__btn mock__btn--wide" type="button" data-mock="add">登録する</button>
+        <ul class="mock__list" data-mock-list></ul>`),
+      tabs: tabs(["引く", "足す"]),
+    };
+  },
+
+  /* 写真が主役 */
+  gallery(samples) {
+    const shot = (item, when) => `
+      <li class="mock__shot">
+        <span class="mock__thumb" aria-hidden="true"></span>
+        <p class="mock__text">${escapeHtml(item.text)}</p>
+        <p class="mock__meta"><span>${when}</span></p>
+      </li>`;
+    return {
+      body: screen(1, `
+        <div class="mock__field"><span class="mock__placeholder">今日 3枚</span>
+          <button class="mock__btn" type="button" data-mock="add">撮る</button></div>
+        <ul class="mock__grid" data-mock-list>
+          ${shot(sampleAt(samples, 0), "たった今")}${shot(sampleAt(samples, 1), "9:40")}
+          ${shot(sampleAt(samples, 2), "昨日")}${shot(sampleAt(samples, 3), "昨日")}
+        </ul>`)
+        + screen(2, `
+        <p class="mock__label">場所の近い順</p>
+        <ul class="mock__list">
+          ${card(sampleAt(samples, 0).text, "<span>ここから 120m</span>")}
+          ${card(sampleAt(samples, 1).text, "<span>ここから 1.4km</span>")}
+        </ul>`),
+      tabs: tabs(["日付順", "場所順"]),
+    };
+  },
+
+  /* 日付の側から見る */
+  calendar(samples, topic) {
+    const days = Array.from({ length: 28 }, (_, i) => {
+      const day = i + 1;
+      const dots = [8, 15, 16, 22, 25].includes(day) ? '<i></i>' : "";
+      const today = day === 15;
+      return `<button class="mock__day${today ? " is-on" : ""}" type="button" data-mock="day">${day}${dots}</button>`;
+    }).join("");
+    return {
+      body: screen(1, `
+        <p class="mock__label">9月</p>
+        <div class="mock__cal">${days}</div>
+        <p class="mock__label">15日の${escapeHtml(topic)}</p>
+        <ul class="mock__list">
+          ${card(sampleAt(samples, 0).text, "<span>当番：自分</span><span>今日まで</span>")}
+          ${card(sampleAt(samples, 1).text, "<span>当番：Aさん</span><span>あと3日</span>")}
+        </ul>`)
+        + screen(2, `
+        <p class="mock__label">繰り返しの型</p>
+        <ul class="mock__list">
+          ${card("毎月末：" + sampleAt(samples, 0).text, "<span>月末3日前から出す</span>")}
+          ${card("毎週金：" + sampleAt(samples, 1).text, "<span>当番はA→B→C</span>")}
+        </ul>`),
+      tabs: tabs(["こよみ", "型"]),
+    };
+  },
+
+  /* 手順を上から潰す */
+  checklist(samples, topic) {
+    const line = (text, done) => `
+      <li class="mock__check${done ? " is-done" : ""}">
+        <button class="mock__box" type="button" data-mock="check" aria-pressed="${done}"></button>
+        <span>${escapeHtml(text)}</span>
+      </li>`;
+    return {
+      body: screen(1, `
+        <p class="mock__label">${escapeHtml(topic)}の作業　3/6 完了</p>
+        <ul class="mock__checks">
+          ${line(sampleAt(samples, 0).text, false)}
+          ${line(sampleAt(samples, 1).text, false)}
+          ${line(sampleAt(samples, 2).text, false)}
+          ${line("前回からの引き継ぎを確認する", true)}
+        </ul>`)
+        + screen(2, `
+        <p class="mock__label">型（3つ）</p>
+        <ul class="mock__list">
+          ${card("月末の作業（8項目）", "<span>先月 使用</span>")}
+          ${card("引き継ぎ前の確認（5項目）", "<span>3回 使用</span>")}
+        </ul>`),
+      tabs: tabs(["今日の作業", "型の管理"]),
+    };
+  },
+
+  /* 前回を下敷きにして書く */
+  form(samples, topic) {
+    const field = (label, value, filled) => `
+      <div class="mock__row">
+        <span class="mock__rowlabel">${escapeHtml(label)}</span>
+        <button class="mock__value${filled ? " is-filled" : ""}" type="button" data-mock="fill">${escapeHtml(value)}</button>
+      </div>`;
+    return {
+      body: screen(1, `
+        <p class="mock__label">${escapeHtml(topic)}のひな形（前回の値）</p>
+        ${field("件名", sampleAt(samples, 0).text, false)}
+        ${field("担当", "自分", true)}
+        ${field("日付", "9月15日", false)}
+        ${field("内容", sampleAt(samples, 1).text, false)}
+        <p class="mock__note">薄い文字は前回の値。押すと確定します。</p>`)
+        + screen(2, `
+        <p class="mock__label">型（4つ）</p>
+        <ul class="mock__list">
+          ${card(sampleAt(samples, 0).text, "<span>12回 使用</span>")}
+          ${card(sampleAt(samples, 1).text, "<span>5回 使用</span>")}
+        </ul>`),
+      tabs: tabs(["書く", "型の管理"]),
+    };
+  },
+
+  /* 数で見る */
+  dashboard(samples, topic) {
+    const bars = [["今週", 82], ["先週", 54], ["2週前", 61], ["3週前", 30]]
+      .map(([label, width]) => `<div class="mock__bar"><span>${label}</span><i style="width:${width}%"></i></div>`).join("");
+    return {
+      body: screen(1, `
+        <div class="mock__stats">
+          <div class="mock__stat"><b>14</b><span>今週</span></div>
+          <div class="mock__stat"><b>+5</b><span>先週比</span></div>
+          <div class="mock__stat"><b>6日</b><span>続いた</span></div>
+        </div>
+        <p class="mock__label">週ごと</p>
         <div class="mock__bars">${bars}</div>
-        <p class="mock__note">今月の生成 12回・目安 30円</p>
-      </div>`,
-    tabs: tab("下書き", "1", true) + tab("ふりかえり", "2", false),
-  };
-}
+        <p class="mock__label">よく出た言葉</p>
+        <p class="mock__meta"><span class="mock__tag">${escapeHtml(topic)}</span><span class="mock__tag">${escapeHtml(sampleAt(samples, 1).tag || "共有")}</span></p>`)
+        + screen(2, `<p class="mock__label">今週の中身</p><ul class="mock__list">
+          ${card(sampleAt(samples, 0).text, "<span>月曜</span>")}
+          ${card(sampleAt(samples, 1).text, "<span>水曜</span>")}</ul>`),
+      tabs: tabs(["ふりかえり", "一覧"]),
+    };
+  },
+
+  /* 1日1回だけ押す */
+  streak(samples, topic) {
+    const dots = ["月", "火", "水", "木", "金", "土", "日"]
+      .map((label, i) => `<span class="mock__dot${i < 4 ? " is-on" : ""}">${label}</span>`).join("");
+    return {
+      body: screen(1, `
+        <div class="mock__big"><b>4</b><span>日つづいた</span></div>
+        <button class="mock__press" type="button" data-mock="press">今日の${escapeHtml(topic)}</button>
+        <div class="mock__dots">${dots}</div>
+        <p class="mock__note">ひとことは、書かなくてかまいません</p>`)
+        + screen(2, `<p class="mock__label">先月</p>
+        <div class="mock__bars">
+          <div class="mock__bar"><span>1週</span><i style="width:70%"></i></div>
+          <div class="mock__bar"><span>2週</span><i style="width:100%"></i></div>
+          <div class="mock__bar"><span>3週</span><i style="width:40%"></i></div>
+        </div>
+        <p class="mock__note">途切れた週があっても、記録は残ります</p>`),
+      tabs: tabs(["今日", "ふりかえり"]),
+    };
+  },
+};
 
 /* --- 入口 ---------------------------------------------------------------- */
 
@@ -187,11 +343,8 @@ export function renderMockup(plan, samples, topic) {
   const list = Array.isArray(samples) && samples.length ? samples : FALLBACK_SAMPLES;
   const word = topic || "思いつき";
   const color = paletteOf(plan);
-  const screens = plan.axis === "b"
-    ? screensWorkflow(plan, list)
-    : plan.axis === "c"
-      ? screensLeverage(plan, list, word)
-      : screensMinimum(plan, list, word);
+  const layout = LAYOUTS[plan.design?.mock] ?? LAYOUTS.list;
+  const screens = layout(list, word);
 
   const style = [
     `--m-bg:${color.bg}`, `--m-surface:${color.surface}`, `--m-line:${color.line}`,
@@ -223,10 +376,10 @@ export function handleMockAction(button) {
   const kind = button.dataset.mock;
 
   if (kind === "tab") {
-    for (const screen of root.querySelectorAll("[data-mock-screen]")) {
-      const on = screen.dataset.mockScreen === button.dataset.target;
-      screen.hidden = !on;
-      screen.classList.toggle("is-on", on);
+    for (const item of root.querySelectorAll("[data-mock-screen]")) {
+      const on = item.dataset.mockScreen === button.dataset.target;
+      item.hidden = !on;
+      item.classList.toggle("is-on", on);
     }
     for (const item of root.querySelectorAll(".mock__tab")) item.classList.toggle("is-on", item === button);
     return;
@@ -241,19 +394,77 @@ export function handleMockAction(button) {
     return;
   }
 
+  if (kind === "check") {
+    const line = button.closest(".mock__check");
+    const done = !line.classList.contains("is-done");
+    line.classList.toggle("is-done", done);
+    button.setAttribute("aria-pressed", String(done));
+    return;
+  }
+
+  if (kind === "fill") {
+    button.classList.add("is-filled");
+    return;
+  }
+
+  if (kind === "open") {
+    const answer = root.querySelector(`#${CSS.escape(button.dataset.target)}`);
+    if (!answer) return;
+    answer.hidden = !answer.hidden;
+    button.textContent = answer.hidden ? "答えを見る" : "閉じる";
+    return;
+  }
+
+  if (kind === "day") {
+    for (const day of root.querySelectorAll(".mock__day")) day.classList.toggle("is-on", day === button);
+    const label = root.querySelector('[data-mock-screen="1"] .mock__label + .mock__cal + .mock__label');
+    if (label) label.textContent = label.textContent.replace(/^\d+日/, `${button.textContent.replace(/\D/g, "")}日`);
+    return;
+  }
+
+  if (kind === "press") {
+    const big = root.querySelector(".mock__big b");
+    const dots = [...root.querySelectorAll(".mock__dot")];
+    const next = dots.find((dot) => !dot.classList.contains("is-on"));
+    if (next) {
+      next.classList.add("is-on");
+      if (big) big.textContent = String(Number(big.textContent) + 1);
+      button.classList.add("is-pressed");
+      setTimeout(() => button.classList.remove("is-pressed"), 400);
+    }
+    return;
+  }
+
   if (kind === "add") {
-    const list = root.querySelector("[data-mock-list]");
+    const list = root.querySelector('[data-mock-screen].is-on [data-mock-list]') ?? root.querySelector("[data-mock-list]");
     if (!list) return;
     let texts = [];
     try { texts = JSON.parse(root.dataset.mockSamples || "[]"); } catch { texts = []; }
     const at = Number(root.dataset.mockAt || "0");
     root.dataset.mockAt = String(at + 1);
+    const text = texts[at % Math.max(1, texts.length)] ?? "いま話した内容";
     const item = document.createElement("li");
-    item.className = "mock__card is-new";
-    item.innerHTML = `<p class="mock__text"></p><p class="mock__meta"><span>たった今</span></p>`;
-    item.querySelector(".mock__text").textContent = texts[at % Math.max(1, texts.length)] ?? "いま話した内容";
+    if (list.classList.contains("mock__grid")) {
+      item.className = "mock__shot is-new";
+      item.innerHTML = '<span class="mock__thumb" aria-hidden="true"></span><p class="mock__text"></p><p class="mock__meta"><span>たった今</span></p>';
+    } else {
+      item.className = "mock__card is-new";
+      item.innerHTML = '<p class="mock__text"></p><p class="mock__meta"><span>たった今</span></p>';
+    }
+    item.querySelector(".mock__text").textContent = text;
     list.prepend(item);
     while (list.children.length > 4) list.lastElementChild.remove();
+    return;
+  }
+
+  if (kind === "edit") {
+    // 「直す」は、人の手が入ったことが見た目で分かるところまで
+    const draft = button.closest("[data-mock-draft]");
+    if (!draft) return;
+    draft.classList.add("is-edited");
+    const tag = draft.querySelector(".mock__tag");
+    if (tag) tag.textContent = "自分で直したもの";
+    button.textContent = "直した";
     return;
   }
 
@@ -265,7 +476,7 @@ export function handleMockAction(button) {
       adopted.querySelector(".mock__empty")?.remove();
       const item = document.createElement("li");
       item.className = "mock__card is-new";
-      item.innerHTML = `<p class="mock__text"></p><p class="mock__meta"><span>採用済み</span></p>`;
+      item.innerHTML = '<p class="mock__text"></p><p class="mock__meta"><span>採用済み</span></p>';
       item.querySelector(".mock__text").textContent = draft.querySelector(".mock__text")?.textContent ?? "";
       adopted.prepend(item);
     }
