@@ -4,6 +4,7 @@
 import { store, normalizeTags } from "./store.js";
 import { proposeLocally } from "./propose.js";
 import { renderMockup, handleMockAction } from "./mockup.js";
+import { toCode, fromCode, codeAdvice, canShareFile, shareBackupFile } from "./migrate.js";
 
 const $ = (id) => document.getElementById(id);
 const esc = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]));
@@ -20,6 +21,7 @@ const state = {
   editingId: null,
   planSet: null,
   generating: false,
+  pendingImport: null,
 };
 
 const RECENT_LIMIT = 20;
@@ -672,6 +674,67 @@ function exportText() {
 }
 
 /* --------------------------------------------------------------------------
+   移行（持ち出しと取り込み）
+   -------------------------------------------------------------------------- */
+
+function backupNow() {
+  return store.toBackup({ withPlans: $("withPlans").checked });
+}
+
+/** 取り込む前に、何がどう変わるかを見せる */
+function openImport(backup, from) {
+  let report;
+  try {
+    report = store.inspect(backup);
+  } catch (error) {
+    toast(`取り込めません（${error.message}）`);
+    return;
+  }
+  if (report.incoming === 0) {
+    toast("中身が空でした");
+    return;
+  }
+
+  state.pendingImport = backup;
+  const when = report.exportedAt ? timeFormat.format(new Date(report.exportedAt)) : "不明";
+  $("importLead").textContent = `${from}から ${report.incoming}件。この端末にはいま ${report.here}件あります。`;
+  $("importDetail").innerHTML = [
+    ["新しく増える", `${report.added}件`],
+    ["内容が新しくなる", `${report.updated}件`],
+    ["すでに同じものがある", `${report.same}件`],
+    ["提案の履歴", `${report.plans}件`],
+    ["書き出した日時", when],
+  ].map(([label, value]) => `<dt>${esc(label)}</dt><dd>${esc(value)}</dd>`).join("");
+  $("importDialog").showModal();
+}
+
+function afterImport(message, undo) {
+  renderIdeas();
+  renderTags();
+  renderHistory();
+  updatePlanNote();
+  updateStorageInfo();
+  toast(message, undo);
+}
+
+async function makeCode() {
+  const button = $("makeCode");
+  button.disabled = true;
+  try {
+    const code = await toCode(backupNow());
+    $("codeText").value = code;
+    $("codeNote").textContent = codeAdvice(code);
+    $("codeOut").hidden = false;
+    $("codeText").focus();
+    $("codeText").select();
+  } catch {
+    toast("コードを作れませんでした");
+  } finally {
+    button.disabled = false;
+  }
+}
+
+/* --------------------------------------------------------------------------
    画面の切り替え
    -------------------------------------------------------------------------- */
 
@@ -711,6 +774,7 @@ function applySettingsToForm() {
     : "この端末（ブラウザ）は音声入力に対応していません。Chrome か Safari でお試しください。文字入力はそのまま使えます。";
   $("micButton").disabled = !voiceSupported();
   $("editMic").hidden = !voiceSupported();
+  $("shareFile").hidden = !canShareFile();
 
   updateStorageInfo();
 }
@@ -927,26 +991,78 @@ function bindEvents() {
   });
 
   $("exportJson").addEventListener("click", () => {
-    download(`idea-vault-${stamp()}.json`, JSON.stringify(store.toBackup(), null, 2), "application/json");
+    download(`idea-vault-${stamp()}.json`, JSON.stringify(backupNow(), null, 2), "application/json");
     toast("書き出しました");
   });
   $("exportMd").addEventListener("click", () => { exportText(); toast("書き出しました"); });
+
+  $("shareFile").addEventListener("click", async () => {
+    try {
+      const sent = await shareBackupFile(backupNow(), `idea-vault-${stamp()}.json`);
+      if (sent) toast("送りました");
+    } catch (error) {
+      toast(error.message);
+    }
+  });
+
+  $("makeCode").addEventListener("click", makeCode);
+  // 履歴を含めるかを切り替えたら、出しているコードも作り直す
+  $("withPlans").addEventListener("change", () => { if (!$("codeOut").hidden) makeCode(); });
+  $("copyCode").addEventListener("click", () => copyText($("codeText").value));
+  $("closeCode").addEventListener("click", () => { $("codeOut").hidden = true; });
+
+  $("pasteToggle").addEventListener("click", () => {
+    const box = $("pasteBox");
+    box.hidden = !box.hidden;
+    $("pasteToggle").setAttribute("aria-pressed", String(!box.hidden));
+    if (!box.hidden) $("pasteText").focus();
+  });
+
+  $("pasteRead").addEventListener("click", async () => {
+    const text = $("pasteText").value;
+    if (!text.trim()) { toast("コードが貼り付けられていません"); return; }
+    try {
+      openImport(await fromCode(text), "貼り付けたコード");
+    } catch (error) {
+      toast(error.message);
+    }
+  });
+
   $("importBtn").addEventListener("click", () => $("importFile").click());
   $("importFile").addEventListener("change", async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
     try {
-      const result = store.merge(JSON.parse(await file.text()));
-      renderIdeas();
-      renderTags();
-      renderHistory();
-      applySettingsToForm();
-      updatePlanNote();
-      toast(`${result.added}件を読み込みました（更新 ${result.updated}件）`);
-    } catch (error) {
-      toast(`読み込めませんでした（${error.message}）`);
+      openImport(await fromCode(await file.text()), "ファイル");
+    } catch {
+      toast("このファイルは読み込めません。書き出した JSON ファイルを選んでください");
     }
     event.target.value = "";
+  });
+
+  $("importDialog").addEventListener("close", () => {
+    const backup = state.pendingImport;
+    const choice = $("importDialog").returnValue;
+    state.pendingImport = null;
+    if (!backup || choice === "cancel" || !choice) return;
+
+    if (choice === "replace") {
+      const before = store.replaceAll(backup);
+      state.planSet = null;
+      state.selected.clear();
+      renderPlanSet(null);
+      afterImport(`入れ替えました（${store.ideas.length}件）`, () => {
+        store.restoreAll(before);
+        afterImport("元に戻しました");
+      });
+      return;
+    }
+
+    const result = store.merge(backup);
+    afterImport(`${result.added}件を足しました（内容が新しくなった分 ${result.updated}件）`);
+    $("pasteText").value = "";
+    $("pasteBox").hidden = true;
+    $("pasteToggle").setAttribute("aria-pressed", "false");
   });
 
   $("clearAll").addEventListener("click", () => {

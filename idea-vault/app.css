@@ -609,6 +609,19 @@ svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width:
 .dictate__text { margin: .25rem 0 0; font-size: .8125rem; line-height: 1.6; min-height: 1.3em; overflow-wrap: anywhere; }
 .dictate__text:empty::before { content: "話しかけてください"; color: var(--color-placeholder); }
 
+/* --- 移行コード --------------------------------------------------------- */
+
+.code {
+  font-family: var(--font-num);
+  font-size: .6875rem; line-height: 1.5; letter-spacing: .01em;
+  word-break: break-all;
+  min-height: 5.5rem;
+  margin-top: .625rem;
+}
+
+.dialog__lead { margin: 0 0 .75rem; font-size: .875rem; line-height: 1.8; color: var(--color-text-muted); }
+.dialog__actions--stack { flex-direction: column; }
+
 /* --- 案の画面見本 ------------------------------------------------------ */
 /* 中の色は案ごとの配色（--m-*）で塗る。まわりのアプリの明暗には合わせない。 */
 

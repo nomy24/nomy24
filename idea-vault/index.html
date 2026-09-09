@@ -158,15 +158,44 @@
     </section>
 
     <section class="panel">
-      <h2 class="panel__title">データ</h2>
+      <h2 class="panel__title">データの移行</h2>
       <p class="panel__note" id="storageInfo">この端末の中だけに保存しています。</p>
+
+      <h3 class="subhead">ほかの端末へ持っていく</h3>
+      <label class="switch">
+        <input id="withPlans" type="checkbox" checked>
+        <span class="switch__box" aria-hidden="true"></span>
+        <span class="switch__text"><b>提案の履歴も一緒に持っていく</b>外すと、ためたメモだけになります</span>
+      </label>
       <div class="btnrow">
-        <button id="exportJson" class="btn btn--ghost" type="button">書き出す（JSON）</button>
-        <button id="exportMd" class="btn btn--ghost" type="button">書き出す（テキスト）</button>
+        <button id="exportJson" class="btn btn--ghost" type="button">ファイルに書き出す</button>
+        <button id="shareFile" class="btn btn--ghost" type="button" hidden>ほかのアプリに送る</button>
       </div>
+      <button id="makeCode" class="btn btn--ghost btn--wide" type="button">移行コードを作る（貼り付けで移す）</button>
+      <div id="codeOut" hidden>
+        <textarea id="codeText" class="field__textarea code" rows="4" readonly aria-label="移行コード"></textarea>
+        <p class="panel__note" id="codeNote"></p>
+        <div class="btnrow">
+          <button id="copyCode" class="btn btn--primary btn--small" type="button">コピー</button>
+          <button id="closeCode" class="btn btn--ghost btn--small" type="button">閉じる</button>
+        </div>
+      </div>
+
+      <h3 class="subhead">この端末に取り込む</h3>
       <div class="btnrow">
-        <button id="importBtn" class="btn btn--ghost" type="button">読み込む（JSON）</button>
+        <button id="importBtn" class="btn btn--ghost" type="button">ファイルを選ぶ</button>
+        <button id="pasteToggle" class="btn btn--ghost" type="button" aria-pressed="false">コードを貼る</button>
         <input id="importFile" type="file" accept="application/json,.json" hidden>
+      </div>
+      <div id="pasteBox" hidden>
+        <textarea id="pasteText" class="field__textarea code" rows="4" placeholder="ここに移行コードを貼り付けてください" aria-label="移行コードの貼り付け先"></textarea>
+        <button id="pasteRead" class="btn btn--primary btn--wide" type="button">読み取る</button>
+      </div>
+      <p class="panel__note">取り込む前に、何件増えて何件変わるかを確かめる画面が出ます。同じメモは二重になりません。</p>
+
+      <h3 class="subhead">そのほか</h3>
+      <div class="btnrow">
+        <button id="exportMd" class="btn btn--ghost" type="button">テキストで書き出す（読む用）</button>
       </div>
       <button id="clearAll" class="btn btn--danger" type="button">すべて消す</button>
     </section>
@@ -223,6 +252,19 @@
   <span id="toastText" class="toast__text"></span>
   <button id="toastAction" class="toast__action" type="button" hidden>元に戻す</button>
 </div>
+
+<dialog id="importDialog" class="dialog">
+  <form method="dialog" class="dialog__form">
+    <h2 class="dialog__title">取り込みの確認</h2>
+    <p id="importLead" class="dialog__lead"></p>
+    <dl class="dl" id="importDetail"></dl>
+    <div class="dialog__actions dialog__actions--stack">
+      <button class="btn btn--primary" value="merge" type="submit">今のものに足す</button>
+      <button class="btn btn--ghost" value="replace" type="submit">全部を入れ替える</button>
+      <button class="btn btn--ghost" value="cancel" type="submit">やめる</button>
+    </div>
+  </form>
+</dialog>
 
 <dialog id="editDialog" class="dialog">
   <form method="dialog" class="dialog__form">

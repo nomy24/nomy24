@@ -178,15 +178,59 @@ export const store = {
     this.savePlans();
   },
 
-  /** 書き出し用のかたまり */
-  toBackup() {
+  /** 書き出し用のかたまり。提案の履歴は大きいので、外せるようにしてある */
+  toBackup({ withPlans = true } = {}) {
     return {
       app: "idea-vault",
       version: 1,
       exportedAt: new Date().toISOString(),
       ideas: this.ideas,
-      plans: this.plans,
+      plans: withPlans ? this.plans : [],
     };
+  },
+
+  /** 取り込む前に、何がどう変わるかを数えておく（消える件数を見せてから決めてもらう） */
+  inspect(backup) {
+    if (!backup || !Array.isArray(backup.ideas)) throw new Error("形式がちがいます");
+    const incoming = backup.ideas.map(normalizeIdea).filter(Boolean);
+    const byId = new Map(this.ideas.map((idea) => [idea.id, idea]));
+    let added = 0;
+    let updated = 0;
+    let same = 0;
+    for (const idea of incoming) {
+      const current = byId.get(idea.id);
+      if (!current) added += 1;
+      else if (idea.updatedAt > current.updatedAt) updated += 1;
+      else same += 1;
+    }
+    return {
+      incoming: incoming.length,
+      added,
+      updated,
+      same,
+      plans: Array.isArray(backup.plans) ? backup.plans.length : 0,
+      here: this.ideas.length,
+      exportedAt: typeof backup.exportedAt === "string" ? backup.exportedAt : null,
+    };
+  },
+
+  /** 入れ替え。戻せるように、消す前の中身をそのまま返す */
+  replaceAll(backup) {
+    if (!backup || !Array.isArray(backup.ideas)) throw new Error("形式がちがいます");
+    const before = { ideas: this.ideas, plans: this.plans };
+    this.ideas = backup.ideas.map(normalizeIdea).filter(Boolean);
+    this.plans = (Array.isArray(backup.plans) ? backup.plans : []).filter((p) => p && Array.isArray(p.plans)).slice(0, PLAN_HISTORY_MAX);
+    this.saveIdeas();
+    this.savePlans();
+    return before;
+  },
+
+  /** replaceAll のあとで「元に戻す」を押されたとき */
+  restoreAll(before) {
+    this.ideas = before.ideas;
+    this.plans = before.plans;
+    this.saveIdeas();
+    this.savePlans();
   },
 
   /** 読み込み。既存は消さずに、同じ id のものだけ新しいほうを残す */
