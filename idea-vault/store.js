@@ -4,18 +4,11 @@
 
 const KEY_IDEAS = "idea-vault/ideas.v1";
 const KEY_SETTINGS = "idea-vault/settings.v1";
-const KEY_PLANS = "idea-vault/plans.v1";
-
-const PLAN_HISTORY_MAX = 12;
 
 export const DEFAULT_SETTINGS = {
   continuous: true,   // ひと区切りごとに1件として保存する
   keepMic: true,      // 端末が勝手に切ったらつなぎ直す
   lang: "ja-JP",
-  aiEnabled: false,
-  aiKey: "",
-  aiModel: "claude-opus-5",
-  harsh: true,        // 容赦なしモード
 };
 
 function readJson(key, fallback) {
@@ -77,7 +70,6 @@ function normalizeIdea(value) {
 export const store = {
   ideas: [],
   settings: { ...DEFAULT_SETTINGS },
-  plans: [],
   /** 書き込みに失敗した回数。UI から見て警告を出すのに使う */
   writeFailed: false,
 
@@ -87,9 +79,6 @@ export const store = {
 
     const rawSettings = readJson(KEY_SETTINGS, {});
     this.settings = { ...DEFAULT_SETTINGS, ...(rawSettings && typeof rawSettings === "object" ? rawSettings : {}) };
-
-    const rawPlans = readJson(KEY_PLANS, []);
-    this.plans = (Array.isArray(rawPlans) ? rawPlans : []).filter((p) => p && Array.isArray(p.plans)).slice(0, PLAN_HISTORY_MAX);
 
     return this;
   },
@@ -101,10 +90,6 @@ export const store = {
 
   saveSettings() {
     return writeJson(KEY_SETTINGS, this.settings);
-  },
-
-  savePlans() {
-    return writeJson(KEY_PLANS, this.plans.slice(0, PLAN_HISTORY_MAX));
   },
 
   /** 新しい順に並べ替える（ピン留めは常に上） */
@@ -154,9 +139,7 @@ export const store = {
 
   clearAll() {
     this.ideas = [];
-    this.plans = [];
     this.saveIdeas();
-    this.savePlans();
   },
 
   tagCounts() {
@@ -167,25 +150,13 @@ export const store = {
     return [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "ja"));
   },
 
-  addPlanSet(record) {
-    this.plans.unshift(record);
-    this.plans = this.plans.slice(0, PLAN_HISTORY_MAX);
-    this.savePlans();
-  },
-
-  removePlanSet(id) {
-    this.plans = this.plans.filter((record) => record.id !== id);
-    this.savePlans();
-  },
-
-  /** 書き出し用のかたまり。提案の履歴は大きいので、外せるようにしてある */
-  toBackup({ withPlans = true } = {}) {
+  /** 書き出し用のかたまり */
+  toBackup() {
     return {
       app: "idea-vault",
       version: 1,
       exportedAt: new Date().toISOString(),
       ideas: this.ideas,
-      plans: withPlans ? this.plans : [],
     };
   },
 
@@ -208,7 +179,6 @@ export const store = {
       added,
       updated,
       same,
-      plans: Array.isArray(backup.plans) ? backup.plans.length : 0,
       here: this.ideas.length,
       exportedAt: typeof backup.exportedAt === "string" ? backup.exportedAt : null,
     };
@@ -217,20 +187,16 @@ export const store = {
   /** 入れ替え。戻せるように、消す前の中身をそのまま返す */
   replaceAll(backup) {
     if (!backup || !Array.isArray(backup.ideas)) throw new Error("形式がちがいます");
-    const before = { ideas: this.ideas, plans: this.plans };
+    const before = { ideas: this.ideas };
     this.ideas = backup.ideas.map(normalizeIdea).filter(Boolean);
-    this.plans = (Array.isArray(backup.plans) ? backup.plans : []).filter((p) => p && Array.isArray(p.plans)).slice(0, PLAN_HISTORY_MAX);
     this.saveIdeas();
-    this.savePlans();
     return before;
   },
 
   /** replaceAll のあとで「元に戻す」を押されたとき */
   restoreAll(before) {
     this.ideas = before.ideas;
-    this.plans = before.plans;
     this.saveIdeas();
-    this.savePlans();
   },
 
   /** 読み込み。既存は消さずに、同じ id のものだけ新しいほうを残す */
@@ -253,16 +219,7 @@ export const store = {
     this.ideas = [...byId.values()];
     this.saveIdeas();
 
-    if (Array.isArray(backup.plans)) {
-      const known = new Set(this.plans.map((p) => p.id));
-      for (const record of backup.plans) {
-        if (record && Array.isArray(record.plans) && !known.has(record.id)) this.plans.push(record);
-      }
-      this.plans.sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
-      this.plans = this.plans.slice(0, PLAN_HISTORY_MAX);
-      this.savePlans();
-    }
-
+    // 前の版の書き出しには提案の履歴が入っていることがあるが、いまは読み飛ばす
     return { added, updated };
   },
 };

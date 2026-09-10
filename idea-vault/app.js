@@ -2,10 +2,7 @@
    置き場所は端末の中だけ。声とキーボードの2つの入口から同じ1件をためる。 */
 
 import { store, normalizeTags } from "./store.js";
-import { proposeLocally } from "./propose.js";
-import { renderMockup, handleMockAction } from "./mockup.js";
 import { toCode, fromCode, codeAdvice, canShareFile, shareBackupFile } from "./migrate.js";
-import { proposeWithAi } from "./ai.js";
 
 const $ = (id) => document.getElementById(id);
 const esc = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]));
@@ -16,17 +13,10 @@ const state = {
   tag: null,
   selectMode: false,
   selected: new Set(),
-  scope: "recent",
-  planTag: "",
   openMenu: null,
   editingId: null,
-  planSet: null,
-  generating: false,
   pendingImport: null,
-  seenAxes: [],   // 一度出した切り口。「別の切り口で」を押したときに避ける
 };
-
-const RECENT_LIMIT = 20;
 
 /* --------------------------------------------------------------------------
    日付の表示
@@ -127,18 +117,11 @@ function renderTags() {
     .map(([tag, count]) => `<button class="tagchip" type="button" data-tag="${esc(tag)}" aria-pressed="${state.tag === tag}">${esc(tag)}<span class="scope__num">${count}</span></button>`)
     .join("");
 
-  const select = $("planTagSelect");
-  const current = state.planTag;
-  select.innerHTML = counts.map(([tag, count]) => `<option value="${esc(tag)}">${esc(tag)}（${count}件）</option>`).join("")
-    || '<option value="">タグがありません</option>';
-  if (counts.some(([tag]) => tag === current)) select.value = current;
-  else state.planTag = select.value ?? "";
 }
 
 function renderSelectBar() {
   $("selectBar").hidden = !state.selectMode || state.selected.size === 0;
   $("selectCount").textContent = String(state.selected.size);
-  $("scopeSelectedCount").textContent = String(state.selected.size);
   $("selectToggle").setAttribute("aria-pressed", String(state.selectMode));
   $("selectToggle").textContent = state.selectMode ? "選ぶのをやめる" : "選ぶ";
 }
@@ -156,7 +139,7 @@ function addIdea(text, source, tagsInput) {
   lastAddedId = idea.id;
   renderIdeas();
   renderTags();
-  updatePlanNote();
+  renderSelectBar();
   return idea;
 }
 
@@ -373,258 +356,8 @@ function toggleDictate() {
 }
 
 /* --------------------------------------------------------------------------
-   3案
-   -------------------------------------------------------------------------- */
-
-function scopeIdeas() {
-  const sorted = store.sorted();
-  if (state.scope === "all") return sorted;
-  if (state.scope === "recent") return sorted.slice(0, RECENT_LIMIT);
-  if (state.scope === "selected") return sorted.filter((idea) => state.selected.has(idea.id));
-  if (state.scope === "tag") return sorted.filter((idea) => idea.tags.includes(state.planTag));
-  return sorted;
-}
-
-function updatePlanNote() {
-  const count = scopeIdeas().length;
-  $("planSourceNote").textContent = count === 0
-    ? "対象が0件です。ためてから、もう一度どうぞ"
-    : `対象 ${count}件。ここから3案をつくります`;
-  $("planGenerate").disabled = count === 0 || state.generating;
-  $("planCopySource").disabled = count === 0;
-  renderSelectBar();
-}
-
-const SCORE_LABEL = { build: "作りやすさ", keep: "続けやすさ", effect: "メモとの合い方" };
-
-function scoreBar(scores) {
-  return Object.entries(SCORE_LABEL)
-    .map(([key, label]) => `<span class="score">${label}<b>${"★".repeat(Math.max(1, Math.min(5, scores[key] ?? 3)))}</b></span>`)
-    .join("");
-}
-
-function list(items, className = "pts") {
-  if (!items || items.length === 0) return "";
-  return `<ul class="${className}">${items.map((item) => `<li>${esc(item)}</li>`).join("")}</ul>`;
-}
-
-function planCard(plan, index, planSet) {
-  const design = plan.design ?? {};
-  const long = plan.longTerm ?? {};
-  const swatches = (design.palette ?? []).map((color) => `<span class="swatch" style="background:${esc(color.hex)}" title="${esc(color.role)}"></span>`).join("");
-  const wire = (design.wire ?? []).map((row) => `<div class="wire__row"><span class="wire__tag">${esc(row.tag)}</span><span>${esc(row.text)}</span></div>`).join("");
-  const paletteRoles = (design.palette ?? []).map((color) => `<li><span class="swatchlabel">${esc(color.hex)}</span>　${esc(color.role)}</li>`).join("");
-
-  return `
-  <article class="plan plan--${"abc"[index] ?? "a"}" data-index="${index}">
-    <header class="plan__head">
-      <span class="plan__axis">案${index + 1}・${esc(plan.axisLabel)}</span>
-      <h3 class="plan__name">${esc(plan.name)}</h3>
-      <p class="plan__lead">${esc(plan.lead)}</p>
-      <div class="plan__scores">${scoreBar(plan.scores ?? {})}</div>
-    </header>
-
-    <div class="verdict ${plan.verdict?.tone === "ok" ? "verdict--ok" : ""}">
-      <b>${plan.verdict?.tone === "ok" ? "率直に言うと" : "率直に言うと（おすすめしない）"}</b>${esc(plan.verdict?.text ?? "")}
-    </div>
-
-    <details class="sec sec--mock" open>
-      <summary class="sec__sum"><span class="sec__mark">見</span>画面の見本（さわれます）</summary>
-      <div class="sec__body">${renderMockup(plan, planSet?.samples, planSet?.summary?.topic)}</div>
-    </details>
-
-    <details class="sec sec--build">
-      <summary class="sec__sum"><span class="sec__mark">機</span>この案でつくるもの</summary>
-      <div class="sec__body">
-        ${list(plan.features)}
-        <p class="subhead">ざっくりの作業量</p><p class="dl">${esc(plan.effort ?? "")}</p>
-      </div>
-    </details>
-
-    <details class="sec sec--design">
-      <summary class="sec__sum"><span class="sec__mark">デ</span>デザイン案</summary>
-      <div class="sec__body">
-        <dl class="dl">
-          <dt>画面の型</dt><dd>${esc(design.pattern ?? "")}</dd>
-          <dt>並べ方</dt><dd>${esc(design.layout ?? "")}</dd>
-          <dt>操作の核</dt><dd>${esc(design.interaction ?? "")}</dd>
-          <dt>文字</dt><dd>${esc(design.typography ?? "")}</dd>
-          <dt>動き</dt><dd>${esc(design.motion ?? "")}</dd>
-        </dl>
-        <p class="subhead">画面の並び</p>
-        <div class="wire">${wire}</div>
-        <p class="subhead">配色</p>
-        <div class="swatches">${swatches}</div>
-        <ul class="pts">${paletteRoles}</ul>
-      </div>
-    </details>
-
-    <details class="sec sec--good" open>
-      <summary class="sec__sum"><span class="sec__mark">＋</span>よいところ</summary>
-      <div class="sec__body">${list(plan.pros, "pts pts--good")}</div>
-    </details>
-
-    <details class="sec sec--bad" open>
-      <summary class="sec__sum"><span class="sec__mark">−</span>容赦なく言うと</summary>
-      <div class="sec__body">${list(plan.cons, "pts pts--bad")}</div>
-    </details>
-
-    <details class="sec sec--long">
-      <summary class="sec__sum"><span class="sec__mark">年</span>業務で長く使うなら（3年で見る）</summary>
-      <div class="sec__body">
-        <p class="subhead">効いてくるところ</p>${list(long.works, "pts pts--good")}
-        <p class="subhead">時間とともに壊れるところ</p>${list(long.breaks, "pts pts--bad")}
-        <p class="subhead">維持にかかるもの</p>${list(long.cost)}
-        ${plan.watch?.length ? `<p class="subhead">設計で気をつける点</p>${list(plan.watch)}` : ""}
-      </div>
-    </details>
-
-    <details class="sec sec--build">
-      <summary class="sec__sum"><span class="sec__mark">歩</span>作る前にやること・やめどき</summary>
-      <div class="sec__body">
-        <dl class="dl">
-          <dt>最初の一歩</dt><dd>${esc(plan.firstStep ?? "")}</dd>
-          <dt>やめる条件</dt><dd>${esc(plan.exit ?? "")}</dd>
-        </dl>
-      </div>
-    </details>
-
-    <div class="plan__foot">
-      <button class="btn btn--ghost btn--small" type="button" data-act="copy-plan" data-index="${index}">この案をコピー</button>
-    </div>
-  </article>`;
-}
-
-function renderPlanSet(planSet) {
-  state.planSet = planSet;
-  if (!planSet) {
-    $("planResults").innerHTML = "";
-    $("planEmpty").hidden = false;
-    $("planAnother").hidden = true;
-    return;
-  }
-  $("planEmpty").hidden = true;
-
-  const keys = (planSet.summary?.keywords ?? []).map((word) => `<span class="plansum__key">${esc(word)}</span>`).join("");
-  const head = `
-    <div class="plansum">
-      <b>${esc(planSet.summary?.headline ?? "")}</b>
-      <p style="margin:.375rem 0 0">${esc(planSet.summary?.note ?? "")}</p>
-      <div class="plansum__keys">${keys}</div>
-      <p style="margin:.625rem 0 0;font-size:.75rem">${planSet.engine === "ai" ? "AIがつくった提案" : "端末の中でつくった提案"}・${esc(String(planSet.sourceCount))}件から・${timeFormat.format(new Date(planSet.createdAt))}</p>
-    </div>`;
-
-  const tail = planSet.alternative
-    ? `<div class="panel panel--muted"><h3 class="panel__title">そもそも作らない案</h3><p style="margin:0;font-size:.8125rem;line-height:1.85">${esc(planSet.alternative)}</p>
-       <div class="btnrow"><button class="btn btn--ghost btn--small" type="button" data-act="copy-all">3案ぜんぶをコピー</button></div></div>`
-    : "";
-
-  $("planResults").innerHTML = head + planSet.plans.map((plan, index) => planCard(plan, index, planSet)).join("") + tail;
-  $("planAnother").hidden = false;
-  $("planResults").scrollIntoView({ behavior: "smooth", block: "start" });
-}
-
-function renderHistory() {
-  const wrap = $("planHistoryWrap");
-  wrap.hidden = store.plans.length === 0;
-  $("planHistory").innerHTML = store.plans
-    .map((record) => `
-      <li class="history__item">
-        <button class="history__btn" type="button" data-plan="${esc(record.id)}">
-          ${esc(record.summary?.headline ?? "提案")}
-          <span class="history__when">${timeFormat.format(new Date(record.createdAt))}・${record.engine === "ai" ? "AI" : "端末"}</span>
-        </button>
-        <button class="history__del" type="button" data-plan-del="${esc(record.id)}" aria-label="この提案を消す">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 7h12M9 7V5h6v2M8 7l.8 12h6.4L16 7"/></svg>
-        </button>
-      </li>`)
-    .join("");
-}
-
-async function generatePlans({ another = false } = {}) {
-  if (state.generating) return;
-  const ideas = scopeIdeas();
-  if (ideas.length === 0) { toast("もとにするメモがありません"); return; }
-
-  state.generating = true;
-  $("planGenerate").disabled = true;
-  $("planAnother").disabled = true;
-  $("planLoading").hidden = false;
-  const harsh = $("planHarsh").checked;
-  // 「別の切り口で」のときは、これまでに出した切り口を避ける
-  const exclude = another ? state.seenAxes : [];
-
-  try {
-    let planSet;
-    if (store.settings.aiEnabled && store.settings.aiKey) {
-      try {
-        planSet = await proposeWithAi(ideas, { apiKey: store.settings.aiKey, model: store.settings.aiModel, harsh });
-      } catch (error) {
-        toast(`AIは使えませんでした（${error.message}）。端末の中でつくります`);
-        planSet = proposeLocally(ideas, { harsh, exclude });
-      }
-    } else {
-      planSet = proposeLocally(ideas, { harsh, exclude });
-    }
-    state.seenAxes = another
-      ? [...new Set([...state.seenAxes, ...(planSet.picked ?? [])])]
-      : [...(planSet.picked ?? [])];
-    store.addPlanSet(planSet);
-    renderPlanSet(planSet);
-    renderHistory();
-  } finally {
-    state.generating = false;
-    $("planLoading").hidden = true;
-    $("planAnother").disabled = false;
-    updatePlanNote();
-  }
-}
-
-/* --------------------------------------------------------------------------
    書き出し
    -------------------------------------------------------------------------- */
-
-function planToMarkdown(plan, index) {
-  const design = plan.design ?? {};
-  const long = plan.longTerm ?? {};
-  const bullets = (items) => (items ?? []).map((item) => `- ${item}`).join("\n");
-  return [
-    `## 案${index + 1}：${plan.name}（${plan.axisLabel}）`,
-    plan.lead,
-    "",
-    `率直に言うと：${plan.verdict?.text ?? ""}`,
-    "",
-    "### つくるもの",
-    bullets(plan.features),
-    `作業量：${plan.effort ?? ""}`,
-    "",
-    "### デザイン案",
-    `- 画面の型：${design.pattern ?? ""}`,
-    `- 並べ方：${design.layout ?? ""}`,
-    `- 操作の核：${design.interaction ?? ""}`,
-    `- 文字：${design.typography ?? ""}`,
-    `- 動き：${design.motion ?? ""}`,
-    `- 配色：${(design.palette ?? []).map((color) => `${color.hex}（${color.role}）`).join(" / ")}`,
-    `- 画面の並び：${(design.wire ?? []).map((row) => `${row.tag}=${row.text}`).join(" / ")}`,
-    "",
-    "### よいところ",
-    bullets(plan.pros),
-    "",
-    "### 容赦なく言うと",
-    bullets(plan.cons),
-    "",
-    "### 業務で長く使うなら（3年）",
-    "効いてくるところ",
-    bullets(long.works),
-    "時間とともに壊れるところ",
-    bullets(long.breaks),
-    "維持にかかるもの",
-    bullets(long.cost),
-    "",
-    `最初の一歩：${plan.firstStep ?? ""}`,
-    `やめる条件：${plan.exit ?? ""}`,
-  ].join("\n");
-}
 
 /* 対象のメモを、そのまま生成AIに貼れる形にまとめる。
    はじめの数行は依頼文。本文は切り詰めない（切ると相手が読み違える）。 */
@@ -643,18 +376,6 @@ function sourceToPrompt(ideas) {
     return `- [${when}]${tags} ${idea.text.replace(/\s*\n\s*/g, " ")}`;
   });
   return [...ask, ...lines].join("\n");
-}
-
-function planSetToMarkdown(planSet) {
-  return [
-    `# ${planSet.summary?.headline ?? "アイデアからの3案"}`,
-    planSet.summary?.note ?? "",
-    "",
-    planSet.plans.map((plan, index) => planToMarkdown(plan, index)).join("\n\n"),
-    "",
-    `## そもそも作らない案`,
-    planSet.alternative ?? "",
-  ].join("\n");
 }
 
 async function copyText(text, message = "コピーしました") {
@@ -699,8 +420,7 @@ function exportText() {
     const tags = idea.tags.length ? ` #${idea.tags.join(" #")}` : "";
     return `- [${when}]${tags} ${idea.text.replace(/\n/g, " ")}`;
   });
-  const plans = store.plans.map((record) => planSetToMarkdown(record)).join("\n\n---\n\n");
-  download(`アイデア貯蔵庫-${stamp()}.txt`, [`# ためたもの（${store.ideas.length}件）`, ...lines, "", plans].join("\n"), "text/plain;charset=utf-8");
+  download(`アイデア貯蔵庫-${stamp()}.txt`, [`# ためたもの（${store.ideas.length}件）`, ...lines].join("\n"), "text/plain;charset=utf-8");
 }
 
 /* --------------------------------------------------------------------------
@@ -708,7 +428,7 @@ function exportText() {
    -------------------------------------------------------------------------- */
 
 function backupNow() {
-  return store.toBackup({ withPlans: $("withPlans").checked });
+  return store.toBackup();
 }
 
 /** 取り込む前に、何がどう変わるかを見せる */
@@ -732,7 +452,6 @@ function openImport(backup, from) {
     ["新しく増える", `${report.added}件`],
     ["内容が新しくなる", `${report.updated}件`],
     ["すでに同じものがある", `${report.same}件`],
-    ["提案の履歴", `${report.plans}件`],
     ["書き出した日時", when],
   ].map(([label, value]) => `<dt>${esc(label)}</dt><dd>${esc(value)}</dd>`).join("");
   $("importDialog").showModal();
@@ -741,8 +460,7 @@ function openImport(backup, from) {
 function afterImport(message, undo) {
   renderIdeas();
   renderTags();
-  renderHistory();
-  updatePlanNote();
+  renderSelectBar();
   updateStorageInfo();
   toast(message, undo);
 }
@@ -780,7 +498,6 @@ function showScreen(name) {
     else tab.removeAttribute("aria-current");
   }
   $("micButton").hidden = name === "settings";
-  if (name === "plan") updatePlanNote();
   if (name === "settings") updateStorageInfo();
   window.scrollTo(0, 0);
 }
@@ -793,12 +510,6 @@ function applySettingsToForm() {
   $("setContinuous").checked = store.settings.continuous;
   $("setKeepMic").checked = store.settings.keepMic;
   $("setLang").value = store.settings.lang;
-  $("setAiEnabled").checked = store.settings.aiEnabled;
-  $("setAiKey").value = store.settings.aiKey;
-  $("setAiModel").value = store.settings.aiModel;
-  $("aiFields").hidden = !store.settings.aiEnabled;
-  $("planHarsh").checked = store.settings.harsh;
-
   $("speechSupportNote").textContent = voiceSupported()
     ? "この端末では音声入力が使えます。マイクの許可を聞かれたら「許可」を選んでください。"
     : "この端末（ブラウザ）は音声入力に対応していません。Chrome か Safari でお試しください。文字入力はそのまま使えます。";
@@ -812,14 +523,13 @@ function applySettingsToForm() {
 /** 設定画面をひらくたびに数え直す */
 function updateStorageInfo() {
   const bytes = new Blob([JSON.stringify(store.toBackup())]).size;
-  $("storageInfo").textContent = `この端末の中だけに保存しています。いま ${store.ideas.length}件・提案 ${store.plans.length}件・約${(bytes / 1024).toFixed(1)}KB。機種変更やブラウザのデータ削除で消えるので、ときどき書き出してください。`;
+  $("storageInfo").textContent = `この端末の中だけに保存しています。いま ${store.ideas.length}件・約${(bytes / 1024).toFixed(1)}KB。機種変更やブラウザのデータ削除で消えるので、ときどき書き出してください。`;
 }
 
 function bindSetting(id, key, prop = "checked") {
   $(id).addEventListener("change", (event) => {
     store.settings[key] = event.target[prop];
     store.saveSettings();
-    if (key === "aiEnabled") $("aiFields").hidden = !event.target.checked;
     if (key === "lang" && voice.recognition) voice.recognition.lang = event.target.value;
   });
 }
@@ -844,6 +554,12 @@ function bindEvents() {
     if (event.key === "Enter") { event.preventDefault(); submitCompose(); }
   });
 
+  $("copyVisible").addEventListener("click", () => {
+    const ideas = visibleIdeas();
+    if (ideas.length === 0) { toast("コピーするメモがありません"); return; }
+    copyText(sourceToPrompt(ideas), `${ideas.length}件をコピーしました。AIの入力欄に貼ってください`);
+  });
+
   // 検索・タグ
   $("searchInput").addEventListener("input", (event) => { state.search = event.target.value; renderIdeas(); });
   $("tagFilters").addEventListener("click", (event) => {
@@ -866,12 +582,12 @@ function bindEvents() {
     state.selected.clear();
     renderIdeas();
     renderSelectBar();
-    updatePlanNote();
+    renderSelectBar();
   });
-  $("selectPlan").addEventListener("click", () => {
-    setScope("selected");
-    showScreen("plan");
-    generatePlans();
+  $("selectCopy").addEventListener("click", () => {
+    const ideas = store.sorted().filter((idea) => state.selected.has(idea.id));
+    if (ideas.length === 0) return;
+    copyText(sourceToPrompt(ideas), `${ideas.length}件をコピーしました。AIの入力欄に貼ってください`);
   });
   $("selectDelete").addEventListener("click", () => {
     const removed = store.remove([...state.selected]);
@@ -879,12 +595,12 @@ function bindEvents() {
     renderIdeas();
     renderTags();
     renderSelectBar();
-    updatePlanNote();
+    renderSelectBar();
     toast(`${removed.length}件を消しました`, () => {
       store.restore(removed);
       renderIdeas();
       renderTags();
-      updatePlanNote();
+      renderSelectBar();
     });
   });
 
@@ -900,7 +616,7 @@ function bindEvents() {
       else state.selected.delete(id);
       card.classList.toggle("is-picked", event.target.checked);
       renderSelectBar();
-      updatePlanNote();
+      renderSelectBar();
       return;
     }
 
@@ -923,12 +639,12 @@ function bindEvents() {
       state.selected.delete(id);
       renderIdeas();
       renderTags();
-      updatePlanNote();
+      renderSelectBar();
       toast("消しました", () => {
         store.restore(removed);
         renderIdeas();
         renderTags();
-        updatePlanNote();
+        renderSelectBar();
       });
       return;
     }
@@ -941,7 +657,7 @@ function bindEvents() {
       else state.selected.delete(id);
       card.classList.toggle("is-picked", box.checked);
       renderSelectBar();
-      updatePlanNote();
+      renderSelectBar();
     }
   });
 
@@ -959,7 +675,7 @@ function bindEvents() {
       store.update(state.editingId, { text: $("editText").value, tags: $("editTags").value });
       renderIdeas();
       renderTags();
-      updatePlanNote();
+      renderSelectBar();
       toast("直しました");
     }
     state.editingId = null;
@@ -970,62 +686,10 @@ function bindEvents() {
   $("voiceDone").addEventListener("click", () => stopVoice({ save: true }));
   $("editMic").addEventListener("click", toggleDictate);
 
-  // 3案
-  for (const button of document.querySelectorAll(".scope__btn")) {
-    button.addEventListener("click", () => setScope(button.dataset.scope));
-  }
-  $("planTagSelect").addEventListener("change", (event) => { state.planTag = event.target.value; updatePlanNote(); });
-  $("planHarsh").addEventListener("change", (event) => {
-    store.settings.harsh = event.target.checked;
-    store.saveSettings();
-  });
-  $("planGenerate").addEventListener("click", () => generatePlans());
-  $("planCopySource").addEventListener("click", () => {
-    const ideas = scopeIdeas();
-    if (ideas.length === 0) { toast("もとにするメモがありません"); return; }
-    copyText(sourceToPrompt(ideas), `${ideas.length}件をコピーしました。AIの入力欄に貼ってください`);
-  });
-  $("planAnother").addEventListener("click", () => generatePlans({ another: true }));
-
-  $("planResults").addEventListener("click", (event) => {
-    const mock = event.target.closest("[data-mock]");
-    if (mock) { handleMockAction(mock); return; }
-
-    const button = event.target.closest("[data-act]");
-    if (!button || !state.planSet) return;
-    if (button.dataset.act === "copy-plan") {
-      const index = Number(button.dataset.index);
-      copyText(planToMarkdown(state.planSet.plans[index], index));
-    }
-    if (button.dataset.act === "copy-all") copyText(planSetToMarkdown(state.planSet));
-  });
-
-  $("planHistory").addEventListener("click", (event) => {
-    const open = event.target.closest("[data-plan]");
-    if (open) {
-      const record = store.plans.find((item) => item.id === open.dataset.plan);
-      if (record) renderPlanSet(record);
-      return;
-    }
-    const del = event.target.closest("[data-plan-del]");
-    if (del) {
-      store.removePlanSet(del.dataset.planDel);
-      renderHistory();
-      applySettingsToForm();
-    }
-  });
-
   // 設定
   bindSetting("setContinuous", "continuous");
   bindSetting("setKeepMic", "keepMic");
   bindSetting("setLang", "lang", "value");
-  bindSetting("setAiEnabled", "aiEnabled");
-  bindSetting("setAiModel", "aiModel", "value");
-  $("setAiKey").addEventListener("change", (event) => {
-    store.settings.aiKey = event.target.value.trim();
-    store.saveSettings();
-  });
-
   $("exportJson").addEventListener("click", () => {
     download(`idea-vault-${stamp()}.json`, JSON.stringify(backupNow(), null, 2), "application/json");
     toast("書き出しました");
@@ -1042,8 +706,6 @@ function bindEvents() {
   });
 
   $("makeCode").addEventListener("click", makeCode);
-  // 履歴を含めるかを切り替えたら、出しているコードも作り直す
-  $("withPlans").addEventListener("change", () => { if (!$("codeOut").hidden) makeCode(); });
   $("copyCode").addEventListener("click", () => copyText($("codeText").value));
   $("closeCode").addEventListener("click", () => { $("codeOut").hidden = true; });
 
@@ -1084,9 +746,7 @@ function bindEvents() {
 
     if (choice === "replace") {
       const before = store.replaceAll(backup);
-      state.planSet = null;
       state.selected.clear();
-      renderPlanSet(null);
       afterImport(`入れ替えました（${store.ideas.length}件）`, () => {
         store.restoreAll(before);
         afterImport("元に戻しました");
@@ -1102,32 +762,18 @@ function bindEvents() {
   });
 
   $("clearAll").addEventListener("click", () => {
-    if (!confirm(`ためた${store.ideas.length}件と提案をすべて消します。元に戻せません。よろしいですか？`)) return;
+    if (!confirm(`ためた${store.ideas.length}件をすべて消します。元に戻せません。よろしいですか？`)) return;
     store.clearAll();
     state.selected.clear();
-    state.planSet = null;
     renderIdeas();
     renderTags();
-    renderHistory();
-    renderPlanSet(null);
     applySettingsToForm();
-    updatePlanNote();
+    renderSelectBar();
     toast("すべて消しました");
   });
 
   // 画面を閉じるときに、聞き取り中のものを取りこぼさない
   window.addEventListener("pagehide", () => { if (voice.listening) stopVoice({ save: true }); });
-}
-
-function setScope(scope) {
-  state.scope = scope;
-  for (const button of document.querySelectorAll(".scope__btn")) {
-    const on = button.dataset.scope === scope;
-    button.classList.toggle("is-on", on);
-    button.setAttribute("aria-pressed", String(on));
-  }
-  $("planTagField").hidden = scope !== "tag";
-  updatePlanNote();
 }
 
 function openEdit(id) {
@@ -1147,9 +793,7 @@ function init() {
   bindEvents();
   renderTags();
   renderIdeas();
-  renderHistory();
-  renderPlanSet(null);
-  setScope(store.ideas.length > RECENT_LIMIT ? "recent" : "all");
+  renderSelectBar();
   showScreen("add");
 
   if ("serviceWorker" in navigator) {
