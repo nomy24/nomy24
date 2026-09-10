@@ -391,6 +391,7 @@ function updatePlanNote() {
     ? "対象が0件です。ためてから、もう一度どうぞ"
     : `対象 ${count}件。ここから3案をつくります`;
   $("planGenerate").disabled = count === 0 || state.generating;
+  $("planCopySource").disabled = count === 0;
   renderSelectBar();
 }
 
@@ -625,6 +626,25 @@ function planToMarkdown(plan, index) {
   ].join("\n");
 }
 
+/* 対象のメモを、そのまま生成AIに貼れる形にまとめる。
+   はじめの数行は依頼文。本文は切り詰めない（切ると相手が読み違える）。 */
+function sourceToPrompt(ideas) {
+  const ask = [
+    "次のメモは、私が思いついたことをためたものです。断片で、文章として整っていません。",
+    "ここから、目的そのものが違うアプリ案を3つ立ててください。「同じアプリの大・中・小」は避けてください。",
+    "各案について、つくるもの／デザイン案（配色と画面の並び）／よいところ／欠点（容赦なく）／業務で3年使ったときに効いてくる点・壊れる点・維持の手間／やめる条件、を書いてください。",
+    "最後に「そもそも作らない案」も書いてください。",
+    "",
+    `--- メモ（${ideas.length}件・${dateFormat.format(new Date())}書き出し） ---`,
+  ];
+  const lines = ideas.map((idea) => {
+    const when = dateFormat.format(new Date(idea.createdAt));
+    const tags = idea.tags.length ? ` #${idea.tags.join(" #")}` : "";
+    return `- [${when}]${tags} ${idea.text.replace(/\s*\n\s*/g, " ")}`;
+  });
+  return [...ask, ...lines].join("\n");
+}
+
 function planSetToMarkdown(planSet) {
   return [
     `# ${planSet.summary?.headline ?? "アイデアからの3案"}`,
@@ -637,10 +657,10 @@ function planSetToMarkdown(planSet) {
   ].join("\n");
 }
 
-async function copyText(text) {
+async function copyText(text, message = "コピーしました") {
   try {
     await navigator.clipboard.writeText(text);
-    toast("コピーしました");
+    toast(message);
   } catch {
     // 権限がないときは選択できる形で出す
     const area = document.createElement("textarea");
@@ -649,7 +669,7 @@ async function copyText(text) {
     area.style.opacity = "0";
     document.body.appendChild(area);
     area.select();
-    try { document.execCommand("copy"); toast("コピーしました"); }
+    try { document.execCommand("copy"); toast(message); }
     catch { toast("コピーできませんでした"); }
     area.remove();
   }
@@ -960,6 +980,11 @@ function bindEvents() {
     store.saveSettings();
   });
   $("planGenerate").addEventListener("click", () => generatePlans());
+  $("planCopySource").addEventListener("click", () => {
+    const ideas = scopeIdeas();
+    if (ideas.length === 0) { toast("もとにするメモがありません"); return; }
+    copyText(sourceToPrompt(ideas), `${ideas.length}件をコピーしました。AIの入力欄に貼ってください`);
+  });
   $("planAnother").addEventListener("click", () => generatePlans({ another: true }));
 
   $("planResults").addEventListener("click", (event) => {

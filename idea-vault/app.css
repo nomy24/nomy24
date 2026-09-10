@@ -82,6 +82,9 @@
 
 *, *::before, *::after { box-sizing: border-box; }
 
+/* display を持つ部品でも hidden を確実に効かせる（個別に打ち消すと必ず書き忘れる） */
+[hidden] { display: none !important; }
+
 html { -webkit-text-size-adjust: 100%; }
 
 body {
