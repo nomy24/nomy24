@@ -221,6 +221,8 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .chip.is-active { background: var(--color-primary); border-color: var(--color-primary); color: var(--color-on-primary); }
 .chip-group { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
 .chip-group:last-child { margin-bottom: 0; }
+.chip-group--suggest { margin-top: 8px; margin-bottom: 0; }
+.chip-group--suggest .chip { padding: 6px 12px; min-height: 34px; font-size: 13px; }
 .chip-group .chip { flex-shrink: initial; }
 .chip--group { border-style: dashed; }
 .chip--group.is-active { background: var(--color-purple); border-color: var(--color-purple); border-style: solid; color: #fff; }
@@ -398,6 +400,28 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .badge--cat-monthStart { background: var(--cat-monthStart-bg); color: var(--cat-monthStart); }
 .badge--cat-monthEnd { background: var(--cat-monthEnd-bg); color: var(--cat-monthEnd); }
 .badge--cat-adhoc { background: var(--cat-adhoc-bg); color: var(--cat-adhoc); }
+
+/* 電話メモ「相手先別」ビュー：同じ相手先とのやり取りをまとめて開閉できるアコーディオン */
+.memo-group {
+  background: var(--color-surface); border: 1px solid var(--color-border);
+  border-radius: var(--radius-md); box-shadow: var(--shadow-card); overflow: hidden; margin-bottom: 10px;
+}
+.memo-group__head {
+  width: 100%; display: flex; align-items: center; gap: 10px; padding: 12px 14px;
+  border: none; background: transparent; cursor: pointer; text-align: left; font: inherit; color: inherit;
+}
+.memo-group__avatar {
+  flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%;
+  background: var(--color-surface-muted); color: var(--color-primary-strong);
+  display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px;
+}
+.memo-group__title { flex: 1; min-width: 0; }
+.memo-group__name { font-size: 14px; font-weight: 700; color: var(--color-text); }
+.memo-group__sub { font-size: 11.5px; color: var(--color-text-muted); margin-top: 1px; }
+.memo-group__chevron { flex-shrink: 0; color: var(--color-text-muted); font-size: 18px; transition: transform 150ms ease; }
+.memo-group.is-open .memo-group__chevron { transform: rotate(90deg); }
+.memo-group__body { display: none; padding: 0 10px 10px; }
+.memo-group.is-open .memo-group__body { display: flex; }
 
 .empty { text-align: center; color: var(--color-text-muted); font-size: 14px; padding: 40px 16px; }
 

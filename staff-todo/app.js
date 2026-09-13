@@ -156,6 +156,7 @@ const state = {
   todoSearch: "",
   memoFilter: "all",
   memoSearch: "",
+  memoView: "date",
   routineCat: "daily",
   photosSub: "minutes",
   calMonth: (() => { const d = new Date(); d.setDate(1); return d; })(),
@@ -1651,11 +1652,55 @@ document.getElementById("memoFilters").addEventListener("click", (e) => {
 
 setupSwipeNav(document.getElementById("screen-phoneMemo"), () => state.memoFilter, MEMO_FILTER_ORDER, switchMemoFilter);
 
+document.getElementById("memoViewToggle").addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-memo-view]");
+  if (!btn || btn.dataset.memoView === state.memoView) return;
+  state.memoView = btn.dataset.memoView;
+  document.querySelectorAll("#memoViewToggle [data-memo-view]").forEach((b) => b.classList.toggle("is-active", b.dataset.memoView === state.memoView));
+  renderMemoList();
+});
+
 const memoSearchInput = document.getElementById("memoSearchInput");
 memoSearchInput.addEventListener("input", () => {
   state.memoSearch = memoSearchInput.value;
   renderMemoList();
 });
+wireCallerSuggest(memoSearchInput, document.getElementById("memoSearchSuggestChips"));
+
+// 過去に記録した相手先の一覧を、最後に使われた順で返す(検索欄・入力フォームの候補に使う)
+function distinctCallers() {
+  const latestByCaller = new Map();
+  for (const m of state.phoneMemos) {
+    const name = (m.caller || "").trim();
+    if (!name) continue;
+    const prev = latestByCaller.get(name);
+    if (prev === undefined || (m.createdAt || 0) > prev) latestByCaller.set(name, m.createdAt || 0);
+  }
+  return [...latestByCaller.entries()].sort((a, b) => b[1] - a[1]).map(([name]) => name);
+}
+
+// テキスト入力に「過去の相手先」を候補チップとして出し、タップで入力できるようにする。
+// (input の直後にblurすると候補のクリックより先に隠れてしまうため、mousedownでフォーカスを奪わせない)
+function wireCallerSuggest(inputEl, chipsEl) {
+  function render() {
+    const q = inputEl.value.trim().toLowerCase();
+    const matches = distinctCallers().filter((c) => c.toLowerCase() !== q && (!q || c.toLowerCase().includes(q))).slice(0, 6);
+    chipsEl.hidden = matches.length === 0;
+    chipsEl.innerHTML = matches.map((c) => `<button type="button" class="chip">${escapeHtml(c)}</button>`).join("");
+    chipsEl.querySelectorAll("button").forEach((btn) => {
+      btn.addEventListener("mousedown", (e) => e.preventDefault());
+      btn.addEventListener("click", () => {
+        inputEl.value = btn.textContent;
+        chipsEl.hidden = true;
+        inputEl.dispatchEvent(new Event("input", { bubbles: true }));
+      });
+    });
+  }
+  inputEl.addEventListener("input", render);
+  inputEl.addEventListener("focus", render);
+  inputEl.addEventListener("blur", () => { chipsEl.hidden = true; });
+  render();
+}
 
 function filteredMemos() {
   const q = state.memoSearch.trim().toLowerCase();
@@ -1666,36 +1711,33 @@ function filteredMemos() {
   return list;
 }
 
-function renderMemoList() {
-  const list = filteredMemos();
-  const el = document.getElementById("memoList");
-  const empty = document.getElementById("memoEmpty");
-  empty.hidden = list.length > 0;
-  const seenAt = getSeenAt("phoneMemo");
-  el.innerHTML = list.map((m) => {
-    const time = new Date(m.createdAt || 0).toLocaleString("ja-JP", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" });
-    const badgeClass = MEMO_STATUS_BADGE[m.status] || "";
-    const options = MEMO_STATUSES.map((s) => `<option value="${s}" ${s === m.status ? "selected" : ""}>${s}</option>`).join("");
-    return `
-      <div class="card ${m.status === "完了" ? "card--done" : ""}" data-id="${m.id}">
-        <div class="card__body" data-action="edit">
-          <div class="memo-top">
-            <span class="memo-caller">${newTagHtml(isNewItem(m, seenAt))}${escapeHtml(m.caller || "(相手先未入力)")}</span>
-            <span class="badge ${badgeClass}">${escapeHtml(m.status)}</span>
-          </div>
-          <div class="card__memo">${escapeHtml(m.content || "")}</div>
-          ${m.progress ? `
-          <div class="memo-progress">
-            <span class="memo-progress__label">経過</span>
-            <span class="memo-progress__text">${escapeHtml(m.progress)}</span>
-          </div>` : ""}
-          <div class="card__meta"><span class="badge">${escapeHtml(time)}受電</span><span class="badge">受: ${escapeHtml(m.staff || "-")}</span>${m.responder ? `<span class="badge">対応: ${escapeHtml(m.responder)}</span>` : ""}</div>
-        </div>
-        <select class="memo-select" data-action="quick-status" aria-label="対応状況を変更">${options}</select>
-      </div>`;
-  }).join("");
-  markSeen("phoneMemo");
+// 相手先別ビューで、どの相手先を開いた状態にしているかを覚えておく(再描画のたびに閉じてしまわないように)
+const memoOpenCallers = new Set();
 
+function memoCardHtml(m, seenAt) {
+  const time = new Date(m.createdAt || 0).toLocaleString("ja-JP", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" });
+  const badgeClass = MEMO_STATUS_BADGE[m.status] || "";
+  const options = MEMO_STATUSES.map((s) => `<option value="${s}" ${s === m.status ? "selected" : ""}>${s}</option>`).join("");
+  return `
+    <div class="card ${m.status === "完了" ? "card--done" : ""}" data-id="${m.id}">
+      <div class="card__body" data-action="edit">
+        <div class="memo-top">
+          <span class="memo-caller">${newTagHtml(isNewItem(m, seenAt))}${escapeHtml(m.caller || "(相手先未入力)")}</span>
+          <span class="badge ${badgeClass}">${escapeHtml(m.status)}</span>
+        </div>
+        <div class="card__memo">${escapeHtml(m.content || "")}</div>
+        ${m.progress ? `
+        <div class="memo-progress">
+          <span class="memo-progress__label">経過</span>
+          <span class="memo-progress__text">${escapeHtml(m.progress)}</span>
+        </div>` : ""}
+        <div class="card__meta"><span class="badge">${escapeHtml(time)}受電</span><span class="badge">受: ${escapeHtml(m.staff || "-")}</span>${m.responder ? `<span class="badge">対応: ${escapeHtml(m.responder)}</span>` : ""}</div>
+      </div>
+      <select class="memo-select" data-action="quick-status" aria-label="対応状況を変更">${options}</select>
+    </div>`;
+}
+
+function wireMemoCardEvents(el) {
   el.querySelectorAll('[data-action="edit"]').forEach((body) => {
     body.addEventListener("click", () => openMemoSheet(state.phoneMemos.find((x) => x.id === body.closest(".card").dataset.id)));
   });
@@ -1706,6 +1748,75 @@ function renderMemoList() {
       phoneMemoStore.update(id, { status: select.value });
     });
   });
+}
+
+// 日付順ビュー：今の一本のリストに「今日」「◯月◯日」の区切りを入れる
+function renderMemoListByDate(list, seenAt, el) {
+  let lastDateKey = null;
+  const parts = [];
+  for (const m of list) {
+    const dKey = toDateKey(new Date(m.createdAt || 0));
+    if (dKey !== lastDateKey) {
+      const label = dKey === todayKey() ? "今日" : `${Number(dKey.slice(5, 7))}月${Number(dKey.slice(8, 10))}日(${dateKeyWeekday(dKey)})`;
+      parts.push(`<div class="list-group-header">${escapeHtml(label)}</div>`);
+      lastDateKey = dKey;
+    }
+    parts.push(memoCardHtml(m, seenAt));
+  }
+  el.innerHTML = parts.join("");
+  wireMemoCardEvents(el);
+}
+
+// 相手先別ビュー：同じ相手先からの電話をまとめ、経過を含めてその方とのやり取りだけを振り返れるようにする
+function renderMemoListByCaller(list, seenAt, el) {
+  const groups = [];
+  const indexByCaller = new Map();
+  for (const m of list) {
+    const key = m.caller || "(相手先未入力)";
+    if (!indexByCaller.has(key)) {
+      indexByCaller.set(key, groups.length);
+      groups.push({ caller: key, items: [] });
+    }
+    groups[indexByCaller.get(key)].items.push(m);
+  }
+  el.innerHTML = groups.map((g) => {
+    const latest = g.items[0];
+    const isOpen = memoOpenCallers.has(g.caller);
+    const latestTime = new Date(latest.createdAt || 0).toLocaleString("ja-JP", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" });
+    const hasNew = g.items.some((m) => isNewItem(m, seenAt));
+    return `
+      <div class="memo-group ${isOpen ? "is-open" : ""}" data-caller="${escapeHtml(g.caller)}">
+        <button type="button" class="memo-group__head" data-action="toggle-group">
+          <span class="memo-group__avatar">${escapeHtml(g.caller.trim().charAt(0) || "?")}</span>
+          <span class="memo-group__title">
+            <span class="memo-group__name">${newTagHtml(hasNew)}${escapeHtml(g.caller)}</span>
+            <span class="memo-group__sub">${g.items.length}件のやり取り・最新 ${escapeHtml(latestTime)}</span>
+          </span>
+          <span class="badge ${MEMO_STATUS_BADGE[latest.status] || ""}">${escapeHtml(latest.status)}</span>
+          <span class="memo-group__chevron" aria-hidden="true">›</span>
+        </button>
+        <div class="memo-group__body list">${g.items.map((m) => memoCardHtml(m, seenAt)).join("")}</div>
+      </div>`;
+  }).join("");
+  el.querySelectorAll('[data-action="toggle-group"]').forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const caller = btn.closest(".memo-group").dataset.caller;
+      if (memoOpenCallers.has(caller)) memoOpenCallers.delete(caller); else memoOpenCallers.add(caller);
+      renderMemoList();
+    });
+  });
+  wireMemoCardEvents(el);
+}
+
+function renderMemoList() {
+  const list = filteredMemos();
+  const el = document.getElementById("memoList");
+  const empty = document.getElementById("memoEmpty");
+  empty.hidden = list.length > 0;
+  const seenAt = getSeenAt("phoneMemo");
+  if (state.memoView === "caller") renderMemoListByCaller(list, seenAt, el);
+  else renderMemoListByDate(list, seenAt, el);
+  markSeen("phoneMemo");
 }
 
 function openMemoSheet(existing) {
@@ -1720,7 +1831,8 @@ function openMemoSheet(existing) {
   const html = `
     <div class="field">
       <label for="m-caller">相手先（氏名・施設名など）</label>
-      <input id="m-caller" name="caller" type="text" maxlength="60" value="${escapeHtml(existing?.caller || "")}" placeholder="例：田中様（ご家族）">
+      <input id="m-caller" name="caller" type="text" maxlength="60" value="${escapeHtml(existing?.caller || "")}" placeholder="例：田中様（ご家族）" autocomplete="off">
+      <div class="chip-group chip-group--suggest" id="callerSuggestChips" hidden></div>
     </div>
     <div class="field">
       <label for="m-content">要件</label>
@@ -1771,6 +1883,7 @@ function openMemoSheet(existing) {
     },
     onDelete: existing ? async () => { await phoneMemoStore.remove(existing.id); toast("削除しました"); } : null,
   });
+  wireCallerSuggest(sheetForm.querySelector("#m-caller"), sheetForm.querySelector("#callerSuggestChips"));
 }
 
 // ================================================================
