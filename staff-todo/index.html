@@ -162,6 +162,11 @@
       <input type="search" id="memoSearchInput" placeholder="相手先・内容で検索" aria-label="電話メモを検索">
     </div>
 
+    <div class="segmented segmented--2col" id="memoViewToggle" role="group" aria-label="表示方法を切り替える">
+      <button class="segmented__btn is-active" type="button" data-memo-view="date">日付順</button>
+      <button class="segmented__btn" type="button" data-memo-view="caller">相手先別</button>
+    </div>
+
     <div class="filters" id="memoFilters" role="group" aria-label="表示するメモを絞り込む">
       <button class="chip is-active" type="button" data-memo-filter="all">すべて</button>
       <button class="chip" type="button" data-memo-filter="未対応">未対応</button>
