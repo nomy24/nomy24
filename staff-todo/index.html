@@ -159,8 +159,9 @@
 
     <div class="search-box">
       <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-      <input type="search" id="memoSearchInput" placeholder="相手先・内容で検索" aria-label="電話メモを検索">
+      <input type="search" id="memoSearchInput" placeholder="相手先・内容で検索" aria-label="電話メモを検索" autocomplete="off">
     </div>
+    <div class="chip-group chip-group--suggest" id="memoSearchSuggestChips" hidden></div>
 
     <div class="segmented segmented--2col" id="memoViewToggle" role="group" aria-label="表示方法を切り替える">
       <button class="segmented__btn is-active" type="button" data-memo-view="date">日付順</button>

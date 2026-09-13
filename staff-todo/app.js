@@ -1665,6 +1665,42 @@ memoSearchInput.addEventListener("input", () => {
   state.memoSearch = memoSearchInput.value;
   renderMemoList();
 });
+wireCallerSuggest(memoSearchInput, document.getElementById("memoSearchSuggestChips"));
+
+// 過去に記録した相手先の一覧を、最後に使われた順で返す(検索欄・入力フォームの候補に使う)
+function distinctCallers() {
+  const latestByCaller = new Map();
+  for (const m of state.phoneMemos) {
+    const name = (m.caller || "").trim();
+    if (!name) continue;
+    const prev = latestByCaller.get(name);
+    if (prev === undefined || (m.createdAt || 0) > prev) latestByCaller.set(name, m.createdAt || 0);
+  }
+  return [...latestByCaller.entries()].sort((a, b) => b[1] - a[1]).map(([name]) => name);
+}
+
+// テキスト入力に「過去の相手先」を候補チップとして出し、タップで入力できるようにする。
+// (input の直後にblurすると候補のクリックより先に隠れてしまうため、mousedownでフォーカスを奪わせない)
+function wireCallerSuggest(inputEl, chipsEl) {
+  function render() {
+    const q = inputEl.value.trim().toLowerCase();
+    const matches = distinctCallers().filter((c) => c.toLowerCase() !== q && (!q || c.toLowerCase().includes(q))).slice(0, 6);
+    chipsEl.hidden = matches.length === 0;
+    chipsEl.innerHTML = matches.map((c) => `<button type="button" class="chip">${escapeHtml(c)}</button>`).join("");
+    chipsEl.querySelectorAll("button").forEach((btn) => {
+      btn.addEventListener("mousedown", (e) => e.preventDefault());
+      btn.addEventListener("click", () => {
+        inputEl.value = btn.textContent;
+        chipsEl.hidden = true;
+        inputEl.dispatchEvent(new Event("input", { bubbles: true }));
+      });
+    });
+  }
+  inputEl.addEventListener("input", render);
+  inputEl.addEventListener("focus", render);
+  inputEl.addEventListener("blur", () => { chipsEl.hidden = true; });
+  render();
+}
 
 function filteredMemos() {
   const q = state.memoSearch.trim().toLowerCase();
@@ -1795,7 +1831,8 @@ function openMemoSheet(existing) {
   const html = `
     <div class="field">
       <label for="m-caller">相手先（氏名・施設名など）</label>
-      <input id="m-caller" name="caller" type="text" maxlength="60" value="${escapeHtml(existing?.caller || "")}" placeholder="例：田中様（ご家族）">
+      <input id="m-caller" name="caller" type="text" maxlength="60" value="${escapeHtml(existing?.caller || "")}" placeholder="例：田中様（ご家族）" autocomplete="off">
+      <div class="chip-group chip-group--suggest" id="callerSuggestChips" hidden></div>
     </div>
     <div class="field">
       <label for="m-content">要件</label>
@@ -1846,6 +1883,7 @@ function openMemoSheet(existing) {
     },
     onDelete: existing ? async () => { await phoneMemoStore.remove(existing.id); toast("削除しました"); } : null,
   });
+  wireCallerSuggest(sheetForm.querySelector("#m-caller"), sheetForm.querySelector("#callerSuggestChips"));
 }
 
 // ================================================================

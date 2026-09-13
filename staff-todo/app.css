@@ -221,6 +221,8 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .chip.is-active { background: var(--color-primary); border-color: var(--color-primary); color: var(--color-on-primary); }
 .chip-group { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
 .chip-group:last-child { margin-bottom: 0; }
+.chip-group--suggest { margin-top: 8px; margin-bottom: 0; }
+.chip-group--suggest .chip { padding: 6px 12px; min-height: 34px; font-size: 13px; }
 .chip-group .chip { flex-shrink: initial; }
 .chip--group { border-style: dashed; }
 .chip--group.is-active { background: var(--color-purple); border-color: var(--color-purple); border-style: solid; color: #fff; }
