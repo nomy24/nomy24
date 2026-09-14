@@ -652,6 +652,28 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--color-primary); }
 .field-row { display: flex; gap: 10px; }
 .field-row .field { flex: 1; }
+.field input.has-voice, .field textarea.has-voice { padding-right: 44px; }
+
+/* ---------------- 音声入力ボタン ---------------- */
+.voice-field { position: relative; }
+.mic-btn {
+  border: none; background: var(--color-surface-muted); color: var(--color-text-muted);
+  width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 150ms ease, color 150ms ease;
+}
+.mic-btn svg { width: 16px; height: 16px; }
+.voice-field .mic-btn { position: absolute; top: 7px; right: 7px; }
+.mic-btn--listening { background: var(--color-danger); color: #fff; animation: mic-pulse 1.2s ease-in-out infinite; }
+@keyframes mic-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.35); }
+  50% { box-shadow: 0 0 0 6px rgba(220, 38, 38, 0); }
+}
+.search-box .voice-field {
+  flex: 1; min-width: 0; position: static; display: flex; align-items: center; gap: 4px;
+}
+.search-box .voice-field input { flex: 1; min-width: 0; }
+.search-box .voice-field .mic-btn { position: static; width: 26px; height: 26px; background: transparent; }
 
 .pill-group { display: flex; flex-wrap: wrap; gap: 8px; }
 .pill-option {
