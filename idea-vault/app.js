@@ -11,6 +11,7 @@ const state = {
   screen: "add",
   search: "",
   tag: null,
+  range: "all",   // すべて / 今日 / 今週 / 今月
   selectMode: false,
   selected: new Set(),
   openMenu: null,
@@ -54,9 +55,28 @@ function toast(message, undo) {
    一覧
    -------------------------------------------------------------------------- */
 
+/** 期間のしぼりこみの、いつからか。今週は月曜から、今月は1日から */
+function rangeStart(range) {
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  if (range === "today") return now.getTime();
+  if (range === "week") {
+    const weekday = (now.getDay() + 6) % 7; // 月曜を0にする
+    now.setDate(now.getDate() - weekday);
+    return now.getTime();
+  }
+  if (range === "month") {
+    now.setDate(1);
+    return now.getTime();
+  }
+  return 0;
+}
+
 function visibleIdeas() {
   const query = state.search.trim().toLowerCase();
+  const since = rangeStart(state.range);
   return store.sorted().filter((idea) => {
+    if (idea.createdAt < since) return false;
     if (state.tag && !idea.tags.includes(state.tag)) return false;
     if (!query) return true;
     return idea.text.toLowerCase().includes(query) || idea.tags.some((tag) => tag.toLowerCase().includes(query));
@@ -104,8 +124,13 @@ function renderIdeas() {
     $("ideaEmpty").innerHTML = '<p class="empty__title">まだ何もありません</p><p class="empty__body">思いついた瞬間に、右下のマイクか上の入力欄からためてください。整える必要はありません。断片のままで十分です。</p>';
   }
 
+  // 期間のしぼりこみは、たまってから出す（少ないうちは邪魔なだけ）
+  const showRange = store.ideas.length >= 8;
+  $("rangeFilters").hidden = !showRange;
+  if (!showRange && state.range !== "all") setRange("all");
+
   $("ideaCount").textContent = `${items.length}件`;
-  const filtered = state.tag || state.search.trim();
+  const filtered = state.tag || state.search.trim() || state.range !== "all";
   $("filterNote").hidden = !filtered;
   $("filterNote").textContent = filtered ? `（全${store.ideas.length}件のうち）` : "";
   $("headerCount").textContent = String(store.ideas.length);
@@ -119,9 +144,41 @@ function renderTags() {
 
 }
 
+/** 入力欄の下に出す、よく使うタグ。押すとタグ欄に足したり外したりする */
+function setRange(range) {
+  state.range = range;
+  for (const chip of document.querySelectorAll(".rangechip")) {
+    const on = chip.dataset.range === range;
+    chip.classList.toggle("is-on", on);
+    chip.setAttribute("aria-pressed", String(on));
+  }
+}
+
+/** 入力欄の下に出す、よく使うタグ。押すとタグ欄に足したり外したりする */
+function renderTagSuggest() {
+  const counts = store.tagCounts().slice(0, 8);
+  const wrap = $("tagSuggest");
+  wrap.hidden = counts.length === 0;
+  if (counts.length === 0) { wrap.innerHTML = ""; return; }
+
+  const current = new Set(normalizeTags($("composeTags").value));
+  wrap.innerHTML = counts
+    .map(([tag]) => `<button class="tagsuggest__chip" type="button" data-suggest="${esc(tag)}" aria-pressed="${current.has(tag)}">${esc(tag)}</button>`)
+    .join("");
+}
+
+function toggleComposeTag(tag) {
+  const tags = normalizeTags($("composeTags").value);
+  const next = tags.includes(tag) ? tags.filter((item) => item !== tag) : [...tags, tag];
+  $("composeTags").value = next.join(" ");
+  renderTagSuggest();
+  saveDraftSoon();
+}
+
 function renderSelectBar() {
   $("selectBar").hidden = !state.selectMode || state.selected.size === 0;
   $("selectCount").textContent = String(state.selected.size);
+  $("selectCombine").hidden = state.selected.size < 2;
   $("selectToggle").setAttribute("aria-pressed", String(state.selectMode));
   $("selectToggle").textContent = state.selectMode ? "選ぶのをやめる" : "選ぶ";
 }
@@ -139,8 +196,24 @@ function addIdea(text, source, tagsInput) {
   lastAddedId = idea.id;
   renderIdeas();
   renderTags();
+  renderTagSuggest();
   renderSelectBar();
   return idea;
+}
+
+let draftTimer = null;
+
+/** 書きかけを少し待ってから保存する（1文字ごとに書くと重い） */
+function saveDraftSoon() {
+  clearTimeout(draftTimer);
+  draftTimer = setTimeout(() => {
+    store.saveDraft({ text: $("composeText").value, tags: $("composeTags").value });
+  }, 400);
+}
+
+function saveDraftNow() {
+  clearTimeout(draftTimer);
+  store.saveDraft({ text: $("composeText").value, tags: $("composeTags").value });
 }
 
 function submitCompose() {
@@ -152,6 +225,9 @@ function submitCompose() {
   addIdea(text, "text", $("composeTags").value);
   $("composeText").value = "";
   autoGrow($("composeText"));
+  clearTimeout(draftTimer);
+  store.clearDraft();
+  renderTagSuggest();
   toast("ためました");
   $("composeText").focus();
 }
@@ -460,6 +536,7 @@ function openImport(backup, from) {
 function afterImport(message, undo) {
   renderIdeas();
   renderTags();
+  renderTagSuggest();
   renderSelectBar();
   updateStorageInfo();
   toast(message, undo);
@@ -546,7 +623,12 @@ function bindEvents() {
 
   // 入力
   $("composeAdd").addEventListener("click", submitCompose);
-  $("composeText").addEventListener("input", (event) => autoGrow(event.target));
+  $("composeText").addEventListener("input", (event) => { autoGrow(event.target); saveDraftSoon(); });
+  $("composeTags").addEventListener("input", () => { renderTagSuggest(); saveDraftSoon(); });
+  $("tagSuggest").addEventListener("click", (event) => {
+    const chip = event.target.closest("[data-suggest]");
+    if (chip) toggleComposeTag(chip.dataset.suggest);
+  });
   $("composeText").addEventListener("keydown", (event) => {
     if ((event.ctrlKey || event.metaKey) && event.key === "Enter") { event.preventDefault(); submitCompose(); }
   });
@@ -562,6 +644,10 @@ function bindEvents() {
 
   // 検索・タグ
   $("searchInput").addEventListener("input", (event) => { state.search = event.target.value; renderIdeas(); });
+  for (const chip of document.querySelectorAll(".rangechip")) {
+    chip.addEventListener("click", () => { setRange(chip.dataset.range); renderIdeas(); });
+  }
+
   $("tagFilters").addEventListener("click", (event) => {
     const button = event.target.closest("[data-tag]");
     if (!button) return;
@@ -584,6 +670,25 @@ function bindEvents() {
     renderSelectBar();
     renderSelectBar();
   });
+  $("selectCombine").addEventListener("click", () => {
+    const result = store.combine([...state.selected]);
+    if (!result) return;
+    state.selected.clear();
+    state.selectMode = false;
+    lastAddedId = result.combined.id;
+    renderIdeas();
+    renderTags();
+    renderTagSuggest();
+    renderSelectBar();
+    toast(`${result.before.length}件を1件にまとめました`, () => {
+      store.splitBack(result);
+      renderIdeas();
+      renderTags();
+      renderTagSuggest();
+      renderSelectBar();
+    });
+  });
+
   $("selectCopy").addEventListener("click", () => {
     const ideas = store.sorted().filter((idea) => state.selected.has(idea.id));
     if (ideas.length === 0) return;
@@ -600,6 +705,7 @@ function bindEvents() {
       store.restore(removed);
       renderIdeas();
       renderTags();
+      renderTagSuggest();
       renderSelectBar();
     });
   });
@@ -639,6 +745,7 @@ function bindEvents() {
       state.selected.delete(id);
       renderIdeas();
       renderTags();
+      renderTagSuggest();
       renderSelectBar();
       toast("消しました", () => {
         store.restore(removed);
@@ -675,6 +782,7 @@ function bindEvents() {
       store.update(state.editingId, { text: $("editText").value, tags: $("editTags").value });
       renderIdeas();
       renderTags();
+      renderTagSuggest();
       renderSelectBar();
       toast("直しました");
     }
@@ -773,7 +881,10 @@ function bindEvents() {
   });
 
   // 画面を閉じるときに、聞き取り中のものを取りこぼさない
-  window.addEventListener("pagehide", () => { if (voice.listening) stopVoice({ save: true }); });
+  window.addEventListener("pagehide", () => {
+    if (voice.listening) stopVoice({ save: true });
+    saveDraftNow();
+  });
 }
 
 function openEdit(id) {
@@ -791,7 +902,15 @@ function init() {
   store.load();
   applySettingsToForm();
   bindEvents();
+  const draft = store.loadDraft();
+  if (draft) {
+    $("composeText").value = draft.text;
+    $("composeTags").value = draft.tags;
+    autoGrow($("composeText"));
+  }
+
   renderTags();
+  renderTagSuggest();
   renderIdeas();
   renderSelectBar();
   showScreen("add");

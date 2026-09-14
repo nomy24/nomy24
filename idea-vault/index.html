@@ -40,7 +40,8 @@
         <input id="composeTags" class="compose__tags" type="text" placeholder="タグ（スペース区切り・任意）" autocomplete="off" enterkeyhint="done">
         <button id="composeAdd" class="btn btn--primary" type="button">ためる</button>
       </div>
-      <p class="compose__hint" id="composeHint">Ctrl+Enter でも追加できます。マイクは右下のボタンから。タグは続けて使えるように残ります。</p>
+      <div id="tagSuggest" class="tagsuggest" role="group" aria-label="よく使うタグ" hidden></div>
+      <p class="compose__hint" id="composeHint">Ctrl+Enter でも追加できます。マイクは右下のボタンから。書きかけのまま閉じても残ります。</p>
     </div>
 
     <div class="listhead">
@@ -49,6 +50,13 @@
         <input id="searchInput" class="search__input" type="search" placeholder="ためたものを探す" autocomplete="off" enterkeyhint="search">
       </div>
       <button id="selectToggle" class="btn btn--ghost btn--small" type="button" aria-pressed="false">選ぶ</button>
+    </div>
+
+    <div id="rangeFilters" class="rangefilters" role="group" aria-label="期間でしぼりこむ" hidden>
+      <button class="rangechip is-on" type="button" data-range="all" aria-pressed="true">すべて</button>
+      <button class="rangechip" type="button" data-range="today" aria-pressed="false">今日</button>
+      <button class="rangechip" type="button" data-range="week" aria-pressed="false">今週</button>
+      <button class="rangechip" type="button" data-range="month" aria-pressed="false">今月</button>
     </div>
 
     <div id="tagFilters" class="tagfilters" role="group" aria-label="タグでしぼりこむ"></div>
@@ -170,7 +178,8 @@
 <!-- 選択モードの操作バー -->
 <div id="selectBar" class="selectbar" hidden>
   <p class="selectbar__count"><span id="selectCount">0</span>件を選択中</p>
-  <button id="selectCopy" class="btn btn--primary btn--small" type="button">コピー</button>
+  <button id="selectCombine" class="btn btn--primary btn--small" type="button" hidden>1件にまとめる</button>
+  <button id="selectCopy" class="btn btn--ghost btn--small" type="button">コピー</button>
   <button id="selectDelete" class="btn btn--ghost btn--small" type="button">消す</button>
   <button id="selectClear" class="btn btn--ghost btn--small" type="button">やめる</button>
 </div>

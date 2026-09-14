@@ -4,6 +4,7 @@
 
 const KEY_IDEAS = "idea-vault/ideas.v1";
 const KEY_SETTINGS = "idea-vault/settings.v1";
+const KEY_DRAFT = "idea-vault/draft.v1";
 
 export const DEFAULT_SETTINGS = {
   continuous: true,   // ひと区切りごとに1件として保存する
@@ -92,6 +93,26 @@ export const store = {
     return writeJson(KEY_SETTINGS, this.settings);
   },
 
+  /* --- 書きかけ ---------------------------------------------------------
+     入力の途中で閉じても消えないように、1件だけ別に置いておく。
+     ためた時点で捨てる。 */
+
+  loadDraft() {
+    const draft = readJson(KEY_DRAFT, null);
+    if (!draft || typeof draft !== "object") return null;
+    return { text: String(draft.text ?? ""), tags: String(draft.tags ?? "") };
+  },
+
+  saveDraft(draft) {
+    if (!draft.text.trim() && !draft.tags.trim()) return this.clearDraft();
+    return writeJson(KEY_DRAFT, { text: draft.text, tags: draft.tags, savedAt: Date.now() });
+  },
+
+  clearDraft() {
+    try { localStorage.removeItem(KEY_DRAFT); } catch { /* 消せなくても困らない */ }
+    return true;
+  },
+
   /** 新しい順に並べ替える（ピン留めは常に上） */
   sorted() {
     return [...this.ideas].sort((a, b) => {
@@ -118,6 +139,36 @@ export const store = {
     if (!idea.text) return this.remove([id])[0] ?? null;
     this.saveIdeas();
     return idea;
+  },
+
+  /** 選んだものを1件にまとめる。声で細切れになったものを直すため。
+      いちばん古いものの日時を引き継ぎ、タグはまとめる。元の並び（古い順）でつなぐ。 */
+  combine(ids) {
+    const set = new Set(ids);
+    const targets = this.ideas.filter((idea) => set.has(idea.id)).sort((a, b) => a.createdAt - b.createdAt);
+    if (targets.length < 2) return null;
+
+    const combined = {
+      id: newId(),
+      text: targets.map((idea) => idea.text.trim()).filter(Boolean).join("\n").slice(0, 4000),
+      tags: normalizeTags(targets.flatMap((idea) => idea.tags)),
+      source: targets.some((idea) => idea.source === "voice") ? "voice" : "text",
+      createdAt: targets[0].createdAt,
+      updatedAt: Date.now(),
+      pinned: targets.some((idea) => idea.pinned),
+    };
+
+    this.ideas = this.ideas.filter((idea) => !set.has(idea.id));
+    this.ideas.push(combined);
+    this.saveIdeas();
+    return { combined, before: targets };
+  },
+
+  /** combine のあとで「元に戻す」を押されたとき */
+  splitBack(result) {
+    this.ideas = this.ideas.filter((idea) => idea.id !== result.combined.id);
+    for (const idea of result.before) this.ideas.push(idea);
+    this.saveIdeas();
   },
 
   /** 消したものを（元に戻す用に）そのまま返す */
