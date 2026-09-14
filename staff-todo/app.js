@@ -204,6 +204,98 @@ function toast(msg) {
   toastTimer = setTimeout(() => { el.hidden = true; }, 2400);
 }
 
+// ---------------- 音声入力 ----------------
+// 対応ブラウザ(主にChrome系)でのみ、テキスト入力欄にマイクボタンを付け、
+// 話した内容をその場で文字にして入力できるようにする。未対応ブラウザではボタンごと出さない。
+
+const SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
+let activeVoiceSession = null; // { recognition, btn }
+
+function stopActiveVoiceSession() {
+  if (activeVoiceSession) {
+    try { activeVoiceSession.recognition.stop(); } catch (e) { /* noop */ }
+  }
+}
+
+function micIconHtml() {
+  return `<svg viewBox="0 0 24 24" aria-hidden="true">
+    <rect x="9" y="2" width="6" height="12" rx="3"></rect>
+    <path d="M5 11a7 7 0 0 0 14 0"></path>
+    <path d="M12 18v3"></path>
+    <path d="M8 21h8"></path>
+  </svg>`;
+}
+
+// 1つの入力欄にマイクボタンを追加する。タップで音声認識を開始/停止し、認識結果を欄の値に反映する。
+function attachVoiceInput(el) {
+  if (!SpeechRecognitionCtor || !el || el.dataset.voiceWired) return;
+  el.dataset.voiceWired = "1";
+  el.classList.add("has-voice");
+
+  const wrap = document.createElement("div");
+  wrap.className = "voice-field";
+  el.parentNode.insertBefore(wrap, el);
+  wrap.appendChild(el);
+
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "mic-btn";
+  btn.setAttribute("aria-label", "音声入力");
+  btn.innerHTML = micIconHtml();
+  wrap.appendChild(btn);
+
+  let baseline = "";
+
+  btn.addEventListener("click", () => {
+    if (activeVoiceSession && activeVoiceSession.btn === btn) {
+      stopActiveVoiceSession();
+      return;
+    }
+    stopActiveVoiceSession();
+
+    const recognition = new SpeechRecognitionCtor();
+    recognition.lang = "ja-JP";
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    baseline = el.value.trim();
+
+    recognition.onresult = (e) => {
+      let finalChunk = "";
+      let interimChunk = "";
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const t = e.results[i][0].transcript;
+        if (e.results[i].isFinal) finalChunk += t;
+        else interimChunk += t;
+      }
+      if (finalChunk) baseline = baseline ? `${baseline} ${finalChunk}` : finalChunk;
+      el.value = interimChunk ? `${baseline}${baseline ? " " : ""}${interimChunk}` : baseline;
+      el.dispatchEvent(new Event("input", { bubbles: true }));
+    };
+    recognition.onerror = () => {
+      btn.classList.remove("mic-btn--listening");
+      activeVoiceSession = null;
+    };
+    recognition.onend = () => {
+      btn.classList.remove("mic-btn--listening");
+      if (activeVoiceSession && activeVoiceSession.btn === btn) activeVoiceSession = null;
+    };
+
+    try {
+      recognition.start();
+      btn.classList.add("mic-btn--listening");
+      activeVoiceSession = { recognition, btn };
+    } catch (e) {
+      console.error("音声認識を開始できませんでした", e);
+    }
+  });
+}
+
+// フォーム内のテキスト系入力欄をまとめて拾い、音声入力ボタンを付ける
+function wireVoiceInputs(root) {
+  if (!SpeechRecognitionCtor) return;
+  root.querySelectorAll('input[type="text"], textarea').forEach(attachVoiceInput);
+}
+
 // ---------------- ボトムシート ----------------
 
 const sheetEl = document.getElementById("sheet");
@@ -249,6 +341,7 @@ function openSheet(title, bodyHtml, { onSubmit, onDelete, submitLabel = "保存"
     });
   }
   wirePillGroups(sheetForm);
+  wireVoiceInputs(sheetForm);
   sheetBackdrop.hidden = false;
   sheetEl.hidden = false;
   requestAnimationFrame(() => {
@@ -688,6 +781,7 @@ todoSearchClear.addEventListener("click", () => {
   renderTodoList();
   todoSearchInput.focus();
 });
+attachVoiceInput(todoSearchInput);
 
 function todoAssigneeIds(todo) {
   return todo?.assigneeIds || (todo?.assigneeId ? [todo.assigneeId] : []);
@@ -1666,6 +1760,7 @@ memoSearchInput.addEventListener("input", () => {
   renderMemoList();
 });
 wireCallerSuggest(memoSearchInput, document.getElementById("memoSearchSuggestChips"));
+attachVoiceInput(memoSearchInput);
 
 // 過去に記録した相手先の一覧を、最後に使われた順で返す(検索欄・入力フォームの候補に使う)
 function distinctCallers() {
