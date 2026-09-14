@@ -44,6 +44,14 @@
       <p class="compose__hint" id="composeHint">Ctrl+Enter でも追加できます。マイクは右下のボタンから。書きかけのまま閉じても残ります。</p>
     </div>
 
+    <div id="backupNotice" class="notice" role="status" hidden>
+      <p class="notice__text" id="backupText"></p>
+      <div class="notice__acts">
+        <button id="backupNow" class="btn btn--small notice__go" type="button">いま書き出す</button>
+        <button id="backupLater" class="btn btn--ghost btn--small" type="button">あとで</button>
+      </div>
+    </div>
+
     <div class="listhead">
       <div class="search">
         <svg class="search__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.4-4.4"/></svg>

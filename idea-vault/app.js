@@ -129,6 +129,7 @@ function renderIdeas() {
   $("rangeFilters").hidden = !showRange;
   if (!showRange && state.range !== "all") setRange("all");
 
+  renderBackupNotice();
   $("ideaCount").textContent = `${items.length}件`;
   const filtered = state.tag || state.search.trim() || state.range !== "all";
   $("filterNote").hidden = !filtered;
@@ -145,6 +146,17 @@ function renderTags() {
 }
 
 /** 入力欄の下に出す、よく使うタグ。押すとタグ欄に足したり外したりする */
+/** 書き出しの催促。消えて困る量になってから、静かに出す */
+function renderBackupNotice() {
+  const state = store.backupState();
+  $("backupNotice").hidden = !state.show;
+  if (!state.show) return;
+
+  $("backupText").textContent = state.never
+    ? `まだ一度も書き出していません。ブラウザのデータを消したり機種を変えたりすると、${store.ideas.length}件がまとめてなくなります。`
+    : `${state.days}日書き出していません。そのあいだに${state.addedSince}件ふえました。この端末の中にしかない状態です。`;
+}
+
 function setRange(range) {
   state.range = range;
   for (const chip of document.querySelectorAll(".rangechip")) {
@@ -600,7 +612,11 @@ function applySettingsToForm() {
 /** 設定画面をひらくたびに数え直す */
 function updateStorageInfo() {
   const bytes = new Blob([JSON.stringify(store.toBackup())]).size;
-  $("storageInfo").textContent = `この端末の中だけに保存しています。いま ${store.ideas.length}件・約${(bytes / 1024).toFixed(1)}KB。機種変更やブラウザのデータ削除で消えるので、ときどき書き出してください。`;
+  const last = store.settings.lastExportedAt;
+  const lastText = last
+    ? `最後に持ち出したのは ${timeFormat.format(new Date(last))}（${Math.floor((Date.now() - last) / 86400000)}日前）。`
+    : "まだ一度も持ち出していません。";
+  $("storageInfo").textContent = `この端末の中だけに保存しています。いま ${store.ideas.length}件・約${(bytes / 1024).toFixed(1)}KB。${lastText}機種変更やブラウザのデータ削除で消えます。`;
 }
 
 function bindSetting(id, key, prop = "checked") {
@@ -634,6 +650,16 @@ function bindEvents() {
   });
   $("composeTags").addEventListener("keydown", (event) => {
     if (event.key === "Enter") { event.preventDefault(); submitCompose(); }
+  });
+
+  $("backupNow").addEventListener("click", () => {
+    showScreen("settings");
+    $("exportJson").click();
+  });
+  $("backupLater").addEventListener("click", () => {
+    store.snoozeReminder();
+    renderBackupNotice();
+    toast("1週間後にまたお知らせします");
   });
 
   $("copyVisible").addEventListener("click", () => {
@@ -800,6 +826,9 @@ function bindEvents() {
   bindSetting("setLang", "lang", "value");
   $("exportJson").addEventListener("click", () => {
     download(`idea-vault-${stamp()}.json`, JSON.stringify(backupNow(), null, 2), "application/json");
+    store.markExported();
+    renderBackupNotice();
+    updateStorageInfo();
     toast("書き出しました");
   });
   $("exportMd").addEventListener("click", () => { exportText(); toast("書き出しました"); });
@@ -807,14 +836,24 @@ function bindEvents() {
   $("shareFile").addEventListener("click", async () => {
     try {
       const sent = await shareBackupFile(backupNow(), `idea-vault-${stamp()}.json`);
-      if (sent) toast("送りました");
+      if (sent) {
+        store.markExported();
+        renderBackupNotice();
+        updateStorageInfo();
+        toast("送りました");
+      }
     } catch (error) {
       toast(error.message);
     }
   });
 
   $("makeCode").addEventListener("click", makeCode);
-  $("copyCode").addEventListener("click", () => copyText($("codeText").value));
+  $("copyCode").addEventListener("click", () => {
+    copyText($("codeText").value);
+    store.markExported();   // 貼り付け先に残す前提なので、持ち出しとして数える
+    renderBackupNotice();
+    updateStorageInfo();
+  });
   $("closeCode").addEventListener("click", () => { $("codeOut").hidden = true; });
 
   $("pasteToggle").addEventListener("click", () => {

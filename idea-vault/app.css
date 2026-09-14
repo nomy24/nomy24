@@ -204,6 +204,21 @@ svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width:
 .btnrow { display: flex; gap: .5rem; margin-top: .5rem; }
 .btnrow .btn { flex: 1 1 0; }
 
+/* --- 書き出しの催促 ---------------------------------------------------- */
+
+.notice {
+  margin-top: 1rem; padding: .75rem .875rem;
+  background: var(--color-warn-bg);
+  border: 1px solid color-mix(in srgb, var(--color-warn) 35%, transparent);
+  border-radius: var(--radius-md);
+}
+
+.notice__text { margin: 0; font-size: .8125rem; line-height: 1.75; color: var(--color-warn); }
+.notice__acts { display: flex; gap: .5rem; margin-top: .625rem; }
+/* 明暗どちらでも読めるように、文字色は帯の背景と同じ側から取る */
+.notice__go { background: var(--color-warn); color: var(--color-warn-bg); }
+.notice__acts .btn--ghost { border-color: color-mix(in srgb, var(--color-warn) 40%, transparent); color: var(--color-warn); }
+
 /* --- 検索・タグ ------------------------------------------------------- */
 
 .listhead { display: flex; align-items: center; gap: .5rem; margin-top: 1.25rem; }

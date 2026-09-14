@@ -7,10 +7,18 @@ const KEY_SETTINGS = "idea-vault/settings.v1";
 const KEY_DRAFT = "idea-vault/draft.v1";
 
 export const DEFAULT_SETTINGS = {
-  continuous: true,   // ひと区切りごとに1件として保存する
-  keepMic: true,      // 端末が勝手に切ったらつなぎ直す
+  continuous: true,        // ひと区切りごとに1件として保存する
+  keepMic: true,           // 端末が勝手に切ったらつなぎ直す
   lang: "ja-JP",
+  lastExportedAt: null,    // 最後に持ち出した日時（戻せる形で出したときだけ）
+  remindSnoozedUntil: null, // 催促を「あとで」にした期限
 };
+
+/** 何日たったら催促するか。1日2回の更新を前提にした職員Todoとは違い、
+    ここは「消えたら全部なくなる」ので、少し早めに出す。 */
+const REMIND_AFTER_DAYS = 14;
+const SNOOZE_DAYS = 7;
+const REMIND_MIN_IDEAS = 5;
 
 function readJson(key, fallback) {
   try {
@@ -91,6 +99,52 @@ export const store = {
 
   saveSettings() {
     return writeJson(KEY_SETTINGS, this.settings);
+  },
+
+  /* --- 書き出しの催促 ---------------------------------------------------
+     localStorage はブラウザのデータ削除や機種変更で予告なく消える。
+     消えて困る量になってから、静かに促す。 */
+
+  /** 戻せる形（JSON・共有・移行コード）で持ち出したときに呼ぶ */
+  markExported() {
+    this.settings.lastExportedAt = Date.now();
+    this.settings.remindSnoozedUntil = null;
+    return this.saveSettings();
+  },
+
+  snoozeReminder() {
+    this.settings.remindSnoozedUntil = Date.now() + SNOOZE_DAYS * 86400000;
+    return this.saveSettings();
+  },
+
+  /** いちばん新しい変更の日時（追加・書きなおしの両方を見る） */
+  lastChangedAt() {
+    return this.ideas.reduce((newest, idea) => Math.max(newest, idea.createdAt, idea.updatedAt ?? 0), 0);
+  },
+
+  /** 催促を出すかどうかと、その中身 */
+  backupState() {
+    const { lastExportedAt, remindSnoozedUntil } = this.settings;
+    const now = Date.now();
+    const state = {
+      show: false,
+      never: !lastExportedAt,
+      days: lastExportedAt ? Math.floor((now - lastExportedAt) / 86400000) : null,
+      lastExportedAt: lastExportedAt ?? null,
+      addedSince: 0,
+    };
+
+    if (this.ideas.length < REMIND_MIN_IDEAS) return state;
+    if (remindSnoozedUntil && now < remindSnoozedUntil) return state;
+
+    if (!lastExportedAt) {
+      state.show = true;
+      return state;
+    }
+    // 持ち出したあと何も変わっていないなら、催促する理由がない
+    state.addedSince = this.ideas.filter((idea) => Math.max(idea.createdAt, idea.updatedAt ?? 0) > lastExportedAt).length;
+    state.show = state.days >= REMIND_AFTER_DAYS && state.addedSince > 0;
+    return state;
   },
 
   /* --- 書きかけ ---------------------------------------------------------
