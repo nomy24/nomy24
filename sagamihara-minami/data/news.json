@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-09-18T23:55:17.216Z",
+  "generatedAt": "2026-09-19T23:56:10.391Z",
   "source": "相模原市公式ホームページ",
   "sourceUrl": "https://www.city.sagamihara.kanagawa.jp",
   "counts": {
     "total": 400,
     "minami": 19,
     "citywide": 381,
-    "addedThisRun": 17
+    "addedThisRun": 0
   },
   "categories": [
     {
@@ -55,6 +55,20 @@
     }
   ],
   "items": [
+    {
+      "id": "5fc95f5c9bcb",
+      "title": "譲渡面接会（市の譲渡面接会に参加する市民から猫を譲り受ける場合の情報）",
+      "url": "https://www.city.sagamihara.kanagawa.jp/kosodate/kenko/1026628/pet/1019993.html",
+      "summary": "",
+      "category": "kosodate",
+      "categoryLabel": "子育て・教育",
+      "scope": "citywide",
+      "areaHits": [],
+      "important": false,
+      "source": "相模原市 更新情報",
+      "publishedAt": "2026-09-19T15:05:05.000Z",
+      "firstSeenAt": "2026-09-15T23:59:56.542Z"
+    },
     {
       "id": "02fe51c98791",
       "title": "国民健康保険 日連診療所",
@@ -1860,20 +1874,6 @@
       "source": "相模原市 更新情報",
       "publishedAt": "2026-09-15T15:05:03.000Z",
       "firstSeenAt": "2026-09-07T15:32:41.389Z"
-    },
-    {
-      "id": "5fc95f5c9bcb",
-      "title": "譲渡面接会（市の譲渡面接会に参加する市民から猫を譲り受ける場合の情報）",
-      "url": "https://www.city.sagamihara.kanagawa.jp/kosodate/kenko/1026628/pet/1019993.html",
-      "summary": "",
-      "category": "kosodate",
-      "categoryLabel": "子育て・教育",
-      "scope": "citywide",
-      "areaHits": [],
-      "important": false,
-      "source": "相模原市 更新情報",
-      "publishedAt": "2026-09-15T15:05:03.000Z",
-      "firstSeenAt": "2026-09-15T23:59:56.542Z"
     },
     {
       "id": "69e51779f12a",
@@ -5696,5 +5696,5 @@
       "firstSeenAt": "2026-08-29T23:55:50.587Z"
     }
   ],
-  "revision": "01d00bc3707b"
+  "revision": "a9bcb4b6f919"
 }
