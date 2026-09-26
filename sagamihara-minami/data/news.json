@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-09-25T00:18:40.297Z",
+  "generatedAt": "2026-09-26T00:23:56.491Z",
   "source": "相模原市公式ホームページ",
   "sourceUrl": "https://www.city.sagamihara.kanagawa.jp",
   "counts": {
     "total": 400,
-    "minami": 18,
-    "citywide": 382,
-    "addedThisRun": 29
+    "minami": 20,
+    "citywide": 380,
+    "addedThisRun": 4
   },
   "categories": [
     {
@@ -56,6 +56,110 @@
   ],
   "items": [
     {
+      "id": "10e04810d6e7",
+      "title": "審議会等・協議会等",
+      "url": "https://www.city.sagamihara.kanagawa.jp/shisei/1026896/shikumi/1026898/1005653/index.html",
+      "summary": "",
+      "category": "shisei",
+      "categoryLabel": "市政・お知らせ",
+      "scope": "citywide",
+      "areaHits": [],
+      "important": false,
+      "source": "相模原市 更新情報",
+      "publishedAt": "2026-09-25T15:05:04.000Z",
+      "firstSeenAt": "2026-08-04T04:16:43.500Z"
+    },
+    {
+      "id": "c749d6b38231",
+      "title": "認定こども園・保育所等の利用申込みにおける電子申請（LoGoフォーム）について",
+      "url": "https://www.city.sagamihara.kanagawa.jp/kosodate/1026602/kosodate/1026606/hoikuen/1032919.html",
+      "summary": "",
+      "category": "kosodate",
+      "categoryLabel": "子育て・教育",
+      "scope": "citywide",
+      "areaHits": [],
+      "important": false,
+      "source": "相模原市 更新情報",
+      "publishedAt": "2026-09-25T07:02:17.000Z",
+      "firstSeenAt": "2026-09-24T00:16:10.980Z"
+    },
+    {
+      "id": "542b804a3036",
+      "title": "発表資料 令和8年9月分",
+      "url": "https://www.city.sagamihara.kanagawa.jp/shisei/1026875/koho/1026878/houdo/1036144.html",
+      "summary": "",
+      "category": "shisei",
+      "categoryLabel": "市政・お知らせ",
+      "scope": "citywide",
+      "areaHits": [],
+      "important": false,
+      "source": "相模原市 更新情報",
+      "publishedAt": "2026-09-25T03:55:28.000Z",
+      "firstSeenAt": "2026-09-01T23:50:32.987Z"
+    },
+    {
+      "id": "96b3fd3a3c78",
+      "title": "和田方面における登山バスの実証運行について",
+      "url": "https://www.city.sagamihara.kanagawa.jp/kankou/1026674/1026704/1026705/1034728.html",
+      "summary": "",
+      "category": "event",
+      "categoryLabel": "イベント",
+      "scope": "citywide",
+      "areaHits": [],
+      "important": false,
+      "source": "相模原市 更新情報",
+      "publishedAt": "2026-09-25T03:00:01.000Z",
+      "firstSeenAt": "2026-09-26T00:23:56.491Z"
+    },
+    {
+      "id": "f81b04eaf591",
+      "title": "「（仮称）麻溝台・新磯野北部地区土地区画整理事業」に係る環境影響評価手続について",
+      "url": "https://www.city.sagamihara.kanagawa.jp/kurashi/1026489/kankyo/1026503/1008247/1033979.html",
+      "summary": "",
+      "category": "gomi",
+      "categoryLabel": "ごみ・環境",
+      "scope": "minami",
+      "areaHits": [
+        "麻溝",
+        "麻溝台"
+      ],
+      "important": false,
+      "source": "相模原市 更新情報",
+      "publishedAt": "2026-09-25T02:35:38.000Z",
+      "firstSeenAt": "2026-09-26T00:23:56.491Z"
+    },
+    {
+      "id": "f6de986880cd",
+      "title": "「（仮称）麻溝台・新磯野北部地区土地区画整理事業」方法書の縦覧及び意見書の提出について",
+      "url": "https://www.city.sagamihara.kanagawa.jp/kurashi/1026489/kankyo/1026503/1008247/1036100.html",
+      "summary": "",
+      "category": "gomi",
+      "categoryLabel": "ごみ・環境",
+      "scope": "minami",
+      "areaHits": [
+        "麻溝",
+        "麻溝台"
+      ],
+      "important": false,
+      "source": "相模原市 更新情報",
+      "publishedAt": "2026-09-25T02:31:30.000Z",
+      "firstSeenAt": "2026-09-26T00:23:56.491Z"
+    },
+    {
+      "id": "4e48b1f55730",
+      "title": "子どもの遊び場事業【さがみんキッズパーク】",
+      "url": "https://www.city.sagamihara.kanagawa.jp/kosodate/1026602/kosodate/1026604/1018528/1025046.html",
+      "summary": "",
+      "category": "kosodate",
+      "categoryLabel": "子育て・教育",
+      "scope": "citywide",
+      "areaHits": [],
+      "important": false,
+      "source": "相模原市 更新情報",
+      "publishedAt": "2026-09-25T02:10:34.000Z",
+      "firstSeenAt": "2026-09-26T00:23:56.491Z"
+    },
+    {
       "id": "104613041957",
       "title": "インフルエンザ",
       "url": "https://www.city.sagamihara.kanagawa.jp/kosodate/kenko/1026625/kansenyobo/1017178/1007113/index.html",
@@ -68,20 +172,6 @@
       "source": "相模原市 更新情報",
       "publishedAt": "2026-09-24T15:05:04.000Z",
       "firstSeenAt": "2026-09-25T00:18:40.297Z"
-    },
-    {
-      "id": "10e04810d6e7",
-      "title": "審議会等・協議会等",
-      "url": "https://www.city.sagamihara.kanagawa.jp/shisei/1026896/shikumi/1026898/1005653/index.html",
-      "summary": "",
-      "category": "shisei",
-      "categoryLabel": "市政・お知らせ",
-      "scope": "citywide",
-      "areaHits": [],
-      "important": false,
-      "source": "相模原市 更新情報",
-      "publishedAt": "2026-09-24T15:05:04.000Z",
-      "firstSeenAt": "2026-08-04T04:16:43.500Z"
     },
     {
       "id": "1dd5cba6e46d",
@@ -716,20 +806,6 @@
       "firstSeenAt": "2026-09-25T00:18:40.297Z"
     },
     {
-      "id": "542b804a3036",
-      "title": "発表資料 令和8年9月分",
-      "url": "https://www.city.sagamihara.kanagawa.jp/shisei/1026875/koho/1026878/houdo/1036144.html",
-      "summary": "",
-      "category": "shisei",
-      "categoryLabel": "市政・お知らせ",
-      "scope": "citywide",
-      "areaHits": [],
-      "important": false,
-      "source": "相模原市 更新情報",
-      "publishedAt": "2026-09-24T04:03:08.000Z",
-      "firstSeenAt": "2026-09-01T23:50:32.987Z"
-    },
-    {
       "id": "00c9b26bb6b7",
       "title": "相模原市空き家バンク",
       "url": "https://www.city.sagamihara.kanagawa.jp/kurashi/1026489/sumai/1026511/1016822.html",
@@ -908,20 +984,6 @@
       "summary": "",
       "category": "shisei",
       "categoryLabel": "市政・お知らせ",
-      "scope": "citywide",
-      "areaHits": [],
-      "important": false,
-      "source": "相模原市 更新情報",
-      "publishedAt": "2026-09-23T15:05:04.000Z",
-      "firstSeenAt": "2026-09-24T00:16:10.980Z"
-    },
-    {
-      "id": "c749d6b38231",
-      "title": "認定こども園・保育所等の利用申込みにおける電子申請（LoGoフォーム）について",
-      "url": "https://www.city.sagamihara.kanagawa.jp/kosodate/1026602/kosodate/1026606/hoikuen/1032919.html",
-      "summary": "",
-      "category": "kosodate",
-      "categoryLabel": "子育て・教育",
       "scope": "citywide",
       "areaHits": [],
       "important": false,
@@ -5635,63 +5697,7 @@
       "source": "相模原市 更新情報",
       "publishedAt": "2026-09-07T15:05:03.000Z",
       "firstSeenAt": "2026-09-07T15:32:41.389Z"
-    },
-    {
-      "id": "0b7864f206e8",
-      "title": "都市計画審議会の会議録",
-      "url": "https://www.city.sagamihara.kanagawa.jp/shisei/1026896/shikumi/1026898/1005653/1005702.html",
-      "summary": "",
-      "category": "shisei",
-      "categoryLabel": "市政・お知らせ",
-      "scope": "citywide",
-      "areaHits": [],
-      "important": false,
-      "source": "相模原市 更新情報",
-      "publishedAt": "2026-09-07T15:05:03.000Z",
-      "firstSeenAt": "2026-09-07T15:32:41.389Z"
-    },
-    {
-      "id": "1018e5156671",
-      "title": "福祉ポスター、福祉標語及び福祉作文",
-      "url": "https://www.city.sagamihara.kanagawa.jp/kosodate/fukushi/1026643/1015255/1017882.html",
-      "summary": "",
-      "category": "kenko",
-      "categoryLabel": "健康・福祉",
-      "scope": "citywide",
-      "areaHits": [],
-      "important": false,
-      "source": "相模原市 更新情報",
-      "publishedAt": "2026-09-07T15:05:03.000Z",
-      "firstSeenAt": "2026-09-07T15:32:41.389Z"
-    },
-    {
-      "id": "1c5e4ce081a9",
-      "title": "支援者団体",
-      "url": "https://www.city.sagamihara.kanagawa.jp/kosodate/fukushi/1026641/shogai/dantai/1006523.html",
-      "summary": "",
-      "category": "kosodate",
-      "categoryLabel": "子育て・教育",
-      "scope": "citywide",
-      "areaHits": [],
-      "important": false,
-      "source": "相模原市 更新情報",
-      "publishedAt": "2026-09-07T15:05:03.000Z",
-      "firstSeenAt": "2026-09-07T15:32:41.389Z"
-    },
-    {
-      "id": "1dd83d018f08",
-      "title": "令和8年7月8日以前に公表した入札説明書等に関する資料",
-      "url": "https://www.city.sagamihara.kanagawa.jp/shisei/1026823/machitsukuri/1015393/1036187.html",
-      "summary": "",
-      "category": "shisei",
-      "categoryLabel": "市政・お知らせ",
-      "scope": "citywide",
-      "areaHits": [],
-      "important": false,
-      "source": "相模原市 更新情報",
-      "publishedAt": "2026-09-07T15:05:03.000Z",
-      "firstSeenAt": "2026-09-07T15:32:41.389Z"
     }
   ],
-  "revision": "2c8a233b7d3e"
+  "revision": "996317665c5c"
 }
