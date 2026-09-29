@@ -35,7 +35,7 @@ main { max-width: 60rem; margin: 0 auto; padding: 12px 16px 40px; }
 .toolbar button { font: inherit; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; }
 .toolbar button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
 ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
-li { display: grid; grid-template-columns: 4.5rem 1fr auto; gap: 4px 12px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--c, var(--line)); border-radius: 10px; padding: 8px 12px; cursor: pointer; }
+li { display: grid; grid-template-columns: 2rem 4rem 1fr auto; gap: 4px 12px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--c, var(--line)); border-radius: 10px; padding: 8px 12px; cursor: pointer; }
 .km { font-family: var(--num); font-weight: 700; font-size: 1.05rem; }
 .km small { font-weight: 400; font-size: .7rem; color: var(--ink-faint); }
 .name { font-weight: 600; font-size: .9375rem; }
@@ -43,21 +43,62 @@ li { display: grid; grid-template-columns: 4.5rem 1fr auto; gap: 4px 12px; align
 .cnt { font-family: var(--num); font-size: .8125rem; color: var(--ink-soft); white-space: nowrap; }
 a.route { font-size: .75rem; color: var(--mid); }
 .err { color: var(--accent); }
+.no { width: 1.75rem; height: 1.75rem; border-radius: 50%; display: grid; place-items: center; background: var(--c, #999); color: #fff; font-family: var(--num); font-weight: 700; font-size: .8125rem; }
+.pin { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; color: #fff; font: 700 12px/1 "Helvetica Neue", Arial, sans-serif; border: 2px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,.45); }
+.legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: .75rem; color: var(--ink-soft); margin: 6px 0 10px; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; vertical-align: -1px; }
+.print-title { display: none; }
 .note { margin-top: 16px; font-size: .75rem; color: var(--ink-faint); }
+
+/* 印刷ボタンを押したあと、地図を A4 の幅に合わせる */
+body.printing #map { width: 190mm; height: 175mm; max-width: none; margin: 0; }
+
+@page { size: A4 portrait; margin: 10mm; }
+@media print {
+  :root { --ink: #000; --ink-soft: #333; --ink-faint: #555; --bg: #fff; --surface: #fff; --line: #bbb; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { font-size: 9pt; }
+  header .sub, .toolbar, .note, .leaflet-control-zoom { display: none !important; }
+  header, main { padding: 0; max-width: none; }
+  .print-title { display: block; font-size: 8pt; color: #555; margin: 1mm 0 2mm; }
+  #map { width: 190mm; height: 175mm; max-width: none; border: 1px solid #999; margin: 0; }
+  .stats { margin: 3mm 0 2mm; }
+  .stat { padding: 1mm 3mm; border-radius: 2mm; }
+  .stat b { font-size: 11pt; display: inline; margin-right: 2mm; }
+  ol { display: block; columns: 2; column-gap: 5mm; }
+  /* 一覧は2ページ目に、2列で48件が1枚に収まる大きさ */
+  ol { break-before: page; }
+  li { break-inside: avoid; grid-template-columns: 5.5mm 12mm minmax(0, 1fr) auto; gap: 0 1.5mm; padding: .8mm 2mm; margin-bottom: .9mm; border-radius: 1.5mm; border-left-width: 2px; line-height: 1.35; }
+  .no { width: 5mm; height: 5mm; font-size: 7pt; }
+  .km { font-size: 9pt; }
+  .name, .addr { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .name { font-size: 7.5pt; }
+  .addr { font-size: 6pt; }
+  .cnt { font-size: 7pt; }
+  a.route { display: none; }
+}
 </style>
 </head>
 <body>
 <header>
   <h1>居宅事業所マップ</h1>
-  <p class="sub">★ 相模大野駅からの直線距離。輪は 2km / 5km / 10km。行をタップで地図が移動します。</p>
+  <p class="print-title" id="print-title"></p>
+  <p class="sub">★ 相模大野駅からの直線距離。輪は 2km / 5km / 10km。丸の番号は下の一覧の番号です。</p>
 </header>
 <div id="map"></div>
 <main>
   <div class="stats" id="stats"></div>
+  <div class="legend">
+    <span><i style="background:#0d9488"></i>2km未満</span>
+    <span><i style="background:#5c7fd0"></i>2〜5km</span>
+    <span><i style="background:#9a6b3c"></i>5km以上</span>
+    <span>★ 相模大野駅</span>
+  </div>
   <div class="toolbar">
     並べ替え：
     <button data-sort="dist" aria-pressed="true">距離が近い順</button>
     <button data-sort="count" aria-pressed="false">件数が多い順</button>
+    <button id="print">印刷する</button>
     <span id="progress"></span>
   </div>
   <ol id="list"></ol>
@@ -107,7 +148,7 @@ const colorFor = km => km == null ? '#999' : km < 2 ? 'var(--near)' : km < 5 ? '
 const hexFor = km => km == null ? '#999' : km < 2 ? '#0d9488' : km < 5 ? '#5c7fd0' : '#9a6b3c';
 
 // --- 地図 ---
-const map = L.map('map').setView([STATION.lat, STATION.lng], 12);
+const map = L.map('map', { zoomSnap: 0.25 }).setView([STATION.lat, STATION.lng], 12);
 L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png', {
   maxZoom: 18,
   attribution: '<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank">国土地理院</a>'
@@ -119,7 +160,7 @@ L.marker([STATION.lat, STATION.lng], {
   icon: L.divIcon({ html: '<div style="font-size:26px;line-height:1;color:#c2410c;text-shadow:0 0 3px #fff">★</div>', className: '', iconSize: [26, 26], iconAnchor: [13, 13] })
 }).addTo(map).bindPopup('<b>相模大野駅</b>');
 
-const items = OFFICES.map(([name, zip, addr, count]) => ({ name, zip, addr, count, pos: null, km: null, marker: null }));
+const items = OFFICES.map(([name, zip, addr, count]) => ({ name, zip, addr, count, pos: null, km: null, marker: null, no: null }));
 let sortKey = 'dist';
 
 function routeUrl(it) {
@@ -136,6 +177,7 @@ function render() {
     const li = document.createElement('li');
     li.style.setProperty('--c', colorFor(it.km));
     li.innerHTML = `
+      <div class="no">${it.no ?? ''}</div>
       <div class="km">${it.km == null ? '<span class="err">—</span>' : it.km.toFixed(1) + '<small> km</small>'}</div>
       <div><div class="name"></div><div class="addr"></div></div>
       <div style="text-align:right"><div class="cnt">${it.count}件</div><a class="route" target="_blank" rel="noopener">経路</a></div>`;
@@ -162,14 +204,31 @@ function render() {
   ].map(([n, l]) => `<div class="stat"><b>${n}</b><span>${l}</span></div>`).join('');
 }
 
+// 番号入りの丸。色は距離帯、番号は一覧と共通
+function pinIcon(it) {
+  return L.divIcon({
+    html: `<div class="pin" style="background:${hexFor(it.km)}">${it.no ?? ''}</div>`,
+    className: '', iconSize: [24, 24], iconAnchor: [12, 12], popupAnchor: [0, -10]
+  });
+}
+
+// 近い順に 1, 2, 3… と番号を振る（並べ替えても番号は変わらない）
+function numberItems() {
+  [...items].sort((a, b) => (a.km ?? 99) - (b.km ?? 99)).forEach((it, i) => {
+    it.no = i + 1;
+    if (it.marker) {
+      it.marker.setIcon(pinIcon(it));
+      it.marker.setZIndexOffset(1000 - it.no); // 近い事業所の番号を上に
+    }
+  });
+}
+
 function place(it) {
   it.km = distanceKm(STATION, it.pos);
-  it.marker = L.circleMarker([it.pos.lat, it.pos.lng], {
-    radius: 5 + Math.min(it.count, 14) * 0.7, color: '#fff', weight: 1.5, fillColor: hexFor(it.km), fillOpacity: .9
-  }).addTo(map);
+  it.marker = L.marker([it.pos.lat, it.pos.lng], { icon: pinIcon(it) }).addTo(map);
   const div = document.createElement('div');
-  div.innerHTML = `<b></b><br><span></span><br>直線 ${it.km.toFixed(1)}km ・ ${it.count}件<br><a target="_blank" rel="noopener">Googleマップで経路</a>`;
-  div.querySelector('b').textContent = it.name;
+  div.innerHTML = `<b>${it.no ? it.no + '. ' : ''}</b><b></b><br><span></span><br>直線 ${it.km.toFixed(1)}km ・ ${it.count}件<br><a target="_blank" rel="noopener">Googleマップで経路</a>`;
+  div.querySelectorAll('b')[1].textContent = it.name;
   div.querySelector('span').textContent = it.addr;
   div.querySelector('a').href = routeUrl(it);
   it.marker.bindPopup(div);
@@ -200,10 +259,28 @@ document.querySelectorAll('[data-sort]').forEach(btn => btn.addEventListener('cl
     }
     if (n % 8 === 0 || n === addrs.length) render();
   }
+  numberItems();
+  items.filter(i => i.marker).forEach(i => { i.marker.remove(); place(i); });
+  render();
   const pts = items.filter(i => i.marker).map(i => i.marker.getLatLng());
   if (pts.length) map.fitBounds(L.latLngBounds([...pts, [STATION.lat, STATION.lng]]).pad(0.05));
 })();
 render();
+
+// 印刷：地図を A4 幅に合わせて全件が入るよう表示し、地図の画像を読み終えてから印刷する
+document.getElementById('print').addEventListener('click', () => {
+  document.getElementById('print-title').textContent =
+    '居宅事業所マップ（相模大野駅からの直線距離）  ' + new Date().toLocaleDateString('ja-JP');
+  document.body.classList.add('printing');
+  map.invalidateSize();
+  const pts = items.filter(i => i.marker).map(i => i.marker.getLatLng());
+  map.fitBounds(L.latLngBounds([...pts, [STATION.lat, STATION.lng]]).pad(0.03), { animate: false });
+  setTimeout(() => window.print(), 1200);
+});
+window.addEventListener('afterprint', () => {
+  document.body.classList.remove('printing');
+  map.invalidateSize();
+});
 </script>
 </body>
 </html>
