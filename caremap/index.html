@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>居宅事業所マップ</title>
+<meta name="description" content="居宅介護支援事業所の位置と、相模大野駅からの直線距離。">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+:root {
+  --ink: #14212e; --ink-soft: #4d6070; --ink-faint: #7d8f9b;
+  --bg: #f4f6f4; --surface: #fff; --line: #dfe5e3;
+  --accent: #c2410c; --near: #0d9488; --mid: #5c7fd0; --far: #9a6b3c;
+  --font: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic", "Noto Sans JP", Meiryo, system-ui, sans-serif;
+  --num: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ink: #e7eef2; --ink-soft: #a3b5c0; --ink-faint: #788b97;
+    --bg: #111b22; --surface: #1a2833; --line: #2b3d4a;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font); line-height: 1.6; }
+header { padding: 16px 16px 8px; max-width: 60rem; margin: 0 auto; }
+h1 { margin: 0; font-size: 1.25rem; }
+.sub { margin: 2px 0 0; font-size: .8125rem; color: var(--ink-soft); }
+#map { height: 55svh; min-height: 320px; max-width: 60rem; margin: 0 auto; border-block: 1px solid var(--line); }
+main { max-width: 60rem; margin: 0 auto; padding: 12px 16px 40px; }
+.stats { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.stat { flex: 1 1 7rem; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px; }
+.stat b { display: block; font-family: var(--num); font-size: 1.25rem; }
+.stat span { font-size: .75rem; color: var(--ink-faint); }
+.toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 8px; font-size: .8125rem; color: var(--ink-soft); }
+.toolbar button { font: inherit; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; }
+.toolbar button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+li { display: grid; grid-template-columns: 2rem 4rem 1fr auto; gap: 4px 12px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--c, var(--line)); border-radius: 10px; padding: 8px 12px; cursor: pointer; }
+.km { font-family: var(--num); font-weight: 700; font-size: 1.05rem; }
+.km small { font-weight: 400; font-size: .7rem; color: var(--ink-faint); }
+.name { font-weight: 600; font-size: .9375rem; }
+.addr { font-size: .75rem; color: var(--ink-faint); }
+.cnt { font-family: var(--num); font-size: .8125rem; color: var(--ink-soft); white-space: nowrap; }
+a.route { font-size: .75rem; color: var(--mid); }
+.err { color: var(--accent); }
+.no { width: 1.75rem; height: 1.75rem; border-radius: 50%; display: grid; place-items: center; background: var(--c, #999); color: #fff; font-family: var(--num); font-weight: 700; font-size: .8125rem; }
+.pin { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; color: #fff; font: 700 12px/1 "Helvetica Neue", Arial, sans-serif; border: 2px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,.45); }
+.legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: .75rem; color: var(--ink-soft); margin: 6px 0 10px; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; vertical-align: -1px; }
+.print-title { display: none; }
+.note { margin-top: 16px; font-size: .75rem; color: var(--ink-faint); }
+
+/* 印刷ボタンを押したあと、地図を A4 の幅に合わせる */
+body.printing #map { width: 190mm; height: 175mm; max-width: none; margin: 0; }
+
+@page { size: A4 portrait; margin: 10mm; }
+@media print {
+  :root { --ink: #000; --ink-soft: #333; --ink-faint: #555; --bg: #fff; --surface: #fff; --line: #bbb; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { font-size: 9pt; }
+  header .sub, .toolbar, .note, .leaflet-control-zoom { display: none !important; }
+  header, main { padding: 0; max-width: none; }
+  .print-title { display: block; font-size: 8pt; color: #555; margin: 1mm 0 2mm; }
+  #map { width: 190mm; height: 175mm; max-width: none; border: 1px solid #999; margin: 0; }
+  .stats { margin: 3mm 0 2mm; }
+  .stat { padding: 1mm 3mm; border-radius: 2mm; }
+  .stat b { font-size: 11pt; display: inline; margin-right: 2mm; }
+  ol { display: block; columns: 2; column-gap: 5mm; }
+  /* 一覧は2ページ目に、2列で48件が1枚に収まる大きさ */
+  ol { break-before: page; }
+  li { break-inside: avoid; grid-template-columns: 5.5mm 12mm minmax(0, 1fr) auto; gap: 0 1.5mm; padding: .8mm 2mm; margin-bottom: .9mm; border-radius: 1.5mm; border-left-width: 2px; line-height: 1.35; }
+  .no { width: 5mm; height: 5mm; font-size: 7pt; }
+  .km { font-size: 9pt; }
+  .name, .addr { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .name { font-size: 7.5pt; }
+  .addr { font-size: 6pt; }
+  .cnt { font-size: 7pt; }
+  a.route { display: none; }
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>居宅事業所マップ</h1>
+  <p class="print-title" id="print-title"></p>
+  <p class="sub">★ 相模大野駅からの直線距離。輪は 2km / 5km / 10km。丸の番号は下の一覧の番号です。</p>
+</header>
+<div id="map"></div>
+<main>
+  <div class="stats" id="stats"></div>
+  <div class="legend">
+    <span><i style="background:#0d9488"></i>2km未満</span>
+    <span><i style="background:#5c7fd0"></i>2〜5km</span>
+    <span><i style="background:#9a6b3c"></i>5km以上</span>
+    <span>★ 相模大野駅</span>
+  </div>
+  <div class="toolbar">
+    並べ替え：
+    <button data-sort="dist" aria-pressed="true">距離が近い順</button>
+    <button data-sort="count" aria-pressed="false">件数が多い順</button>
+    <button id="print">印刷する</button>
+    <span id="progress"></span>
+  </div>
+  <ol id="list"></ol>
+  <p class="note">位置は国土地理院の住所検索で求めています（番地単位のため数十mずれることがあります）。道のりの距離・時間は各行の「経路」から Google マップで確認できます。</p>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+// [事業所名, 郵便番号, 住所, 件数]
+const OFFICES = [["シャロームまちさがプランニング", "194-0022", "町田市森野2－23－8", 1], ["ケアプランセンターモリラボ横浜", "224-0001", "横浜市都筑区中川3-29-18", 2], ["ロゼホームつきみ野", "242-0001", "大和市下鶴間418－2", 6], ["ケアプラザ田園", "242-0003", "大和市林間1－20－15", 6], ["居宅支援　ゆこす", "242-0003", "大和市林間2－21－5", 14], ["SOMPOケア大和鶴間居宅介護支援", "242-0004", "大和市鶴間2－11－29", 1], ["ワーカーズ想事業所", "242-0005", "大和市西鶴間1－11－15", 2], ["さちケアマネステーション", "242-0005", "大和市西鶴間1-19-16", 4], ["さわやかケア鶴間　居宅介護支援", "242-0005", "大和市西鶴間1-8-14", 1], ["居宅介護支援センターサンホーム鶴間", "242-0005", "大和市西鶴間8-1-2", 2], ["喫茶マチカド介護とくらしの相談所", "242-0006", "大和市南林間1-18-16", 1], ["居宅介護支援ステーションはな", "242-0006", "大和市南林間2-13-2", 5], ["居宅介護支援事業所グレイス", "242-0006", "大和市南林間6-4-25", 2], ["せいわ居宅介護支援センター", "242-0006", "大和市南林間9－8－9", 1], ["ケアプランオーレ", "242-0007", "大和市中央林間1-10-21", 1], ["おかげさま", "242-0007", "大和市中央林間1-13-19", 1], ["東京海上日動みずたま介護ST中央林間ケアプランセンタ", "242-0007", "大和市中央林間4-21-19", 1], ["フラステーション居宅介護支援事業所", "242-0014", "大和市上和田188-6", 1], ["指定相談支援アットコレット大和", "242-0018", "大和市深見西2-1-6", 3], ["ケアプランセンター　うぃずYouやまと", "242-0018", "大和市深見西8-2-10", 1], ["ケアプランBambee", "242-0021", "大和市中央5-6-29", 2], ["晃風園居宅介護支援センター", "242-0026", "大和市草柳2-15-1", 1], ["おひさまケア相模", "242-0028", "大和市桜森3-8-21", 10], ["プレマ会ケアプランセンター", "242-0029", "大和市上草柳186-3", 2], ["ケアプランセンターモリラボ", "242-0029", "大和市上草柳4-3-6", 2], ["lanaケアマネステーション", "243-0431", "海老名市上今泉2-8-22", 1], ["相模台病院居宅介護支援事業所", "252-0001", "座間市相模が丘6－27－30", 2], ["ワークスケア", "252-0002", "座間市小松原1‐22‐12", 1], ["ユナイトケアプラン", "252-0002", "座間市小松原2-34-17-102", 1], ["（株）楽友舎　居宅介護支援センター", "252-0003", "座間市ひばりが丘1‐73‐19", 1], ["ケアネット座間第Ⅱ", "252-0011", "座間市相武台1-50-1", 1], ["あおば福祉サービス相武台", "252-0011", "座間市相武台2-36-8", 4], ["アズノケア座間", "252-0012", "座間市広野台1－25－11", 2], ["ベルホーム居宅支援センター", "252-0013", "座間市栗原１２６１－１", 1], ["茜ケアサービス有限会社", "252-0014", "座間市栗原中央1－31－24", 4], ["ハートケアステーション・コスモス", "252-0014", "座間市栗原中央5-1-44", 1], ["居宅介護支援事業センター栗原ホーム", "252-0014", "座間市栗原中央6－1－18", 1], ["居宅介護支援事業所ワースリビング座間", "252-0021", "座間市緑ケ丘6‐5－11", 1], ["座間市社協居宅介護支援事業所", "252-0023", "座間市立野台1－1－4", 1], ["座間ケアプランセンター", "252-0023", "座間市立野台2-20-24", 1], ["ケアサービスサンセール", "252-0029", "座間市入谷西3-17-15", 1], ["生活協同組合パルシステム神奈川ぬくもり東林間", "252-0302", "相模原市南区上鶴間7-20-10", 2], ["ケアマネステーション大空", "252-0311", "相模原市南区東林間1-4-1", 2], ["ケアプランニングルーセント", "252-0314", "相模原市南区南台5-14-15", 1], ["ケアマネステーションりあん", "252-0321", "相模原市南区相模台3-11-8", 6], ["愛心ケア居宅介護支援センター", "252-0323", "相模原市南区相武台団地2-3-5", 3], ["居宅介護支援あすか", "252-0324", "相模原市南区相武台2-21-5", 1], ["プランここなっつ", "252-1137", "綾瀬市寺尾台1-1-2", 1]];
+
+// 相模大野駅（小田急線）
+const STATION = { name: '相模大野駅', lat: 35.53225, lng: 139.43818 };
+const CACHE_KEY = 'caremap-geo-v1';
+
+// 全角数字・各種ハイフンを半角に揃え、住所検索に通りやすくする
+function normalize(addr) {
+  return addr
+    .replace(/[０-９]/g, d => String.fromCharCode(d.charCodeAt(0) - 0xFEE0))
+    .replace(/[－‐―ー−]/g, '-')
+    .replace(/\s/g, '');
+}
+function prefecture(addr) { return addr.startsWith('町田市') ? '東京都' : '神奈川県'; }
+
+// 2点間の直線距離（km）。地球を球とみなすハバーサイン式
+function distanceKm(a, b) {
+  const R = 6371, rad = x => x * Math.PI / 180;
+  const dLat = rad(b.lat - a.lat), dLng = rad(b.lng - a.lng);
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+
+function loadCache() { try { return JSON.parse(localStorage.getItem(CACHE_KEY)) || {}; } catch { return {}; } }
+function saveCache(c) { try { localStorage.setItem(CACHE_KEY, JSON.stringify(c)); } catch {} }
+
+async function geocode(addr) {
+  const q = prefecture(addr) + normalize(addr);
+  const res = await fetch('https://msearch.gsi.go.jp/address-search/AddressSearch?q=' + encodeURIComponent(q));
+  if (!res.ok) throw new Error(res.status);
+  const hits = await res.json();
+  if (!hits.length) return null;
+  const [lng, lat] = hits[0].geometry.coordinates;
+  return { lat, lng };
+}
+
+const colorFor = km => km == null ? '#999' : km < 2 ? 'var(--near)' : km < 5 ? 'var(--mid)' : 'var(--far)';
+const hexFor = km => km == null ? '#999' : km < 2 ? '#0d9488' : km < 5 ? '#5c7fd0' : '#9a6b3c';
+
+// --- 地図 ---
+const map = L.map('map', { zoomSnap: 0.25 }).setView([STATION.lat, STATION.lng], 12);
+L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png', {
+  maxZoom: 18,
+  attribution: '<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank">国土地理院</a>'
+}).addTo(map);
+[2, 5, 10].forEach(km => L.circle([STATION.lat, STATION.lng], {
+  radius: km * 1000, color: '#c2410c', weight: 1, dashArray: '4 6', fill: false
+}).addTo(map).bindTooltip(km + 'km', { permanent: false }));
+L.marker([STATION.lat, STATION.lng], {
+  icon: L.divIcon({ html: '<div style="font-size:26px;line-height:1;color:#c2410c;text-shadow:0 0 3px #fff">★</div>', className: '', iconSize: [26, 26], iconAnchor: [13, 13] })
+}).addTo(map).bindPopup('<b>相模大野駅</b>');
+
+const items = OFFICES.map(([name, zip, addr, count]) => ({ name, zip, addr, count, pos: null, km: null, marker: null, no: null }));
+let sortKey = 'dist';
+
+function routeUrl(it) {
+  return 'https://www.google.com/maps/dir/?api=1&origin=' + encodeURIComponent('相模大野駅')
+    + '&destination=' + encodeURIComponent(prefecture(it.addr) + it.addr + ' ' + it.name);
+}
+
+function render() {
+  const sorted = [...items].sort((a, b) =>
+    sortKey === 'count' ? b.count - a.count || (a.km ?? 99) - (b.km ?? 99) : (a.km ?? 99) - (b.km ?? 99));
+  const list = document.getElementById('list');
+  list.innerHTML = '';
+  for (const it of sorted) {
+    const li = document.createElement('li');
+    li.style.setProperty('--c', colorFor(it.km));
+    li.innerHTML = `
+      <div class="no">${it.no ?? ''}</div>
+      <div class="km">${it.km == null ? '<span class="err">—</span>' : it.km.toFixed(1) + '<small> km</small>'}</div>
+      <div><div class="name"></div><div class="addr"></div></div>
+      <div style="text-align:right"><div class="cnt">${it.count}件</div><a class="route" target="_blank" rel="noopener">経路</a></div>`;
+    li.querySelector('.name').textContent = it.name;
+    li.querySelector('.addr').textContent = '〒' + it.zip + ' ' + it.addr + (it.pos === false ? '（位置が見つかりません）' : '');
+    const a = li.querySelector('.route');
+    a.href = routeUrl(it);
+    a.addEventListener('click', e => e.stopPropagation());
+    li.addEventListener('click', () => {
+      if (!it.marker) return;
+      map.setView(it.marker.getLatLng(), 15);
+      it.marker.openPopup();
+      document.getElementById('map').scrollIntoView({ behavior: 'smooth' });
+    });
+    list.appendChild(li);
+  }
+  const done = items.filter(i => i.km != null);
+  const band = (lo, hi) => done.filter(i => i.km >= lo && i.km < hi).length;
+  document.getElementById('stats').innerHTML = [
+    [items.length, '事業所'],
+    [band(0, 2), '2km未満'],
+    [band(2, 5), '2〜5km'],
+    [band(5, 999), '5km以上'],
+  ].map(([n, l]) => `<div class="stat"><b>${n}</b><span>${l}</span></div>`).join('');
+}
+
+// 番号入りの丸。色は距離帯、番号は一覧と共通
+function pinIcon(it) {
+  return L.divIcon({
+    html: `<div class="pin" style="background:${hexFor(it.km)}">${it.no ?? ''}</div>`,
+    className: '', iconSize: [24, 24], iconAnchor: [12, 12], popupAnchor: [0, -10]
+  });
+}
+
+// 近い順に 1, 2, 3… と番号を振る（並べ替えても番号は変わらない）
+function numberItems() {
+  [...items].sort((a, b) => (a.km ?? 99) - (b.km ?? 99)).forEach((it, i) => {
+    it.no = i + 1;
+    if (it.marker) {
+      it.marker.setIcon(pinIcon(it));
+      it.marker.setZIndexOffset(1000 - it.no); // 近い事業所の番号を上に
+    }
+  });
+}
+
+function place(it) {
+  it.km = distanceKm(STATION, it.pos);
+  it.marker = L.marker([it.pos.lat, it.pos.lng], { icon: pinIcon(it) }).addTo(map);
+  const div = document.createElement('div');
+  div.innerHTML = `<b>${it.no ? it.no + '. ' : ''}</b><b></b><br><span></span><br>直線 ${it.km.toFixed(1)}km ・ ${it.count}件<br><a target="_blank" rel="noopener">Googleマップで経路</a>`;
+  div.querySelectorAll('b')[1].textContent = it.name;
+  div.querySelector('span').textContent = it.addr;
+  div.querySelector('a').href = routeUrl(it);
+  it.marker.bindPopup(div);
+}
+
+document.querySelectorAll('[data-sort]').forEach(btn => btn.addEventListener('click', () => {
+  sortKey = btn.dataset.sort;
+  document.querySelectorAll('[data-sort]').forEach(b => b.setAttribute('aria-pressed', String(b === btn)));
+  render();
+}));
+
+(async () => {
+  const cache = loadCache();
+  const progress = document.getElementById('progress');
+  const addrs = [...new Set(items.map(i => i.addr))];
+  let n = 0;
+  for (const addr of addrs) {
+    if (!(addr in cache)) {
+      try { cache[addr] = await geocode(addr); saveCache(cache); }
+      catch { cache[addr] = undefined; }
+      await new Promise(r => setTimeout(r, 150)); // 住所検索サーバーに負担をかけない
+    }
+    n++;
+    progress.textContent = n < addrs.length ? `位置を取得中… ${n}/${addrs.length}` : '';
+    for (const it of items.filter(i => i.addr === addr)) {
+      if (cache[addr]) { it.pos = cache[addr]; place(it); }
+      else if (cache[addr] === null) it.pos = false;
+    }
+    if (n % 8 === 0 || n === addrs.length) render();
+  }
+  numberItems();
+  items.filter(i => i.marker).forEach(i => { i.marker.remove(); place(i); });
+  render();
+  const pts = items.filter(i => i.marker).map(i => i.marker.getLatLng());
+  if (pts.length) map.fitBounds(L.latLngBounds([...pts, [STATION.lat, STATION.lng]]).pad(0.05));
+})();
+render();
+
+// 印刷：地図を A4 幅に合わせて全件が入るよう表示し、地図の画像を読み終えてから印刷する
+document.getElementById('print').addEventListener('click', () => {
+  document.getElementById('print-title').textContent =
+    '居宅事業所マップ（相模大野駅からの直線距離）  ' + new Date().toLocaleDateString('ja-JP');
+  document.body.classList.add('printing');
+  map.invalidateSize();
+  const pts = items.filter(i => i.marker).map(i => i.marker.getLatLng());
+  map.fitBounds(L.latLngBounds([...pts, [STATION.lat, STATION.lng]]).pad(0.03), { animate: false });
+  setTimeout(() => window.print(), 1200);
+});
+window.addEventListener('afterprint', () => {
+  document.body.classList.remove('printing');
+  map.invalidateSize();
+});
+</script>
+</body>
+</html>
