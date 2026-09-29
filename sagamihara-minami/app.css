@@ -65,6 +65,8 @@ body {
   line-height: 1.7;
   padding-bottom: calc(var(--tabbar-h) + var(--safe-b));
   overscroll-behavior-y: contain;
+  /* 画面の横フリック中にはみ出す分を隠す。clip なので position: sticky は効いたまま */
+  overflow-x: clip;
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -179,7 +181,13 @@ svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width:
 
 /* ---------- 画面 ---------- */
 
-.screens { max-width: 720px; margin: 0 auto; }
+.screens {
+  max-width: 720px;
+  margin: 0 auto;
+  transition: transform .24s cubic-bezier(.22, 1, .36, 1);
+}
+/* 横フリック中は指に追従させるので、そのあいだだけ transition を切る */
+.screens.is-dragging { transition: none; }
 .screen { padding: 0 var(--step) 2rem; }
 .screen[hidden] { display: none; }
 

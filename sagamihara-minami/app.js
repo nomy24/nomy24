@@ -30,6 +30,7 @@
 
   const $ = (id) => document.getElementById(id);
   const el = {
+    screens: $('main'),
     bell: $('bell'),
     bellBadge: $('bellBadge'),
     status: $('status'),
@@ -451,7 +452,7 @@
     }, 3200);
   }
 
-  function switchScreen(name) {
+  function switchScreen(name, { slideFrom = null } = {}) {
     for (const screen of document.querySelectorAll('.screen')) {
       screen.hidden = screen.id !== `screen-${name}`;
     }
@@ -462,6 +463,123 @@
       else tab.removeAttribute('aria-current');
     }
     window.scrollTo({ top: 0, behavior: 'auto' });
+    if (slideFrom) slideIn(slideFrom);
+  }
+
+  /* ---------- 横フリックでの画面移動 ---------- */
+
+  const SCREEN_ORDER = ['home', 'saved', 'settings'];
+  const DRAG_LIMIT = 56;      // 指に追従させる最大の移動量(px)
+  const SWIPE_DISTANCE = 70;  // これ以上動かせば画面を移す
+  const FLICK_DISTANCE = 32;  // 素早い動きならこの距離でも移す
+  const FLICK_MS = 260;
+
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  function currentScreen() {
+    const shown = document.querySelector('.screen:not([hidden])');
+    return shown ? shown.id.replace('screen-', '') : SCREEN_ORDER[0];
+  }
+
+  /** step が 1 なら次の画面、-1 なら前の画面。端なら null。 */
+  function neighbourScreen(step) {
+    const next = SCREEN_ORDER.indexOf(currentScreen()) + step;
+    return SCREEN_ORDER[next] || null;
+  }
+
+  function setDrag(offset) {
+    el.screens.classList.add('is-dragging');
+    el.screens.style.transform = `translate3d(${offset}px, 0, 0)`;
+  }
+
+  function clearDrag() {
+    el.screens.classList.remove('is-dragging');
+    el.screens.style.transform = '';
+  }
+
+  /** 新しい画面を、指を動かした向きから滑り込ませる。 */
+  function slideIn(from) {
+    if (reducedMotion.matches) {
+      clearDrag();
+      return;
+    }
+    el.screens.classList.add('is-dragging');
+    el.screens.style.transform = `translate3d(${from === 'right' ? '' : '-'}100%, 0, 0)`;
+    void el.screens.offsetWidth; // ここまでを確定させてから戻す
+    el.screens.classList.remove('is-dragging');
+    el.screens.style.transform = '';
+  }
+
+  function bindSwipe() {
+    // 横スクロールする要素・入力欄・下部タブの上では、そちらの操作を優先する
+    const OPT_OUT = '.chips, .tabbar, input, select, textarea, [contenteditable="true"]';
+    let startX = 0;
+    let startY = 0;
+    let startedAt = 0;
+    let moved = 0;
+    let axis = null;  // null=未判定 / 'x'=横フリック / 'y'=縦スクロール
+    let tracking = false;
+
+    document.addEventListener('touchstart', (event) => {
+      if (event.touches.length !== 1 || event.target.closest(OPT_OUT)) {
+        tracking = false;
+        return;
+      }
+      const touch = event.touches[0];
+      startX = touch.clientX;
+      startY = touch.clientY;
+      startedAt = Date.now();
+      moved = 0;
+      axis = null;
+      tracking = true;
+    }, { passive: true });
+
+    document.addEventListener('touchmove', (event) => {
+      if (!tracking || event.touches.length !== 1) return;
+      const touch = event.touches[0];
+      const dx = touch.clientX - startX;
+      const dy = touch.clientY - startY;
+
+      if (axis === null) {
+        if (Math.abs(dx) < 12 && Math.abs(dy) < 12) return;
+        // 縦の動きが少しでも勝っていれば、ふつうのスクロールとして扱う
+        axis = Math.abs(dx) > Math.abs(dy) * 1.6 ? 'x' : 'y';
+        if (axis === 'y') {
+          tracking = false;
+          return;
+        }
+      }
+
+      moved = dx;
+      if (!reducedMotion.matches) {
+        // 端では戻り先がないので、動きをさらに小さくして行き止まりを伝える
+        const resistance = neighbourScreen(dx < 0 ? 1 : -1) ? 0.4 : 0.12;
+        const offset = Math.max(-DRAG_LIMIT, Math.min(DRAG_LIMIT, dx * resistance));
+        setDrag(offset);
+      }
+      // 端末の「戻る」ジェスチャや文字選択に取られないようにする
+      if (event.cancelable) event.preventDefault();
+    }, { passive: false });
+
+    const finish = () => {
+      if (!tracking) return;
+      tracking = false;
+      if (axis !== 'x') return;
+
+      const quick = Date.now() - startedAt < FLICK_MS && Math.abs(moved) > FLICK_DISTANCE;
+      const target = (Math.abs(moved) > SWIPE_DISTANCE || quick)
+        ? neighbourScreen(moved < 0 ? 1 : -1)
+        : null;
+
+      // 画面を移すときの後始末は slideIn がまとめて行う
+      if (target) switchScreen(target, { slideFrom: moved < 0 ? 'right' : 'left' });
+      else clearDrag();
+    };
+    document.addEventListener('touchend', finish, { passive: true });
+    document.addEventListener('touchcancel', () => {
+      tracking = false;
+      clearDrag();
+    }, { passive: true });
   }
 
   /* ---------- 更新の確認 ---------- */
@@ -657,6 +775,8 @@
     for (const tab of document.querySelectorAll('.tab')) {
       tab.addEventListener('click', () => switchScreen(tab.dataset.screen));
     }
+
+    bindSwipe();
 
     el.notifyToggle.addEventListener('change', () => {
       if (el.notifyToggle.checked) {
