@@ -8,6 +8,7 @@ GitHub Pages で公開していて、入口は <https://nomy24.github.io/nomy24/
 | アプリ | 場所 | 内容 |
 | --- | --- | --- |
 | [南区インフォ](sagamihara-minami/) | `sagamihara-minami/` | 相模原市の新着情報をまとめて読むアプリ。だれでも見られます |
+| [居宅事業所マップ](caremap/) | `caremap/` | 居宅介護支援事業所を地図に表示し、相模大野駅からの直線距離順に並べる。`offices.csv` は Google マイマップ取り込み用 |
 | [職員Todo](staff-todo/) | `staff-todo/` | Todo・カレンダー・定型タスク・資料・電話メモを職員で共有するアプリ。ログインが必要です |
 
 どちらもスマートフォン向けの PWA で、ホーム画面に追加するとアプリとして起動します。
