@@ -11,7 +11,7 @@ GitHub Pages で公開していて、入口は <https://nomy24.github.io/nomy24/
 | [居宅事業所マップ](caremap/) | `caremap/` | 居宅介護支援事業所を地図に表示し、相模大野駅からの直線距離順に並べる。`offices.csv` は Google マイマップ取り込み用 |
 | [職員Todo](staff-todo/) | `staff-todo/` | Todo・カレンダー・定型タスク・資料・電話メモを職員で共有するアプリ。ログインが必要です |
 
-どちらもスマートフォン向けの PWA で、ホーム画面に追加するとアプリとして起動します。
+南区インフォと職員Todo はスマートフォン向けの PWA で、ホーム画面に追加するとアプリとして起動します。
 ビルドは不要で、HTML・CSS・JavaScript をそのまま置いています。
 使い方や設定は、それぞれのフォルダの README を見てください。
 
@@ -26,6 +26,8 @@ sagamihara-minami/    南区インフォ
   config/             取得元・地名・カテゴリの設定
   scripts/            新着情報を取り込むスクリプト
   data/news.json      取り込んだお知らせ（自動更新）
+caremap/              居宅事業所マップ
+  offices.csv         事業所の一覧（Google マイマップ取り込み用）
 staff-todo/           職員Todo
   firestore.rules     Firestore の権限設定（コンソールに貼るか firebase deploy で反映）
 drill/                実装力カルテ（staff-todo を教材にした自習用。アプリではない）
