@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-10-01T16:54:36.247Z",
+  "generatedAt": "2026-10-02T16:07:34.688Z",
   "source": "相模原市公式ホームページ",
   "sourceUrl": "https://www.city.sagamihara.kanagawa.jp",
   "counts": {
     "total": 400,
-    "minami": 25,
-    "citywide": 375,
-    "addedThisRun": 51
+    "minami": 24,
+    "citywide": 376,
+    "addedThisRun": 4
   },
   "categories": [
     {
@@ -55,6 +55,132 @@
     }
   ],
   "items": [
+    {
+      "id": "233998ad6b20",
+      "title": "記者会見資料 令和8年度",
+      "url": "https://www.city.sagamihara.kanagawa.jp/shisei/1026709/mayor/1009760/1035149/index.html",
+      "summary": "",
+      "category": "shisei",
+      "categoryLabel": "市政・お知らせ",
+      "scope": "citywide",
+      "areaHits": [],
+      "important": false,
+      "source": "相模原市 更新情報",
+      "publishedAt": "2026-10-02T05:00:17.000Z",
+      "firstSeenAt": "2026-10-02T16:07:34.688Z"
+    },
+    {
+      "id": "50d65731c602",
+      "title": "令和8年度 10月定例記者会見",
+      "url": "https://www.city.sagamihara.kanagawa.jp/shisei/1026709/mayor/1009760/1035149/1036392.html",
+      "summary": "",
+      "category": "shisei",
+      "categoryLabel": "市政・お知らせ",
+      "scope": "citywide",
+      "areaHits": [],
+      "important": false,
+      "source": "相模原市 更新情報",
+      "publishedAt": "2026-10-02T04:54:55.000Z",
+      "firstSeenAt": "2026-10-02T16:07:34.688Z"
+    },
+    {
+      "id": "e73105dd25b7",
+      "title": "公共施設（旧菅井小学校）利活用事業 事業者公募の実施について",
+      "url": "https://www.city.sagamihara.kanagawa.jp/sangyo/1026667/1036381.html",
+      "summary": "",
+      "category": "kosodate",
+      "categoryLabel": "子育て・教育",
+      "scope": "citywide",
+      "areaHits": [],
+      "important": false,
+      "source": "相模原市 更新情報",
+      "publishedAt": "2026-10-02T04:18:11.000Z",
+      "firstSeenAt": "2026-10-01T16:54:36.247Z"
+    },
+    {
+      "id": "8f39ec3d8391",
+      "title": "発表資料 令和8年10月分",
+      "url": "https://www.city.sagamihara.kanagawa.jp/shisei/1026875/koho/1026878/houdo/1036377.html",
+      "summary": "",
+      "category": "shisei",
+      "categoryLabel": "市政・お知らせ",
+      "scope": "citywide",
+      "areaHits": [],
+      "important": false,
+      "source": "相模原市 更新情報",
+      "publishedAt": "2026-10-02T04:04:24.000Z",
+      "firstSeenAt": "2026-10-01T16:54:36.247Z"
+    },
+    {
+      "id": "23c533b2ea26",
+      "title": "予算",
+      "url": "https://www.city.sagamihara.kanagawa.jp/shisei/1026803/1003966/1003978.html",
+      "summary": "",
+      "category": "shisei",
+      "categoryLabel": "市政・お知らせ",
+      "scope": "citywide",
+      "areaHits": [],
+      "important": false,
+      "source": "相模原市 更新情報",
+      "publishedAt": "2026-10-02T03:00:01.000Z",
+      "firstSeenAt": "2026-10-02T16:07:34.688Z"
+    },
+    {
+      "id": "c27f107df012",
+      "title": "ごみと資源の日程・出し方",
+      "url": "https://www.city.sagamihara.kanagawa.jp/kurashi/1026489/recycle/1026493/katei/1008347.html",
+      "summary": "",
+      "category": "gomi",
+      "categoryLabel": "ごみ・環境",
+      "scope": "citywide",
+      "areaHits": [],
+      "important": false,
+      "source": "相模原市 更新情報",
+      "publishedAt": "2026-10-02T02:07:29.000Z",
+      "firstSeenAt": "2026-10-02T16:07:34.688Z"
+    },
+    {
+      "id": "fc78416fed8e",
+      "title": "障害のある人を対象とする会計年度任用短時間勤務職員（事務補助員）の募集（人事・給与課）",
+      "url": "https://www.city.sagamihara.kanagawa.jp/shisei/1026815/boshu/staff/1035854.html",
+      "summary": "",
+      "category": "shisei",
+      "categoryLabel": "市政・お知らせ",
+      "scope": "citywide",
+      "areaHits": [],
+      "important": false,
+      "source": "相模原市 更新情報",
+      "publishedAt": "2026-10-02T01:29:11.000Z",
+      "firstSeenAt": "2026-10-01T16:54:36.247Z"
+    },
+    {
+      "id": "e65e61b194ca",
+      "title": "相模原市立東林ふれあいセンターの指定管理者の募集について",
+      "url": "https://www.city.sagamihara.kanagawa.jp/shisei/1026766/seido/1026770/shiteikanri/1035828.html",
+      "summary": "",
+      "category": "shisei",
+      "categoryLabel": "市政・お知らせ",
+      "scope": "citywide",
+      "areaHits": [],
+      "important": false,
+      "source": "相模原市 更新情報",
+      "publishedAt": "2026-10-02T00:35:15.000Z",
+      "firstSeenAt": "2026-09-25T00:18:40.297Z"
+    },
+    {
+      "id": "996a0ddf51ec",
+      "title": "相模原市立老人福祉センター渓松園及び相模原市立老人福祉センター若竹園の指定管理者の募集について",
+      "url": "https://www.city.sagamihara.kanagawa.jp/shisei/1026766/seido/1026770/shiteikanri/1035827.html",
+      "summary": "",
+      "category": "shisei",
+      "categoryLabel": "市政・お知らせ",
+      "scope": "citywide",
+      "areaHits": [],
+      "important": false,
+      "source": "相模原市 更新情報",
+      "publishedAt": "2026-10-02T00:31:32.000Z",
+      "firstSeenAt": "2026-09-25T00:18:40.297Z"
+    },
     {
       "id": "042260ee8654",
       "title": "人事委員会 議事概要",
@@ -369,20 +495,6 @@
       "firstSeenAt": "2026-10-01T16:54:36.247Z"
     },
     {
-      "id": "996a0ddf51ec",
-      "title": "相模原市立老人福祉センター渓松園及び相模原市立老人福祉センター若竹園の指定管理者の募集について",
-      "url": "https://www.city.sagamihara.kanagawa.jp/shisei/1026766/seido/1026770/shiteikanri/1035827.html",
-      "summary": "",
-      "category": "shisei",
-      "categoryLabel": "市政・お知らせ",
-      "scope": "citywide",
-      "areaHits": [],
-      "important": false,
-      "source": "相模原市 更新情報",
-      "publishedAt": "2026-10-01T15:05:03.000Z",
-      "firstSeenAt": "2026-09-25T00:18:40.297Z"
-    },
-    {
       "id": "a45ef1490930",
       "title": "子ども・子育て支援法の規定に基づき確認をし、公示した特定教育・保育施設及び特定地域型保育事業並びに特定子ども・子育て支援施設等について",
       "url": "https://www.city.sagamihara.kanagawa.jp/kosodate/1026602/kosodate/1026604/1018656/1017650.html",
@@ -483,34 +595,6 @@
       "firstSeenAt": "2026-10-01T16:54:36.247Z"
     },
     {
-      "id": "e65e61b194ca",
-      "title": "相模原市立東林ふれあいセンターの指定管理者の募集について",
-      "url": "https://www.city.sagamihara.kanagawa.jp/shisei/1026766/seido/1026770/shiteikanri/1035828.html",
-      "summary": "",
-      "category": "shisei",
-      "categoryLabel": "市政・お知らせ",
-      "scope": "citywide",
-      "areaHits": [],
-      "important": false,
-      "source": "相模原市 更新情報",
-      "publishedAt": "2026-10-01T15:05:03.000Z",
-      "firstSeenAt": "2026-09-25T00:18:40.297Z"
-    },
-    {
-      "id": "e73105dd25b7",
-      "title": "公共施設（旧菅井小学校）利活用事業 事業者公募の実施について",
-      "url": "https://www.city.sagamihara.kanagawa.jp/sangyo/1026667/1036381.html",
-      "summary": "",
-      "category": "kosodate",
-      "categoryLabel": "子育て・教育",
-      "scope": "citywide",
-      "areaHits": [],
-      "important": false,
-      "source": "相模原市 更新情報",
-      "publishedAt": "2026-10-01T15:05:03.000Z",
-      "firstSeenAt": "2026-10-01T16:54:36.247Z"
-    },
-    {
       "id": "e74a56c3483b",
       "title": "DV相談（相模原市配偶者暴力相談支援センター）",
       "url": "https://www.city.sagamihara.kanagawa.jp/kurashi/sodan/1006090.html",
@@ -567,20 +651,6 @@
       "firstSeenAt": "2026-10-01T16:54:36.247Z"
     },
     {
-      "id": "fc78416fed8e",
-      "title": "障害のある人を対象とする会計年度任用短時間勤務職員（事務補助員）の募集（人事・給与課）",
-      "url": "https://www.city.sagamihara.kanagawa.jp/shisei/1026815/boshu/staff/1035854.html",
-      "summary": "",
-      "category": "shisei",
-      "categoryLabel": "市政・お知らせ",
-      "scope": "citywide",
-      "areaHits": [],
-      "important": false,
-      "source": "相模原市 更新情報",
-      "publishedAt": "2026-10-01T15:05:03.000Z",
-      "firstSeenAt": "2026-10-01T16:54:36.247Z"
-    },
-    {
       "id": "fd3bdb07a1b3",
       "title": "新規指定申出に関する手続き",
       "url": "https://www.city.sagamihara.kanagawa.jp/shisei/1026875/shisei_sanka/partnership/npo/1005127.html",
@@ -592,20 +662,6 @@
       "important": false,
       "source": "相模原市 更新情報",
       "publishedAt": "2026-10-01T15:05:03.000Z",
-      "firstSeenAt": "2026-10-01T16:54:36.247Z"
-    },
-    {
-      "id": "8f39ec3d8391",
-      "title": "発表資料 令和8年10月分",
-      "url": "https://www.city.sagamihara.kanagawa.jp/shisei/1026875/koho/1026878/houdo/1036377.html",
-      "summary": "",
-      "category": "shisei",
-      "categoryLabel": "市政・お知らせ",
-      "scope": "citywide",
-      "areaHits": [],
-      "important": false,
-      "source": "相模原市 更新情報",
-      "publishedAt": "2026-10-01T07:46:40.000Z",
       "firstSeenAt": "2026-10-01T16:54:36.247Z"
     },
     {
@@ -3376,7 +3432,7 @@
     },
     {
       "id": "d70d67a08b14",
-      "title": "令和8年10月1日から資源とごみの分け方・出す曜日が変わります",
+      "title": "令和8年10月1日から資源とごみの分け方・出す曜日が変わりました",
       "url": "https://www.city.sagamihara.kanagawa.jp/kurashi/1026489/recycle/1026492/1034645.html",
       "summary": "",
       "category": "gomi",
@@ -5651,65 +5707,7 @@
       "source": "相模原市 更新情報",
       "publishedAt": "2026-09-17T15:05:04.000Z",
       "firstSeenAt": "2026-09-17T23:56:24.996Z"
-    },
-    {
-      "id": "5c5bb9c28ec6",
-      "title": "大野中地区まちづくり会議",
-      "url": "https://www.city.sagamihara.kanagawa.jp/minamiku/ono-naka/1009561.html",
-      "summary": "",
-      "category": "shisei",
-      "categoryLabel": "市政・お知らせ",
-      "scope": "minami",
-      "areaHits": [
-        "南区"
-      ],
-      "important": false,
-      "source": "相模原市 更新情報",
-      "publishedAt": "2026-09-17T15:05:04.000Z",
-      "firstSeenAt": "2026-09-02T23:53:04.077Z"
-    },
-    {
-      "id": "602a457c40e9",
-      "title": "相模川クリーン作戦",
-      "url": "https://www.city.sagamihara.kanagawa.jp/kurashi/1026489/kankyo/1026506/hozen/1008050.html",
-      "summary": "",
-      "category": "gomi",
-      "categoryLabel": "ごみ・環境",
-      "scope": "citywide",
-      "areaHits": [],
-      "important": false,
-      "source": "相模原市 更新情報",
-      "publishedAt": "2026-09-17T15:05:04.000Z",
-      "firstSeenAt": "2026-09-17T23:56:24.996Z"
-    },
-    {
-      "id": "673d61105f47",
-      "title": "土地公図マイラー異動整理業務委託に係る条件付一般競争入札の実施について",
-      "url": "https://www.city.sagamihara.kanagawa.jp/sangyo/1026667/1036261.html",
-      "summary": "",
-      "category": "shisei",
-      "categoryLabel": "市政・お知らせ",
-      "scope": "citywide",
-      "areaHits": [],
-      "important": false,
-      "source": "相模原市 更新情報",
-      "publishedAt": "2026-09-17T15:05:04.000Z",
-      "firstSeenAt": "2026-09-17T23:56:24.996Z"
-    },
-    {
-      "id": "71b8af3ce6df",
-      "title": "交通量推計業務委託に係る条件付一般競争入札の実施について",
-      "url": "https://www.city.sagamihara.kanagawa.jp/sangyo/1026667/1036264.html",
-      "summary": "",
-      "category": "shisei",
-      "categoryLabel": "市政・お知らせ",
-      "scope": "citywide",
-      "areaHits": [],
-      "important": false,
-      "source": "相模原市 更新情報",
-      "publishedAt": "2026-09-17T15:05:04.000Z",
-      "firstSeenAt": "2026-09-17T23:56:24.996Z"
     }
   ],
-  "revision": "25c28abd4f81"
+  "revision": "8615483c2f50"
 }
