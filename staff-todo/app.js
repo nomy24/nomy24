@@ -244,8 +244,6 @@ function attachVoiceInput(el) {
   btn.innerHTML = micIconHtml();
   wrap.appendChild(btn);
 
-  let baseline = "";
-
   btn.addEventListener("click", () => {
     if (activeVoiceSession && activeVoiceSession.btn === btn) {
       stopActiveVoiceSession();
@@ -257,18 +255,19 @@ function attachVoiceInput(el) {
     recognition.lang = "ja-JP";
     recognition.continuous = true;
     recognition.interimResults = true;
-    baseline = el.value.trim();
+    recognition.maxAlternatives = 1;
+    // 音声入力を始めた時点で欄にあった文章。ここに認識結果を足した形を毎回作り直す。
+    const baseText = el.value.trim();
 
     recognition.onresult = (e) => {
-      let finalChunk = "";
-      let interimChunk = "";
-      for (let i = e.resultIndex; i < e.results.length; i++) {
-        const t = e.results[i][0].transcript;
-        if (e.results[i].isFinal) finalChunk += t;
-        else interimChunk += t;
-      }
-      if (finalChunk) baseline = baseline ? `${baseline} ${finalChunk}` : finalChunk;
-      el.value = interimChunk ? `${baseline}${baseline ? " " : ""}${interimChunk}` : baseline;
+      // 停止した古いセッションから遅れて届いた結果は無視する
+      if (!activeVoiceSession || activeVoiceSession.recognition !== recognition) return;
+      // 端末によっては確定済みの結果が番号0から何度も再送されるため、
+      // 差分を足していくのではなく、毎回すべての結果から文章を組み立て直す（同じ文章の重複防止）。
+      let spoken = "";
+      for (let i = 0; i < e.results.length; i++) spoken += e.results[i][0].transcript;
+      spoken = spoken.trim();
+      el.value = baseText && spoken ? `${baseText} ${spoken}` : (spoken || baseText);
       el.dispatchEvent(new Event("input", { bubbles: true }));
     };
     recognition.onerror = () => {
