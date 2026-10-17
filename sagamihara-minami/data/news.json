@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-10-16T00:06:30.621Z",
+  "generatedAt": "2026-10-17T00:10:30.150Z",
   "source": "相模原市公式ホームページ",
   "sourceUrl": "https://www.city.sagamihara.kanagawa.jp",
   "counts": {
     "total": 400,
     "minami": 18,
     "citywide": 382,
-    "addedThisRun": 26
+    "addedThisRun": 2
   },
   "categories": [
     {
@@ -66,8 +66,64 @@
       "areaHits": [],
       "important": false,
       "source": "相模原市 更新情報",
-      "publishedAt": "2026-10-15T15:05:03.000Z",
+      "publishedAt": "2026-10-16T15:05:03.000Z",
       "firstSeenAt": "2026-08-04T04:16:43.500Z"
+    },
+    {
+      "id": "1c55b0aa0f0c",
+      "title": "差押財産の公売",
+      "url": "https://www.city.sagamihara.kanagawa.jp/kurashi/1026448/zeikin/1026480/sashiosae/index.html",
+      "summary": "",
+      "category": "kurashi",
+      "categoryLabel": "くらし・手続き",
+      "scope": "citywide",
+      "areaHits": [],
+      "important": false,
+      "source": "相模原市 更新情報",
+      "publishedAt": "2026-10-16T15:05:03.000Z",
+      "firstSeenAt": "2026-10-17T00:10:30.150Z"
+    },
+    {
+      "id": "885174b5e006",
+      "title": "宝くじ",
+      "url": "https://www.city.sagamihara.kanagawa.jp/shisei/1026803/1003966/1015553/index.html",
+      "summary": "",
+      "category": "shisei",
+      "categoryLabel": "市政・お知らせ",
+      "scope": "citywide",
+      "areaHits": [],
+      "important": false,
+      "source": "相模原市 更新情報",
+      "publishedAt": "2026-10-16T15:05:03.000Z",
+      "firstSeenAt": "2026-10-17T00:10:30.150Z"
+    },
+    {
+      "id": "ed154d11a9ca",
+      "title": "市民参加の景観づくり",
+      "url": "https://www.city.sagamihara.kanagawa.jp/kurashi/1026489/sumai/1026516/keikan/1008041.html",
+      "summary": "",
+      "category": "kurashi",
+      "categoryLabel": "くらし・手続き",
+      "scope": "citywide",
+      "areaHits": [],
+      "important": false,
+      "source": "相模原市 更新情報",
+      "publishedAt": "2026-10-16T15:05:03.000Z",
+      "firstSeenAt": "2026-09-30T16:17:10.626Z"
+    },
+    {
+      "id": "8f39ec3d8391",
+      "title": "発表資料 令和8年10月分",
+      "url": "https://www.city.sagamihara.kanagawa.jp/shisei/1026875/koho/1026878/houdo/1036377.html",
+      "summary": "",
+      "category": "shisei",
+      "categoryLabel": "市政・お知らせ",
+      "scope": "citywide",
+      "areaHits": [],
+      "important": false,
+      "source": "相模原市 更新情報",
+      "publishedAt": "2026-10-16T06:05:02.000Z",
+      "firstSeenAt": "2026-10-01T16:54:36.247Z"
     },
     {
       "id": "1f0bf1656270",
@@ -516,20 +572,6 @@
       "source": "相模原市 更新情報",
       "publishedAt": "2026-10-15T06:00:01.000Z",
       "firstSeenAt": "2026-08-04T04:16:43.500Z"
-    },
-    {
-      "id": "8f39ec3d8391",
-      "title": "発表資料 令和8年10月分",
-      "url": "https://www.city.sagamihara.kanagawa.jp/shisei/1026875/koho/1026878/houdo/1036377.html",
-      "summary": "",
-      "category": "shisei",
-      "categoryLabel": "市政・お知らせ",
-      "scope": "citywide",
-      "areaHits": [],
-      "important": false,
-      "source": "相模原市 更新情報",
-      "publishedAt": "2026-10-15T04:05:04.000Z",
-      "firstSeenAt": "2026-10-01T16:54:36.247Z"
     },
     {
       "id": "e6015f861561",
@@ -3561,20 +3603,6 @@
       "firstSeenAt": "2026-10-05T19:05:41.633Z"
     },
     {
-      "id": "ed154d11a9ca",
-      "title": "市民参加の景観づくり",
-      "url": "https://www.city.sagamihara.kanagawa.jp/kurashi/1026489/sumai/1026516/keikan/1008041.html",
-      "summary": "",
-      "category": "kurashi",
-      "categoryLabel": "くらし・手続き",
-      "scope": "citywide",
-      "areaHits": [],
-      "important": false,
-      "source": "相模原市 更新情報",
-      "publishedAt": "2026-10-05T15:05:04.000Z",
-      "firstSeenAt": "2026-09-30T16:17:10.626Z"
-    },
-    {
       "id": "6fb5ddd465c1",
       "title": "就労準備セミナーのお知らせ",
       "url": "https://www.city.sagamihara.kanagawa.jp/kosodate/fukushi/1029653/1031470.html",
@@ -5666,35 +5694,7 @@
       "source": "相模原市 更新情報",
       "publishedAt": "2026-09-30T15:05:04.000Z",
       "firstSeenAt": "2026-09-30T16:17:10.626Z"
-    },
-    {
-      "id": "533ea8812b87",
-      "title": "相模川ビレッジ若あゆ（相模川自然の村野外体験教室）",
-      "url": "https://www.city.sagamihara.kanagawa.jp/kurashi/shisetsu/school/kyoiku/1003057.html",
-      "summary": "",
-      "category": "kosodate",
-      "categoryLabel": "子育て・教育",
-      "scope": "citywide",
-      "areaHits": [],
-      "important": false,
-      "source": "相模原市 更新情報",
-      "publishedAt": "2026-09-30T15:05:04.000Z",
-      "firstSeenAt": "2026-09-30T16:17:10.626Z"
-    },
-    {
-      "id": "5551f2e363fe",
-      "title": "令和7年度開催実績 さがみはら“ゆめ”プロジェクト",
-      "url": "https://www.city.sagamihara.kanagawa.jp/kankou/sports/1026686/1026390/1034385/index.html",
-      "summary": "",
-      "category": "event",
-      "categoryLabel": "イベント",
-      "scope": "citywide",
-      "areaHits": [],
-      "important": false,
-      "source": "相模原市 更新情報",
-      "publishedAt": "2026-09-30T15:05:04.000Z",
-      "firstSeenAt": "2026-09-30T16:17:10.626Z"
     }
   ],
-  "revision": "32c4c074f60d"
+  "revision": "66453f373ca6"
 }
