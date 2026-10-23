@@ -735,8 +735,9 @@ function renderTodoList() {
           <svg viewBox="0 0 24 24"><path d="M5 12l4 4 10-10"/></svg>
         </button>
         <div class="card__body" data-action="edit">
-          <div class="card__title ${t.done ? "is-done" : ""}">${newTagHtml(isNewItem(t, seenAt))}${escapeHtml(t.title)}</div>
+          <div class="card__title ${t.done ? "is-done" : ""}">${newTagHtml(isNewItem(t, seenAt))}${escapeHtml(t.title || "写真のメモ")}</div>
           ${t.memo ? `<div class="card__memo">${escapeHtml(t.memo)}</div>` : ""}
+          ${t.photoDataUrl ? `<img class="card__photo" src="${t.photoDataUrl}" alt="貼り付けた写真" data-action="photo">` : ""}
           ${badges.length ? `<div class="card__meta">${badges.join("")}</div>` : ""}
         </div>
       </div>`);
@@ -762,6 +763,13 @@ function renderTodoList() {
     body.addEventListener("click", () => {
       const id = body.closest(".card").dataset.id;
       openTodoSheet(state.todos.find((x) => x.id === id));
+    });
+  });
+  // 写真をタップしたときは編集画面ではなく拡大表示を開く
+  el.querySelectorAll('[data-action="photo"]').forEach((img) => {
+    img.addEventListener("click", (e) => {
+      e.stopPropagation();
+      openMediaViewer({ dataUrl: img.getAttribute("src"), fileName: "photo.jpg" });
     });
   });
 }
@@ -797,10 +805,17 @@ function openTodoSheet(existing) {
   const currentResponderName = existing?.responder ?? "";
   const extraResponderOption = currentResponderName && !state.staff.some((s) => s.name === currentResponderName)
     ? `<option value="${escapeHtml(currentResponderName)}" selected>${escapeHtml(currentResponderName)}（一覧になし）</option>` : "";
+  let photoDataUrl = existing?.photoDataUrl || null;
   const html = `
     <div class="field">
-      <label for="f-title">タイトル</label>
-      <input id="f-title" name="title" type="text" required maxlength="100" value="${escapeHtml(existing?.title || "")}" placeholder="例：〇〇さんへ電話">
+      <label>写真（任意）</label>
+      <p class="field__hint">付箋メモなどを撮って貼り付けられます。写真を付ければタイトルはなくても保存できます。</p>
+      <input type="file" id="f-photo-input" accept="image/*" hidden>
+      <div id="f-photo-area"></div>
+    </div>
+    <div class="field">
+      <label for="f-title">タイトル（写真があれば省略可）</label>
+      <input id="f-title" name="title" type="text" ${photoDataUrl ? "" : "required"} maxlength="100" value="${escapeHtml(existing?.title || "")}" placeholder="例：〇〇さんへ電話">
     </div>
     <div class="field">
       <label for="f-memo">メモ（任意）</label>
@@ -845,8 +860,9 @@ function openTodoSheet(existing) {
         responder: data.responder.trim(),
         dueDate: data.dueDate || null,
         priority: data.priority || "normal",
+        photoDataUrl,
       };
-      if (!payload.title) return;
+      if (!payload.title && !photoDataUrl) return;
       if (existing) {
         await todoStore.update(existing.id, payload);
       } else {
@@ -856,6 +872,53 @@ function openTodoSheet(existing) {
     },
     onDelete: existing ? async () => { await todoStore.remove(existing.id); toast("削除しました"); } : null,
   });
+
+  // 写真欄：撮る/選ぶ・差し替え・削除。写真があるときはタイトルを必須から外す。
+  const photoInput = sheetForm.querySelector("#f-photo-input");
+  const photoArea = sheetForm.querySelector("#f-photo-area");
+  const titleInput = sheetForm.querySelector("#f-title");
+  function renderPhotoField() {
+    titleInput.required = !photoDataUrl;
+    photoArea.innerHTML = photoDataUrl
+      ? `<div class="todo-photo-edit">
+           <img src="${photoDataUrl}" alt="貼り付けた写真">
+           <div class="todo-photo-edit__actions">
+             <button type="button" class="ghost-btn" data-photo-action="change">写真を変える</button>
+             <button type="button" class="ghost-btn ghost-btn--danger" data-photo-action="remove">写真を削除</button>
+           </div>
+         </div>`
+      : `<button type="button" class="photo-pick-btn" data-photo-action="pick">
+           <svg viewBox="0 0 24 24" aria-hidden="true">
+             <path d="M3 8a2 2 0 0 1 2-2h2.2l1.3-2h6.9l1.3 2H19a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+             <circle cx="12" cy="12.5" r="3.5"></circle>
+           </svg>
+           <span>写真を撮る・選ぶ</span>
+         </button>`;
+    photoArea.querySelectorAll("[data-photo-action]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        if (btn.dataset.photoAction === "remove") {
+          photoDataUrl = null;
+          renderPhotoField();
+        } else {
+          photoInput.click();
+        }
+      });
+    });
+  }
+  photoInput.addEventListener("change", async () => {
+    const file = photoInput.files?.[0];
+    photoInput.value = "";
+    if (!file) return;
+    try {
+      photoDataUrl = await compressImageToDataUrl(file);
+      renderPhotoField();
+    } catch (e) {
+      console.error(e);
+      toast("写真を読み込めませんでした。");
+    }
+  });
+  renderPhotoField();
+
   const groupMembers = (groupId) => state.staff.filter((s) => s.groupId === groupId).map((s) => s.id);
   function syncAssigneeChipsUI() {
     sheetForm.querySelectorAll("#assigneeGroup .chip").forEach((btn) => {

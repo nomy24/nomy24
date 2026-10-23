@@ -586,6 +586,27 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 }
 .ghost-btn--danger { color: var(--color-danger); border-color: var(--color-danger-bg); }
 
+/* ---------------- Todoの写真 ---------------- */
+/* 付箋メモなどを撮って貼るボタン。機械操作が苦手でも押しやすいよう大きめにする。 */
+.photo-pick-btn {
+  width: 100%; min-height: 96px; padding: 16px; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 8px; cursor: pointer;
+  border: 2px dashed var(--color-border); border-radius: var(--radius-md);
+  background: var(--color-surface-muted); color: var(--color-primary);
+  font-size: 15px; font-weight: 700;
+}
+.photo-pick-btn svg { width: 30px; height: 30px; }
+.todo-photo-edit img {
+  width: 100%; max-height: 240px; object-fit: contain; display: block;
+  border-radius: var(--radius-md); background: var(--color-surface-muted);
+}
+.todo-photo-edit__actions { display: flex; gap: 8px; margin-top: 10px; }
+.card__photo {
+  width: 100%; max-height: 180px; object-fit: cover; object-position: top;
+  display: block; margin-top: 8px; border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border); background: var(--color-surface-muted); cursor: zoom-in;
+}
+
 /* ---------------- FAB ---------------- */
 .fab {
   position: fixed; right: 20px; bottom: calc(var(--tabbar-h) + 16px); z-index: 25;
